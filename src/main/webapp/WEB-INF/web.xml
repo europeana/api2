@@ -2,6 +2,34 @@
  "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
+<!-- 
+  Copyright 2007-2012 The Europeana Foundation
+
+  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved 
+  by the European Commission;
+  You may not use this work except in compliance with the Licence.
+  
+  You may obtain a copy of the Licence at:
+  http://joinup.ec.europa.eu/software/page/eupl
+
+  Unless required by applicable law or agreed to in writing, software distributed under 
+  the Licence is distributed on an "AS IS" basis, without warranties or conditions of 
+  any kind, either express or implied.
+  See the Licence for the specific language governing permissions and limitations under 
+  the Licence.
+ -->
+
 <web-app>
-  <display-name>Archetype Created Web Application</display-name>
+	<display-name>Europeana API2</display-name>
+	
+	<servlet>
+		<servlet-name>api2</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>api2</servlet-name>
+		<url-pattern>/*</url-pattern>
+	</servlet-mapping>
 </web-app>
