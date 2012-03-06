@@ -1,13 +1,7 @@
 package eu.europeana.api2.enums;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 
 import javax.imageio.ImageIO;
 
@@ -51,10 +45,8 @@ public enum DefaultImage {
 			BufferedImage buf = ImageIO.read(getClass().getResourceAsStream(image));
 			cache = ImageUtils.toByteArray(buf);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// ignore, unknown image will be provided by default behavior.
 		}
-
 	}
 	
 	public static byte[] getImage(ThumbSize size, DocType type) {
