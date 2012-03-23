@@ -8,9 +8,11 @@
     ">
     
     <!-- CORE LIBRARY -->
-    <import resource="corelib-db-context.xml"/>
+    <import resource="api2-context.xml"/>
 
-    <!-- INTERNAL DEFINITIONS -->    
-    <import resource="internal/applicationContext-mvc.xml"/>
+	<!-- OVERRIDE FOR LOCAL DEVELOPMENT -->
+	<bean name="corelib_solr_searchService" class="eu.europeana.corelib.solr.service.impl.SearchServiceImpl"
+		p:solrServer-ref="corelib_solr_solrEmbedded"
+	/>
 
 </beans>

@@ -18,7 +18,9 @@
 package eu.europeana.api2.web.controller;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import eu.europeana.api2.utils.DefaultImageCache;
+import eu.europeana.corelib.db.entity.nosql.ImageCache;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ThumbnailService;
 import eu.europeana.corelib.definitions.model.ThumbSize;
@@ -47,19 +50,17 @@ public class ImageController {
 	@Resource
 	private SearchService searchService;
 
-	@RequestMapping(value = "/image", produces = MediaType.IMAGE_JPEG_VALUE)
-	public ResponseEntity<byte[]> image(@RequestParam(value = "apikey", required = true) String apiKey,
+	@RequestMapping(value = "/image", produces = MediaType.IMAGE_JPEG_VALUE, params = "!uri")
+	public ResponseEntity<byte[]> image(
+			@RequestParam(value = "apikey", required = true) String apiKey,
 			@RequestParam(value = "objectId", required = true) String objectid,
-			@RequestParam(value = "size", required = false, defaultValue = "MEDIUM") ThumbSize size) {
+			@RequestParam(value = "size", required = false, defaultValue = "MEDIUM") ThumbSize size
+	) {
 		// TODO: apikey checking
 		byte[] image = null;
 		MediaType mediaType = MediaType.IMAGE_JPEG;
-		try {
-			if (thumbnailService.exists(objectid)) {
-				image = thumbnailService.retrieveThumbnail(objectid, size);
-			}
-		} catch (DatabaseException e) {
-			// ignore and return default image
+		if (thumbnailService.exists(objectid)) {
+			image = thumbnailService.retrieveThumbnail(objectid, size);
 		}
 		if (image == null) {
 			// retrieve record
@@ -83,6 +84,38 @@ public class ImageController {
 		final HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(mediaType);
 		return new ResponseEntity<byte[]>(image, headers, HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/image", params = "!objectId")
+	public void imageRedirect(HttpServletResponse response,
+			@RequestParam(value = "type", required = false) String type,
+			@RequestParam(value = "uri", required = false) String uri,
+			@RequestParam(value = "size", required = false) String sizeString
+	) {
+		ImageCache imageCache = null;
+		if (StringUtils.isBlank(sizeString)) {
+			sizeString = ThumbSize.LARGE.toString();
+		} else if (StringUtils.equalsIgnoreCase(sizeString, "BRIEF_DOC")) {
+			sizeString = ThumbSize.MEDIUM.toString();
+		} else if (StringUtils.equalsIgnoreCase(sizeString, "FULL_DOC")) {
+			sizeString = ThumbSize.LARGE.toString();
+		}
+		try {
+			imageCache = thumbnailService.findByOriginalUrl(uri);
+		} catch (DatabaseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String objectId = imageCache != null ? imageCache.getObjectId() : "";
+		StringBuilder sb = new StringBuilder();
+		sb.append("/image?objectId=");
+		sb.append(objectId);
+		sb.append("&size=");
+		sb.append(sizeString);
+		response.setStatus(301);
+		response.setHeader("Location",  sb.toString() );
+		response.setHeader("Connection", "close");
+
 	}
 
 }

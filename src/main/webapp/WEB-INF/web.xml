@@ -21,10 +21,14 @@
 
 <web-app>
 	<display-name>Europeana API2</display-name>
-	
+
 	<servlet>
 		<servlet-name>api2</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:api2-context.xml</param-value>
+		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
