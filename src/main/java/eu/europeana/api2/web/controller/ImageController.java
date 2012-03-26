@@ -103,8 +103,7 @@ public class ImageController {
 		try {
 			imageCache = thumbnailService.findByOriginalUrl(uri);
 		} catch (DatabaseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// ignore
 		}
 		String objectId = imageCache != null ? imageCache.getObjectId() : "";
 		StringBuilder sb = new StringBuilder();

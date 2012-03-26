@@ -23,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import eu.europeana.api2.web.model.abstracts.ApiResponse;
 import eu.europeana.corelib.solr.service.SearchService;
@@ -37,11 +38,21 @@ public class ObjectController {
 	private SearchService searchService;
 
 	@RequestMapping(value = "/record.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ApiResponse record(
+	public @ResponseBody ApiResponse record(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		@RequestParam(value = "objectid", required = true) String objectId,
 		@RequestParam(value = "profile", required = false, defaultValue="full") String profile
+	) {
+		return null;
+	}
+	
+	
+	@RequestMapping(value = "/record.kml", produces = "application/vnd.google-earth.kml+xml")
+	public @ResponseBody ApiResponse searchKml(
+			@RequestParam(value = "apikey", required = true) String apiKey,
+			@RequestParam(value = "sessionhash", required = true) String sessionHash,
+			@RequestParam(value = "objectid", required = true) String objectId
 	) {
 		return null;
 	}

@@ -23,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import eu.europeana.api2.web.model.abstracts.ApiResponse;
 import eu.europeana.corelib.solr.service.SearchService;
@@ -37,7 +38,7 @@ public class SearchController {
 	private SearchService searchService;
 	
 	@RequestMapping(value = "/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ApiResponse searchJson(
+	public @ResponseBody ApiResponse searchJson(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		@RequestParam(value = "query", required = true) String query,
@@ -51,7 +52,7 @@ public class SearchController {
 	}
 	
 	@RequestMapping(value = "/search.kml", produces = "?kml?")
-	public ApiResponse searchKml(
+	public @ResponseBody ApiResponse searchKml(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		@RequestParam(value = "query", required = true) String query,
@@ -64,7 +65,7 @@ public class SearchController {
 	}
 	
 	@RequestMapping(value = "/opensearch.rss", produces = "?rss?")
-	public ApiResponse openSearchRss(
+	public @ResponseBody ApiResponse openSearchRss(
 		@RequestParam(value = "searchTerms", required = true) String query,
 		@RequestParam(value = "startIndex", required = false, defaultValue="1") int start,
 		@RequestParam(value = "count", required = false, defaultValue="12") int count,
@@ -74,7 +75,7 @@ public class SearchController {
 	}
 	
 	@RequestMapping(value = "/suggestions.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ApiResponse suggestionsJson(
+	public @ResponseBody ApiResponse suggestionsJson(
 		@RequestParam(value = "query", required = true) String query,
 		@RequestParam(value = "rows", required = false, defaultValue="10") int count
 	) {

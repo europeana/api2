@@ -23,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import eu.europeana.api2.web.model.abstracts.ApiResponse;
 import eu.europeana.corelib.db.service.UserService;
@@ -37,7 +38,7 @@ public class UserController {
 	private UserService userService;
 	
 	@RequestMapping(value = "/favorite.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ApiResponse favorite(
+	public @ResponseBody ApiResponse favorite(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		@RequestParam(value = "action", required = true) String action,
@@ -47,7 +48,7 @@ public class UserController {
 	}
 	
 	@RequestMapping(value = "/tag.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ApiResponse tag(
+	public @ResponseBody ApiResponse tag(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		@RequestParam(value = "action", required = true) String action,
@@ -60,7 +61,7 @@ public class UserController {
 	
 	
 	@RequestMapping(value = "/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ApiResponse search(
+	public @ResponseBody ApiResponse search(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		@RequestParam(value = "action", required = true) String action,
