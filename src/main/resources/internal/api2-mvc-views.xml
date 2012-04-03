@@ -19,9 +19,21 @@
         http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
 	<context:annotation-config />
-	 <mvc:annotation-driven />
-	
-	<context:component-scan base-package="eu.europeana.api2.web.controller" />
-	<!-- <bean id="jsonPFilter" class="eu.europeana.api2.web.interceptor.JsonPFilter" /> -->
-	
+
+    <!-- the json view -->
+    <bean id="api2_mvc_views_jaxbAnnotationBinder" class="org.codehaus.jackson.xc.JaxbAnnotationIntrospector" />
+    <bean id="api2_mvc_views_jsonObjectMapper" class="org.codehaus.jackson.map.ObjectMapper" />
+    <bean id="api2_mvc_views_json" class="org.springframework.web.servlet.view.json.MappingJacksonJsonView" 
+    	p:objectMapper="#{api2_mvc_views_jsonObjectMapper.setAnnotationIntrospector(api2_mvc_views_jaxbAnnotationBinder)}" />
+    
+    <!-- the xml view -->
+	<oxm:jaxb2-marshaller id="api2_mvc_views_jaxbmarshaller">
+		<oxm:class-to-be-bound name="eu.europeana.api2.web.model.xml.rss.RssResponse" />
+		<oxm:class-to-be-bound name="eu.europeana.api2.web.model.xml.kml.KmlResponse" />
+	</oxm:jaxb2-marshaller>
+
+    <bean id="api2_mvc_views_xml" class="org.springframework.web.servlet.view.xml.MarshallingView">
+        <constructor-arg ref="api2_mvc_views_jaxbmarshaller" />
+    </bean>
+
 </beans>

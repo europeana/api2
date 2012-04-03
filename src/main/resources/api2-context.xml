@@ -4,15 +4,18 @@
     xmlns:p="http://www.springframework.org/schema/p" 
     xsi:schemaLocation="
         http://www.springframework.org/schema/beans 
-        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/beans/spring-beans.xsd
     ">
     
     <!-- INTERNAL -->
     <import resource="internal/api2-security.xml"/>
-    <import resource="internal/api2-mvc.xml"/>
+    <import resource="internal/api2-mvc-views.xml"/>
     
     <!-- CORELIB -->
-	<import resource="corelib_solr_context.xml"/>
-	<import resource="corelib_db_context.xml"/>
+ 	<import resource="corelib-solr-context.xml"/>
+	<import resource="corelib-db-context.xml" />
+
+	<!-- DEVELOPMENT -->
+    <import resource="internal/api2-development.xml"/>
 
 </beans>

@@ -25,19 +25,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import eu.europeana.api2.web.model.abstracts.ApiResponse;
+import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
 import eu.europeana.corelib.db.service.UserService;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@Controller("/user")
+@Controller
 public class UserController {
 	
 	@Resource
 	private UserService userService;
 	
-	@RequestMapping(value = "/favorite.json", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/user/favorite.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse favorite(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
@@ -47,7 +47,7 @@ public class UserController {
 		return null;
 	}
 	
-	@RequestMapping(value = "/tag.json", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/user/tag.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse tag(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
@@ -60,7 +60,7 @@ public class UserController {
 	}
 	
 	
-	@RequestMapping(value = "/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/user/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse search(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,

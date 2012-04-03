@@ -22,10 +22,15 @@ import javax.annotation.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import eu.europeana.api2.web.model.abstracts.ApiResponse;
+import eu.europeana.api2.web.model.json.ApiError;
+import eu.europeana.api2.web.model.json.ApiNotImplementedYet;
+import eu.europeana.api2.web.model.json.ObjectResult;
+import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
+import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
 
 /**
@@ -37,14 +42,20 @@ public class ObjectController {
 	@Resource
 	private SearchService searchService;
 
-	@RequestMapping(value = "/record.json", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/record.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse record(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		@RequestParam(value = "objectid", required = true) String objectId,
 		@RequestParam(value = "profile", required = false, defaultValue="full") String profile
 	) {
-		return null;
+		ObjectResult response = new ObjectResult(apiKey, "record.json");
+		try {
+			response.object = searchService.findById(objectId);
+		} catch (SolrTypeException e) {
+			return new ApiError(apiKey, "record.json", e.getMessage());
+		}
+		return response;
 	}
 	
 	
@@ -54,7 +65,7 @@ public class ObjectController {
 			@RequestParam(value = "sessionhash", required = true) String sessionHash,
 			@RequestParam(value = "objectid", required = true) String objectId
 	) {
-		return null;
+		return new ApiNotImplementedYet(apiKey, "record.kml");
 	}
 	
 }

@@ -29,6 +29,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import eu.europeana.api2.enums.DefaultImage;
 import eu.europeana.api2.utils.DefaultImageCache;
 import eu.europeana.corelib.db.entity.nosql.ImageCache;
 import eu.europeana.corelib.db.exception.DatabaseException;
@@ -77,7 +78,7 @@ public class ImageController {
 		}
 		if (image == null) {
 			// load image for unkown type/object
-			image = DefaultImageCache.getImageUnknown();
+			image = DefaultImage.UNKNOWN.getCache();
 			mediaType = MediaType.IMAGE_PNG;
 		}
 

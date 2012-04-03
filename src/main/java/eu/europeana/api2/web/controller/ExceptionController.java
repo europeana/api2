@@ -19,9 +19,11 @@ package eu.europeana.api2.web.controller;
 
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import eu.europeana.api2.web.model.ApiError;
+import eu.europeana.api2.web.model.json.ApiError;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -29,10 +31,10 @@ import eu.europeana.api2.web.model.ApiError;
 @Controller
 public class ExceptionController {
 	
-	@ExceptionHandler(TypeMismatchException.class)
+	@ExceptionHandler({TypeMismatchException.class, MissingServletRequestParameterException.class})
+	@ResponseBody
 	public ApiError handleMismatchException(TypeMismatchException ex) {
-		ApiError error = new ApiError();
-		error.setError("Invalid argument(s): "+ex.toString());
+		ApiError error = new ApiError(null, null, "Invalid argument(s): "+ex.toString());
 		return error;
 	}
 

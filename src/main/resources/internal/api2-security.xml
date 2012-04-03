@@ -5,16 +5,20 @@
 	xmlns:sec="http://www.springframework.org/schema/security"
 	xmlns:mvc="http://www.springframework.org/schema/mvc"
 	xsi:schemaLocation="
-		http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2.xsd
-		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
-		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/security/oauth2 
+		http://www.springframework.org/schema/security/spring-security-oauth2.xsd
+		http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/security 
+		http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="tokenStore" class="org.springframework.security.oauth2.provider.token.InMemoryTokenStore" />
+	<!-- <bean id="tokenStore" class="org.springframework.security.oauth2.provider.token.InMemoryTokenStore" />
 
 	<bean id="tokenServices" class="org.springframework.security.oauth2.provider.token.RandomValueTokenServices">
 		<property name="tokenStore" ref="tokenStore" />
 		<property name="supportRefreshToken" value="true" />
-	</bean>
+	</bean> -->
 		
 </beans>

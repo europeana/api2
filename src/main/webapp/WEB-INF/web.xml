@@ -1,7 +1,4 @@
-<!DOCTYPE web-app PUBLIC
- "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
- "http://java.sun.com/dtd/web-app_2_3.dtd" >
-
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- 
   Copyright 2007-2012 The Europeana Foundation
 
@@ -19,12 +16,23 @@
   the Licence.
  -->
 
-<web-app>
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4">
 
 	<display-name>Europeana API2</display-name>
 
+    <welcome-file-list>
+        <welcome-file>/index.jsp</welcome-file>
+    </welcome-file-list>
+
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:/api2-context.xml</param-value>
+	</context-param>
+	
 	<!-- SPRING SECURITY (OAUTH2) -->
-	<filter>
+<!--  	<filter>
 		<filter-name>springSecurityFilterChain</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
 		<init-param>
@@ -35,30 +43,34 @@
 	<filter-mapping>
 		<filter-name>springSecurityFilterChain</filter-name>
 		<url-pattern>/*</url-pattern>
-	</filter-mapping>
+	</filter-mapping> -->
 
 	<!-- JSON P WRAPPER -->
-	<filter>
+<!--  	<filter>
 		<filter-name>jsonPFilter</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>jsonPFilter</filter-name>
 		<url-pattern>*.json</url-pattern>
-	</filter-mapping>
+	</filter-mapping> -->
+	
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
 
 	<servlet>
 		<servlet-name>api2</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-		<init-param>
+ 		<init-param>
 			<param-name>contextConfigLocation</param-name>
-			<param-value>classpath:api2-context.xml</param-value>
+			<param-value>classpath:/internal/api2-mvc.xml</param-value>
 		</init-param>
-		<load-on-startup>1</load-on-startup>
+		<load-on-startup>2</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>api2</servlet-name>
-		<url-pattern>/*</url-pattern>
+		<url-pattern>/</url-pattern>
 	</servlet-mapping>
 
 </web-app>
