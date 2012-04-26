@@ -18,9 +18,9 @@ public class KmlResponse {
 			Placemark placemark = new Placemark();
 			placemark.name = bean.getTitle()[0];
 			StringBuilder sb = new StringBuilder();
-			sb.append(bean.getEdmPlaceLongitude()[0]);
+			sb.append(bean.getEdmPlaceLongitude());
 			sb.append(",");
-			sb.append(bean.getEdmPlaceLatitude()[0]);
+			sb.append(bean.getEdmPlaceLatitude());
 			sb.append(",0");
 			placemark.point.coordinates = sb.toString();
 			document.placemarks.add(placemark);
