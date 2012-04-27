@@ -15,7 +15,7 @@
  *  the Licence.
  */
 
-package eu.europeana.api2.web.model.json;
+package eu.europeana.api2.web.model.json.facets;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
@@ -24,11 +24,10 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @JsonSerialize(include = Inclusion.NON_NULL)
-public class ApiNotImplementedYet extends ApiError {
+public class FacetValue {
 	
-	public ApiNotImplementedYet(String apikey, String action) {
-		super(apikey, action, "Not Implemented Yet!");
-	}
+	public String label;
 	
-	
+	public long count;
+
 }

@@ -19,6 +19,7 @@ package eu.europeana.api2.web.controller;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,16 +27,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import eu.europeana.api2.web.model.ModelTools;
 import eu.europeana.api2.web.model.json.ApiError;
 import eu.europeana.api2.web.model.json.SearchResults;
+import eu.europeana.api2.web.model.json.Suggestions;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.web.model.xml.kml.KmlResponse;
 import eu.europeana.api2.web.model.xml.rss.RssResponse;
+import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
+import eu.europeana.corelib.definitions.solr.beans.IdBean;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.Query;
 import eu.europeana.corelib.solr.model.ResultSet;
-import eu.europeana.corelib.solr.model.Term;
 import eu.europeana.corelib.solr.service.SearchService;
 
 /**
@@ -58,16 +62,35 @@ public class SearchController {
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort
 	) {
-		SearchResults<BriefBean> response = new SearchResults<BriefBean>(apiKey, "search.json");
-		Query query = new Query(q);
+		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start);
+		Class<? extends IdBean> clazz = ApiBean.class;
+		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
+			clazz = BriefBean.class;
+		}
 		try {
-			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
-			response.totalResults = resultSet.getResultSize();
-			response.itemsCount = resultSet.getResults().size();
-			response.items = resultSet.getResults();
+			SearchResults<? extends IdBean> response = createResults(apiKey, profile, query, clazz);
+			return response;
 		} catch (SolrTypeException e) {
 			return new ApiError(apiKey, "search.json", e.getMessage());
 		}
+	}
+	
+	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query q, Class<T> clazz) throws SolrTypeException {
+		SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
+		ResultSet<T> resultSet = searchService.search(clazz, q);
+		response.totalResults = resultSet.getResultSize();
+		response.itemsCount = resultSet.getResults().size();
+		response.items = resultSet.getResults();
+		if (StringUtils.containsIgnoreCase(profile, "facets") || StringUtils.containsIgnoreCase(profile, "portal")) {
+			response.facets = ModelTools.conventFacetList(resultSet.getFacetFields());
+		}
+//		if (StringUtils.containsIgnoreCase(profile, "breadcrumb") || StringUtils.containsIgnoreCase(profile, "portal")) {
+//		}
+//		if (StringUtils.containsIgnoreCase(profile, "spelling") || StringUtils.containsIgnoreCase(profile, "portal")) {
+//			response.spellcheck = resultSet.getSpellcheck();
+//		}
+//		if (StringUtils.containsIgnoreCase(profile, "suggestions") || StringUtils.containsIgnoreCase(profile, "portal")) {
+//		}
 		return response;
 	}
 	
@@ -114,7 +137,7 @@ public class SearchController {
 		@RequestParam(value = "rows", required = false, defaultValue="10") int count,
 		@RequestParam(value = "phrases", required = false, defaultValue="false") boolean phrases
 	) {
-		SearchResults<Term> response = new SearchResults<Term>(null, "suggestions.json");
+		Suggestions response = new Suggestions(null, "suggestions.json");
 		try {
 			response.items = searchService.suggestions(query, count);
 			response.itemsCount = response.items.size();

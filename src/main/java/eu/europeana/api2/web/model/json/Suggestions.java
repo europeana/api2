@@ -20,15 +20,17 @@ package eu.europeana.api2.web.model.json;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
+import eu.europeana.api2.web.model.json.abstracts.AbstractSearchResults;
+import eu.europeana.corelib.solr.model.Term;
+
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @JsonSerialize(include = Inclusion.NON_NULL)
-public class ApiNotImplementedYet extends ApiError {
-	
-	public ApiNotImplementedYet(String apikey, String action) {
-		super(apikey, action, "Not Implemented Yet!");
+public class Suggestions extends AbstractSearchResults<Term> {
+
+	public Suggestions(String apikey, String action) {
+		super(apikey, action);
 	}
-	
-	
+
 }
