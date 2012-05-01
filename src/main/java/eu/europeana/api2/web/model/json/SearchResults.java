@@ -25,12 +25,15 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.web.model.json.abstracts.AbstractSearchResults;
 import eu.europeana.api2.web.model.json.facets.Facet;
+import eu.europeana.corelib.web.model.BreadCrumb;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @JsonSerialize(include = Inclusion.NON_NULL)
 public class SearchResults<T> extends AbstractSearchResults<T> {
+	
+	public List<BreadCrumb> breadCrumbs;
 	
 	public List<Facet> facets;
 	

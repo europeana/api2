@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import eu.europeana.api2.web.model.ModelTools;
+import eu.europeana.api2.web.model.ModelUtils;
 import eu.europeana.api2.web.model.json.ApiError;
 import eu.europeana.api2.web.model.json.SearchResults;
 import eu.europeana.api2.web.model.json.Suggestions;
@@ -37,10 +37,11 @@ import eu.europeana.api2.web.model.xml.rss.RssResponse;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.IdBean;
+import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
-import eu.europeana.corelib.solr.model.Query;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
+import eu.europeana.corelib.web.utils.NavigationUtils;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -82,13 +83,14 @@ public class SearchController {
 		response.itemsCount = resultSet.getResults().size();
 		response.items = resultSet.getResults();
 		if (StringUtils.containsIgnoreCase(profile, "facets") || StringUtils.containsIgnoreCase(profile, "portal")) {
-			response.facets = ModelTools.conventFacetList(resultSet.getFacetFields());
+			response.facets = ModelUtils.conventFacetList(resultSet.getFacetFields());
 		}
-//		if (StringUtils.containsIgnoreCase(profile, "breadcrumb") || StringUtils.containsIgnoreCase(profile, "portal")) {
-//		}
-//		if (StringUtils.containsIgnoreCase(profile, "spelling") || StringUtils.containsIgnoreCase(profile, "portal")) {
-//			response.spellcheck = resultSet.getSpellcheck();
-//		}
+		if (StringUtils.containsIgnoreCase(profile, "breadcrumb") || StringUtils.containsIgnoreCase(profile, "portal")) {
+			response.breadCrumbs = NavigationUtils.createBreadCrumbList(q);
+		}
+		if (StringUtils.containsIgnoreCase(profile, "spelling") || StringUtils.containsIgnoreCase(profile, "portal")) {
+			response.spellcheck = resultSet.getSpellcheck();
+		}
 //		if (StringUtils.containsIgnoreCase(profile, "suggestions") || StringUtils.containsIgnoreCase(profile, "portal")) {
 //		}
 		return response;

@@ -29,7 +29,11 @@ import eu.europeana.api2.web.model.json.facets.FacetValue;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-public class ModelTools {
+public class ModelUtils {
+	
+	private ModelUtils() {
+		// Constructor must be private
+	}
 	
 	public static List<Facet> conventFacetList(List<FacetField> facetFields) {
 		if ( (facetFields != null) && !facetFields.isEmpty()) {
