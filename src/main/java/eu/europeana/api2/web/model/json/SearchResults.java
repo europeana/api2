@@ -19,12 +19,12 @@ package eu.europeana.api2.web.model.json;
 
 import java.util.List;
 
-import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.web.model.json.abstracts.AbstractSearchResults;
 import eu.europeana.api2.web.model.json.facets.Facet;
+import eu.europeana.api2.web.model.json.spellcheck.SpellCheck;
 import eu.europeana.corelib.web.model.BreadCrumb;
 
 /**
@@ -37,7 +37,7 @@ public class SearchResults<T> extends AbstractSearchResults<T> {
 	
 	public List<Facet> facets;
 	
-	public SpellCheckResponse spellcheck;
+	public SpellCheck spellcheck;
 	
 	public SearchResults(String apikey, String action) {
 		super(apikey, action);

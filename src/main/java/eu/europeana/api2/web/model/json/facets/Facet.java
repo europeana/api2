@@ -23,6 +23,8 @@ import java.util.List;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
+import eu.europeana.api2.web.model.json.common.LabelFrequency;
+
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
@@ -31,6 +33,6 @@ public class Facet {
 	
 	public String name;
 	
-	public List<FacetValue> fields = new ArrayList<FacetValue>();
+	public List<LabelFrequency> fields = new ArrayList<LabelFrequency>();
 
 }

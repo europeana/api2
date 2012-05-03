@@ -89,7 +89,7 @@ public class SearchController {
 			response.breadCrumbs = NavigationUtils.createBreadCrumbList(q);
 		}
 		if (StringUtils.containsIgnoreCase(profile, "spelling") || StringUtils.containsIgnoreCase(profile, "portal")) {
-			response.spellcheck = resultSet.getSpellcheck();
+			response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
 		}
 //		if (StringUtils.containsIgnoreCase(profile, "suggestions") || StringUtils.containsIgnoreCase(profile, "portal")) {
 //		}

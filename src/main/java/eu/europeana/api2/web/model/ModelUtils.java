@@ -22,9 +22,13 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.SpellCheckResponse;
+import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
 
+import eu.europeana.api2.web.model.json.Suggestions;
+import eu.europeana.api2.web.model.json.common.LabelFrequency;
 import eu.europeana.api2.web.model.json.facets.Facet;
-import eu.europeana.api2.web.model.json.facets.FacetValue;
+import eu.europeana.api2.web.model.json.spellcheck.SpellCheck;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -44,7 +48,7 @@ public class ModelUtils {
 					facet.name = facetField.getName();
 					for (FacetField.Count count : facetField.getValues()) {
 						if (StringUtils.isNotEmpty(count.getName()) && (count.getCount() > 0)) {
-							FacetValue value = new FacetValue();
+							LabelFrequency value = new LabelFrequency();
 							value.label = count.getName();
 							value.count = count.getCount();
 							facet.fields.add(value);
@@ -56,6 +60,23 @@ public class ModelUtils {
 				}
 			}
 			return facets;
+		}
+		return null;
+	}
+	
+	public static SpellCheck convertSpellCheck(SpellCheckResponse response) {
+		if (response != null) {
+			SpellCheck spellCheck = new SpellCheck();
+			spellCheck.correctlySpelled = response.isCorrectlySpelled();
+			for (Suggestion suggestion : response.getSuggestions()) {
+				for (int i=0; i<suggestion.getNumFound(); i++ ) {
+					LabelFrequency value = new LabelFrequency();
+					value.label = suggestion.getAlternatives().get(i);
+					value.count = suggestion.getAlternativeFrequencies().get(i).longValue();
+					spellCheck.suggestions.add(value);
+				}
+			} 
+			return spellCheck;
 		}
 		return null;
 	}

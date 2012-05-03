@@ -15,7 +15,7 @@
  *  the Licence.
  */
 
-package eu.europeana.api2.web.model.json.facets;
+package eu.europeana.api2.web.model.json.common;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
@@ -24,7 +24,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @JsonSerialize(include = Inclusion.NON_NULL)
-public class FacetValue {
+public class LabelFrequency {
 	
 	public String label;
 	
