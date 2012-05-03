@@ -22,6 +22,7 @@
 	 <mvc:annotation-driven />
 	
 	<context:component-scan base-package="eu.europeana.api2.web.controller" />
-	<!-- <bean id="jsonPFilter" class="eu.europeana.api2.web.interceptor.JsonPFilter" /> -->
+	
+	<bean id="jsonPFilter" class="eu.europeana.api2.web.interceptor.JsonPFilter" />
 	
 </beans>

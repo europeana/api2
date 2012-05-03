@@ -23,7 +23,7 @@
 	<display-name>Europeana API2</display-name>
 
     <welcome-file-list>
-        <welcome-file>/index.jsp</welcome-file>
+        <welcome-file>/index.html</welcome-file>
     </welcome-file-list>
 
 	<context-param>
@@ -46,14 +46,14 @@
 	</filter-mapping> -->
 
 	<!-- JSON P WRAPPER -->
-<!--  	<filter>
+  	<filter>
 		<filter-name>jsonPFilter</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>jsonPFilter</filter-name>
 		<url-pattern>*.json</url-pattern>
-	</filter-mapping> -->
+	</filter-mapping>
 	
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>

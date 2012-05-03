@@ -13,9 +13,16 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
+
 import eu.europeana.api2.utils.GenericResponseWrapper;
 
+/**
+ * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ */
 public class JsonPFilter implements Filter {
+	
+	private static String CB_PARAM = "callback";
 
 	@Override
 	public void doFilter(ServletRequest sReq, ServletResponse sRes, FilterChain chain) throws IOException,
@@ -26,13 +33,14 @@ public class JsonPFilter implements Filter {
 		@SuppressWarnings("unchecked")
 		Map<String, String[]> parms = request.getParameterMap();
 
-		if (parms.containsKey("callback")) {
+		if ((parms != null) && parms.containsKey(CB_PARAM) && StringUtils.isNotBlank(parms.get(CB_PARAM)[0])) {
 			OutputStream out = response.getOutputStream();
 			GenericResponseWrapper wrapper = new GenericResponseWrapper(response);
 			chain.doFilter(request, wrapper);
-			out.write(new String(parms.get("callback")[0] + "(").getBytes());
+			out.write(parms.get(CB_PARAM)[0].getBytes());
+			out.write("(".getBytes());
 			out.write(wrapper.getData());
-			out.write(new String(");").getBytes());
+			out.write(");".getBytes());
 			out.close();
 		} else {
 			chain.doFilter(request, response);
@@ -45,7 +53,7 @@ public class JsonPFilter implements Filter {
 	}
 
 	@Override
-	public void init(FilterConfig arg0) throws ServletException {
+	public void init(FilterConfig filterConfig) throws ServletException {
 		// do nothing
 	}
 

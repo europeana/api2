@@ -9,6 +9,7 @@
     
     <!-- INTERNAL -->
     <import resource="internal/api2-security.xml"/>
+    <import resource="internal/api2-mvc.xml"/>
     <import resource="internal/api2-mvc-views.xml"/>
     
     <!-- CORELIB -->
