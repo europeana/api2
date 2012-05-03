@@ -19,7 +19,7 @@
         http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
 	<context:annotation-config />
-	 <mvc:annotation-driven />
+	<mvc:annotation-driven />
 	
 	<context:component-scan base-package="eu.europeana.api2.web.controller" />
 	

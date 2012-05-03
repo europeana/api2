@@ -21,6 +21,7 @@ import javax.annotation.Resource;
 
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,6 +43,7 @@ public class ObjectController {
 	@Resource
 	private SearchService searchService;
 
+	@Transactional
 	@RequestMapping(value = "/record.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse record(
 		@RequestParam(value = "apikey", required = true) String apiKey,
