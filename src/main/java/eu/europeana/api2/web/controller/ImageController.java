@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -43,6 +44,7 @@ import eu.europeana.corelib.solr.service.SearchService;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@RequestMapping("/image")
 public class ImageController {
 
 	@Resource
@@ -51,23 +53,25 @@ public class ImageController {
 	@Resource
 	private SearchService searchService;
 
-	@RequestMapping(value = "/image", produces = MediaType.IMAGE_JPEG_VALUE, params = "!uri")
+	@RequestMapping("/{collectionId}/{recordId}.jpg")
 	public ResponseEntity<byte[]> image(
+	        @PathVariable String collectionId,
+	        @PathVariable String recordId,
 			@RequestParam(value = "apikey", required = true) String apiKey,
-			@RequestParam(value = "objectId", required = true) String objectid,
+			@RequestParam(value = "imageid", required = false, defaultValue = ThumbnailService.DEFAULT_IMAGEID) String imageId,
 			@RequestParam(value = "size", required = false, defaultValue = "MEDIUM") ThumbSize size
 	) {
 		// TODO: apikey checking
 		byte[] image = null;
+		String objectId = "/" + collectionId + "/" + recordId; // TODO Use corelib for object id generation
 		MediaType mediaType = MediaType.IMAGE_JPEG;
-		if (thumbnailService.exists(objectid)) {
-			image = thumbnailService.retrieveThumbnail(objectid, size);
+		if (thumbnailService.exists(objectId, imageId)) {
+			image = thumbnailService.retrieveThumbnail(objectId, imageId, size);
 		}
 		if (image == null) {
 			// retrieve record
-			FullBean bean;
 			try {
-				bean = searchService.findById(objectid);
+				FullBean bean = searchService.findById(collectionId, recordId);
 				if (bean != null) {
 					image = DefaultImageCache.getImage(bean.getType());
 					mediaType = MediaType.IMAGE_GIF;
@@ -87,7 +91,7 @@ public class ImageController {
 		return new ResponseEntity<byte[]>(image, headers, HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/image", params = "!objectId")
+	@RequestMapping(value = "/image")
 	public void imageRedirect(HttpServletResponse response,
 			@RequestParam(value = "type", required = false) String type,
 			@RequestParam(value = "uri", required = false) String uri,

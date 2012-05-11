@@ -20,9 +20,10 @@
 
 	<context:annotation-config />
 	<mvc:annotation-driven />
+	<mvc:default-servlet-handler />	
 	
 	<context:component-scan base-package="eu.europeana.api2.web.controller" />
 	
-	<bean id="jsonPFilter" class="eu.europeana.api2.web.interceptor.JsonPFilter" />
-	
+    <import resource="api2-mvc-views.xml"/>
+    	
 </beans>

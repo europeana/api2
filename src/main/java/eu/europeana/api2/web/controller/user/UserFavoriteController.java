@@ -15,7 +15,7 @@
  *  the Licence.
  */
 
-package eu.europeana.api2.web.controller;
+package eu.europeana.api2.web.controller.user;
 
 import javax.annotation.Resource;
 
@@ -32,45 +32,43 @@ import eu.europeana.corelib.db.service.UserService;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-public class UserController {
+public class UserFavoriteController {
 	
-	@Resource
+	@Resource(name="corelib_db_userService")
 	private UserService userService;
 	
-	@RequestMapping(value = "/user/favorite.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody ApiResponse favorite(
+	@RequestMapping(value = "/user/favorite.json", params="!action",  produces = MediaType.APPLICATION_JSON_VALUE)
+	public @ResponseBody ApiResponse defaultAction(
+		@RequestParam(value = "apikey", required = true) String apiKey,
+		@RequestParam(value = "sessionhash", required = true) String sessionHash
+	) {
+		return list(apiKey, sessionHash);
+	}
+	
+	@RequestMapping(value = "/user/favorite.json", params="action=LIST",  produces = MediaType.APPLICATION_JSON_VALUE)
+	public @ResponseBody ApiResponse list(
+		@RequestParam(value = "apikey", required = true) String apiKey,
+		@RequestParam(value = "sessionhash", required = true) String sessionHash
+	) {
+		return null;
+	}
+	
+	@RequestMapping(value = "/user/favorite.json", params="action=CREATE",  produces = MediaType.APPLICATION_JSON_VALUE)
+	public @ResponseBody ApiResponse create(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "action", required = true) String action,
 		@RequestParam(value = "objectid", required = false) String objectId
 	) {
 		return null;
 	}
 	
-	@RequestMapping(value = "/user/tag.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody ApiResponse tag(
+	@RequestMapping(value = "/user/favorite.json", params="action=DELETE",  produces = MediaType.APPLICATION_JSON_VALUE)
+	public @ResponseBody ApiResponse delete(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "action", required = true) String action,
-		@RequestParam(value = "tagid", required = false) String tagId,
-		@RequestParam(value = "objectid", required = false) String objectId,
-		@RequestParam(value = "tag", required = false) String tag
+		@RequestParam(value = "objectid", required = false) String objectId
 	) {
 		return null;
 	}
 	
-	
-	@RequestMapping(value = "/user/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody ApiResponse search(
-		@RequestParam(value = "apikey", required = true) String apiKey,
-		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "action", required = true) String action,
-		@RequestParam(value = "searchid", required = false) String searchId,
-		@RequestParam(value = "query", required = false) String query,
-		@RequestParam(value = "qf", required = false) String[] refinements,
-		@RequestParam(value = "start", required = false, defaultValue="1") int start
-	) {
-		return null;
-	}
-
 }

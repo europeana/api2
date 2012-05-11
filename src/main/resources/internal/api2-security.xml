@@ -2,7 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:oauth2="http://www.springframework.org/schema/security/oauth2" 
-	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:security="http://www.springframework.org/schema/security"
 	xmlns:mvc="http://www.springframework.org/schema/mvc"
 	xsi:schemaLocation="
 		http://www.springframework.org/schema/security/oauth2 
@@ -14,11 +14,95 @@
 		http://www.springframework.org/schema/beans 
 		http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="tokenStore" class="org.springframework.security.oauth2.provider.token.InMemoryTokenStore" />
+	<security:http pattern="/*" security="none"/>
 
-	<bean id="tokenServices" class="org.springframework.security.oauth2.provider.token.RandomValueTokenServices">
-		<property name="tokenStore" ref="tokenStore" />
+	<security:http pattern="/oauth/token" create-session="never" authentication-manager-ref="api2_oauth2_clientAuthenticationManager">
+		<security:intercept-url pattern="/oauth/token" access="IS_AUTHENTICATED_FULLY"/>
+		<security:anonymous enabled="false"/>
+		<security:http-basic/>
+		<security:access-denied-handler ref="api2_oauth2_accessDeniedHandler"/>
+	</security:http>
+	
+	<security:http pattern="/user/**" entry-point-ref="api2_oauth2_authenticationEntryPoint" access-decision-manager-ref="api2_oauth2_accessDecisionManager" >
+		<security:intercept-url pattern="/user/**" access="ROLE_USER"/>
+		<security:custom-filter ref="api2_oauth2_resourceServerFilter" before="EXCEPTION_TRANSLATION_FILTER" />
+		<security:access-denied-handler ref="api2_oauth2_accessDeniedHandler" />
+	</security:http>
+	
+	<security:http access-denied-page="/login.jsp">
+		<security:intercept-url pattern="/oauth/authorize" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<security:intercept-url pattern="/oauth/**" access="ROLE_USER" />
+		<security:intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+
+		<security:form-login authentication-failure-url="/login.jsp" default-target-url="/index.jsp" login-page="/login.jsp"
+			login-processing-url="/user/authenticate" />
+		<security:logout logout-success-url="/index.jsp" logout-url="/logout.do" />
+		<security:anonymous />
+	</security:http>
+	
+
+	<bean id="api2_oauth2_authenticationEntryPoint" class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">
+		<property name="realmName" value="Europeana API2" />
+	</bean>
+
+	<bean id="api2_oauth2_accessDeniedHandler" class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
+
+	<bean id="api2_oauth2_accessDecisionManager" class="org.springframework.security.access.vote.UnanimousBased" xmlns="http://www.springframework.org/schema/beans">
+		<constructor-arg>
+			<list>
+				<bean class="org.springframework.security.oauth2.provider.vote.ScopeVoter" />
+				<bean class="org.springframework.security.access.vote.RoleVoter" />
+				<bean class="org.springframework.security.access.vote.AuthenticatedVoter" />
+			</list>
+		</constructor-arg>
+	</bean>
+
+	<security:authentication-manager id="api2_oauth2_clientAuthenticationManager" xmlns="http://www.springframework.org/schema/security">
+		<authentication-provider user-service-ref="api2_oauth2_clientDetailsUserService" />
+	</security:authentication-manager>
+	
+	<security:authentication-manager alias="authenticationManager">
+		<security:authentication-provider>
+			<security:user-service>
+				<security:user name="marissa" password="koala" authorities="ROLE_USER"/>
+				<security:user name="paul" password="emu" authorities="ROLE_USER"/>
+			</security:user-service>
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+	<bean id="api2_oauth2_tokenStore" class="org.springframework.security.oauth2.provider.token.InMemoryTokenStore" />
+
+	<bean id="api2_oauth2_tokenServices" class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
+		<property name="tokenStore" ref="api2_oauth2_tokenStore" />
 		<property name="supportRefreshToken" value="true" />
 	</bean>
+		
+	<bean id="api2_oauth2_clientDetailsUserService" class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
+		<constructor-arg ref="api2_oauth2_clientDetailsService" />
+	</bean>
+
+	<bean id="api2_oauth2_userApprovalHandler" class="eu.europeana.api2.web.security.oauth2.ApiUserApprovalHandler">
+		<property name="autoApproveClients">
+			<set>
+				<value>my-less-trusted-autoapprove-client</value>
+			</set>
+		</property>
+		<property name="tokenServices" ref="api2_oauth2_tokenServices" />
+	</bean>
+
+	<oauth2:authorization-server client-details-service-ref="api2_oauth2_clientDetailsService" token-services-ref="api2_oauth2_tokenServices"
+		user-approval-handler-ref="api2_oauth2_userApprovalHandler">
+		<oauth2:authorization-code />
+		<oauth2:implicit />
+		<oauth2:refresh-token />
+		<oauth2:client-credentials />
+		<oauth2:password />
+	</oauth2:authorization-server>
+		
+	<oauth2:resource-server id="api2_oauth2_resourceServerFilter" resource-id="Europeana API2" token-services-ref="api2_oauth2_tokenServices" />
+		
+	<oauth2:client-details-service id="api2_oauth2_clientDetailsService">
+		<oauth2:client client-id="apiClient" authorized-grant-types="authorization_code" authorities="ROLE_CLIENT" scope="read"/>
+	</oauth2:client-details-service>
 		
 </beans>

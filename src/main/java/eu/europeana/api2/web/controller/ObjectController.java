@@ -22,6 +22,7 @@ import javax.annotation.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -38,22 +39,24 @@ import eu.europeana.corelib.solr.service.SearchService;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@RequestMapping(value = "/record")
 public class ObjectController {
 	
 	@Resource
 	private SearchService searchService;
 
 	@Transactional
-	@RequestMapping(value = "/record.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/{collectionId}/{recordId}.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse record(
+        @PathVariable String collectionId,
+        @PathVariable String recordId,
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "objectid", required = true) String objectId,
 		@RequestParam(value = "profile", required = false, defaultValue="full") String profile
 	) {
 		ObjectResult response = new ObjectResult(apiKey, "record.json");
 		try {
-			response.object = searchService.findById(objectId);
+			response.object = searchService.findById(collectionId, recordId);
 		} catch (SolrTypeException e) {
 			return new ApiError(apiKey, "record.json", e.getMessage());
 		}
@@ -61,11 +64,12 @@ public class ObjectController {
 	}
 	
 	
-	@RequestMapping(value = "/record.kml", produces = "application/vnd.google-earth.kml+xml")
+	@RequestMapping(value = "/{collectionId}/{recordId}.kml", produces = "application/vnd.google-earth.kml+xml")
 	public @ResponseBody ApiResponse searchKml(
+	        @PathVariable String collectionId,
+	        @PathVariable String recordId,
 			@RequestParam(value = "apikey", required = true) String apiKey,
-			@RequestParam(value = "sessionhash", required = true) String sessionHash,
-			@RequestParam(value = "objectid", required = true) String objectId
+			@RequestParam(value = "sessionhash", required = true) String sessionHash
 	) {
 		return new ApiNotImplementedYet(apiKey, "record.kml");
 	}
