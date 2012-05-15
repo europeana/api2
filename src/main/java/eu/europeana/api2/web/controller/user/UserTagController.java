@@ -17,6 +17,8 @@
 
 package eu.europeana.api2.web.controller.user;
 
+import java.security.Principal;
+
 import javax.annotation.Resource;
 
 import org.springframework.http.MediaType;
@@ -41,16 +43,18 @@ public class UserTagController {
 	public @ResponseBody ApiResponse defaultAction(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "objectid", required = false) String objectId
+		@RequestParam(value = "objectid", required = false) String objectId,
+		Principal principal
 	) {
-		return list(apiKey, sessionHash, objectId);
+		return list(apiKey, sessionHash, objectId, principal);
 	}
 	
 	@RequestMapping(value = "/user/tag.json", params="action=LIST",  produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse list(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "objectid", required = false) String objectId
+		@RequestParam(value = "objectid", required = false) String objectId,
+		Principal principal
 	) {
 		return null;
 	}
@@ -60,7 +64,8 @@ public class UserTagController {
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		@RequestParam(value = "objectid", required = true) String objectId,
-		@RequestParam(value = "tag", required = true) String tag
+		@RequestParam(value = "tag", required = true) String tag,
+		Principal principal
 	) {
 		return null;
 	}
@@ -69,7 +74,8 @@ public class UserTagController {
 	public @ResponseBody ApiResponse delete(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "tagid", required = true) String tagId
+		@RequestParam(value = "tagid", required = true) String tagId,
+		Principal principal
 	) {
 		return null;
 	}

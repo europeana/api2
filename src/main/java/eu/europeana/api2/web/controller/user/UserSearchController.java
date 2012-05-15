@@ -17,6 +17,8 @@
 
 package eu.europeana.api2.web.controller.user;
 
+import java.security.Principal;
+
 import javax.annotation.Resource;
 
 import org.springframework.http.MediaType;
@@ -40,15 +42,17 @@ public class UserSearchController {
 	@RequestMapping(value = "/user/search.json", params="!action",  produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse defaultAction(
 		@RequestParam(value = "apikey", required = true) String apiKey,
-		@RequestParam(value = "sessionhash", required = true) String sessionHash
+		@RequestParam(value = "sessionhash", required = true) String sessionHash,
+		Principal principal
 	) {
-		return list(apiKey, sessionHash);
+		return list(apiKey, sessionHash, principal);
 	}
 	
 	@RequestMapping(value = "/user/search.json", params="action=LIST",  produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse list(
 		@RequestParam(value = "apikey", required = true) String apiKey,
-		@RequestParam(value = "sessionhash", required = true) String sessionHash
+		@RequestParam(value = "sessionhash", required = true) String sessionHash,
+		Principal principal
 	) {
 		return null;
 	}
@@ -59,7 +63,8 @@ public class UserSearchController {
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		@RequestParam(value = "query", required = true) String query,
 		@RequestParam(value = "qf", required = false) String[] refinements,
-		@RequestParam(value = "start", required = false, defaultValue="1") int start
+		@RequestParam(value = "start", required = false, defaultValue="1") int start,
+		Principal principal
 	) {
 		return null;
 	}
@@ -68,7 +73,8 @@ public class UserSearchController {
 	public @ResponseBody ApiResponse delete(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "searchid", required = true) String searchId
+		@RequestParam(value = "searchid", required = true) String searchId,
+		Principal principal
 	) {
 		return null;
 	}

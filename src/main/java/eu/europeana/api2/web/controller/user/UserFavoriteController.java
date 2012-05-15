@@ -17,6 +17,8 @@
 
 package eu.europeana.api2.web.controller.user;
 
+import java.security.Principal;
+
 import javax.annotation.Resource;
 
 import org.springframework.http.MediaType;
@@ -25,8 +27,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import eu.europeana.api2.web.model.json.UserResults;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
+import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.UserService;
+import eu.europeana.corelib.definitions.db.entity.relational.SavedItem;
+import eu.europeana.corelib.definitions.db.entity.relational.User;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -40,16 +46,24 @@ public class UserFavoriteController {
 	@RequestMapping(value = "/user/favorite.json", params="!action",  produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse defaultAction(
 		@RequestParam(value = "apikey", required = true) String apiKey,
-		@RequestParam(value = "sessionhash", required = true) String sessionHash
+		@RequestParam(value = "sessionhash", required = true) String sessionHash,
+		Principal principal
 	) {
-		return list(apiKey, sessionHash);
+		return list(apiKey, sessionHash, principal);
 	}
 	
 	@RequestMapping(value = "/user/favorite.json", params="action=LIST",  produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse list(
 		@RequestParam(value = "apikey", required = true) String apiKey,
-		@RequestParam(value = "sessionhash", required = true) String sessionHash
+		@RequestParam(value = "sessionhash", required = true) String sessionHash,
+		Principal principal
 	) {
+		User user = userService.findByEmail(principal.getName());
+		if (user != null) {
+			UserResults<SavedItem> result = new UserResults<SavedItem>(apiKey, sessionHash);
+			result.items.addAll(user.getSavedItems());
+			return result;
+		}
 		return null;
 	}
 	
@@ -57,7 +71,8 @@ public class UserFavoriteController {
 	public @ResponseBody ApiResponse create(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "objectid", required = false) String objectId
+		@RequestParam(value = "objectid", required = false) String objectId,
+		Principal principal
 	) {
 		return null;
 	}
@@ -66,8 +81,18 @@ public class UserFavoriteController {
 	public @ResponseBody ApiResponse delete(
 		@RequestParam(value = "apikey", required = true) String apiKey,
 		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "objectid", required = false) String objectId
+		@RequestParam(value = "objectid", required = false) Long objectId,
+		Principal principal
 	) {
+		User user = userService.findByEmail(principal.getName());
+		if (user != null) {
+			try {
+				userService.removeSavedItem(user.getId(), objectId);
+			} catch (DatabaseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		return null;
 	}
 	

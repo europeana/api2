@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:p="http://www.springframework.org/schema/p" 
     xsi:schemaLocation="
         http://www.springframework.org/schema/beans 
         http://www.springframework.org/schema/beans/spring-beans.xsd
     ">
     
     <!-- CORELIB -->
- 	<import resource="corelib-solr-context.xml"/>
 	<import resource="corelib-db-context.xml" />
+ 	<import resource="corelib-solr-context.xml"/>
 	
     <!-- INTERNAL -->
     <import resource="internal/api2-security.xml"/>
