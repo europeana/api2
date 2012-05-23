@@ -34,5 +34,8 @@
 		<module>api2-demo</module>
 		<module>api2-model</module>
 	</modules>
-	
+	<properties>
+		<version.codehausJackson>1.9.7</version.codehausJackson>
+		<version.springSecurityOauth>1.0.0.M6a</version.springSecurityOauth>
+	</properties>	
 </project>

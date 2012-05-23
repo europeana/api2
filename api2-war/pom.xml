@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>org.springframework.security.oauth</groupId>
 			<artifactId>spring-security-oauth2</artifactId>
-			<version>1.0.0.M6a</version>
+			<version>${version.springSecurityOauth}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
@@ -62,7 +62,7 @@
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>jstl</artifactId>
-			<version>1.2</version>
+			<version>${version.servletJstl}</version>
 		</dependency>
    	</dependencies>
 	<build>
