@@ -28,7 +28,9 @@ public class Api2UserServiceImpl implements Api2UserService {
 			UserFavorites response = mapper.readValue(photosJson, UserFavorites.class);
 			return response.items;
 		} catch (JsonProcessingException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
