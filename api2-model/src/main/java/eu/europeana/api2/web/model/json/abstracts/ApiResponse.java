@@ -42,5 +42,9 @@ public abstract class ApiResponse {
 		this.apikey = apikey;
 		this.action = action;
 	}
+
+	public ApiResponse() {
+		// used by Jackson
+	}
 	
 }

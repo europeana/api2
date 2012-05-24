@@ -28,6 +28,11 @@ import eu.europeana.api2.web.model.json.abstracts.AbstractSearchResults;
 @JsonSerialize(include = Inclusion.NON_NULL)
 public class UserResults<T> extends AbstractSearchResults<T> {
 	
+	public UserResults() {
+		// used by Jackson
+		super();
+	}
+	
 	public UserResults(String apikey, String action) {
 		super(apikey, action);
 	}
