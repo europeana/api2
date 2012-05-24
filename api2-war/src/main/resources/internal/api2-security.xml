@@ -18,11 +18,6 @@
 	<security:http pattern="/suggestions.json" security="none" />
 	<security:http pattern="/opensearch.rss" security="none" />
 	
- 	<security:http auto-config="true" pattern="/*.(json|kml)" request-matcher="regex" authentication-manager-ref="api2_clientAuthenticationManager" realm="Euroepana API2">
-		<security:intercept-url pattern="/*.json" access="ROLE_CLIENT" />
-		<security:intercept-url pattern="/*.kml" access="ROLE_CLIENT" />
-	</security:http>
-
 	<security:http pattern="/oauth/token" create-session="stateless" authentication-manager-ref="api2_oauth2_clientAuthenticationManager"
 		entry-point-ref="api2_oauth2_authenticationEntryPoint" realm="Euroepana API2 OAuth">
 		<security:intercept-url pattern="/oauth/token" access="IS_AUTHENTICATED_FULLY" />
@@ -35,7 +30,9 @@
 	<security:http auto-config="true" disable-url-rewriting="true" realm="Euroepana API2 Users">
 		<security:intercept-url pattern="/oauth/**" access="ROLE_USER" />
 		<security:intercept-url pattern="/user/**" access="ROLE_USER"/>
-		<security:intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		<security:intercept-url pattern="/search.**" access="ROLE_CLIENT" />
+		<security:intercept-url pattern="/record/**" access="ROLE_CLIENT" />
+		<!-- <security:intercept-url pattern="/*" access="IS_AUTHENTICATED_ANONYMOUSLY" /> -->
 		<security:custom-filter ref="api2_oauth2_resourceServerFilter" before="PRE_AUTH_FILTER"/><!--  EXCEPTION_TRANSLATION_FILTER" /> -->
 		<!-- <security:access-denied-handler ref="api2_oauth2_accessDeniedHandler" /> -->
 		<!-- <security:form-login authentication-failure-url="/user/login" default-target-url="/index.html" login-page="/user/login.jsp"
@@ -77,11 +74,6 @@
 		</security:authentication-provider>
 	</security:authentication-manager>
 	<bean id="api2_userDetailsService" class="eu.europeana.api2.web.security.UserDetailsServiceImpl"/>
-	
-	<security:authentication-manager id="api2_clientAuthenticationManager">
-		<security:authentication-provider user-service-ref="api2_clientDetailsService"/>
-	</security:authentication-manager>
-	<bean id="api2_clientDetailsService" class="eu.europeana.api2.web.security.ClientDetailsServiceImpl"/>
 
 	<!-- TOKEN STORE -->
 

@@ -2,6 +2,8 @@ package eu.europeana.api2.web.security.model;
 
 import java.util.Collection;
 
+import org.apache.commons.lang.StringUtils;
+import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,7 +26,7 @@ public class Api2ClientDetails implements UserDetails {
 
 	@Override
 	public String getPassword() {
-		return apiKey.getPrivateKey();
+		return hashPassword(apiKey.getPrivateKey());
 	}
 
 	@Override
@@ -50,6 +52,20 @@ public class Api2ClientDetails implements UserDetails {
 	@Override
 	public boolean isEnabled() {
 		return true;
+	}
+
+	/**
+	 * Hashing password using ShaPasswordEncoder.
+	 * 
+	 * @param password
+	 *            The password in initial form.
+	 * @return Hashed password as to be stored in database
+	 */
+	private String hashPassword(String password) {
+		if (StringUtils.isNotBlank(password)) {
+			return new ShaPasswordEncoder().encodePassword(password, null);
+		}
+		return null;
 	}
 
 }
