@@ -15,38 +15,22 @@
  *  the Licence.
  */
 
-package eu.europeana.api2.web.model.json.abstracts;
-
-import java.util.Date;
+package eu.europeana.api2.web.model.json.user;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+
+import eu.europeana.api2.web.model.json.abstracts.UserObject;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @JsonSerialize(include = Inclusion.NON_NULL)
-public abstract class ApiResponse {
-	
-	public String apikey;
-	
-	public String action;
-	
-	public boolean success = true;
+public class Favorite extends UserObject {
 
-	public String error;
+	public String author;
 	
-	public Date statsStartTime;
-
-	public long statsDuration = 0;
-	
-	public ApiResponse(String apikey, String action) {
-		this.apikey = apikey;
-		this.action = action;
+	public String getAuthor() {
+		return author;
 	}
-
-	public ApiResponse() {
-		// used by Jackson
-	}
-	
 }

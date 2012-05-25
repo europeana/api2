@@ -22,31 +22,48 @@ import java.util.Date;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
+import eu.europeana.corelib.definitions.solr.DocType;
+
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @JsonSerialize(include = Inclusion.NON_NULL)
-public abstract class ApiResponse {
+public abstract class UserObject {
 	
-	public String apikey;
-	
-	public String action;
-	
-	public boolean success = true;
+	public Long id;
 
-	public String error;
-	
-	public Date statsStartTime;
+	public String europeanaUri;
 
-	public long statsDuration = 0;
+	public String title;
+
+	public String europeanaObject;
+
+	public DocType docType = DocType.IMAGE;
+
+	public Date dateSaved;
 	
-	public ApiResponse(String apikey, String action) {
-		this.apikey = apikey;
-		this.action = action;
+	public Long getId() {
+		return id;
 	}
-
-	public ApiResponse() {
-		// used by Jackson
+	
+	public String getEuropeanaUri() {
+		return europeanaUri;
+	}
+	
+	public String getTitle() {
+		return title;
+	}
+	
+	public String getEuropeanaObject() {
+		return europeanaObject;
+	}
+	
+	public DocType getDocType() {
+		return docType;
+	}
+	
+	public Date getDateSaved() {
+		return dateSaved;
 	}
 	
 }

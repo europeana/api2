@@ -1,11 +1,13 @@
 package eu.europeana.api2demo.web.service;
 
-import java.util.List;
-
-import eu.europeana.corelib.definitions.db.entity.relational.SavedItem;
+import eu.europeana.api2demo.web.model.UserFavorites;
 
 public interface Api2UserService {
 	
-	List<SavedItem> getFavorites();
+	UserFavorites getFavorites();
 
+	boolean createFavorite(String id);
+
+	boolean deleteFavorite(Long id);
+	
 }

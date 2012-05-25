@@ -23,6 +23,11 @@
 			<version>${version.springSecurityOauth}</version>
 		</dependency>
 		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>${version.servletJstl}</version>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>${version.junit}</version>
@@ -30,7 +35,7 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>api2demo</finalName>
+		<finalName>api2-demo</finalName>
 	</build>
 	<groupId>eu.europeana.api2</groupId>
 </project>

@@ -23,14 +23,17 @@ import java.util.ArrayList;
 import javax.annotation.Resource;
 
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
+import eu.europeana.api2.web.model.json.UserModification;
 import eu.europeana.api2.web.model.json.UserResults;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
+import eu.europeana.api2.web.model.json.user.Favorite;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.SavedItem;
@@ -40,12 +43,9 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-public class UserFavoriteController {
+public class UserFavoriteController extends AbstractUserController {
 	
-	@Resource(name="corelib_db_userService")
-	private UserService userService;
-	
-	@RequestMapping(value = "/user/favorite.json", params="!action",  produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/user/favorite.json", params="!action",  produces = MediaType.APPLICATION_JSON_VALUE, method=RequestMethod.GET)
 	public @ResponseBody ApiResponse defaultAction(
 		Principal principal
 	) {
@@ -58,45 +58,75 @@ public class UserFavoriteController {
 	) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			UserResults<SavedItem> result = new UserResults<SavedItem>(getApiId(principal), "/user/favorite.json");
-			result.items = new ArrayList<SavedItem>();
-			result.items.addAll(user.getSavedItems());
+			UserResults<Favorite> result = new UserResults<Favorite>(getApiId(principal), "/user/favorite.json");
+			result.items = new ArrayList<Favorite>();
+			result.username = user.getUserName();
+			for (SavedItem item : user.getSavedItems()) {
+				Favorite fav = new Favorite();
+				fav.id = item.getId();
+				fav.author = item.getAuthor();
+				fav.dateSaved = item.getDateSaved();
+				fav.docType = item.getDocType();
+				fav.europeanaObject = item.getEuropeanaObject();
+				fav.europeanaUri = item.getEuropeanaUri();
+				fav.title = item.getTitle();
+				result.items.add(fav);
+			}
 			return result;
 		}
 		return null;
 	}
 	
-	private String getApiId(Principal principal) {
-		if (principal instanceof OAuth2Authentication) {
-			OAuth2Authentication authentication = (OAuth2Authentication) principal;
-			return authentication.getAuthorizationRequest().getClientId();
-		}
-		return "testing";
+	@RequestMapping(value = "/user/favorite.json", params="!action",  produces = MediaType.APPLICATION_JSON_VALUE, method={RequestMethod.POST,RequestMethod.PUT})
+	public @ResponseBody ApiResponse createRest(
+		@RequestParam(value = "objectid", required = false) String objectId,
+		Principal principal
+	) {
+		return create(objectId, principal);
 	}
 	
-	@RequestMapping(value = "/user/favorite.json", params="action=CREATE",  produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/user/favorite.json", params="action=CREATE",  produces = MediaType.APPLICATION_JSON_VALUE, method=RequestMethod.GET)
 	public @ResponseBody ApiResponse create(
 		@RequestParam(value = "objectid", required = false) String objectId,
 		Principal principal
 	) {
-		return null;
+		User user = userService.findByEmail(principal.getName());
+		UserModification response = new UserModification(getApiId(principal), "/user/favorite.json?action=CREATE");
+		try {
+			userService.createSavedItem(user.getId(), objectId);
+			response.success = true;
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
+		}
+		return response;
 	}
 	
-	@RequestMapping(value = "/user/favorite.json", params="action=DELETE",  produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/user/favorite.json", params="!action",  produces = MediaType.APPLICATION_JSON_VALUE, method=RequestMethod.DELETE)
+	public @ResponseBody ApiResponse deleteRest(
+		@RequestParam(value = "objectid", required = false) Long objectId,
+		Principal principal
+	) {
+		return delete(objectId, principal);
+	}
+	
+	@RequestMapping(value = "/user/favorite.json", params="action=DELETE",  produces = MediaType.APPLICATION_JSON_VALUE, method=RequestMethod.GET)
 	public @ResponseBody ApiResponse delete(
 		@RequestParam(value = "objectid", required = false) Long objectId,
 		Principal principal
 	) {
 		User user = userService.findByEmail(principal.getName());
+		UserModification response = new UserModification(getApiId(principal), "/user/favorite.json?action=DELETE");
 		if (user != null) {
 			try {
 				userService.removeSavedItem(user.getId(), objectId);
+				response.success = true;
 			} catch (DatabaseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				response.success = false;
+				response.error = e.getMessage();
 			}
 		}
-		return null;
+		return response;
 	}
 	
 }

@@ -27,8 +27,6 @@ import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
  */
 @JsonSerialize(include = Inclusion.NON_NULL)
 public class ApiError extends ApiResponse {
-
-	public String error;
 	
 	public boolean success = false;
 	
