@@ -53,7 +53,7 @@ public class UserController {
 		@RequestParam(value = "id", required = true) Long objectId
 	) {
 		api2UserService.deleteTag(objectId);
-		return favorites();
+		return tags();
 	}
 
 

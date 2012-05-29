@@ -61,7 +61,7 @@ public class UserFavoriteController extends AbstractUserController {
 			for (SavedItem item : user.getSavedItems()) {
 				Favorite fav = new Favorite();
 				copyUserObjectData(fav, item);
-				fav.title = item.getTitle();
+				fav.author = item.getAuthor();
 				result.items.add(fav);
 			}
 			return result;

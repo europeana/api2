@@ -13,23 +13,23 @@
 
 <body>
 <c:import url="../links.jsp" />
-<h1>Favorites for: ${username}</h1>
+<h1>Social Tags for: ${username}</h1>
 <table border="1">
 <tr>
 	<td>title</td>
-	<td>author</td>
+	<td>tag</td>
 	<td>date</td>
 	<td>action</td>
 </tr>
 
-<c:forEach var="fav" items="${favs}"> 
+<c:forEach var="tag" items="${tags}"> 
 	<tr>
-		<td>${fav.title}</td>
-		<td>${fav.author}</td>
-		<td><fmt:formatDate value="${fav.dateSaved}"/></td>
+		<td>${tag.title}</td>
+		<td>${tag.tag}</td>
+		<td><fmt:formatDate value="${tag.dateSaved}"/></td>
 		<td>
-			<a href="${fn:replace(fav.europeanaUri,"www.europeana.eu/resolve","localhost:8081/portal")}.html" target="_blank">view</a>
-			<a href="favorites?action=DELETE&id=${fav.id}">delete</a>
+			<a href="${fn:replace(tag.europeanaUri,"www.europeana.eu/resolve","localhost:8081/portal")}.html" target="_blank">view</a>
+			<a href="tags?action=DELETE&id=${tag.id}">delete</a>
 		</td>
 	</tr>
 </c:forEach>

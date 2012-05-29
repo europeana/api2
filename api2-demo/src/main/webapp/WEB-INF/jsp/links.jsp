@@ -1,0 +1,1 @@
+<a href="/api2demo/user/favorites">Favorites</a> <a href="/api2demo/user/tags">Tags</a>
