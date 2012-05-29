@@ -6,7 +6,9 @@ import javax.annotation.Resource;
 
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
+import eu.europeana.api2.web.model.json.abstracts.UserObject;
 import eu.europeana.corelib.db.service.UserService;
+import eu.europeana.corelib.definitions.db.entity.relational.abstracts.EuropeanaUserObject;
 
 public abstract class AbstractUserController {
 	
@@ -19,6 +21,15 @@ public abstract class AbstractUserController {
 			return authentication.getAuthorizationRequest().getClientId();
 		}
 		return "testing";
+	}
+	
+	protected void copyUserObjectData(UserObject to, EuropeanaUserObject from) {
+		to.id = from.getId();
+		to.title = from.getTitle();
+		to.dateSaved = from.getDateSaved();
+		to.docType = from.getDocType();
+		to.europeanaObject = from.getEuropeanaObject();
+		to.europeanaUri = from.getEuropeanaUri();
 	}
 
 }

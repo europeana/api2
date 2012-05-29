@@ -24,9 +24,11 @@ import javax.annotation.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
 import eu.europeana.corelib.db.service.UserService;
 
@@ -34,33 +36,37 @@ import eu.europeana.corelib.db.service.UserService;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-public class UserSearchController {
+public class UserSearchController extends AbstractUserController {
 	
 	@Resource(name="corelib_db_userService")
 	private UserService userService;
 	
 	@RequestMapping(value = "/user/search.json", params="!action",  produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse defaultAction(
-		@RequestParam(value = "apikey", required = true) String apiKey,
-		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		Principal principal
 	) {
-		return list(apiKey, sessionHash, principal);
+		return list(principal);
 	}
 	
 	@RequestMapping(value = "/user/search.json", params="action=LIST",  produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse list(
-		@RequestParam(value = "apikey", required = true) String apiKey,
-		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		Principal principal
 	) {
 		return null;
 	}
 	
+	@RequestMapping(value = "/user/search.json", params="!action",  produces = MediaType.APPLICATION_JSON_VALUE, method={RequestMethod.POST,RequestMethod.PUT})
+	public @ResponseBody ApiResponse createRest(
+			@RequestParam(value = "query", required = true) String query,
+			@RequestParam(value = "qf", required = false) String[] refinements,
+			@RequestParam(value = "start", required = false, defaultValue="1") int start,
+		Principal principal
+	) {
+		return create(query, refinements, start, principal);
+	}
+	
 	@RequestMapping(value = "/user/search.json", params="action=CREATE",  produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse create(
-		@RequestParam(value = "apikey", required = true) String apiKey,
-		@RequestParam(value = "sessionhash", required = true) String sessionHash,
 		@RequestParam(value = "query", required = true) String query,
 		@RequestParam(value = "qf", required = false) String[] refinements,
 		@RequestParam(value = "start", required = false, defaultValue="1") int start,
@@ -69,11 +75,17 @@ public class UserSearchController {
 		return null;
 	}
 	
+	@RequestMapping(value = "/user/search.json", params="!action",  produces = MediaType.APPLICATION_JSON_VALUE, method=RequestMethod.DELETE)
+	public @ResponseBody ApiResponse deleteRest(
+		@RequestParam(value = "objectid", required = false) Long objectId,
+		Principal principal
+	) {
+		return delete(objectId, principal);
+	}
+	
 	@RequestMapping(value = "/user/search.json", params="action=DELETE",  produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse delete(
-		@RequestParam(value = "apikey", required = true) String apiKey,
-		@RequestParam(value = "sessionhash", required = true) String sessionHash,
-		@RequestParam(value = "searchid", required = true) String searchId,
+		@RequestParam(value = "searchid", required = true) Long searchId,
 		Principal principal
 	) {
 		return null;

@@ -20,8 +20,6 @@ package eu.europeana.api2.web.controller.user;
 import java.security.Principal;
 import java.util.ArrayList;
 
-import javax.annotation.Resource;
-
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +33,6 @@ import eu.europeana.api2.web.model.json.UserResults;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.web.model.json.user.Favorite;
 import eu.europeana.corelib.db.exception.DatabaseException;
-import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.SavedItem;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 
@@ -63,12 +60,7 @@ public class UserFavoriteController extends AbstractUserController {
 			result.username = user.getUserName();
 			for (SavedItem item : user.getSavedItems()) {
 				Favorite fav = new Favorite();
-				fav.id = item.getId();
-				fav.author = item.getAuthor();
-				fav.dateSaved = item.getDateSaved();
-				fav.docType = item.getDocType();
-				fav.europeanaObject = item.getEuropeanaObject();
-				fav.europeanaUri = item.getEuropeanaUri();
+				copyUserObjectData(fav, item);
 				fav.title = item.getTitle();
 				result.items.add(fav);
 			}
