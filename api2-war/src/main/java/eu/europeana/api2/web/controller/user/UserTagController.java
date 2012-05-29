@@ -30,14 +30,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
-import eu.europeana.api2.web.model.json.UserModification;
 import eu.europeana.api2.web.model.json.UserResults;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
-import eu.europeana.api2.web.model.json.user.Favorite;
 import eu.europeana.api2.web.model.json.user.Tag;
-import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.UserService;
-import eu.europeana.corelib.definitions.db.entity.relational.SavedItem;
 import eu.europeana.corelib.definitions.db.entity.relational.SocialTag;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 
