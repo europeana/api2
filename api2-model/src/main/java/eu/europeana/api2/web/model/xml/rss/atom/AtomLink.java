@@ -18,19 +18,23 @@
 package eu.europeana.api2.web.model.xml.rss.atom;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlType;
+
+import eu.europeana.api2.web.model.xml.rss.RssResponse;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
+@XmlType(namespace=RssResponse.NS_ATOM)
 public class AtomLink {
 
 	@XmlAttribute
 	String href = "";
 	
 	@XmlAttribute
-	String rel = "self";
+	final String rel = "search";
 	
 	@XmlAttribute
-	String type = "application/rss+xml";
+	final String type = "application/rss+xml";
 	
 }

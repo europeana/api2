@@ -35,6 +35,8 @@ import eu.europeana.api2.web.model.json.SearchResults;
 import eu.europeana.api2.web.model.json.Suggestions;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.web.model.xml.kml.KmlResponse;
+import eu.europeana.api2.web.model.xml.rss.Channel;
+import eu.europeana.api2.web.model.xml.rss.Item;
 import eu.europeana.api2.web.model.xml.rss.RssResponse;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
@@ -114,7 +116,6 @@ public class SearchController {
 			response.document.extendedData.totalResults.value = Long.toString(resultSet.getResultSize());
 			response.document.extendedData.startIndex.value = Integer.toString(start);
 			response.setItems(resultSet.getResults());
-//			response.items = resultSet.getResults();
 		} catch (SolrTypeException e) {
 //			ApiError error = new ApiError();
 //			error.error = e.getMessage();
@@ -125,12 +126,31 @@ public class SearchController {
 	
 	@RequestMapping(value = "/opensearch.rss", produces= MediaType.APPLICATION_XML_VALUE) //, produces = "?rss?")
 	public @ResponseBody RssResponse openSearchRss(
-		@RequestParam(value = "searchTerms", required = true) String query,
+		@RequestParam(value = "searchTerms", required = true) String q,
 		@RequestParam(value = "startIndex", required = false, defaultValue="1") int start,
 		@RequestParam(value = "count", required = false, defaultValue="12") int count,
 		@RequestParam(value = "sort", required = false) String sort
 	) {
-		return new RssResponse();
+		try {
+			Query query = new Query(q).setPageSize(count).setStart(start);
+			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
+			RssResponse rss = new RssResponse();
+			Channel channel = rss.channel;
+			channel.totalResults.value = resultSet.getResultSize();
+			channel.startIndex.value = start;
+			channel.itemsPerPage.value = count;
+			channel.query.searchTerms = q;
+			channel.query.startPage = start;
+			for (BriefBean bean : resultSet.getResults()) {
+				Item item = new Item();
+				item.title = bean.getTitle()[0];
+				channel.items.add(item);
+			}
+			return rss;
+		} catch (SolrTypeException e) {
+			return null;
+		}
+
 	}
 	
 	@RequestMapping(value = "/suggestions.json")//, produces = MediaType.APPLICATION_JSON_VALUE)

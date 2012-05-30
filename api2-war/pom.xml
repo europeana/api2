@@ -65,7 +65,7 @@
 			<artifactId>jstl</artifactId>
 			<version>${version.servletJstl}</version>
 		</dependency>
-   	</dependencies>
+	</dependencies>
 	<build>
 		<finalName>api2-war</finalName>
 	</build>

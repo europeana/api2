@@ -17,9 +17,14 @@
 
 package eu.europeana.api2.web.model.xml.rss;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlElement;
 
 import eu.europeana.api2.web.model.xml.rss.atom.AtomLink;
+import eu.europeana.api2.web.model.xml.rss.opensearch.Query;
+import eu.europeana.api2.web.model.xml.rss.opensearch.Statistic;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -33,8 +38,23 @@ public class Channel {
 	@XmlElement
 	private String link = "http://www.europeana.eu";
 	
-	@XmlElement(name="link", namespace = "http://www.w3.org/2005/Atom")
-	private AtomLink atomLink = new AtomLink();
+	@XmlElement(name="totalResults", namespace = RssResponse.NS_OPENSEARCH)
+	public Statistic totalResults = new Statistic();
+	
+	@XmlElement(name="startIndex", namespace = RssResponse.NS_OPENSEARCH)
+	public Statistic startIndex = new Statistic();
+	
+	@XmlElement(name="itemsPerPage", namespace = RssResponse.NS_OPENSEARCH)
+	public Statistic itemsPerPage = new Statistic();
+	
+	@XmlElement(name="link", namespace = RssResponse.NS_ATOM)
+	public AtomLink atomLink = new AtomLink();
+	
+	@XmlElement(name="Query", namespace = RssResponse.NS_OPENSEARCH)
+	public Query query = new Query();
+	
+	@XmlElement(name="item")
+	public List<Item> items = new ArrayList<Item>();
 
 	public void setTitle(String title) {
 		this.title = title;

@@ -15,16 +15,22 @@
  *  the Licence.
  */
 
-@XmlSchema(
-		xmlns = { 
-			      @javax.xml.bind.annotation.XmlNs(prefix = "atom", namespaceURI="http://www.w3.org/2005/Atom")
-		},
-    elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED
-    ) 
-package eu.europeana.api2.web.model.xml.rss;
+package eu.europeana.api2.web.model.xml.rss.opensearch;
 
-import javax.xml.bind.annotation.XmlSchema;
+import javax.xml.bind.annotation.XmlAttribute;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
+public class Query {
+
+	@XmlAttribute
+	final String role = "request";
+	
+	@XmlAttribute
+	public String searchTerms;
+	
+	@XmlAttribute
+	public int startPage = 1;
+	
+}

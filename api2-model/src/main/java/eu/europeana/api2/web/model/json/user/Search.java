@@ -15,17 +15,41 @@
  *  the Licence.
  */
 
-@XmlSchema(
-		xmlns = { 
-			      @javax.xml.bind.annotation.XmlNs(prefix = "atom", namespaceURI="http://www.w3.org/2005/Atom")
-		},
-		namespace = "http://www.w3.org/2005/Atom",
-		elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED
-    ) 
-package eu.europeana.api2.web.model.xml.rss.atom;
+package eu.europeana.api2.web.model.json.user;
 
-import javax.xml.bind.annotation.XmlSchema;
+import java.util.Date;
+
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
+@JsonSerialize(include = Inclusion.NON_NULL)
+public class Search {
+
+    public Long id;
+
+    public String query;
+
+    public String queryString;
+
+    public Date dateSaved;
+    
+    public Long getId() {
+		return id;
+	}
+    
+    public String getQuery() {
+		return query;
+	}
+    
+    public String getQueryString() {
+		return queryString;
+	}
+    
+    public Date getDateSaved() {
+		return dateSaved;
+	}
+
+}

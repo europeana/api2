@@ -32,12 +32,9 @@
 		<security:intercept-url pattern="/user/**" access="ROLE_USER"/>
 		<security:intercept-url pattern="/search.**" access="ROLE_CLIENT" />
 		<security:intercept-url pattern="/record/**" access="ROLE_CLIENT" />
-		<!-- <security:intercept-url pattern="/*" access="IS_AUTHENTICATED_ANONYMOUSLY" /> -->
 		<security:custom-filter ref="api2_oauth2_resourceServerFilter" before="PRE_AUTH_FILTER"/><!--  EXCEPTION_TRANSLATION_FILTER" /> -->
-		<!-- <security:access-denied-handler ref="api2_oauth2_accessDeniedHandler" /> -->
-		<!-- <security:form-login authentication-failure-url="/user/login" default-target-url="/index.html" login-page="/user/login.jsp"
-			login-processing-url="/user/login" />
-		<security:logout logout-success-url="/index.jsp" logout-url="/user/logoff" /> -->
+		<security:form-login login-processing-url="/login" username-parameter="api2key" password-parameter="secret"/>
+		<security:logout logout-success-url="/index.html" logout-url="/logoff" />
 	</security:http>
 	
 	<bean id="api2_oauth2_clientCredentialsTokenEndpointFilter" class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter">
@@ -74,6 +71,13 @@
 		</security:authentication-provider>
 	</security:authentication-manager>
 	<bean id="api2_userDetailsService" class="eu.europeana.api2.web.security.UserDetailsServiceImpl"/>
+	
+	<bean id="api2_authenticationFilter" class="org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter" primary="true">
+		<property name="authenticationManager" ref="authenticationManager"/>
+		<property name="filterProcessesUrl" value="/login"/>
+		<property name="usernameParameter" value="api2key"/>
+		<property name="passwordParameter" value="secret"/>
+	</bean> 
 
 	<!-- TOKEN STORE -->
 
