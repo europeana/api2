@@ -112,9 +112,9 @@ public class ImageController {
 		}
 		String objectId = imageCache != null ? imageCache.getObjectId() : "";
 		StringBuilder sb = new StringBuilder();
-		sb.append("/image?objectId=");
+		sb.append("/image/");
 		sb.append(objectId);
-		sb.append("&size=");
+		sb.append("?size=");
 		sb.append(sizeString);
 		response.setStatus(301);
 		response.setHeader("Location",  sb.toString() );

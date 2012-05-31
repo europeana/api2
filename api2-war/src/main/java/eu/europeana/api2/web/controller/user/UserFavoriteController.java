@@ -104,14 +104,14 @@ public class UserFavoriteController extends AbstractUserController {
 	
 	@RequestMapping(value = "/user/favorite.json", params="action=DELETE",  produces = MediaType.APPLICATION_JSON_VALUE, method=RequestMethod.GET)
 	public @ResponseBody ApiResponse delete(
-		@RequestParam(value = "objectid", required = false) Long objectId,
+		@RequestParam(value = "objectid", required = false) Long favId,
 		Principal principal
 	) {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/user/favorite.json?action=DELETE");
 		if (user != null) {
 			try {
-				userService.removeSavedItem(user.getId(), objectId);
+				userService.removeSavedItem(user.getId(), favId);
 				response.success = true;
 			} catch (DatabaseException e) {
 				response.success = false;
