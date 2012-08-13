@@ -44,14 +44,14 @@
 			<param-name>contextAttribute</param-name>
 			<param-value>org.springframework.web.servlet.FrameworkServlet.CONTEXT.api2</param-value>
 		</init-param>
- 	</filter>
+	</filter>
 	<filter-mapping>
 		<filter-name>springSecurityFilterChain</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
 	<!-- JSON P WRAPPER -->
-  	<filter>
+	<filter>
 		<filter-name>jsonPFilter</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
 		<init-param>
@@ -78,8 +78,7 @@
 		<url-pattern>/</url-pattern>
 	</servlet-mapping>
 
-    <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
-    </welcome-file-list>
-
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
 </web-app>
