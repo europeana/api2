@@ -34,5 +34,4 @@ public class ObjectResult extends ApiResponse {
 	public ObjectResult(String apikey, String action) {
 		super(apikey, action);
 	}
-
 }

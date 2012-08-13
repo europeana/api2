@@ -15,5 +15,4 @@ public class Item {
 
 	@XmlElement
 	public String description;
-	
 }

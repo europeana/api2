@@ -42,5 +42,4 @@ public class SearchResults<T> extends AbstractSearchResults<T> {
 	public SearchResults(String apikey, String action) {
 		super(apikey, action);
 	}
-	
 }
