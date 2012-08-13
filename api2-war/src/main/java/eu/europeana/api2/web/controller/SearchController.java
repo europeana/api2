@@ -18,6 +18,7 @@
 package eu.europeana.api2.web.controller;
 
 import java.security.Principal;
+import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 
@@ -53,6 +54,8 @@ import eu.europeana.corelib.web.utils.NavigationUtils;
 @Controller
 public class SearchController {
 	
+	private final Logger log = Logger.getLogger(getClass().getName());
+
 	@Resource
 	private SearchService searchService;
 	
@@ -66,6 +69,7 @@ public class SearchController {
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort
 	) {
+		log.info("search.json");
 		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start);
 		Class<? extends IdBean> clazz = ApiBean.class;
 		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
@@ -73,8 +77,11 @@ public class SearchController {
 		}
 		try {
 			SearchResults<? extends IdBean> response = createResults(principal.getName(), profile, query, clazz);
+			log.info("got response " + response.items.size());
 			return response;
 		} catch (SolrTypeException e) {
+			log.severe(principal.getName() + " [search.json] " + e.getMessage());
+			e.printStackTrace();
 			return new ApiError(principal.getName(), "search.json", e.getMessage());
 		}
 	}
@@ -143,7 +150,10 @@ public class SearchController {
 			channel.query.startPage = start;
 			for (BriefBean bean : resultSet.getResults()) {
 				Item item = new Item();
+				item.guid = bean.getId();
 				item.title = bean.getTitle()[0];
+				item.link = bean.getId();
+				log.info("item: " + item);
 				channel.items.add(item);
 			}
 			return rss;

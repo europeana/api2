@@ -18,6 +18,7 @@
 package eu.europeana.api2.web.controller;
 
 import java.security.Principal;
+import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 
@@ -44,17 +45,19 @@ import eu.europeana.corelib.solr.service.SearchService;
 @RequestMapping(value = "/record")
 public class ObjectController {
 	
+	private final Logger log = Logger.getLogger(getClass().getName());
 	@Resource
 	private SearchService searchService;
 
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse record(
-        @PathVariable String collectionId,
-        @PathVariable String recordId,
+		@PathVariable String collectionId,
+		@PathVariable String recordId,
 		Principal principal,
 		@RequestParam(value = "profile", required = false, defaultValue="full") String profile
 	) {
+		log.info("record");
 		ObjectResult response = new ObjectResult(principal.getName(), "record.json");
 		try {
 			response.object = searchService.findById(collectionId, recordId);
