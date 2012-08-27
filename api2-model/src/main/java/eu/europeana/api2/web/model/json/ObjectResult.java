@@ -26,11 +26,11 @@ import eu.europeana.corelib.definitions.solr.beans.FullBean;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_NULL)
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ObjectResult extends ApiResponse {
-	
+
 	public FullBean object;
-	
+
 	public ObjectResult(String apikey, String action) {
 		super(apikey, action);
 	}

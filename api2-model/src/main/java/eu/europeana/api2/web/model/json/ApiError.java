@@ -25,7 +25,7 @@ import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_NULL)
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ApiError extends ApiResponse {
 	
 	public boolean success = false;

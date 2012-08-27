@@ -25,13 +25,12 @@ import eu.europeana.api2.web.model.json.abstracts.UserObject;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_NULL)
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public class Tag extends UserObject {
 
 	public String tag;
-	
+
 	public String getTag() {
 		return tag;
 	}
-
 }

@@ -26,7 +26,7 @@ import eu.europeana.corelib.definitions.solr.model.Term;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_NULL)
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public class Suggestions extends AbstractSearchResults<Term> {
 
 	public Suggestions(String apikey, String action) {

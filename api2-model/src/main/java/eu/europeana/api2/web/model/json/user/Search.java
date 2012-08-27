@@ -25,31 +25,30 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_NULL)
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public class Search {
 
-    public Long id;
+	public Long id;
 
-    public String query;
+	public String query;
 
-    public String queryString;
+	public String queryString;
 
-    public Date dateSaved;
-    
-    public Long getId() {
+	public Date dateSaved;
+
+	public Long getId() {
 		return id;
 	}
-    
-    public String getQuery() {
+
+	public String getQuery() {
 		return query;
 	}
-    
-    public String getQueryString() {
+
+	public String getQueryString() {
 		return queryString;
 	}
-    
-    public Date getDateSaved() {
+
+	public Date getDateSaved() {
 		return dateSaved;
 	}
-
 }

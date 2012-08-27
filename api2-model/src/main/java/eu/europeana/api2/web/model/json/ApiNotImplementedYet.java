@@ -23,7 +23,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_NULL)
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ApiNotImplementedYet extends ApiError {
 	
 	public ApiNotImplementedYet(String apikey, String action) {

@@ -44,8 +44,9 @@ import eu.europeana.corelib.solr.service.SearchService;
 @Controller
 @RequestMapping(value = "/record")
 public class ObjectController {
-	
+
 	private final Logger log = Logger.getLogger(getClass().getName());
+
 	@Resource
 	private SearchService searchService;
 
@@ -66,16 +67,14 @@ public class ObjectController {
 		}
 		return response;
 	}
-	
-	
+
 	@RequestMapping(value = "/{collectionId}/{recordId}.kml", produces = "application/vnd.google-earth.kml+xml")
 	public @ResponseBody ApiResponse searchKml(
-	        @PathVariable String collectionId,
-	        @PathVariable String recordId,
+			@PathVariable String collectionId,
+			@PathVariable String recordId,
 			@RequestParam(value = "apikey", required = true) String apiKey,
 			@RequestParam(value = "sessionhash", required = true) String sessionHash
 	) {
 		return new ApiNotImplementedYet(apiKey, "record.kml");
 	}
-	
 }

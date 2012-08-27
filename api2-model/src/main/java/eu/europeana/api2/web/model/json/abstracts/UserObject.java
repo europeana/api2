@@ -27,9 +27,9 @@ import eu.europeana.corelib.definitions.solr.DocType;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_NULL)
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public abstract class UserObject {
-	
+
 	public Long id;
 
 	public String europeanaUri;
@@ -41,29 +41,28 @@ public abstract class UserObject {
 	public DocType docType = DocType.IMAGE;
 
 	public Date dateSaved;
-	
+
 	public Long getId() {
 		return id;
 	}
-	
+
 	public String getEuropeanaUri() {
 		return europeanaUri;
 	}
-	
+
 	public String getTitle() {
 		return title;
 	}
-	
+
 	public String getEuropeanaObject() {
 		return europeanaObject;
 	}
-	
+
 	public DocType getDocType() {
 		return docType;
 	}
-	
+
 	public Date getDateSaved() {
 		return dateSaved;
 	}
-	
 }

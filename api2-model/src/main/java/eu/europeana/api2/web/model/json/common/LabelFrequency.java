@@ -23,11 +23,10 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_NULL)
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public class LabelFrequency {
-	
-	public String label;
-	
-	public long count;
 
+	public String label;
+
+	public long count;
 }

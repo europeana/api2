@@ -119,7 +119,5 @@ public class ImageController {
 		response.setStatus(301);
 		response.setHeader("Location",  sb.toString() );
 		response.setHeader("Connection", "close");
-
 	}
-
 }

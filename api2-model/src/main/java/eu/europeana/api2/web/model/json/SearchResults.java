@@ -30,7 +30,7 @@ import eu.europeana.corelib.definitions.model.web.BreadCrumb;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_NULL)
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public class SearchResults<T> extends AbstractSearchResults<T> {
 	
 	public List<BreadCrumb> breadCrumbs;

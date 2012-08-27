@@ -25,22 +25,21 @@ import eu.europeana.api2.web.model.json.abstracts.AbstractSearchResults;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_NULL)
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public class UserResults<T> extends AbstractSearchResults<T> {
-	
+
 	public String username;
-	
+
 	public UserResults() {
 		// used by Jackson
 		super();
 	}
-	
+
 	public UserResults(String apikey, String action) {
 		super(apikey, action);
 	}
-	
+
 	public String getUsername() {
 		return username;
 	}
-	
 }

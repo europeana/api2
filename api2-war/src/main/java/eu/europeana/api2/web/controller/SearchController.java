@@ -70,7 +70,7 @@ public class SearchController {
 		@RequestParam(value = "sort", required = false) String sort
 	) {
 		log.info("search.json");
-		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start);
+		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
 		Class<? extends IdBean> clazz = ApiBean.class;
 		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
 			clazz = BriefBean.class;
