@@ -19,5 +19,5 @@
         http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
 	<bean id="jsonPFilter" class="eu.europeana.api2.web.interceptor.JsonPFilter" />
-    	
+
 </beans>
