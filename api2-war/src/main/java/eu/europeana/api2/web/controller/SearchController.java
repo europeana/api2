@@ -53,12 +53,12 @@ import eu.europeana.corelib.web.utils.NavigationUtils;
  */
 @Controller
 public class SearchController {
-	
+
 	private final Logger log = Logger.getLogger(getClass().getName());
 
 	@Resource
 	private SearchService searchService;
-	
+
 	@RequestMapping(value = "/search.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse searchJson(
 		Principal principal,
@@ -85,7 +85,7 @@ public class SearchController {
 			return new ApiError(principal.getName(), "search.json", e.getMessage());
 		}
 	}
-	
+
 	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query q, Class<T> clazz) throws SolrTypeException {
 		SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, q);
@@ -105,7 +105,7 @@ public class SearchController {
 //		}
 		return response;
 	}
-	
+
 	@RequestMapping(value = "/search.kml", produces= MediaType.APPLICATION_XML_VALUE)//, produces = "application/vnd.google-earth.kml+xml")
 	public @ResponseBody KmlResponse searchKml(
 		Principal principal,
@@ -130,7 +130,7 @@ public class SearchController {
 		}
 		return response;
 	}
-	
+
 	@RequestMapping(value = "/opensearch.rss", produces= MediaType.APPLICATION_XML_VALUE) //, produces = "?rss?")
 	public @ResponseBody RssResponse openSearchRss(
 		@RequestParam(value = "searchTerms", required = true) String q,
@@ -162,7 +162,7 @@ public class SearchController {
 		}
 
 	}
-	
+
 	@RequestMapping(value = "/suggestions.json")//, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse suggestionsJson(
 		@RequestParam(value = "query", required = true) String query,
@@ -178,5 +178,4 @@ public class SearchController {
 		}
 		return response;
 	}
-
 }
