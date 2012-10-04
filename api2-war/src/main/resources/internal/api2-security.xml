@@ -17,6 +17,7 @@
 	<security:http pattern="/image*" security="none" />
 	<security:http pattern="/suggestions.json" security="none" />
 	<security:http pattern="/opensearch.rss" security="none" />
+	<security:http pattern="/opensearch.json" security="none" />
 	
 	<security:http pattern="/oauth/token" create-session="stateless" 
 			authentication-manager-ref="api2_oauth2_clientAuthenticationManager"

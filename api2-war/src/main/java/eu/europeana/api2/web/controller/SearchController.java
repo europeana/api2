@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,6 +59,12 @@ public class SearchController {
 
 	@Resource
 	private SearchService searchService;
+
+	@Value("#{europeanaProperties['portal.name']}")
+	private String portalName;
+
+	@Value("#{europeanaProperties['portal.server']}")
+	private String portalServer;
 
 	@RequestMapping(value = "/search.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse searchJson(
@@ -160,15 +167,15 @@ public class SearchController {
 		} catch (SolrTypeException e) {
 			return null;
 		}
-
 	}
 
 	@RequestMapping(value = "/suggestions.json")//, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse suggestionsJson(
 		@RequestParam(value = "query", required = true) String query,
 		@RequestParam(value = "rows", required = false, defaultValue="10") int count,
-		@RequestParam(value = "phrases", required = false, defaultValue="false") boolean phrases
+		@RequestParam(value = "phrases", required = false, defaultValue="false") boolean phrases // 0, no, false, 1 yes, true
 	) {
+		log.info("phrases: " + phrases);
 		Suggestions response = new Suggestions(null, "suggestions.json");
 		try {
 			response.items = searchService.suggestions(query, count);
@@ -177,5 +184,15 @@ public class SearchController {
 			return new ApiError(null, "suggestions.json", e.getMessage());
 		}
 		return response;
+	}
+
+	private void logException(Exception e) {
+		StringBuilder sb = new StringBuilder(e.getClass().getName());
+		sb.append(": ").append(e.getMessage()).append("\n");
+		StackTraceElement[] trace = e.getStackTrace();
+		for (StackTraceElement el : trace) {
+			sb.append(String.format("%s:%d %s()\n", el.getClassName(), el.getLineNumber(), el.getMethodName()));
+		}
+		log.severe(sb.toString());
 	}
 }
