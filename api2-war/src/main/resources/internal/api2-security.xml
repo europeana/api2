@@ -89,7 +89,7 @@
 	</bean> 
 
 	<!-- TOKEN STORE -->
-
+	<!-- TODO: fix the memory engine -->
 	<bean id="api2_oauth2_tokenStore" class="org.springframework.security.oauth2.provider.token.InMemoryTokenStore" />
 
 	<bean id="api2_oauth2_tokenServices" class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">

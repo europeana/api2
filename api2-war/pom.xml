@@ -65,6 +65,16 @@
 			<artifactId>jstl</artifactId>
 			<version>${version.servletJstl}</version>
 		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<version>2.2.4</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>api2-war</finalName>
