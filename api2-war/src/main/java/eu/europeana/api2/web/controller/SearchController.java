@@ -92,7 +92,7 @@ public class SearchController {
 		log.info("=== search.json: " + rows);
 		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
 		Class<? extends IdBean> clazz = ApiBean.class;
-		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
+		if (StringUtils.containsIgnoreCase(profile, "minimal") || StringUtils.containsIgnoreCase(profile, "portal")) {
 			clazz = BriefBean.class;
 		}
 		try {
@@ -100,20 +100,18 @@ public class SearchController {
 			log.info("got response " + response.items.size());
 			
 			ObjectMapper objectMapper = new ObjectMapper();
-			objectMapper.setSerializationInclusion(Inclusion.NON_NULL);
+			objectMapper.setSerializationInclusion(Inclusion.NON_EMPTY);
 			try {
 				String json = objectMapper.writeValueAsString(response);
+				log.info("JSON: " + json);
 			} catch (JsonGenerationException e) {
 				log.info(e.getMessage());
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (JsonMappingException e) {
 				log.info(e.getMessage());
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
 				log.info(e.getMessage());
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 

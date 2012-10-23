@@ -6,6 +6,7 @@ import java.util.Map;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
+import eu.europeana.api2.web.model.json.common.Profile;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 
@@ -67,6 +68,9 @@ public class ApiView extends BriefView implements ApiBean {
 	}
 
 	public String[] getEdmConceptBroaderTerm() {
+		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD) || isProfile(Profile.RICH)) {
+			return null;
+		}
 		return edmConceptBroaderTerm;
 	}
 
@@ -75,6 +79,9 @@ public class ApiView extends BriefView implements ApiBean {
 	}
 
 	public List<Map<String, String>> getEdmConceptBroaderLabel() {
+		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD) || isProfile(Profile.RICH)) {
+			return null;
+		}
 		return edmConceptBroaderLabel;
 	}
 
@@ -125,6 +132,9 @@ public class ApiView extends BriefView implements ApiBean {
 	}
 
 	public String[] getCountry() {
+		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD) || isProfile(Profile.RICH)) {
+			return null;
+		}
 		return country;
 	}
 
@@ -165,6 +175,9 @@ public class ApiView extends BriefView implements ApiBean {
 	}
 
 	public List<Map<String, String>> getEdmPlaceAltLabel() {
+		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD) || isProfile(Profile.RICH)) {
+			return null;
+		}
 		return edmPlaceAltLabel;
 	}
 

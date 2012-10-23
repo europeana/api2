@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.springframework.beans.factory.annotation.Value;
 
 import eu.europeana.api2.web.model.json.common.Profile;
@@ -17,6 +19,7 @@ import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 
+@JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Value("#{europeanaProperties['api.utm.campaign']}")
@@ -52,13 +55,15 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	private String[] edmPreview;
 	private boolean isOptedOut;
 
-	private String profile;
+	protected String profile;
 	private List<String> thumbnails;
 
 	public BriefView(BriefBean bean, String profile) {
+		log.info("profile: " + profile);
+		this.profile = profile;
+
 		id = bean.getId();
 		timestamp = bean.getTimestamp();
-
 		title = bean.getTitle();
 		dcCreator = bean.getDcCreator();
 		docType = bean.getType();
@@ -68,7 +73,6 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		provider = bean.getProvider();
 		edmDataProvider = bean.getDataProvider();
 		rights = bean.getRights();
-
 		edmObject = bean.getEdmObject();
 		europeanaCompleteness = bean.getEuropeanaCompleteness();
 		language = bean.getLanguage();
@@ -85,11 +89,10 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		dctermsSpatial = bean.getDctermsSpatial();
 		isOptedOut = bean.isOptedOut();
 		edmPreview = bean.getEdmPreview();
-		this.profile = profile;
 	}
 
 	public String getProfile() {
-		return profile;
+		return null; // profile;
 	}
 
 	public void setProfile(String profile) {
@@ -123,7 +126,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public String[] getLanguage() {
-		if (profile.equals(Profile.MINIMAL)) {
+		if (isProfile(Profile.MINIMAL)) {
 			return null;
 		}
 		return language;
@@ -141,6 +144,9 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public String[] getDctermsSpatial() {
+		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+			return null;
+		}
 		return dctermsSpatial;
 	}
 
@@ -151,11 +157,17 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public String[] getEdmPlace() {
+		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+			return null;
+		}
 		return edmPlace;
 	}
 
 	@Override
 	public List<Map<String, String>> getEdmPlaceLabel() {
+		if (isProfile(Profile.MINIMAL)) {
+			return null;
+		}
 		return edmPlacePrefLabel;
 	}
 
@@ -171,7 +183,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public String[] getEdmTimespan() {
-		if (profile.equals(Profile.MINIMAL)) {
+		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
 			return null;
 		}
 		return edmTimespan;
@@ -179,7 +191,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public List<Map<String, String>> getEdmTimespanLabel() {
-		if (profile.equals(Profile.MINIMAL)) {
+		if (isProfile(Profile.MINIMAL)) {
 			return null;
 		}
 		return edmTimespanLabel;
@@ -187,7 +199,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public String[] getEdmTimespanBegin() {
-		if (profile.equals(Profile.MINIMAL)) {
+		if (isProfile(Profile.MINIMAL)) {
 			return null;
 		}
 		return edmTimespanBegin;
@@ -195,7 +207,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public String[] getEdmTimespanEnd() {
-		if (profile.equals(Profile.MINIMAL)) {
+		if (isProfile(Profile.MINIMAL)) {
 			return null;
 		}
 		return edmTimespanEnd;
@@ -203,17 +215,23 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public String[] getEdmAgent() {
+		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+			return null;
+		}
 		return edmAgentTerm;
 	}
 
 	@Override
 	public List<Map<String, String>> getEdmAgentLabel() {
+		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+			return null;
+		}
 		return edmAgentLabel;
 	}
 
 	@Override
 	public String[] getDctermsHasPart() {
-		return dctermsHasPart;
+		return null; // dctermsHasPart;
 	}
 
 	@Override
@@ -223,12 +241,15 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public String[] getDcContributor() {
+		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+			return null;
+		}
 		return dcContributor;
 	}
 
 	@Override
 	public Date getTimestamp() {
-		return timestamp;
+		return null; // timestamp;
 	}
 
 	@Override
@@ -238,23 +259,25 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public Boolean isOptedOut() {
-		return isOptedOut;
+		return null; // isOptedOut;
 	}
 
 	public List<String> getThumbnails() {
 		if (thumbnails == null) {
 			thumbnails = new ArrayList<String>();
-			for (String object : edmObject) {
-				String tn = StringUtils.defaultIfBlank(object, "");
-				StringBuilder url = new StringBuilder("http://europeanastatic.eu/api/image?");
-				try {
-					url.append("uri=").append(URLEncoder.encode(tn, "UTF-8"));
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
+			if (edmObject != null) {
+				for (String object : edmObject) {
+					String tn = StringUtils.defaultIfBlank(object, "");
+					StringBuilder url = new StringBuilder("http://europeanastatic.eu/api/image?");
+					try {
+						url.append("uri=").append(URLEncoder.encode(tn, "UTF-8"));
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+					url.append("&size").append(ThumbSize.LARGE);
+					url.append("&type").append(getType().toString());
+					thumbnails.add(url.toString());
 				}
-				url.append("&size").append(ThumbSize.LARGE);
-				url.append("&type").append(getType().toString());
-				thumbnails.add(url.toString());
 			}
 		}
 		return thumbnails;
@@ -270,5 +293,9 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	@Override
 	public String[] getEdmPreview() {
 		return edmPreview;
+	}
+	
+	protected boolean isProfile(Profile _profile) {
+		return profile.toLowerCase().equals(_profile.getName());
 	}
 }
