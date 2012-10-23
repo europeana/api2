@@ -17,12 +17,19 @@
 
 package eu.europeana.api2.web.controller;
 
+import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -33,6 +40,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import eu.europeana.api2.web.model.ModelUtils;
 import eu.europeana.api2.web.model.json.ApiError;
+import eu.europeana.api2.web.model.json.ApiView;
+import eu.europeana.api2.web.model.json.BriefView;
 import eu.europeana.api2.web.model.json.SearchResults;
 import eu.europeana.api2.web.model.json.Suggestions;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
@@ -66,6 +75,9 @@ public class SearchController {
 	@Value("#{europeanaProperties['portal.server']}")
 	private String portalServer;
 
+	@Value("#{europeanaProperties['api.rowLimit']}")
+	private String rowLimit = "96";
+
 	@RequestMapping(value = "/search.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse searchJson(
 		Principal principal,
@@ -76,7 +88,8 @@ public class SearchController {
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort
 	) {
-		log.info("search.json");
+		rows = Math.min(rows, Integer.parseInt(rowLimit));
+		log.info("=== search.json: " + rows);
 		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
 		Class<? extends IdBean> clazz = ApiBean.class;
 		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
@@ -85,6 +98,25 @@ public class SearchController {
 		try {
 			SearchResults<? extends IdBean> response = createResults(principal.getName(), profile, query, clazz);
 			log.info("got response " + response.items.size());
+			
+			ObjectMapper objectMapper = new ObjectMapper();
+			objectMapper.setSerializationInclusion(Inclusion.NON_NULL);
+			try {
+				String json = objectMapper.writeValueAsString(response);
+			} catch (JsonGenerationException e) {
+				log.info(e.getMessage());
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				log.info(e.getMessage());
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				log.info(e.getMessage());
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 			return response;
 		} catch (SolrTypeException e) {
 			log.severe(principal.getName() + " [search.json] " + e.getMessage());
@@ -99,6 +131,22 @@ public class SearchController {
 		response.totalResults = resultSet.getResultSize();
 		response.itemsCount = resultSet.getResults().size();
 		response.items = resultSet.getResults();
+		List<T> beans = new ArrayList<T>();
+		for (T b : resultSet.getResults()) {
+			if (b instanceof ApiBean) {
+				ApiBean bean = (ApiBean)b;
+				ApiView view = new ApiView(bean, profile);
+				//bean.setProfile(profile);
+				beans.add((T) view);
+			} else if (b instanceof BriefBean) {
+				BriefBean bean = (BriefBean)b;
+				BriefView view = new BriefView(bean, profile);
+				beans.add((T) view);
+			}
+		}
+		log.info("beans: " + beans.size());
+		response.items = beans;
+
 		if (StringUtils.containsIgnoreCase(profile, "facets") || StringUtils.containsIgnoreCase(profile, "portal")) {
 			response.facets = ModelUtils.conventFacetList(resultSet.getFacetFields());
 		}
