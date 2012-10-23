@@ -16,6 +16,11 @@
 			<version>${version.europeanaCorelib}</version>
 		</dependency>
 		<dependency>
+			<groupId>eu.europeana.corelib</groupId>
+			<artifactId>corelib-solr</artifactId>
+			<version>${version.europeanaCorelib}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-xc</artifactId>
 			<version>${version.codehausJackson}</version>

@@ -41,6 +41,11 @@
 			<version>${version.europeanaCorelib}</version>
 		</dependency>
 		<dependency>
+			<groupId>eu.europeana.corelib</groupId>
+			<artifactId>corelib-solr</artifactId>
+			<version>${version.europeanaCorelib}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${version.springCore}</version>
@@ -77,6 +82,6 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>api2-war</finalName>
+		<finalName>api</finalName>
 	</build>
 </project>

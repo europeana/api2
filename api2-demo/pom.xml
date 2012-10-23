@@ -35,7 +35,7 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>api2-demo</finalName>
+		<finalName>api-demo</finalName>
 	</build>
 	<groupId>eu.europeana.api2</groupId>
 </project>
