@@ -14,7 +14,7 @@ import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 public class ApiView extends BriefView implements ApiBean {
 
 	private String[] edmConceptTerm;
-	private Map<String, String> edmConceptPrefLabel;
+	private List<Map<String, String>> edmConceptPrefLabel;
 	// private String[] edmConceptPrefLabel;
 	private String[] edmConceptBroaderTerm;
 	private List<Map<String, String>> edmConceptBroaderLabel;
@@ -59,11 +59,11 @@ public class ApiView extends BriefView implements ApiBean {
 		this.edmConceptTerm = edmConceptTerm;
 	}
 
-	public Map<String, String> getEdmConceptLabel() {
+	public List<Map<String, String>> getEdmConceptLabel() {
 		return edmConceptPrefLabel;
 	}
 
-	public void setEdmConceptPrefLabel(Map<String, String> edmConceptPrefLabel) {
+	public void setEdmConceptPrefLabel(List<Map<String, String>> edmConceptPrefLabel) {
 		this.edmConceptPrefLabel = edmConceptPrefLabel;
 	}
 
