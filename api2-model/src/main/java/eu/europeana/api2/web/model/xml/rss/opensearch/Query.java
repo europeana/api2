@@ -26,11 +26,10 @@ public class Query {
 
 	@XmlAttribute
 	final String role = "request";
-	
+
 	@XmlAttribute
 	public String searchTerms;
-	
+
 	@XmlAttribute
 	public int startPage = 1;
-	
 }

@@ -29,7 +29,7 @@ import eu.europeana.corelib.definitions.solr.beans.BriefBean;
  */
 @XmlRootElement(name="kml")
 public class KmlResponse {
-	
+
 	@XmlElement(name="Document")
 	public Document document = new Document();
 
@@ -46,5 +46,4 @@ public class KmlResponse {
 			document.placemarks.add(placemark);
 		}
 	}
-	
 }

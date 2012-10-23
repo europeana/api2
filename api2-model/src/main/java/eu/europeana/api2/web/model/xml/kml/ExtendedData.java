@@ -23,11 +23,10 @@ import javax.xml.bind.annotation.XmlElement;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 public class ExtendedData {
-	
+
 	@XmlElement(name="Data")
 	public Data totalResults = new Data("totalResults");
-	
+
 	@XmlElement(name="Data")
 	public Data startIndex = new Data("startIndex");
-
 }

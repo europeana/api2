@@ -24,18 +24,17 @@ import javax.xml.bind.annotation.XmlElement;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 public class Data {
-	
+
 	@XmlAttribute
 	public String name;
-	
+
 	@XmlElement
 	public String value;
 
 	public Data() {
 	}
-	
+
 	protected Data(String name) {
 		this.name = name;
 	}
-
 }

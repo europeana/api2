@@ -29,7 +29,7 @@ public class Document {
 
 	@XmlElement(name="ExtendedData")
 	public ExtendedData extendedData = new ExtendedData();
-	
+
 	@XmlElement(name="Placemark")
 	public List<Placemark> placemarks = new ArrayList<Placemark>();
 }

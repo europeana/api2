@@ -34,32 +34,32 @@ public class Channel {
 
 	@XmlElement
 	private String title = "Europeana Open Search result";
-	
+
 	@XmlElement
 	private String link = "http://www.europeana.eu";
-	
+
 	@XmlElement(name="totalResults", namespace = RssResponse.NS_OPENSEARCH)
 	public Statistic totalResults = new Statistic();
-	
+
 	@XmlElement(name="startIndex", namespace = RssResponse.NS_OPENSEARCH)
 	public Statistic startIndex = new Statistic();
-	
+
 	@XmlElement(name="itemsPerPage", namespace = RssResponse.NS_OPENSEARCH)
 	public Statistic itemsPerPage = new Statistic();
-	
+
 	@XmlElement(name="link", namespace = RssResponse.NS_ATOM)
 	public AtomLink atomLink = new AtomLink();
-	
+
 	@XmlElement(name="Query", namespace = RssResponse.NS_OPENSEARCH)
 	public Query query = new Query();
-	
+
 	@XmlElement(name="item")
 	public List<Item> items = new ArrayList<Item>();
 
 	public void setTitle(String title) {
 		this.title = title;
 	}
-	
+
 	public void setLink(String link) {
 		this.link = link;
 	}
@@ -67,5 +67,4 @@ public class Channel {
 	public void setAtomLink(AtomLink atomLink) {
 		this.atomLink = atomLink;
 	}
-
 }

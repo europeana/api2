@@ -23,11 +23,10 @@ import javax.xml.bind.annotation.XmlElement;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 public class TimeSpan {
-	
+
 	@XmlElement
 	public String begin;
-	
+
 	@XmlElement
 	public String end;
-
 }

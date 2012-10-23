@@ -26,6 +26,4 @@ public class Statistic {
 
 	@XmlValue
 	public long value;
-	
-	
 }
