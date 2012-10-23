@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import eu.europeana.api2.exceptions.LimitReachedException;
 import eu.europeana.api2.web.model.ModelUtils;
 import eu.europeana.api2.web.model.json.ApiError;
 import eu.europeana.api2.web.model.json.ApiView;
@@ -49,6 +50,10 @@ import eu.europeana.api2.web.model.xml.kml.KmlResponse;
 import eu.europeana.api2.web.model.xml.rss.Channel;
 import eu.europeana.api2.web.model.xml.rss.Item;
 import eu.europeana.api2.web.model.xml.rss.RssResponse;
+import eu.europeana.corelib.db.exception.DatabaseException;
+import eu.europeana.corelib.db.logging.api.ApiLogger;
+import eu.europeana.corelib.db.logging.api.enums.RecordType;
+import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.IdBean;
@@ -65,19 +70,21 @@ import eu.europeana.corelib.web.utils.NavigationUtils;
 public class SearchController {
 
 	private final Logger log = Logger.getLogger(getClass().getName());
-
+	private final ApiLogger apiLogger = ApiLogger.getApiLogger();
+	
 	@Resource
 	private SearchService searchService;
 
+	@Resource
+	private ApiKeyService apiService;
 	@Value("#{europeanaProperties['portal.name']}")
 	private String portalName;
 
 	@Value("#{europeanaProperties['portal.server']}")
 	private String portalServer;
-
 	@Value("#{europeanaProperties['api.rowLimit']}")
 	private String rowLimit = "96";
-
+	
 	@RequestMapping(value = "/search.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse searchJson(
 		Principal principal,
@@ -88,17 +95,27 @@ public class SearchController {
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort
 	) {
+		long usageLimit = 0;
+		try{
+			usageLimit = apiService.findByID(principal.getName()).getUsageLimit();
+			if(apiLogger.getRequestNumber(principal.getName())>usageLimit){
+				throw new LimitReachedException();
+			}
+		} catch (DatabaseException e){
+			
+		} catch (LimitReachedException e){
+			return new ApiError(principal.getName(), "search.json", "Limit Reached");
+		}
 		rows = Math.min(rows, Integer.parseInt(rowLimit));
 		log.info("=== search.json: " + rows);
 		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
 		Class<? extends IdBean> clazz = ApiBean.class;
-		if (StringUtils.containsIgnoreCase(profile, "minimal") || StringUtils.containsIgnoreCase(profile, "portal")) {
+		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
 			clazz = BriefBean.class;
 		}
 		try {
 			SearchResults<? extends IdBean> response = createResults(principal.getName(), profile, query, clazz);
 			log.info("got response " + response.items.size());
-			
 			ObjectMapper objectMapper = new ObjectMapper();
 			objectMapper.setSerializationInclusion(Inclusion.NON_EMPTY);
 			try {
@@ -114,7 +131,7 @@ public class SearchController {
 				log.info(e.getMessage());
 				e.printStackTrace();
 			}
-
+			apiLogger.saveApiRequest(principal.getName(), query.getQuery(), RecordType.SEARCH, profile);
 			return response;
 		} catch (SolrTypeException e) {
 			log.severe(principal.getName() + " [search.json] " + e.getMessage());
@@ -144,7 +161,6 @@ public class SearchController {
 		}
 		log.info("beans: " + beans.size());
 		response.items = beans;
-
 		if (StringUtils.containsIgnoreCase(profile, "facets") || StringUtils.containsIgnoreCase(profile, "portal")) {
 			response.facets = ModelUtils.conventFacetList(resultSet.getFacetFields());
 		}
@@ -168,6 +184,17 @@ public class SearchController {
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort
 	) {
+		long usageLimit = 0;
+		try{
+			usageLimit = apiService.findByID(principal.getName()).getUsageLimit();
+			if(apiLogger.getRequestNumber(principal.getName())>usageLimit){
+				throw new LimitReachedException();
+			}
+		} catch (DatabaseException e){
+			
+		} catch (LimitReachedException e){
+			return null;
+		}
 		KmlResponse response = new KmlResponse();
 		Query query = new Query(q);
 		query.setRefinements("edm_place_latLon:[* TO *]");
@@ -176,6 +203,7 @@ public class SearchController {
 			response.document.extendedData.totalResults.value = Long.toString(resultSet.getResultSize());
 			response.document.extendedData.startIndex.value = Integer.toString(start);
 			response.setItems(resultSet.getResults());
+			apiLogger.saveApiRequest(principal.getName(), query.getQuery(), RecordType.SEARCH, "kml");
 		} catch (SolrTypeException e) {
 //			ApiError error = new ApiError();
 //			error.error = e.getMessage();
@@ -192,6 +220,7 @@ public class SearchController {
 		@RequestParam(value = "sort", required = false) String sort
 	) {
 		try {
+			
 			Query query = new Query(q).setPageSize(count).setStart(start);
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
 			RssResponse rss = new RssResponse();
