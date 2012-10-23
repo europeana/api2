@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
@@ -114,8 +115,8 @@ public class BriefDoc {
 			enrichmentPeriodTerm = bean.getEdmConcept();
 		if (bean.getEdmConceptLabel() != null) {
 			List<String> terms = new ArrayList<String>();
-			for (Map<String, String> entry : bean.getEdmConceptLabel()) {
-				terms.addAll(entry.values());
+			for (Entry<String, String>  entry : bean.getEdmConceptLabel().entrySet()) {
+				terms.add(entry.getValue());
 			}
 			enrichmentConceptLabel = terms.toArray(new String[terms.size()]);
 		}

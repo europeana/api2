@@ -14,6 +14,8 @@ public class ArrayCopyTest {
 	@Test
 	public void testUnitialized() {
 		add(a, b);
+		assertNotSame(expected, a);
+		a = add(a, b);
 		assertEquals(expected, a);
 	}
 
@@ -21,6 +23,8 @@ public class ArrayCopyTest {
 	public void testNull() {
 		String[] a = null;
 		add(a, b);
+		assertNotSame(expected, a);
+		a = add(a, b);
 		assertEquals(expected, a);
 	}
 
@@ -28,10 +32,12 @@ public class ArrayCopyTest {
 	public void testEmpty() {
 		String[] a = new String[]{};
 		add(a, b);
+		assertNotSame(expected, a);
+		a = add(a, b);
 		assertEquals(expected, a);
 	}
 
-	private void add(String[] field, String[] value) {
+	private String[] add(String[] field, String[] value) {
 		if (value != null) {
 			if (field == null) {
 				field = value;
@@ -40,6 +46,6 @@ public class ArrayCopyTest {
 			}
 		}
 		// System.out.println(field);
-		// return field;
+		return field;
 	}
 }

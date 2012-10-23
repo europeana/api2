@@ -27,19 +27,19 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
  */
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public abstract class ApiResponse {
-	
+
 	public String apikey;
-	
+
 	public String action;
-	
+
 	public boolean success = true;
 
 	public String error;
-	
+
 	public Date statsStartTime;
 
 	public long statsDuration = 0;
-	
+
 	public ApiResponse(String apikey, String action) {
 		this.apikey = apikey;
 		this.action = action;
@@ -48,5 +48,4 @@ public abstract class ApiResponse {
 	public ApiResponse() {
 		// used by Jackson
 	}
-	
 }
