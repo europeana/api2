@@ -28,7 +28,7 @@
 		<td>${fav.author}</td>
 		<td><fmt:formatDate value="${fav.dateSaved}"/></td>
 		<td>
-			<a href="${fn:replace(fav.europeanaUri,"www.europeana.eu/resolve","localhost:8081/portal")}.html" target="_blank">view</a>
+			<a href="${fn:replace(fav.europeanaUri, 'www.europeana.eu/resolve', 'localhost:8081/portal')}.html" target="_blank">view</a>
 			<a href="favorites?action=DELETE&id=${fav.id}">delete</a>
 		</td>
 	</tr>

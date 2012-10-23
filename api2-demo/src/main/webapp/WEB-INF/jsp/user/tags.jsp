@@ -28,7 +28,7 @@
 		<td>${tag.tag}</td>
 		<td><fmt:formatDate value="${tag.dateSaved}"/></td>
 		<td>
-			<a href="${fn:replace(tag.europeanaUri,"www.europeana.eu/resolve","localhost:8081/portal")}.html" target="_blank">view</a>
+			<a href="${fn:replace(tag.europeanaUri, 'www.europeana.eu/resolve', 'localhost:8081/portal')}.html" target="_blank">view</a>
 			<a href="tags?action=DELETE&id=${tag.id}">delete</a>
 		</td>
 	</tr>
