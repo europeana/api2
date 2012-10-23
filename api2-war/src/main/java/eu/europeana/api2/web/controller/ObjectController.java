@@ -31,10 +31,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import eu.europeana.api2.exceptions.LimitReachedException;
 import eu.europeana.api2.web.model.json.ApiError;
 import eu.europeana.api2.web.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.web.model.json.ObjectResult;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
+import eu.europeana.corelib.db.exception.DatabaseException;
+import eu.europeana.corelib.db.logging.api.ApiLogger;
+import eu.europeana.corelib.db.logging.api.enums.RecordType;
+import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
 
@@ -50,6 +55,10 @@ public class ObjectController {
 	@Resource
 	private SearchService searchService;
 
+	private final ApiLogger apiLogger = ApiLogger.getApiLogger();
+	
+	@Resource
+	private ApiKeyService apiService;
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse record(
@@ -58,10 +67,22 @@ public class ObjectController {
 		Principal principal,
 		@RequestParam(value = "profile", required = false, defaultValue="full") String profile
 	) {
+		long usageLimit = 0;
+		try{
+			usageLimit = apiService.findByID(principal.getName()).getUsageLimit();
+			if(apiLogger.getRequestNumber(principal.getName())>usageLimit){
+				throw new LimitReachedException();
+			}
+		} catch (DatabaseException e){
+			
+		} catch (LimitReachedException e){
+			return new ApiError(principal.getName(), "search.json", "Limit Reached");
+		}
 		log.info("record");
 		ObjectResult response = new ObjectResult(principal.getName(), "record.json");
 		try {
 			response.object = searchService.findById(collectionId, recordId);
+			apiLogger.saveApiRequest(principal.getName(), "/"+collectionId+"/"+recordId+".json", RecordType.SEARCH, profile);
 		} catch (SolrTypeException e) {
 			return new ApiError(principal.getName(), "record.json", e.getMessage());
 		}
