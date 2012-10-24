@@ -95,6 +95,7 @@ public class SearchController {
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort
 	) {
+		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
 		long usageLimit = 0;
 		try{
 			usageLimit = apiService.findByID(principal.getName()).getUsageLimit();
@@ -104,11 +105,11 @@ public class SearchController {
 		} catch (DatabaseException e){
 			
 		} catch (LimitReachedException e){
+			apiLogger.saveApiRequest(principal.getName(), query.getQuery(), RecordType.LIMIT, profile);
 			return new ApiError(principal.getName(), "search.json", "Limit Reached");
 		}
 		rows = Math.min(rows, Integer.parseInt(rowLimit));
 		log.info("=== search.json: " + rows);
-		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
 		Class<? extends IdBean> clazz = ApiBean.class;
 		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
 			clazz = BriefBean.class;
