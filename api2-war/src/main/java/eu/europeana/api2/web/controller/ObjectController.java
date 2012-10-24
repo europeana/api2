@@ -56,7 +56,7 @@ public class ObjectController {
 	private SearchService searchService;
 
 	private final ApiLogger apiLogger = ApiLogger.getApiLogger();
-	
+
 	@Resource
 	private ApiKeyService apiService;
 	@Transactional
@@ -70,7 +70,7 @@ public class ObjectController {
 		long usageLimit = 0;
 		try{
 			usageLimit = apiService.findByID(principal.getName()).getUsageLimit();
-			if(apiLogger.getRequestNumber(principal.getName())>usageLimit){
+			if(apiLogger.getRequestNumber(principal.getName()) > usageLimit){
 				apiLogger.saveApiRequest(principal.getName(), "/"+collectionId+"/"+recordId+".json", RecordType.LIMIT, profile);
 				throw new LimitReachedException();
 			}
