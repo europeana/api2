@@ -87,6 +87,12 @@ public class SearchController {
 	@Value("#{europeanaProperties['api.rowLimit']}")
 	private String rowLimit = "96";
 
+	@Value("#{europeanaProperties['portal.server']}")
+	private String portalServer;
+
+	@Value("#{europeanaProperties['portal.name']}")
+	private String portalName;
+
 	@Value("#{europeanaProperties['api2.url']}")
 	private String apiUrl;
 
@@ -95,6 +101,10 @@ public class SearchController {
 
 	@Resource
 	private ApiLogger apiLogger;
+
+	private static String portalUrl;
+
+	private static int maxRows = -1;
 
 	@RequestMapping(value = "/v2/search.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse searchJson(
@@ -106,7 +116,10 @@ public class SearchController {
 		@RequestParam(value = "sort", required = false) String sort,
 		@RequestParam(value = "wskey", required = true) String wskey
 	) {
-		rows = Math.min(rows, Integer.parseInt(rowLimit));
+		if (maxRows == -1) {
+			maxRows = Integer.parseInt(rowLimit);
+		}
+		rows = Math.min(rows, maxRows);
 		log.info("=== search.json: " + rows);
 		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
 
@@ -174,6 +187,7 @@ public class SearchController {
 		response.items = resultSet.getResults();
 
 		BriefView.setApiUrl(apiUrl);
+		BriefView.setPortalUrl(getPortalUrl());
 
 		List<T> beans = new ArrayList<T>();
 		for (T b : resultSet.getResults()) {
@@ -300,5 +314,17 @@ public class SearchController {
 			sb.append(String.format("%s:%d %s()\n", el.getClassName(), el.getLineNumber(), el.getMethodName()));
 		}
 		log.severe(sb.toString());
+	}
+	
+	private String getPortalUrl() {
+		if (portalUrl == null) {
+			StringBuilder sb = new StringBuilder(portalServer);
+			if (!portalServer.endsWith("/") && !portalName.startsWith("/")) {
+				sb.append("/");
+			}
+			sb.append(portalName);
+			portalUrl = sb.toString();
+		}
+		return portalUrl;
 	}
 }
