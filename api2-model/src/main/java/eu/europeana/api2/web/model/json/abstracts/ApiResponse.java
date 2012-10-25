@@ -40,6 +40,8 @@ public abstract class ApiResponse {
 
 	public long statsDuration = 0;
 
+	public long requestNumber = 0;
+
 	public ApiResponse(String apikey, String action) {
 		this.apikey = apikey;
 		this.action = action;

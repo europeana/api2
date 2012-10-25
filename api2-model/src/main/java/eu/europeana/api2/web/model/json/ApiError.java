@@ -35,4 +35,8 @@ public class ApiError extends ApiResponse {
 		this.error = error;
 	}
 
+	public ApiError(String apikey, String action, String error, long requestNumber) {
+		this(apikey, action, error);
+		this.requestNumber = requestNumber;
+	}
 }

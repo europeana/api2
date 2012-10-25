@@ -25,10 +25,8 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
  */
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ApiNotImplementedYet extends ApiError {
-	
+
 	public ApiNotImplementedYet(String apikey, String action) {
 		super(apikey, action, "Not Implemented Yet!");
 	}
-	
-	
 }

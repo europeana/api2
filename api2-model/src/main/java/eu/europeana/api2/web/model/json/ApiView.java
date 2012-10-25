@@ -3,6 +3,7 @@ package eu.europeana.api2.web.model.json;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
@@ -14,6 +15,7 @@ import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 public class ApiView extends BriefView implements ApiBean {
 
 	private String[] edmConceptTerm;
+	// private Map<String, String> edmConceptPrefLabel;
 	private List<Map<String, String>> edmConceptPrefLabel;
 	// private String[] edmConceptPrefLabel;
 	private String[] edmConceptBroaderTerm;
@@ -31,10 +33,14 @@ public class ApiView extends BriefView implements ApiBean {
 	private List<Map<String, String>> edmPlaceAltLabel;
 	private String[] dctermsIsPartOf;
 
-	public ApiView(ApiBean bean, String profile) {
-		super((BriefBean)bean, profile);
+	public ApiView(ApiBean bean, String profile, String wskey) {
+		super((BriefBean)bean, profile, wskey);
+
 		edmConceptTerm = bean.getEdmConcept();
-		edmConceptPrefLabel = bean.getEdmConceptLabel();
+		if (bean.getEdmConceptLabel() != null) {
+			edmConceptPrefLabel = bean.getEdmConceptLabel();
+			log.info("edmConceptPrefLabel: " + StringUtils.join(edmConceptPrefLabel, ", "));
+		}
 		edmConceptBroaderTerm = bean.getEdmConceptBroaderTerm();
 		edmConceptBroaderLabel = bean.getEdmConceptBroaderLabel();
 		edmTimespanBroaderTerm = bean.getEdmTimespanBroaderTerm();
@@ -59,6 +65,7 @@ public class ApiView extends BriefView implements ApiBean {
 		this.edmConceptTerm = edmConceptTerm;
 	}
 
+	@Override
 	public List<Map<String, String>> getEdmConceptLabel() {
 		return edmConceptPrefLabel;
 	}

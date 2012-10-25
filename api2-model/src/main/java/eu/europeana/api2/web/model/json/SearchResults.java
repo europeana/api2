@@ -32,13 +32,13 @@ import eu.europeana.corelib.definitions.model.web.BreadCrumb;
  */
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class SearchResults<T> extends AbstractSearchResults<T> {
-	
+
 	public List<BreadCrumb> breadCrumbs;
-	
+
 	public List<Facet> facets;
-	
+
 	public SpellCheck spellcheck;
-	
+
 	public SearchResults(String apikey, String action) {
 		super(apikey, action);
 	}

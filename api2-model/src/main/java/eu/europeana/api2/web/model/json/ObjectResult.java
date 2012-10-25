@@ -17,10 +17,13 @@
 
 package eu.europeana.api2.web.model.json;
 
+import java.util.List;
+
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
+import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 
 /**
@@ -31,7 +34,14 @@ public class ObjectResult extends ApiResponse {
 
 	public FullBean object;
 
+	public List<? extends BriefBean> similarItems;
+
 	public ObjectResult(String apikey, String action) {
 		super(apikey, action);
+	}
+
+	public ObjectResult(String apikey, String action, long requestNumber) {
+		this(apikey, action);
+		this.requestNumber = requestNumber;
 	}
 }

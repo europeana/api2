@@ -115,10 +115,10 @@ public class BriefDoc {
 			enrichmentPeriodTerm = bean.getEdmConcept();
 		if (bean.getEdmConceptLabel() != null) {
 			List<String> terms = new ArrayList<String>();
-			for(Map<String,String> map : bean.getEdmConceptLabel() ){
-			for (Entry<String, String>  entry : map.entrySet()) {
-				terms.add(entry.getValue());
-			}
+			for(Map<String, String> map : bean.getEdmConceptLabel()){
+				for (Entry<String, String>  entry : map.entrySet()) {
+					terms.add(entry.getValue());
+				}
 			}
 			enrichmentConceptLabel = terms.toArray(new String[terms.size()]);
 		}

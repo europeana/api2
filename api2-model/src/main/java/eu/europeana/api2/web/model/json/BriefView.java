@@ -11,9 +11,9 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
-import org.springframework.beans.factory.annotation.Value;
 
 import eu.europeana.api2.web.model.json.common.Profile;
+import eu.europeana.api2.web.util.OptOutDatasetsUtil;
 import eu.europeana.corelib.definitions.model.ThumbSize;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
@@ -22,10 +22,17 @@ import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
-	@Value("#{europeanaProperties['api.utm.campaign']}")
-	private String utmCampaign = "default";
+	protected final Logger log = Logger.getLogger(getClass().getName());
 
-	private final Logger log = Logger.getLogger(getClass().getName());
+	protected static final String RECORD_PATH = "/v2/record/";
+	protected static final String RECORD_PARAMS = ".json?utm_source=api&utm_medium=api&utm_campaign=";
+	protected static final String WSKEY_PARAM = "&wskey=";
+	protected static final String IMAGE_SITE = "http://europeanastatic.eu/api/image";
+	protected static final String URI_PARAM = "?uri=";
+	protected static final String SIZE_PARAM = "&size=";
+	protected static final String TYPE_PARAM = "&type=";
+
+	protected static String apiUrl;
 
 	private String id;
 	private Date timestamp;
@@ -57,10 +64,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	protected String profile;
 	private List<String> thumbnails;
+	protected String wskey;
 
-	public BriefView(BriefBean bean, String profile) {
-		log.info("profile: " + profile);
+	public BriefView(BriefBean bean, String profile, String wskey) {
 		this.profile = profile;
+		this.wskey = wskey;
 
 		id = bean.getId();
 		timestamp = bean.getTimestamp();
@@ -265,17 +273,18 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	public List<String> getThumbnails() {
 		if (thumbnails == null) {
 			thumbnails = new ArrayList<String>();
-			if (edmObject != null) {
+
+			if (!OptOutDatasetsUtil.checkById(getId()) && edmObject != null) {
 				for (String object : edmObject) {
 					String tn = StringUtils.defaultIfBlank(object, "");
-					StringBuilder url = new StringBuilder("http://europeanastatic.eu/api/image?");
+					StringBuilder url = new StringBuilder(IMAGE_SITE);
 					try {
-						url.append("uri=").append(URLEncoder.encode(tn, "UTF-8"));
+						url.append(URI_PARAM).append(URLEncoder.encode(tn, "UTF-8"));
 					} catch (UnsupportedEncodingException e) {
 						e.printStackTrace();
 					}
-					url.append("&size").append(ThumbSize.LARGE);
-					url.append("&type").append(getType().toString());
+					url.append(SIZE_PARAM).append(ThumbSize.LARGE);
+					url.append(TYPE_PARAM).append(getType().toString());
 					thumbnails.add(url.toString());
 				}
 			}
@@ -284,9 +293,10 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	}
 
 	public String getLink() {
-		StringBuilder url = new StringBuilder("http://portal2/api2/record/");
-		url.append(getId());
-		url.append(".json?utm_source=api&utm_medium=api&utm_campaign=").append(utmCampaign);
+		StringBuilder url = new StringBuilder(apiUrl);
+		url.append(RECORD_PATH).append(getId());
+		url.append(RECORD_PARAMS).append(wskey);
+		url.append(WSKEY_PARAM).append(wskey);
 		return url.toString();
 	}
 
@@ -294,8 +304,12 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	public String[] getEdmPreview() {
 		return edmPreview;
 	}
-	
+
 	protected boolean isProfile(Profile _profile) {
 		return profile.toLowerCase().equals(_profile.getName());
+	}
+
+	public static void setApiUrl(String _apiUrl) {
+		apiUrl = _apiUrl;
 	}
 }
