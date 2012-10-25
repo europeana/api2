@@ -25,14 +25,17 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	protected final Logger log = Logger.getLogger(getClass().getName());
 
 	protected static final String RECORD_PATH = "/v2/record/";
-	protected static final String RECORD_PARAMS = ".json?utm_source=api&utm_medium=api&utm_campaign=";
-	protected static final String WSKEY_PARAM = "&wskey=";
+	protected static final String PORTAL_PATH = "/record/";
+	protected static final String RECORD_EXT = ".json";
+	protected static final String PORTAL_PARAMS = ".html?utm_source=api&utm_medium=api&utm_campaign=";
+	protected static final String WSKEY_PARAM = "?wskey=";
 	protected static final String IMAGE_SITE = "http://europeanastatic.eu/api/image";
 	protected static final String URI_PARAM = "?uri=";
 	protected static final String SIZE_PARAM = "&size=";
 	protected static final String TYPE_PARAM = "&type=";
 
 	protected static String apiUrl;
+	protected static String portalUrl;
 
 	private String id;
 	private Date timestamp;
@@ -294,9 +297,15 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	public String getLink() {
 		StringBuilder url = new StringBuilder(apiUrl);
-		url.append(RECORD_PATH).append(getId());
-		url.append(RECORD_PARAMS).append(wskey);
+		url.append(RECORD_PATH).append(getId()).append(RECORD_EXT);
 		url.append(WSKEY_PARAM).append(wskey);
+		return url.toString();
+	}
+
+	public String getGuid() {
+		StringBuilder url = new StringBuilder(portalUrl);
+		url.append(PORTAL_PATH).append(getId());
+		url.append(PORTAL_PARAMS).append(wskey);
 		return url.toString();
 	}
 
@@ -311,5 +320,9 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	public static void setApiUrl(String _apiUrl) {
 		apiUrl = _apiUrl;
+	}
+
+	public static void setPortalUrl(String _portalUrl) {
+		portalUrl = _portalUrl;
 	}
 }
