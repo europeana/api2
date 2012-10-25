@@ -35,8 +35,8 @@
 	<security:http auto-config="true" disable-url-rewriting="true" realm="Euroepana API2 Users">
 		<security:intercept-url pattern="/oauth/**" access="ROLE_USER" />
 		<security:intercept-url pattern="/user/**" access="ROLE_USER"/>
-		<security:intercept-url pattern="/search.**" access="ROLE_CLIENT" />
-		<security:intercept-url pattern="/record/**" access="ROLE_CLIENT" />
+<!-- 		<security:intercept-url pattern="/search.**" access="ROLE_CLIENT" /> -->
+<!-- 		<security:intercept-url pattern="/record/**" access="ROLE_CLIENT" /> -->
 		<!--  EXCEPTION_TRANSLATION_FILTER" /> -->
 		<security:custom-filter ref="api2_oauth2_resourceServerFilter" before="PRE_AUTH_FILTER"/>
 		<security:form-login login-processing-url="/login" username-parameter="api2key" password-parameter="secret"/>

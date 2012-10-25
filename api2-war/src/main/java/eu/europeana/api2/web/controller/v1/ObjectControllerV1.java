@@ -1,7 +1,5 @@
 package eu.europeana.api2.web.controller.v1;
 
-import java.io.IOException;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -10,10 +8,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +19,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.web.model.json.ApiError;
-import eu.europeana.api2.web.model.json.ObjectResult;
 import eu.europeana.api2.web.model.json.api1.FullDoc;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;

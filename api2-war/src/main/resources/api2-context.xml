@@ -13,6 +13,16 @@
 	<import resource="internal/api2-mvc-interceptors.xml" />
 	<import resource="internal/api2-security.xml" />
 
+	<bean id="corelib_db_mongo" class="com.mongodb.Mongo">
+		<constructor-arg value="#{europeanaProperties['mongodb.host']}"/>
+		<constructor-arg value="#{europeanaProperties['mongodb.port']}"/>
+	</bean>
+
+	<bean id="apiLogger" class="eu.europeana.corelib.db.logging.api.ApiLogger">
+		<constructor-arg ref="corelib_db_mongo"/>
+	</bean>
+
+
 	<!-- DEVELOPMENT -->
 	<!-- import resource="internal/api2-development.xml" / -->
 </beans>

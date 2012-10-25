@@ -11,7 +11,7 @@ import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.abstracts.EuropeanaUserObject;
 
 public abstract class AbstractUserController {
-	
+
 	@Resource(name="corelib_db_userService")
 	protected UserService userService;
 
@@ -22,7 +22,7 @@ public abstract class AbstractUserController {
 		}
 		return "testing";
 	}
-	
+
 	protected void copyUserObjectData(UserObject to, EuropeanaUserObject from) {
 		to.id = from.getId();
 		to.title = from.getTitle();
@@ -31,5 +31,4 @@ public abstract class AbstractUserController {
 		to.europeanaObject = from.getEuropeanaObject();
 		to.europeanaUri = from.getEuropeanaUri();
 	}
-
 }
