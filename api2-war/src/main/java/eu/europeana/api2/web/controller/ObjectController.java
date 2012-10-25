@@ -40,14 +40,13 @@ import eu.europeana.api2.web.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.web.model.json.FullView;
 import eu.europeana.api2.web.model.json.ObjectResult;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
+import eu.europeana.api2.web.model.json.common.Profile;
 import eu.europeana.api2.web.util.OptOutDatasetsUtil;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.logging.api.ApiLogger;
 import eu.europeana.corelib.db.logging.api.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
-import eu.europeana.corelib.definitions.jibx.Aggregation;
-import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
@@ -82,8 +81,9 @@ public class ObjectController {
 		@RequestParam(value = "wskey", required = true) String wskey
 	) {
 		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
-		
-		String request = "/" + collectionId + "/" + recordId + ".json";
+
+		String europeanaObjectId = "/" + collectionId + "/" + recordId;
+		String request = europeanaObjectId + ".json";
 		long usageLimit = 0;
 		ApiKey apiKey;
 		long requestNumber = 0;
@@ -108,9 +108,16 @@ public class ObjectController {
 		ObjectResult response = new ObjectResult(wskey, "record.json", requestNumber);
 		try {
 			long t0 = (new Date()).getTime();
-			FullBean bean = searchService.findById(collectionId, recordId);
-			log.info("bean is null? " + (bean == null));
-			response.similarItems = bean.getSimilarItems();
+			FullBean bean = searchService.findById(europeanaObjectId);
+
+			if (bean == null) {
+				apiLogger.saveApiRequest(wskey, request, RecordType.LIMIT, profile);
+				return new ApiError(wskey, "record.json", "Invalid record identifier: " + europeanaObjectId, requestNumber);
+			}
+
+			if (profile.equals(Profile.SIMILAR.getName())) {
+				response.similarItems = bean.getSimilarItems();
+			}
 			response.object = new FullView(bean);
 			long t1 = (new Date()).getTime();
 			response.statsDuration = (t1 - t0);
