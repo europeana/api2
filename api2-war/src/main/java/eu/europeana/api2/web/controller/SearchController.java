@@ -315,7 +315,7 @@ public class SearchController {
 		}
 		log.severe(sb.toString());
 	}
-	
+
 	private String getPortalUrl() {
 		if (portalUrl == null) {
 			StringBuilder sb = new StringBuilder(portalServer);
