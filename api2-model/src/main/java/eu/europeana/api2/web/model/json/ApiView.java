@@ -39,7 +39,6 @@ public class ApiView extends BriefView implements ApiBean {
 		edmConceptTerm = bean.getEdmConcept();
 		if (bean.getEdmConceptLabel() != null) {
 			edmConceptPrefLabel = bean.getEdmConceptLabel();
-			log.info("edmConceptPrefLabel: " + StringUtils.join(edmConceptPrefLabel, ", "));
 		}
 		edmConceptBroaderTerm = bean.getEdmConceptBroaderTerm();
 		edmConceptBroaderLabel = bean.getEdmConceptBroaderLabel();
