@@ -18,6 +18,7 @@
 package eu.europeana.api2.web.controller;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import eu.europeana.api2.exceptions.LimitReachedException;
 import eu.europeana.api2.web.model.json.ApiError;
 import eu.europeana.api2.web.model.json.ApiNotImplementedYet;
+import eu.europeana.api2.web.model.json.BriefView;
 import eu.europeana.api2.web.model.json.FullView;
 import eu.europeana.api2.web.model.json.ObjectResult;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
@@ -47,6 +49,7 @@ import eu.europeana.corelib.db.logging.api.ApiLogger;
 import eu.europeana.corelib.db.logging.api.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
+import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
@@ -69,8 +72,21 @@ public class ObjectController {
 	@Resource
 	private ApiKeyService apiService;
 
+	@Value("#{europeanaProperties['portal.server']}")
+	private String portalServer;
+
+	@Value("#{europeanaProperties['portal.name']}")
+	private String portalName;
+
+	@Value("#{europeanaProperties['api2.url']}")
+	private String apiUrl;
+
 	@Value("#{europeanaProperties['api.optOutList']}")
 	private String optOutList;
+
+	private static String portalUrl;
+
+	private String similarItemsProfile = "minimal";
 
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -116,7 +132,15 @@ public class ObjectController {
 			}
 
 			if (profile.equals(Profile.SIMILAR.getName())) {
-				response.similarItems = bean.getSimilarItems();
+				BriefView.setApiUrl(apiUrl);
+				BriefView.setPortalUrl(getPortalUrl());
+
+				List<BriefView> beans = new ArrayList<BriefView>();
+				for (BriefBean b : bean.getSimilarItems()) {
+					BriefView view = new BriefView(b, similarItemsProfile, wskey);
+					beans.add(view);
+				}
+				response.similarItems = beans;
 			}
 			response.object = new FullView(bean);
 			long t1 = (new Date()).getTime();
@@ -136,5 +160,17 @@ public class ObjectController {
 			@RequestParam(value = "sessionhash", required = true) String sessionHash
 	) {
 		return new ApiNotImplementedYet(apiKey, "record.kml");
+	}
+
+	private String getPortalUrl() {
+		if (portalUrl == null) {
+			StringBuilder sb = new StringBuilder(portalServer);
+			if (!portalServer.endsWith("/") && !portalName.startsWith("/")) {
+				sb.append("/");
+			}
+			sb.append(portalName);
+			portalUrl = sb.toString();
+		}
+		return portalUrl;
 	}
 }
