@@ -9,9 +9,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.log4j.Logger;
 
 public class OptOutDatasetsUtil {
 
@@ -23,7 +23,7 @@ public class OptOutDatasetsUtil {
 	/**
 	 * The class logger
 	 */
-	private static Logger log = Logger.getLogger(OptOutDatasetsUtil.class);
+	private static Logger log = Logger.getLogger("OptOutDatasetsUtil");
 
 	/**
 	 * The time of file last check
@@ -51,10 +51,10 @@ public class OptOutDatasetsUtil {
 	 *            The file name of the opt-out list (absolute path)
 	 */
 	public static void setOptOutDatasets(String optOutList) {
-		Calendar timeout = DateUtils.toCalendar(DateUtils.addMinutes(
-				new Date(), -CHECK_FREQUENCY_IN_MINUTE));
+		Calendar timeout = DateUtils.toCalendar(DateUtils.addMinutes(new Date(), -CHECK_FREQUENCY_IN_MINUTE));
 
-		if (optOutDatasets == null || lastCheck == null
+		if (optOutDatasets == null 
+				|| lastCheck == null
 				|| lastCheck.before(timeout)) {
 			log.info("Reading in opt-out dataset.");
 			optOutDatasets = new HashMap<String, Integer>();
@@ -125,7 +125,7 @@ public class OptOutDatasetsUtil {
 	}
 
 	public static boolean checkById(String id) {
-		String collectionId = id.substring(0, id.indexOf("/", 0));
+		String collectionId = id.substring(1, id.indexOf("/", 1));
 		return checkCollectionId(collectionId);
 	}
 
