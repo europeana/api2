@@ -118,7 +118,7 @@ public class FullView implements FullBean {
 
 			// add bt=europanaapi
 			String isShownAt = items.get(i).getEdmIsShownAt();
-			items.get(i).setEdmIsShownAt(isShownAt + (isShownAt.indexOf("?") > -1 ? "&" : "?") + "bt=europanaapi");
+			items.get(i).setEdmIsShownAt(isShownAt + (isShownAt.indexOf("?") > -1 ? "&" : "?") + "bt=europeanaapi");
 
 			// remove edm:object if it is a opted out record
 			if (OptOutDatasetsUtil.checkById(bean.getAbout())) {
