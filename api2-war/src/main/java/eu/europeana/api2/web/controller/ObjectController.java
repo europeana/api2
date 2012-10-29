@@ -88,7 +88,7 @@ public class ObjectController {
 
 	private String similarItemsProfile = "minimal";
 
-	@Transactional
+	// @Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse record(
 		@PathVariable String collectionId,
