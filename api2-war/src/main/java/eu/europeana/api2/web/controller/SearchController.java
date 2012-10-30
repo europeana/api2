@@ -123,7 +123,11 @@ public class SearchController {
 		log.info("=== search.json: " + rows);
 		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
 
-		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
+		Query query = new Query(q)
+							.setRefinements(refinements)
+							.setPageSize(rows)
+							.setStart(start - 1)
+							.setParameter("facet.mincount", "1");
 		long usageLimit = 0;
 		ApiKey apiKey;
 		long requestNumber = 0;
