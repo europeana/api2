@@ -75,14 +75,11 @@ public class SearchController {
 
 	private final Logger log = Logger.getLogger(getClass().getName());
 
-	@Resource(name = "corelib_db_mongo")
-	private Mongo mongo;
+	@Resource(name = "corelib_db_mongo") private Mongo mongo;
 
-	@Resource
-	private SearchService searchService;
+	@Resource private SearchService searchService;
 
-	@Resource
-	private ApiKeyService apiService;
+	@Resource private ApiKeyService apiService;
 
 	@Value("#{europeanaProperties['api.rowLimit']}")
 	private String rowLimit = "96";
@@ -99,8 +96,7 @@ public class SearchController {
 	@Value("#{europeanaProperties['api.optOutList']}")
 	private String optOutList;
 
-	@Resource
-	private ApiLogger apiLogger;
+	@Resource private ApiLogger apiLogger;
 
 	private static String portalUrl;
 
@@ -157,23 +153,6 @@ public class SearchController {
 			SearchResults<? extends IdBean> response = createResults(wskey, profile, query, clazz);
 			response.requestNumber = requestNumber;
 			log.info("got response " + response.items.size());
-			/*
-			ObjectMapper objectMapper = new ObjectMapper();
-			objectMapper.setSerializationInclusion(Inclusion.NON_EMPTY);
-			try {
-				String json = objectMapper.writeValueAsString(response);
-				log.info("JSON: " + json);
-			} catch (JsonGenerationException e) {
-				log.info(e.getMessage());
-				e.printStackTrace();
-			} catch (JsonMappingException e) {
-				log.info(e.getMessage());
-				e.printStackTrace();
-			} catch (IOException e) {
-				log.info(e.getMessage());
-				e.printStackTrace();
-			}
-			*/
 			apiLogger.saveApiRequest(wskey, query.getQuery(), RecordType.SEARCH, profile);
 			return response;
 		} catch (SolrTypeException e) {
@@ -330,5 +309,27 @@ public class SearchController {
 			portalUrl = sb.toString();
 		}
 		return portalUrl;
+	}
+
+	/**
+	 * Test JSON creating
+	 * @param response
+	 */
+	private void createJson(SearchResults<? extends IdBean> response) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.setSerializationInclusion(Inclusion.NON_EMPTY);
+		try {
+			String json = objectMapper.writeValueAsString(response);
+			log.info("JSON: " + json);
+		} catch (JsonGenerationException e) {
+			log.info(e.getMessage());
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			log.info(e.getMessage());
+			e.printStackTrace();
+		} catch (IOException e) {
+			log.info(e.getMessage());
+			e.printStackTrace();
+		}
 	}
 }
