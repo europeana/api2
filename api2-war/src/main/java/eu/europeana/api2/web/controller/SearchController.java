@@ -260,9 +260,9 @@ public class SearchController {
 			channel.query.startPage = start;
 			for (BriefBean bean : resultSet.getResults()) {
 				Item item = new Item();
-				item.guid = bean.getId();
+				item.guid = getPortalUrl() + "/record" + bean.getId() + ".html";
 				item.title = bean.getTitle()[0];
-				item.link = bean.getId();
+				item.link = item.guid;
 				log.info("item: " + item);
 				channel.items.add(item);
 			}

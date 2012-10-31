@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class RssResponse {
 
 	public static final String NS_ATOM = "http://www.w3.org/2005/Atom";
-	public static final String NS_OPENSEARCH = "http://a9.com/-/spec/opensearch/1.1";
+	public static final String NS_OPENSEARCH = "http://a9.com/-/spec/opensearch/1.1/";
 
 	@XmlAttribute
 	final String version = "2.0";

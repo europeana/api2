@@ -38,6 +38,9 @@ public class Channel {
 	@XmlElement
 	private String link = "http://www.europeana.eu";
 
+	@XmlElement
+	private String description = "Europeana Open Search results";
+
 	@XmlElement(name="totalResults", namespace = RssResponse.NS_OPENSEARCH)
 	public Statistic totalResults = new Statistic();
 
