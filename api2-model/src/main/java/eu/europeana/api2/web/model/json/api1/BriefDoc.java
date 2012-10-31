@@ -14,8 +14,13 @@ import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefDoc {
 
+	private static String portalServer;
+	private static String portalName;
+	private static String path;
+
 	private String europeanaUrl = "http://www.europeana.eu/portal/record";
 	private String wskey;
+
 	private String fullDocUrl;
 	private String title;
 	private String url;
@@ -128,9 +133,9 @@ public class BriefDoc {
 		if (map == null) {
 			map = new LinkedHashMap<String, Object>();
 
-			addValue("guid", europeanaUrl + url + ".html");
+			addValue("guid", portalServer + "/" + portalName + "/record" + url + ".html");
 			addValue("title", title);
-			addValue("link", europeanaUrl + url + ".html?wskey=" + wskey);
+			addValue("link", portalServer + "/" + path + "/v1/record" + url + ".json?wskey=" + wskey);
 			addValue("description", description);
 			addValue("enclosure", thumbnail);
 			addValue("dc:creator", creator);
@@ -397,5 +402,44 @@ public class BriefDoc {
 
 	public void setWskey(String wskey) {
 		this.wskey = wskey;
+	}
+
+	public static String getPortalServer() {
+		return portalServer;
+	}
+
+	public static void setPortalServer(String portalServer) {
+		if (portalServer.endsWith("/")) {
+			portalServer = portalServer.substring(0, portalServer.length()-1);
+		}
+		BriefDoc.portalServer = portalServer;
+	}
+
+	public static String getPortalName() {
+		return portalName;
+	}
+
+	public static void setPortalName(String portalName) {
+		if (portalName.endsWith("/")) {
+			portalName = portalName.substring(0, portalServer.length()-1);
+		}
+		if (portalName.startsWith("/")) {
+			portalName = portalName.substring(1);
+		}
+		BriefDoc.portalName = portalName;
+	}
+
+	public static String getPath() {
+		return path;
+	}
+
+	public static void setPath(String path) {
+		if (path.endsWith("/")) {
+			path = path.substring(0, portalServer.length()-1);
+		}
+		if (path.startsWith("/")) {
+			path = path.substring(1);
+		}
+		BriefDoc.path = path;
 	}
 }

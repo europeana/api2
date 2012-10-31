@@ -20,6 +20,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.web.model.json.ApiError;
 import eu.europeana.api2.web.model.json.api1.FullDoc;
+import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
@@ -32,6 +33,8 @@ public class ObjectControllerV1 {
 	private final Logger log = Logger.getLogger(getClass().getName());
 
 	@Resource(name="corelib_db_userService") private UserService userService;
+
+	@Resource private ApiKeyService apiService;
 
 	@Resource private SearchService searchService;
 
@@ -49,10 +52,18 @@ public class ObjectControllerV1 {
 		Map<String, Object> model = new HashMap<String, Object>();
 		Api1Utils utils = new Api1Utils();
 
-		if (StringUtils.isBlank(wskey) || userService.findByApiKey(wskey) == null) {
-			// error handling here
-			model.put("error", utils.toJson(new Exception("No API authorisation key, or the key is not recognised.").getMessage()));
-		} else {
+		boolean hasResult = false;
+		if (!hasResult && StringUtils.isBlank(wskey)) {
+			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "No API authorisation key.")));
+			hasResult = true;
+		}
+
+		if (!hasResult && (userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null)) {
+			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Unregistered user")));
+			hasResult = true;
+		}
+
+		if (!hasResult) {
 			try {
 				FullBean bean = searchService.findById(collectionId, recordId);
 				FullDoc doc = null;
@@ -64,11 +75,10 @@ public class ObjectControllerV1 {
 					json = utils.toJson(doc.asMap());
 					model.put("json", json);
 				} else {
-					model.put("error", utils.toJson(new ApiError(null, "record.json", "not found error")));
+					model.put("json", utils.toJson(new ApiError(wskey, "record.json", "not found error")));
 				}
 			} catch (SolrTypeException e) {
-				// return new ApiError(principal.getName(), "record.json", e.getMessage());
-				model.put("error", utils.toJson(e.getMessage()));
+				model.put("json", utils.toJson(new ApiError(wskey, "record.json", e.getMessage())));
 			}
 		}
 

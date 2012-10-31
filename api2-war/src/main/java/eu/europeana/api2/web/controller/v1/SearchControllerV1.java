@@ -1,7 +1,5 @@
 package eu.europeana.api2.web.controller.v1;
 
-import java.io.IOException;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,12 +7,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -24,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.web.model.json.Api1SearchResults;
+import eu.europeana.api2.web.model.json.ApiError;
 import eu.europeana.api2.web.model.json.api1.BriefDoc;
+import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
@@ -42,12 +39,16 @@ public class SearchControllerV1 {
 	@Resource(name="corelib_db_userService") private UserService userService;
 
 	@Resource private SearchService searchService;
-	
+
+	@Resource private ApiKeyService apiService;
+
 	@Value("#{europeanaProperties['portal.name']}")
 	private String portalName;
 
 	@Value("#{europeanaProperties['portal.server']}")
 	private String portalServer;
+
+	private String path;
 
 	@RequestMapping(value = {"/opensearch.json", "/v1/search.json"}, method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView search2Json(
@@ -58,65 +59,71 @@ public class SearchControllerV1 {
 		@RequestParam(value = "start", required = false, defaultValue="1") int start,
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort,
-		Principal principal
+		HttpServletRequest request
 			) throws Exception {
 
-		if (StringUtils.isBlank(wskey) || userService.findByApiKey(wskey) == null) {
-			// error handling here
-			throw new Exception("No API authorisation key, or the key is not recognised.");
+		path = request.getContextPath();
+
+		Map<String, Object> model = new HashMap<String, Object>();
+		Api1Utils utils = new Api1Utils();
+
+		boolean hasResult = false;
+		if (!hasResult && StringUtils.isBlank(wskey)) {
+			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "No API authorisation key.")));
+			hasResult = true;
 		}
 
-		log.info("opensearch.json");
-		Map<String, Object> model = new HashMap<String, Object>();
-		Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
-		Class<? extends IdBean> clazz = ApiBean.class;
-		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
-			clazz = BriefBean.class;
+		if (!hasResult && (userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null)) {
+			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Unregistered user")));
+			hasResult = true;
 		}
-		try {
-			log.info("->Api1SearchResults");
-			log.info("profile? " + (profile == null));
-			log.info("query? " + (query == null));
-			log.info("clazz? " + (clazz == null));
-			Api1SearchResults<Map<String, Object>> response = createResultsForApi1("principal.getName()", profile, query, clazz, wskey);
-			if (response != null) {
-				log.info("got response " + response.items.size());
-				ObjectMapper objectMapper = new ObjectMapper();
-				objectMapper.setSerializationInclusion(Inclusion.NON_NULL);
-				String json = objectMapper.writeValueAsString(response);
-				model.put("json", json);
+
+		if (!hasResult) {
+			log.info("opensearch.json");
+			Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
+			Class<? extends IdBean> clazz = ApiBean.class;
+			if (StringUtils.containsIgnoreCase(profile, "minimal")) {
+				clazz = BriefBean.class;
 			}
-			model.put("result", response);
-		} catch (SolrTypeException e) {
-			logException(e);
-		} catch (JsonGenerationException e) {
-			logException(e);
-		} catch (JsonMappingException e) {
-			logException(e);
-		} catch (IOException e) {
-			logException(e);
-		} catch (Exception e) {
-			logException(e);
+			try {
+				log.info("->Api1SearchResults");
+				log.info("profile? " + (profile == null));
+				log.info("query? " + (query == null));
+				log.info("clazz? " + (clazz == null));
+				Api1SearchResults<Map<String, Object>> response = createResultsForApi1(wskey, profile, query, clazz);
+				if (response != null) {
+					log.info("got response " + response.items.size());
+					model.put("json", utils.toJson(response));
+				}
+				model.put("result", response);
+			} catch (SolrTypeException e) {
+				logException(e);
+			} catch (Exception e) {
+				logException(e);
+			}
 		}
+
 		ModelAndView page = new ModelAndView("search", model);
 		return page;
 	}
 
-	private <T extends IdBean> Api1SearchResults<Map<String, Object>> createResultsForApi1(String apiKey, String profile, Query q, 
-			Class<T> clazz, String wskey) 
+	private <T extends IdBean> Api1SearchResults<Map<String, Object>> createResultsForApi1(String wskey, String profile, Query q, 
+			Class<T> clazz) 
 			throws SolrTypeException {
 		log.info("createResultsForApi1");
-		Api1SearchResults<Map<String, Object>> response = new Api1SearchResults<Map<String, Object>>(apiKey, "search.json");
+		Api1SearchResults<Map<String, Object>> response = new Api1SearchResults<Map<String, Object>>(wskey, "search.json");
 		log.info("new Api1SearchResults");
 		ResultSet<T> resultSet = searchService.search(clazz, q);
 		log.info("searchService.search");
 		response.totalResults = resultSet.getResultSize();
 		response.itemsCount = resultSet.getResults().size();
-		String europeanaUrl = portalServer + portalName;
+
+		BriefDoc.setPortalServer(portalServer);
+		BriefDoc.setPortalName(portalName);
+		BriefDoc.setPath(path);
 		List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
 		for (Object o : resultSet.getResults()) {
 			BriefDoc doc = new BriefDoc((ApiBean)o);
-			doc.setEuropeanaUrl(europeanaUrl);
 			doc.setWskey(wskey);
 			items.add(doc.asMap());
 		}
