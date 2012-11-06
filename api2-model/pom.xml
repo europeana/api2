@@ -25,5 +25,15 @@
 			<artifactId>jackson-xc</artifactId>
 			<version>${version.codehausJackson}</version>
 		</dependency>
-  </dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-oxm</artifactId>
+			<version>${version.springCore}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.2.6</version>
+		</dependency>
+	</dependencies>
 </project>
