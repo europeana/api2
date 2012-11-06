@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
@@ -194,10 +195,6 @@ public class BriefDoc {
 
 	public void setUrl(String url) {
 		this.url = url;
-	}
-
-	public String getDescription() {
-		return description;
 	}
 
 	public void setDescription(String description) {
@@ -450,4 +447,25 @@ public class BriefDoc {
 	public String getLink() {
 		return portalServer + "/" + path + "/v1/record" + url + ".json?wskey=" + wskey;
 	}
+
+	public String getDescription() {
+		StringBuilder sb = new StringBuilder();
+		if (StringUtils.isNotBlank(getCreator())) {
+			sb.append(getCreator());
+		}
+		if (StringUtils.isNotBlank(getYear())) {
+			if (sb.length() > 0) {
+				sb.append("; ");
+			}
+			sb.append(getYear());
+		}
+		if (StringUtils.isNotBlank(getProvider())) {
+			if (sb.length() > 0) {
+				sb.append("; ");
+			}
+			sb.append(getProvider());
+		}
+		return sb.toString();
+	}
+
 }

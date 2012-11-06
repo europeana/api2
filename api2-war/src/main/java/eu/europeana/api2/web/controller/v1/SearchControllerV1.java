@@ -115,7 +115,6 @@ public class SearchControllerV1 {
 
 	// 
 	@RequestMapping(value = {"/opensearch.rss", "/v1/opensearch.rss"}, produces = "application/rss+xml")
-	// public ModelAndView openSearchControllerRSS(
 	public @ResponseBody RssResponse openSearchControllerRSS(
 			@RequestParam(value = "searchTerms", required = false) String searchTerms,
 			@RequestParam(value = "startPage", required = false, defaultValue = "1") String startPage,
@@ -148,6 +147,7 @@ public class SearchControllerV1 {
 			// channel.link = href;
 			channel.atomLink.href = href;
 			for (BriefDoc bean : resultSet.items) {
+
 				Item item = new Item();
 				item.guid = bean.getGuid();
 				item.title = bean.getTitle();
@@ -179,7 +179,6 @@ public class SearchControllerV1 {
 				item.enrichmentConceptTerm = bean.getEnrichmentConceptTerm();
 				item.enrichmentConceptLabel = bean.getEnrichmentConceptLabel();
 
-				log.info("item: " + item);
 				channel.items.add(item);
 			}
 			return rss;
@@ -191,22 +190,13 @@ public class SearchControllerV1 {
 			model.put("errors", e.getMessage());
 			return null;
 		}
-
-		/*
-		ModelAndView page = new ModelAndView("opensearch-result-rss");
-		page.addObject(PageData.PARAM_MODEL, model);
-		return page;
-		*/
 	}
 
 	private <T extends IdBean> Api1SearchResults<Map<String, Object>> createResultsForApi1(String wskey, String profile, Query q, 
 			Class<T> clazz) 
 			throws SolrTypeException {
-		log.info("createResultsForApi1");
 		Api1SearchResults<Map<String, Object>> response = new Api1SearchResults<Map<String, Object>>(wskey, "search.json");
-		log.info("new Api1SearchResults");
 		ResultSet<T> resultSet = searchService.search(clazz, q);
-		log.info("searchService.search");
 		response.totalResults = resultSet.getResultSize();
 		response.itemsCount = resultSet.getResults().size();
 
@@ -219,20 +209,15 @@ public class SearchControllerV1 {
 			doc.setWskey(wskey);
 			items.add(doc.asMap());
 		}
-		log.info("new BriefDoc");
 		response.items = items;
-		log.info("response: " + response);
 		return response;
 	}
 
 	private Api1SearchResults<BriefDoc> createResultsForRSS(String wskey, String profile, Query q, 
 			Class<? extends IdBean> clazz) 
 			throws SolrTypeException {
-		log.info("createResultsForApi1");
 		Api1SearchResults<BriefDoc> response = new Api1SearchResults<BriefDoc>(wskey, "search.json");
-		log.info("new Api1SearchResults");
 		ResultSet<? extends IdBean> resultSet = searchService.search(clazz, q);
-		log.info("searchService.search");
 		response.totalResults = resultSet.getResultSize();
 		response.itemsCount = resultSet.getResults().size();
 
@@ -245,9 +230,7 @@ public class SearchControllerV1 {
 			doc.setWskey(wskey);
 			items.add(doc);
 		}
-		log.info("new BriefDoc");
 		response.items = items;
-		log.info("response: " + response);
 		return response;
 	}
 
