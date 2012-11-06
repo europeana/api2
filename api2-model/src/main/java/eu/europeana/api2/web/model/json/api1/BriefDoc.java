@@ -451,13 +451,13 @@ public class BriefDoc {
 	public String getDescription() {
 		StringBuilder sb = new StringBuilder();
 		if (StringUtils.isNotBlank(getCreator())) {
-			sb.append(getCreator());
+			sb.append(trimDescription(getCreator()));
 		}
 		if (StringUtils.isNotBlank(getYear())) {
 			if (sb.length() > 0) {
 				sb.append("; ");
 			}
-			sb.append(getYear());
+			sb.append(trimDescription(getYear()));
 		}
 		if (StringUtils.isNotBlank(getProvider())) {
 			if (sb.length() > 0) {
@@ -468,4 +468,11 @@ public class BriefDoc {
 		return sb.toString();
 	}
 
+	private String trimDescription(String item) {
+		item = StringUtils.trim(item);
+		if (item.endsWith(";")) {
+			item = StringUtils.trim(item.substring(0, item.length() - 1));
+		}
+		return item;
+	}
 }

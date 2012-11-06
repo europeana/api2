@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
 
+import org.apache.commons.lang.StringUtils;
+
 import eu.europeana.api2.web.model.xml.rss.atom.AtomLink;
 import eu.europeana.api2.web.model.xml.rss.opensearch.Query;
 import eu.europeana.api2.web.model.xml.rss.opensearch.Statistic;
@@ -32,6 +34,8 @@ import eu.europeana.api2.web.model.xml.rss.opensearch.Statistic;
 @SuppressWarnings("unused")
 public class Channel {
 
+	private static final String DESCRIPTION_SUFFIX = " - Europeana Open Search";
+	
 	@XmlElement
 	private String title = "Europeana Open Search result";
 
@@ -72,5 +76,9 @@ public class Channel {
 
 	public void setAtomLink(AtomLink atomLink) {
 		this.atomLink = atomLink;
+	}
+
+	public void updateDescription() {
+		description = StringUtils.trim(query.searchTerms) + DESCRIPTION_SUFFIX;
 	}
 }

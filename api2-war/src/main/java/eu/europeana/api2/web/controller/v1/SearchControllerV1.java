@@ -144,8 +144,9 @@ public class SearchControllerV1 {
 			channel.itemsPerPage.value = RESULT_ROWS_PER_PAGE;
 			channel.query.searchTerms = searchTerms;
 			channel.query.startPage = Integer.parseInt(startPage);
-			// channel.link = href;
+			channel.setLink(href);
 			channel.atomLink.href = href;
+			channel.updateDescription();
 			for (BriefDoc bean : resultSet.items) {
 
 				Item item = new Item();
