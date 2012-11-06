@@ -37,7 +37,7 @@ public class Channel {
 	private static final String DESCRIPTION_SUFFIX = " - Europeana Open Search";
 	
 	@XmlElement
-	private String title = "Europeana Open Search result";
+	private String title = "Europeana Open Search";
 
 	@XmlElement
 	private String link = "http://www.europeana.eu";
