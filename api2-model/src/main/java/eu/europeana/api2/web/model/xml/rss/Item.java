@@ -28,7 +28,6 @@ public class Item {
 	@XmlElement(name = "isPartOf", namespace = RssResponse.NS_DCTERM)
 	public String[] dcTermsIsPartOf;
 
-	// ...
 	@XmlElement(name = "year", namespace = RssResponse.NS_EUROPEANA)
 	public String europeanaYear;
 

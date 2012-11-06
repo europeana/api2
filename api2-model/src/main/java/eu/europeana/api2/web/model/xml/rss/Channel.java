@@ -56,6 +56,9 @@ public class Channel {
 	@XmlElement(name="Query", namespace = RssResponse.NS_OPENSEARCH)
 	public Query query = new Query();
 
+	@XmlElement(name="image")
+	public ChannelImage image = new ChannelImage();
+
 	@XmlElement(name="item")
 	public List<Item> items = new ArrayList<Item>();
 
