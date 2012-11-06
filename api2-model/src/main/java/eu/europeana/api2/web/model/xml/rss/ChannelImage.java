@@ -8,5 +8,12 @@ public class ChannelImage {
 	private String title = "europeana.eu";
 
 	@XmlElement(name = "link")
-	private String link = "http://www.europeana.eu/portal/favicon.ico";
+	private String link = "http://www.europeana.eu/";
+
+	@XmlElement(name = "url")
+	private String url = "http://www.europeana.eu/portal/sp/img/europeana-logo-en.png";
+	
+	private int width = 206;
+	
+	private int height = 123;
 }
