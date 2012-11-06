@@ -29,6 +29,10 @@ public class RssResponse {
 
 	public static final String NS_ATOM = "http://www.w3.org/2005/Atom";
 	public static final String NS_OPENSEARCH = "http://a9.com/-/spec/opensearch/1.1/";
+	public static final String NS_DC = "http://purl.org/dc/elements/1.1/";
+	public static final String NS_DCTERM = "http://purl.org/dc/terms/";
+	public static final String NS_EUROPEANA = "http://www.europeana.eu";
+	public static final String NS_ENRICHMENT = "http://www.europeana.eu/schemas/ese/enrichment/";
 
 	@XmlAttribute
 	final String version = "2.0";

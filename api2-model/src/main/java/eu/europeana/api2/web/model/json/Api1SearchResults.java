@@ -17,15 +17,10 @@
 
 package eu.europeana.api2.web.model.json;
 
-import java.util.List;
-
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.web.model.json.abstracts.AbstractSearchResults;
-import eu.europeana.api2.web.model.json.facets.Facet;
-import eu.europeana.api2.web.model.json.spellcheck.SpellCheck;
-import eu.europeana.corelib.definitions.model.web.BreadCrumb;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>

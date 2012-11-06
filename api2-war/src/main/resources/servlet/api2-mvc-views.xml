@@ -17,30 +17,34 @@
 
 	<context:annotation-config />
 
-
 	<!--Basic application beans. -->
 	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 		<property name="prefix" value="/WEB-INF/jsp/" />
 		<property name="suffix" value=".jsp" />
 	</bean>
 
-    <!-- the json view -->
-    <bean id="api2_mvc_views_jaxbAnnotationBinder" class="org.codehaus.jackson.xc.JaxbAnnotationIntrospector" />
-    <bean id="api2_mvc_views_jsonObjectMapper" class="org.codehaus.jackson.map.ObjectMapper" />
-    <bean id="api2_mvc_views_json" class="org.springframework.web.servlet.view.json.MappingJacksonJsonView" 
-    	p:objectMapper="#{api2_mvc_views_jsonObjectMapper.setAnnotationIntrospector(api2_mvc_views_jaxbAnnotationBinder)}" />
- 
+	<!-- the json view -->
+	<bean id="api2_mvc_views_jaxbAnnotationBinder" class="org.codehaus.jackson.xc.JaxbAnnotationIntrospector" />
+	<bean id="api2_mvc_views_jsonObjectMapper" class="org.codehaus.jackson.map.ObjectMapper" />
+	<bean id="api2_mvc_views_json" class="org.springframework.web.servlet.view.json.MappingJacksonJsonView"
+		p:objectMapper="#{api2_mvc_views_jsonObjectMapper.setAnnotationIntrospector(api2_mvc_views_jaxbAnnotationBinder)}" 
+	/>
+
 	<bean id="api2_mvc_views_jaxbmarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
-        <property name="classesToBeBound">
-            <list>
-                <value>eu.europeana.api2.web.model.xml.rss.RssResponse</value>
-                <value>eu.europeana.api2.web.model.xml.kml.KmlResponse</value>                
-            </list>
-        </property>
-    </bean>
+		<property name="classesToBeBound">
+			<list>
+				<value>eu.europeana.api2.web.model.xml.rss.RssResponse</value>
+				<value>eu.europeana.api2.web.model.xml.kml.KmlResponse</value>
+			</list>
+		</property>
+		<property name="marshallerProperties">
+			<map>
+				<entry key="jaxb.formatted.output"><value type="boolean">true</value></entry>
+			</map>
+		</property>
+	</bean>
 
-    <bean id="api2_mvc_views_xml" class="org.springframework.web.servlet.view.xml.MarshallingView">
-        <constructor-arg ref="api2_mvc_views_jaxbmarshaller" />
-    </bean>
-
+	<bean id="api2_mvc_views_xml" class="org.springframework.web.servlet.view.xml.MarshallingView">
+		<constructor-arg ref="api2_mvc_views_jaxbmarshaller" />
+	</bean>
 </beans>

@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.annotation.XmlElement;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,11 +18,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.web.model.json.Api1SearchResults;
 import eu.europeana.api2.web.model.json.ApiError;
 import eu.europeana.api2.web.model.json.api1.BriefDoc;
+import eu.europeana.api2.web.model.xml.rss.Channel;
+import eu.europeana.api2.web.model.xml.rss.Enclosure;
+import eu.europeana.api2.web.model.xml.rss.Item;
+import eu.europeana.api2.web.model.xml.rss.RssResponse;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
@@ -30,6 +37,7 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
+import eu.europeana.corelib.web.model.PageData;
 
 @Controller
 public class SearchControllerV1 {
@@ -41,6 +49,8 @@ public class SearchControllerV1 {
 	@Resource private SearchService searchService;
 
 	@Resource private ApiKeyService apiService;
+
+	private static final int RESULT_ROWS_PER_PAGE = 12;
 
 	@Value("#{europeanaProperties['portal.name']}")
 	private String portalName;
@@ -86,10 +96,6 @@ public class SearchControllerV1 {
 				clazz = BriefBean.class;
 			}
 			try {
-				log.info("->Api1SearchResults");
-				log.info("profile? " + (profile == null));
-				log.info("query? " + (query == null));
-				log.info("clazz? " + (clazz == null));
 				Api1SearchResults<Map<String, Object>> response = createResultsForApi1(wskey, profile, query, clazz);
 				if (response != null) {
 					log.info("got response " + response.items.size());
@@ -105,6 +111,94 @@ public class SearchControllerV1 {
 
 		ModelAndView page = new ModelAndView("search", model);
 		return page;
+	}
+
+	// 
+	@RequestMapping(value = {"/opensearch.rss", "/v1/opensearch.rss"}, produces = "application/rss+xml")
+	// public ModelAndView openSearchControllerRSS(
+	public @ResponseBody RssResponse openSearchControllerRSS(
+			@RequestParam(value = "searchTerms", required = false) String searchTerms,
+			@RequestParam(value = "startPage", required = false, defaultValue = "1") String startPage,
+			@RequestParam(value = "wskey", required = false) String wskey,
+			HttpServletRequest request, 
+			HttpServletResponse response
+				) throws Exception {
+		path = request.getContextPath();
+		log.info("===== openSearchControllerRSS =====");
+		response.setContentType("application/rss+xml");
+		response.setHeader("Content-Type", "application/rss+xml");
+		response.setCharacterEncoding("UTF-8");
+
+		Map<String, Object> model = new HashMap<String, Object>();
+
+		try {
+			log.info(searchTerms + ", " + RESULT_ROWS_PER_PAGE + ", " + (Integer.parseInt(startPage) - 1));
+			Query query = new Query(searchTerms).setPageSize(RESULT_ROWS_PER_PAGE).setStart(Integer.parseInt(startPage) - 1);
+			Class<? extends IdBean> clazz = ApiBean.class;
+			Api1SearchResults<BriefDoc> resultSet = createResultsForRSS("wskey", null, query, clazz);
+			
+			String href = portalServer + "/" + path + "/v1/opensearch.rss?searchTerms=" + searchTerms 
+			+ "&startPage=" + startPage;
+
+			RssResponse rss = new RssResponse();
+			Channel channel = rss.channel;
+			channel.totalResults.value = resultSet.totalResults;
+			channel.startIndex.value = Integer.parseInt(startPage);
+			channel.itemsPerPage.value = RESULT_ROWS_PER_PAGE;
+			channel.query.searchTerms = searchTerms;
+			channel.query.startPage = Integer.parseInt(startPage);
+			// channel.link = href;
+			channel.atomLink.href = href;
+			for (BriefDoc bean : resultSet.items) {
+				Item item = new Item();
+				item.guid = bean.getGuid();
+				item.title = bean.getTitle();
+				item.link = bean.getLink();
+				item.description = bean.getDescription();
+				String enclosure = bean.getThumbnail();
+				if (enclosure != null) {
+					item.enclosure = new Enclosure(enclosure);
+				}
+				item.dcCreator = bean.getCreator();
+				item.dcTermsHasPart = bean.getDcTermsHasPart();
+				item.dcTermsIsPartOf = bean.getDcTermsIsPartOf();
+				item.europeanaYear = bean.getYear();
+				item.europeanaLanguage = bean.getLanguage();
+				item.europeanaType = bean.getType();
+				item.europeanaProvider = bean.getProvider();
+				item.europeanaDataProvider = bean.getDataProvider();
+				item.europeanaRights = bean.getEuropeanaRights();
+				item.enrichmentPlaceLatitude = bean.getEnrichmentPlaceLatitude();
+				item.enrichmentPlaceLongitude = bean.getEnrichmentPlaceLongitude();
+				item.enrichmentPlaceTerm = bean.getEnrichmentPlaceTerm();
+				item.enrichmentPlaceLabel = bean.getEnrichmentPlaceLabel();
+				item.enrichmentPeriodTerm = bean.getEnrichmentPeriodTerm();
+				item.enrichmentPeriodLabel = bean.getEnrichmentPeriodLabel();
+				item.enrichmentPeriodBegin = bean.getEnrichmentPeriodBegin();
+				item.enrichmentPeriodEnd = bean.getEnrichmentPeriodEnd();
+				item.enrichmentAgentTerm = bean.getEnrichmentAgentLabel();
+				item.enrichmentAgentLabel = bean.getEnrichmentAgentLabel();
+				item.enrichmentConceptTerm = bean.getEnrichmentConceptTerm();
+				item.enrichmentConceptLabel = bean.getEnrichmentConceptLabel();
+
+				log.info("item: " + item);
+				channel.items.add(item);
+			}
+			return rss;
+			// model.put("rss", rss);
+			// model.put("hasErrors", false);
+		} catch (SolrTypeException e) {
+			log.severe(e.getMessage());
+			model.put("hasErrors", true);
+			model.put("errors", e.getMessage());
+			return null;
+		}
+
+		/*
+		ModelAndView page = new ModelAndView("opensearch-result-rss");
+		page.addObject(PageData.PARAM_MODEL, model);
+		return page;
+		*/
 	}
 
 	private <T extends IdBean> Api1SearchResults<Map<String, Object>> createResultsForApi1(String wskey, String profile, Query q, 
@@ -126,6 +220,32 @@ public class SearchControllerV1 {
 			BriefDoc doc = new BriefDoc((ApiBean)o);
 			doc.setWskey(wskey);
 			items.add(doc.asMap());
+		}
+		log.info("new BriefDoc");
+		response.items = items;
+		log.info("response: " + response);
+		return response;
+	}
+
+	private Api1SearchResults<BriefDoc> createResultsForRSS(String wskey, String profile, Query q, 
+			Class<? extends IdBean> clazz) 
+			throws SolrTypeException {
+		log.info("createResultsForApi1");
+		Api1SearchResults<BriefDoc> response = new Api1SearchResults<BriefDoc>(wskey, "search.json");
+		log.info("new Api1SearchResults");
+		ResultSet<? extends IdBean> resultSet = searchService.search(clazz, q);
+		log.info("searchService.search");
+		response.totalResults = resultSet.getResultSize();
+		response.itemsCount = resultSet.getResults().size();
+
+		BriefDoc.setPortalServer(portalServer);
+		BriefDoc.setPortalName(portalName);
+		BriefDoc.setPath(path);
+		List<BriefDoc> items = new ArrayList<BriefDoc>();
+		for (Object o : resultSet.getResults()) {
+			BriefDoc doc = new BriefDoc((ApiBean)o);
+			doc.setWskey(wskey);
+			items.add(doc);
 		}
 		log.info("new BriefDoc");
 		response.items = items;

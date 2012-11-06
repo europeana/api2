@@ -29,12 +29,11 @@ import eu.europeana.api2.web.model.xml.rss.RssResponse;
 public class AtomLink {
 
 	@XmlAttribute
-	String href = "";
-	
+	public String href = "";
+
 	@XmlAttribute
 	final String rel = "search";
-	
+
 	@XmlAttribute
 	final String type = "application/rss+xml";
-	
 }

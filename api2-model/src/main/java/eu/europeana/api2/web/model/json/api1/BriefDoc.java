@@ -133,9 +133,9 @@ public class BriefDoc {
 		if (map == null) {
 			map = new LinkedHashMap<String, Object>();
 
-			addValue("guid", portalServer + "/" + portalName + "/record" + url + ".html");
+			addValue("guid", getGuid());
 			addValue("title", title);
-			addValue("link", portalServer + "/" + path + "/v1/record" + url + ".json?wskey=" + wskey);
+			addValue("link", getLink());
 			addValue("description", description);
 			addValue("enclosure", thumbnail);
 			addValue("dc:creator", creator);
@@ -441,5 +441,13 @@ public class BriefDoc {
 			path = path.substring(1);
 		}
 		BriefDoc.path = path;
+	}
+	
+	public String getGuid() {
+		return portalServer + "/" + portalName + "/record" + url + ".html";
+	}
+	
+	public String getLink() {
+		return portalServer + "/" + path + "/v1/record" + url + ".json?wskey=" + wskey;
 	}
 }
