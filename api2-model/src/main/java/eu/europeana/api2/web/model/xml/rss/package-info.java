@@ -1,6 +1,6 @@
-@XmlSchema(namespace = "http://a9.com/-/spec/opensearch/1.1/",
+@XmlSchema(namespace = "",
 	xmlns = {
-		@XmlNs(namespaceURI = "http://a9.com/-/spec/opensearch/1.1/", prefix = ""),
+		@XmlNs(namespaceURI = "http://a9.com/-/spec/opensearch/1.1/", prefix = "opensearch"),
 		@XmlNs(namespaceURI = "http://www.w3.org/2005/Atom", prefix = "atom"),
 		@XmlNs(namespaceURI = "http://purl.org/dc/elements/1.1/", prefix = "dc"),
 		@XmlNs(namespaceURI = "http://purl.org/dc/terms/", prefix = "dcterms"),

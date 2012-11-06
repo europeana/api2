@@ -125,8 +125,6 @@ public class SearchControllerV1 {
 				) throws Exception {
 		path = request.getContextPath();
 		log.info("===== openSearchControllerRSS =====");
-		response.setContentType("application/rss+xml");
-		response.setHeader("Content-Type", "application/rss+xml");
 		response.setCharacterEncoding("UTF-8");
 
 		Map<String, Object> model = new HashMap<String, Object>();
