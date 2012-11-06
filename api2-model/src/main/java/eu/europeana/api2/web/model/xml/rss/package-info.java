@@ -5,7 +5,7 @@
 		@XmlNs(namespaceURI = "http://purl.org/dc/elements/1.1/", prefix = "dc"),
 		@XmlNs(namespaceURI = "http://purl.org/dc/terms/", prefix = "dcterms"),
 		@XmlNs(namespaceURI = "http://www.europeana.eu", prefix = "europeana"),
-		@XmlNs(namespaceURI = "http://www.europeana.eu/schemas/ese/enrichment/", prefix = "enrichment"),
+		@XmlNs(namespaceURI = "http://www.europeana.eu/schemas/ese/enrichment/", prefix = "enrichment")
 	},
 	elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED
 )
