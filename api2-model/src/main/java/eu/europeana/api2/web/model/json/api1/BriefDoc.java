@@ -137,7 +137,7 @@ public class BriefDoc {
 			addValue("guid", getGuid());
 			addValue("title", title);
 			addValue("link", getLink());
-			addValue("description", description);
+			addValue("description", getDescription());
 			addValue("enclosure", thumbnail);
 			addValue("dc:creator", creator);
 			addValue("dcterms:hasPart", dcTermsHasPart);
