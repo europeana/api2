@@ -1,5 +1,6 @@
 package eu.europeana.api2.web.controller.v1;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +10,6 @@ import java.util.logging.Logger;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.annotation.XmlElement;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +37,6 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
-import eu.europeana.corelib.web.model.PageData;
 
 @Controller
 public class SearchControllerV1 {
@@ -72,7 +71,7 @@ public class SearchControllerV1 {
 		HttpServletRequest request
 			) throws Exception {
 
-		path = request.getContextPath();
+		path = fixPath(request.getContextPath());
 
 		Map<String, Object> model = new HashMap<String, Object>();
 		Api1Utils utils = new Api1Utils();
@@ -122,7 +121,7 @@ public class SearchControllerV1 {
 			HttpServletRequest request, 
 			HttpServletResponse response
 				) throws Exception {
-		path = request.getContextPath();
+		path = fixPath(request.getContextPath());
 		log.info("===== openSearchControllerRSS =====");
 		response.setCharacterEncoding("UTF-8");
 
@@ -133,9 +132,10 @@ public class SearchControllerV1 {
 			Query query = new Query(searchTerms).setPageSize(RESULT_ROWS_PER_PAGE).setStart(Integer.parseInt(startPage) - 1);
 			Class<? extends IdBean> clazz = ApiBean.class;
 			Api1SearchResults<BriefDoc> resultSet = createResultsForRSS("wskey", null, query, clazz);
-			
-			String href = portalServer + "/" + path + "/v1/opensearch.rss?searchTerms=" + searchTerms 
-			+ "&startPage=" + startPage;
+
+			String cannonicalLink = "http://europeana.eu";
+			String baseLink = getPortalServer() + "/" + path + "/v1/opensearch.rss";
+			String href = baseLink + "?searchTerms=" + URLEncoder.encode(searchTerms, "UTF-8") + "&startPage=" + startPage;
 
 			RssResponse rss = new RssResponse();
 			Channel channel = rss.channel;
@@ -144,7 +144,7 @@ public class SearchControllerV1 {
 			channel.itemsPerPage.value = RESULT_ROWS_PER_PAGE;
 			channel.query.searchTerms = searchTerms;
 			channel.query.startPage = Integer.parseInt(startPage);
-			channel.setLink(href);
+			channel.setLink(cannonicalLink);
 			channel.atomLink.href = href;
 			channel.updateDescription();
 			for (BriefDoc bean : resultSet.items) {
@@ -201,7 +201,7 @@ public class SearchControllerV1 {
 		response.totalResults = resultSet.getResultSize();
 		response.itemsCount = resultSet.getResults().size();
 
-		BriefDoc.setPortalServer(portalServer);
+		BriefDoc.setPortalServer(getPortalServer());
 		BriefDoc.setPortalName(portalName);
 		BriefDoc.setPath(path);
 		List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
@@ -222,7 +222,7 @@ public class SearchControllerV1 {
 		response.totalResults = resultSet.getResultSize();
 		response.itemsCount = resultSet.getResults().size();
 
-		BriefDoc.setPortalServer(portalServer);
+		BriefDoc.setPortalServer(getPortalServer());
 		BriefDoc.setPortalName(portalName);
 		BriefDoc.setPath(path);
 		List<BriefDoc> items = new ArrayList<BriefDoc>();
@@ -243,5 +243,22 @@ public class SearchControllerV1 {
 			sb.append(String.format("%s:%d %s()\n", el.getClassName(), el.getLineNumber(), el.getMethodName()));
 		}
 		log.severe(sb.toString());
+	}
+	
+	private String getPortalServer() {
+		if (portalServer.endsWith("/")) {
+			portalServer = portalServer.substring(0, portalServer.length()-1);
+		}
+		return portalServer;
+	}
+
+	private String fixPath(String path) {
+		if (path.startsWith("/")) {
+			path = path.substring(1);
+		}
+		if (path.endsWith("/")) {
+			path = path.substring(0, path.length() - 1);
+		}
+		return path;
 	}
 }

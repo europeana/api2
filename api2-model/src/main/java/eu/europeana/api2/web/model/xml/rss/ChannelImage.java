@@ -8,7 +8,7 @@ public class ChannelImage {
 	private String title = "Europeana Open Search";
 
 	@XmlElement(name = "link")
-	private String link = "http://www.europeana.eu/";
+	private String link = "http://europeana.eu";
 
 	@XmlElement(name = "url")
 	private String url = "http://www.europeana.eu/portal/sp/img/europeana-logo-en.png";
