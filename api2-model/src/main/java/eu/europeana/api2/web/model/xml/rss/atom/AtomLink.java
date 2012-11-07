@@ -32,7 +32,7 @@ public class AtomLink {
 	public String href = "";
 
 	@XmlAttribute
-	final String rel = "self";
+	final String rel = "search";
 
 	@XmlAttribute
 	final String type = "application/rss+xml";
