@@ -117,7 +117,7 @@ public class SearchControllerV1 {
 	public @ResponseBody RssResponse openSearchControllerRSS(
 			@RequestParam(value = "searchTerms", required = false) String searchTerms,
 			@RequestParam(value = "startPage", required = false, defaultValue = "1") String startPage,
-			@RequestParam(value = "wskey", required = false) String wskey,
+			@RequestParam(value = "wskey", required = false, defaultValue = "") String wskey,
 			HttpServletRequest request, 
 			HttpServletResponse response
 				) throws Exception {
@@ -131,7 +131,7 @@ public class SearchControllerV1 {
 			log.info(searchTerms + ", " + RESULT_ROWS_PER_PAGE + ", " + (Integer.parseInt(startPage) - 1));
 			Query query = new Query(searchTerms).setPageSize(RESULT_ROWS_PER_PAGE).setStart(Integer.parseInt(startPage) - 1);
 			Class<? extends IdBean> clazz = ApiBean.class;
-			Api1SearchResults<BriefDoc> resultSet = createResultsForRSS("wskey", null, query, clazz);
+			Api1SearchResults<BriefDoc> resultSet = createResultsForRSS(wskey, null, query, clazz);
 
 			String cannonicalLink = "http://europeana.eu";
 			String baseLink = getPortalServer() + "/" + path + "/v1/opensearch.rss";
@@ -152,7 +152,7 @@ public class SearchControllerV1 {
 				Item item = new Item();
 				item.guid = bean.getGuid();
 				item.title = bean.getTitle();
-				item.link = bean.getLink();
+				item.link = bean.getLink(BriefDoc.SRW);
 				item.description = bean.getDescription();
 				String enclosure = bean.getThumbnail();
 				if (enclosure != null) {

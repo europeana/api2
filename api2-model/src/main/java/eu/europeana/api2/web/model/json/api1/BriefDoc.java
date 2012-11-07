@@ -15,6 +15,9 @@ import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefDoc {
 
+	public final static int JSON = 0;
+	public final static int SRW = 1;
+
 	private static String portalServer;
 	private static String portalName;
 	private static String path;
@@ -136,7 +139,7 @@ public class BriefDoc {
 
 			addValue("guid", getGuid());
 			addValue("title", title);
-			addValue("link", getLink());
+			addValue("link", getLink(JSON));
 			addValue("description", getDescription());
 			addValue("enclosure", thumbnail);
 			addValue("dc:creator", creator);
@@ -444,8 +447,16 @@ public class BriefDoc {
 		return portalServer + "/" + portalName + "/record" + url + ".html";
 	}
 	
-	public String getLink() {
-		return portalServer + "/" + path + "/v1/record" + url + ".json?wskey=" + wskey;
+	public String getLink(int target) {
+		String extension;
+		switch (target) {
+			case SRW:
+				extension = ".srw"; break;
+			case JSON:
+			default:
+				extension = ".json"; break;
+		}
+		return portalServer + "/" + path + "/v1/record" + url + extension + "?wskey=" + wskey;
 	}
 
 	public String getDescription() {
