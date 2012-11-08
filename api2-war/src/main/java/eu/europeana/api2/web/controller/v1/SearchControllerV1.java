@@ -51,11 +51,11 @@ public class SearchControllerV1 {
 
 	private static final int RESULT_ROWS_PER_PAGE = 12;
 
-	@Value("#{europeanaProperties['portal.name']}")
-	private String portalName;
-
 	@Value("#{europeanaProperties['portal.server']}")
 	private String portalServer;
+
+	@Value("#{europeanaProperties['portal.name']}")
+	private String portalName;
 
 	private String path;
 
@@ -244,8 +244,8 @@ public class SearchControllerV1 {
 		}
 		log.severe(sb.toString());
 	}
-	
-	private String getPortalServer() {
+
+	public String getPortalServer() {
 		if (portalServer.endsWith("/")) {
 			portalServer = portalServer.substring(0, portalServer.length()-1);
 		}
