@@ -104,6 +104,7 @@ public class ObjectControllerV1 {
 					model.put("json", json);
 				} else {
 					model.put("json", utils.toJson(new ApiError(wskey, "record.json", "not found error")));
+					response.setStatus(404);
 				}
 			} catch (SolrTypeException e) {
 				model.put("json", utils.toJson(new ApiError(wskey, "record.json", e.getMessage())));
