@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name="searchRetrieveResponse")
-public class SRWResponse {
+public class SrwResponse {
 
 	public static final String NS_SRW = "http://www.loc.gov/zing/srw/";
 	public static final String NS_DIAG = "http://www.loc.gov/zing/srw/diagnostic/";

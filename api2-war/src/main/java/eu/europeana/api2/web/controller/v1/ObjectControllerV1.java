@@ -26,7 +26,7 @@ import eu.europeana.api2.web.model.json.ApiError;
 import eu.europeana.api2.web.model.json.api1.FullDoc;
 import eu.europeana.api2.web.model.xml.rss.RssResponse;
 import eu.europeana.api2.web.model.xml.srw.Record;
-import eu.europeana.api2.web.model.xml.srw.SRWResponse;
+import eu.europeana.api2.web.model.xml.srw.SrwResponse;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
@@ -47,7 +47,7 @@ public class ObjectControllerV1 {
 
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody ModelAndView record(
+	public @ResponseBody ModelAndView recordJson(
 		@PathVariable String collectionId,
 		@PathVariable String recordId,
 		@RequestParam(value = "wskey", required = false) String wskey,
@@ -95,7 +95,7 @@ public class ObjectControllerV1 {
 
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.srw", method=RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
-	public @ResponseBody SRWResponse recordSRW(
+	public @ResponseBody SrwResponse recordSrw(
 		@PathVariable String collectionId,
 		@PathVariable String recordId,
 		@RequestParam(value = "wskey", required = false) String wskey,
@@ -121,7 +121,7 @@ public class ObjectControllerV1 {
 		if (!hasResult) {
 			try {
 				FullBean bean = searchService.findById(collectionId, recordId);
-				SRWResponse response = new SRWResponse();
+				SrwResponse response = new SrwResponse();
 				FullDoc doc = null;
 				if (bean != null) {
 					doc = new FullDoc(bean);
@@ -143,9 +143,9 @@ public class ObjectControllerV1 {
 		return null;
 	}
 	
-	private void createXml(SRWResponse response) {
+	private void createXml(SrwResponse response) {
 		try {
-			final JAXBContext context = JAXBContext.newInstance(SRWResponse.class);
+			final JAXBContext context = JAXBContext.newInstance(SrwResponse.class);
 			final Marshaller marshaller = context.createMarshaller();
 			final StringWriter stringWriter = new StringWriter();
 			marshaller.marshal(response, stringWriter);

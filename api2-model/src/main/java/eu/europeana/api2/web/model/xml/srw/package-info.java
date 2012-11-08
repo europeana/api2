@@ -1,16 +1,16 @@
-@XmlSchema(namespace = SRWResponse.NS_SRW,
+@XmlSchema(namespace = SrwResponse.NS_SRW,
 	xmlns = {
-		@XmlNs(namespaceURI = SRWResponse.NS_SRW, prefix = "srw"),
-		@XmlNs(namespaceURI = SRWResponse.NS_DIAG, prefix = "diag"),
-		@XmlNs(namespaceURI = SRWResponse.NS_XCQL, prefix = "xcql"),
-		@XmlNs(namespaceURI = SRWResponse.NS_MODS, prefix = "mods"),
-		@XmlNs(namespaceURI = SRWResponse.NS_EUROPEANA, prefix = "europeana"),
-		@XmlNs(namespaceURI = SRWResponse.NS_ENRICHMENT, prefix = "enrichment"),
-		@XmlNs(namespaceURI = SRWResponse.NS_DCX, prefix = "dcx"),
-		@XmlNs(namespaceURI = SRWResponse.NS_TEL, prefix = "tel"),
-		@XmlNs(namespaceURI = SRWResponse.NS_XSI, prefix = "xsi"),
-		@XmlNs(namespaceURI = SRWResponse.NS_DCTERMS, prefix = "dcterms"),
-		@XmlNs(namespaceURI = SRWResponse.NS_DC, prefix = "dc")
+		@XmlNs(namespaceURI = SrwResponse.NS_SRW, prefix = "srw"),
+		@XmlNs(namespaceURI = SrwResponse.NS_DIAG, prefix = "diag"),
+		@XmlNs(namespaceURI = SrwResponse.NS_XCQL, prefix = "xcql"),
+		@XmlNs(namespaceURI = SrwResponse.NS_MODS, prefix = "mods"),
+		@XmlNs(namespaceURI = SrwResponse.NS_EUROPEANA, prefix = "europeana"),
+		@XmlNs(namespaceURI = SrwResponse.NS_ENRICHMENT, prefix = "enrichment"),
+		@XmlNs(namespaceURI = SrwResponse.NS_DCX, prefix = "dcx"),
+		@XmlNs(namespaceURI = SrwResponse.NS_TEL, prefix = "tel"),
+		@XmlNs(namespaceURI = SrwResponse.NS_XSI, prefix = "xsi"),
+		@XmlNs(namespaceURI = SrwResponse.NS_DCTERMS, prefix = "dcterms"),
+		@XmlNs(namespaceURI = SrwResponse.NS_DC, prefix = "dc")
 	},
 	elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED
 )

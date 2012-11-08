@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlElement;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
-import eu.europeana.api2.web.model.xml.srw.SRWResponse;
+import eu.europeana.api2.web.model.xml.srw.SrwResponse;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.definitions.solr.entity.Agent;
 import eu.europeana.corelib.definitions.solr.entity.Aggregation;
@@ -361,7 +361,7 @@ public class FullDoc {
 		return field;
 	}
 
-	@XmlElement(name = "uri", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "uri", namespace = SrwResponse.NS_EUROPEANA)
 	public String getId() {
 		return id;
 	}
@@ -370,7 +370,7 @@ public class FullDoc {
 		this.id = id;
 	}
 
-	@XmlElement(name = "collectionName", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "collectionName", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaCollectionName() {
 		return europeanaCollectionName;
 	}
@@ -387,7 +387,7 @@ public class FullDoc {
 		this.type = type;
 	}
 
-	@XmlElement(name = "country", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "country", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaCountry() {
 		return europeanaCountry;
 	}
@@ -396,7 +396,7 @@ public class FullDoc {
 		this.europeanaCountry = europeanaCountry;
 	}
 
-	@XmlElement(name = "provider", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "provider", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaProvider() {
 		return europeanaProvider;
 	}
@@ -405,7 +405,7 @@ public class FullDoc {
 		this.europeanaProvider = europeanaProvider;
 	}
 
-	@XmlElement(name = "isShownAt", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "isShownAt", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaIsShownAt() {
 		return europeanaIsShownAt;
 	}
@@ -414,7 +414,7 @@ public class FullDoc {
 		this.europeanaIsShownAt = europeanaIsShownAt;
 	}
 
-	@XmlElement(name = "isShownBy", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "isShownBy", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaIsShownBy() {
 		return europeanaIsShownBy;
 	}
@@ -423,7 +423,7 @@ public class FullDoc {
 		this.europeanaIsShownBy = europeanaIsShownBy;
 	}
 
-	@XmlElement(name = "object", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "object", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getThumbnails() {
 		if (isOptedOut) {
 			return null;
@@ -435,7 +435,7 @@ public class FullDoc {
 		this.thumbnails = thumbnails;
 	}
 
-	@XmlElement(name = "language", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "language", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaLanguage() {
 		return europeanaLanguage;
 	}
@@ -444,7 +444,7 @@ public class FullDoc {
 		this.europeanaLanguage = europeanaLanguage;
 	}
 
-	@XmlElement(name = "userTag", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "userTag", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaUserTag() {
 		return europeanaUserTag;
 	}
@@ -453,7 +453,7 @@ public class FullDoc {
 		this.europeanaUserTag = europeanaUserTag;
 	}
 
-	@XmlElement(name = "year", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "year", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaYear() {
 		return europeanaYear;
 	}
@@ -462,7 +462,7 @@ public class FullDoc {
 		this.europeanaYear = europeanaYear;
 	}
 
-	@XmlElement(name = "rights", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "rights", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaRights() {
 		return europeanaRights;
 	}
@@ -471,7 +471,7 @@ public class FullDoc {
 		this.europeanaRights = europeanaRights;
 	}
 
-	@XmlElement(name = "dataProvider", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "dataProvider", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaDataProvider() {
 		return europeanaDataProvider;
 	}
@@ -480,7 +480,7 @@ public class FullDoc {
 		this.europeanaDataProvider = europeanaDataProvider;
 	}
 
-	@XmlElement(name = "ugc", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "ugc", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getEuropeanaUGC() {
 		return europeanaUGC;
 	}
@@ -489,7 +489,7 @@ public class FullDoc {
 		this.europeanaUGC = europeanaUGC;
 	}
 
-	@XmlElement(name = "alternative", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "alternative", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsAlternative() {
 		return dcTermsAlternative;
 	}
@@ -498,7 +498,7 @@ public class FullDoc {
 		this.dcTermsAlternative = dcTermsAlternative;
 	}
 
-	@XmlElement(name = "conformsTo", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "conformsTo", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsConformsTo() {
 		return dcTermsConformsTo;
 	}
@@ -507,7 +507,7 @@ public class FullDoc {
 		this.dcTermsConformsTo = dcTermsConformsTo;
 	}
 
-	@XmlElement(name = "created", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "created", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsCreated() {
 		return dcTermsCreated;
 	}
@@ -516,7 +516,7 @@ public class FullDoc {
 		this.dcTermsCreated = dcTermsCreated;
 	}
 
-	@XmlElement(name = "extent", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "extent", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsExtent() {
 		return dcTermsExtent;
 	}
@@ -525,7 +525,7 @@ public class FullDoc {
 		this.dcTermsExtent = dcTermsExtent;
 	}
 
-	@XmlElement(name = "hasFormat", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "hasFormat", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsHasFormat() {
 		return dcTermsHasFormat;
 	}
@@ -534,7 +534,7 @@ public class FullDoc {
 		this.dcTermsHasFormat = dcTermsHasFormat;
 	}
 
-	@XmlElement(name = "hasPart", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "hasPart", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsHasPart() {
 		return dcTermsHasPart;
 	}
@@ -543,7 +543,7 @@ public class FullDoc {
 		this.dcTermsHasPart = dcTermsHasPart;
 	}
 
-	@XmlElement(name = "hasVersion", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "hasVersion", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsHasVersion() {
 		return dcTermsHasVersion;
 	}
@@ -552,7 +552,7 @@ public class FullDoc {
 		this.dcTermsHasVersion = dcTermsHasVersion;
 	}
 
-	@XmlElement(name = "isFormatOf", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "isFormatOf", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsIsFormatOf() {
 		return dcTermsIsFormatOf;
 	}
@@ -561,7 +561,7 @@ public class FullDoc {
 		this.dcTermsIsFormatOf = dcTermsIsFormatOf;
 	}
 
-	@XmlElement(name = "isPartOf", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "isPartOf", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsIsPartOf() {
 		return dcTermsIsPartOf;
 	}
@@ -570,7 +570,7 @@ public class FullDoc {
 		this.dcTermsIsPartOf = dcTermsIsPartOf;
 	}
 
-	@XmlElement(name = "isReferencedBy", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "isReferencedBy", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsIsReferencedBy() {
 		return dcTermsIsReferencedBy;
 	}
@@ -579,7 +579,7 @@ public class FullDoc {
 		this.dcTermsIsReferencedBy = dcTermsIsReferencedBy;
 	}
 
-	@XmlElement(name = "isReplacedBy", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "isReplacedBy", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsIsReplacedBy() {
 		return dcTermsIsReplacedBy;
 	}
@@ -588,7 +588,7 @@ public class FullDoc {
 		this.dcTermsIsReplacedBy = dcTermsIsReplacedBy;
 	}
 
-	@XmlElement(name = "isRequiredBy", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "isRequiredBy", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsIsRequiredBy() {
 		return dcTermsIsRequiredBy;
 	}
@@ -597,7 +597,7 @@ public class FullDoc {
 		this.dcTermsIsRequiredBy = dcTermsIsRequiredBy;
 	}
 
-	@XmlElement(name = "issued", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "issued", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsIssued() {
 		return dcTermsIssued;
 	}
@@ -606,7 +606,7 @@ public class FullDoc {
 		this.dcTermsIssued = dcTermsIssued;
 	}
 
-	@XmlElement(name = "isVersionOf", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "isVersionOf", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsIsVersionOf() {
 		return dcTermsIsVersionOf;
 	}
@@ -615,7 +615,7 @@ public class FullDoc {
 		this.dcTermsIsVersionOf = dcTermsIsVersionOf;
 	}
 
-	@XmlElement(name = "medium", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "medium", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsMedium() {
 		return dcTermsMedium;
 	}
@@ -624,7 +624,7 @@ public class FullDoc {
 		this.dcTermsMedium = dcTermsMedium;
 	}
 
-	@XmlElement(name = "provenance", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "provenance", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsProvenance() {
 		return dcTermsProvenance;
 	}
@@ -633,7 +633,7 @@ public class FullDoc {
 		this.dcTermsProvenance = dcTermsProvenance;
 	}
 
-	@XmlElement(name = "references", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "references", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsReferences() {
 		return dcTermsReferences;
 	}
@@ -642,7 +642,7 @@ public class FullDoc {
 		this.dcTermsReferences = dcTermsReferences;
 	}
 
-	@XmlElement(name = "replaces", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "replaces", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsReplaces() {
 		return dcTermsReplaces;
 	}
@@ -651,7 +651,7 @@ public class FullDoc {
 		this.dcTermsReplaces = dcTermsReplaces;
 	}
 
-	@XmlElement(name = "requires", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "requires", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsRequires() {
 		return dcTermsRequires;
 	}
@@ -660,7 +660,7 @@ public class FullDoc {
 		this.dcTermsRequires = dcTermsRequires;
 	}
 
-	@XmlElement(name = "spatial", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "spatial", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsSpatial() {
 		return dcTermsSpatial;
 	}
@@ -669,7 +669,7 @@ public class FullDoc {
 		this.dcTermsSpatial = dcTermsSpatial;
 	}
 
-	@XmlElement(name = "tableOfContents", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "tableOfContents", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsTableOfContents() {
 		return dcTermsTableOfContents;
 	}
@@ -678,7 +678,7 @@ public class FullDoc {
 		this.dcTermsTableOfContents = dcTermsTableOfContents;
 	}
 
-	@XmlElement(name = "temporal", namespace = SRWResponse.NS_DCTERMS)
+	@XmlElement(name = "temporal", namespace = SrwResponse.NS_DCTERMS)
 	public String[] getDcTermsTemporal() {
 		return dcTermsTemporal;
 	}
@@ -687,7 +687,7 @@ public class FullDoc {
 		this.dcTermsTemporal = dcTermsTemporal;
 	}
 
-	@XmlElement(name = "contributor", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "contributor", namespace = SrwResponse.NS_DC)
 	public String[] getDcContributor() {
 		return dcContributor;
 	}
@@ -696,7 +696,7 @@ public class FullDoc {
 		this.dcContributor = dcContributor;
 	}
 
-	@XmlElement(name = "coverage", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "coverage", namespace = SrwResponse.NS_DC)
 	public String[] getDcCoverage() {
 		return dcCoverage;
 	}
@@ -705,7 +705,7 @@ public class FullDoc {
 		this.dcCoverage = dcCoverage;
 	}
 
-	@XmlElement(name = "creator", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "creator", namespace = SrwResponse.NS_DC)
 	public String[] getDcCreator() {
 		return dcCreator;
 	}
@@ -714,7 +714,7 @@ public class FullDoc {
 		this.dcCreator = dcCreator;
 	}
 
-	@XmlElement(name = "date", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "date", namespace = SrwResponse.NS_DC)
 	public String[] getDcDate() {
 		return dcDate;
 	}
@@ -723,7 +723,7 @@ public class FullDoc {
 		this.dcDate = dcDate;
 	}
 
-	@XmlElement(name = "description", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "description", namespace = SrwResponse.NS_DC)
 	public String[] getDcDescription() {
 		return dcDescription;
 	}
@@ -732,7 +732,7 @@ public class FullDoc {
 		this.dcDescription = dcDescription;
 	}
 
-	@XmlElement(name = "format", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "format", namespace = SrwResponse.NS_DC)
 	public String[] getDcFormat() {
 		return dcFormat;
 	}
@@ -741,7 +741,7 @@ public class FullDoc {
 		this.dcFormat = dcFormat;
 	}
 
-	@XmlElement(name = "identifier", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "identifier", namespace = SrwResponse.NS_DC)
 	public String[] getDcIdentifier() {
 		return dcIdentifier;
 	}
@@ -750,7 +750,7 @@ public class FullDoc {
 		this.dcIdentifier = dcIdentifier;
 	}
 
-	@XmlElement(name = "language", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "language", namespace = SrwResponse.NS_DC)
 	public String[] getDcLanguage() {
 		return dcLanguage;
 	}
@@ -759,7 +759,7 @@ public class FullDoc {
 		this.dcLanguage = dcLanguage;
 	}
 
-	@XmlElement(name = "publisher", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "publisher", namespace = SrwResponse.NS_DC)
 	public String[] getDcPublisher() {
 		return dcPublisher;
 	}
@@ -768,7 +768,7 @@ public class FullDoc {
 		this.dcPublisher = dcPublisher;
 	}
 
-	@XmlElement(name = "relation", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "relation", namespace = SrwResponse.NS_DC)
 	public String[] getDcRelation() {
 		return dcRelation;
 	}
@@ -777,7 +777,7 @@ public class FullDoc {
 		this.dcRelation = dcRelation;
 	}
 
-	@XmlElement(name = "rights", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "rights", namespace = SrwResponse.NS_DC)
 	public String[] getDcRights() {
 		return dcRights;
 	}
@@ -786,7 +786,7 @@ public class FullDoc {
 		this.dcRights = dcRights;
 	}
 
-	@XmlElement(name = "source", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "source", namespace = SrwResponse.NS_DC)
 	public String[] getDcSource() {
 		return dcSource;
 	}
@@ -795,7 +795,7 @@ public class FullDoc {
 		this.dcSource = dcSource;
 	}
 
-	@XmlElement(name = "subject", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "subject", namespace = SrwResponse.NS_DC)
 	public String[] getDcSubject() {
 		return dcSubject;
 	}
@@ -804,7 +804,7 @@ public class FullDoc {
 		this.dcSubject = dcSubject;
 	}
 
-	@XmlElement(name = "title", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "title", namespace = SrwResponse.NS_DC)
 	public String[] getDcTitle() {
 		return dcTitle;
 	}
@@ -813,7 +813,7 @@ public class FullDoc {
 		this.dcTitle = dcTitle;
 	}
 
-	@XmlElement(name = "type", namespace = SRWResponse.NS_DC)
+	@XmlElement(name = "type", namespace = SrwResponse.NS_DC)
 	public String[] getDcType() {
 		return dcType;
 	}
@@ -822,7 +822,7 @@ public class FullDoc {
 		this.dcType = dcType;
 	}
 
-	@XmlElement(name = "completeness", namespace = SRWResponse.NS_EUROPEANA)
+	@XmlElement(name = "completeness", namespace = SrwResponse.NS_EUROPEANA)
 	public int getEuropeanaCompleteness() {
 		return europeanaCompleteness;
 	}
@@ -831,7 +831,7 @@ public class FullDoc {
 		this.europeanaCompleteness = europeanaCompleteness;
 	}
 
-	@XmlElement(name = "place_term", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "place_term", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentPlaceTerm() {
 		return enrichmentPlaceTerm;
 	}
@@ -840,7 +840,7 @@ public class FullDoc {
 		this.enrichmentPlaceTerm = enrichmentPlaceTerm;
 	}
 
-	@XmlElement(name = "place_label", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "place_label", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentPlaceLabel() {
 		return enrichmentPlaceLabel;
 	}
@@ -849,7 +849,7 @@ public class FullDoc {
 		this.enrichmentPlaceLabel = enrichmentPlaceLabel;
 	}
 
-	@XmlElement(name = "place_latitude", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "place_latitude", namespace = SrwResponse.NS_ENRICHMENT)
 	public float getEnrichmentPlaceLatitude() {
 		return enrichmentPlaceLatitude;
 	}
@@ -858,7 +858,7 @@ public class FullDoc {
 		this.enrichmentPlaceLatitude = enrichmentPlaceLatitude;
 	}
 
-	@XmlElement(name = "place_longitude", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "place_longitude", namespace = SrwResponse.NS_ENRICHMENT)
 	public float getEnrichmentPlaceLongitude() {
 		return enrichmentPlaceLongitude;
 	}
@@ -867,7 +867,7 @@ public class FullDoc {
 		this.enrichmentPlaceLongitude = enrichmentPlaceLongitude;
 	}
 
-	@XmlElement(name = "place_broader_label", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "place_broader_label", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentPlaceBroaderTerm() {
 		return enrichmentPlaceBroaderTerm;
 	}
@@ -876,7 +876,7 @@ public class FullDoc {
 		this.enrichmentPlaceBroaderTerm = enrichmentPlaceBroaderTerm;
 	}
 
-	@XmlElement(name = "place_broader_label", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "place_broader_label", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentPlaceBroaderLabel() {
 		return enrichmentPlaceBroaderLabel;
 	}
@@ -885,7 +885,7 @@ public class FullDoc {
 		this.enrichmentPlaceBroaderLabel = enrichmentPlaceBroaderLabel;
 	}
 
-	@XmlElement(name = "period_term", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "period_term", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentPeriodTerm() {
 		return enrichmentPeriodTerm;
 	}
@@ -894,7 +894,7 @@ public class FullDoc {
 		this.enrichmentPeriodTerm = enrichmentPeriodTerm;
 	}
 
-	@XmlElement(name = "period_label", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "period_label", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentPeriodLabel() {
 		return enrichmentPeriodLabel;
 	}
@@ -903,7 +903,7 @@ public class FullDoc {
 		this.enrichmentPeriodLabel = enrichmentPeriodLabel;
 	}
 
-	@XmlElement(name = "period_begin", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "period_begin", namespace = SrwResponse.NS_ENRICHMENT)
 	public Date getEnrichmentPeriodBegin() {
 		return enrichmentPeriodBegin;
 	}
@@ -912,7 +912,7 @@ public class FullDoc {
 		this.enrichmentPeriodBegin = enrichmentPeriodBegin;
 	}
 
-	@XmlElement(name = "period_end", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "period_end", namespace = SrwResponse.NS_ENRICHMENT)
 	public Date getEnrichmentPeriodEnd() {
 		return enrichmentPeriodEnd;
 	}
@@ -921,7 +921,7 @@ public class FullDoc {
 		this.enrichmentPeriodEnd = enrichmentPeriodEnd;
 	}
 
-	@XmlElement(name = "period_broader_term", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "period_broader_term", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentPeriodBroaderTerm() {
 		return enrichmentPeriodBroaderTerm;
 	}
@@ -930,7 +930,7 @@ public class FullDoc {
 		this.enrichmentPeriodBroaderTerm = enrichmentPeriodBroaderTerm;
 	}
 
-	@XmlElement(name = "period_broader_label", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "period_broader_label", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentPeriodBroaderLabel() {
 		return enrichmentPeriodBroaderLabel;
 	}
@@ -940,7 +940,7 @@ public class FullDoc {
 		this.enrichmentPeriodBroaderLabel = enrichmentPeriodBroaderLabel;
 	}
 
-	@XmlElement(name = "concept_term", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "concept_term", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentConceptTerm() {
 		return enrichmentConceptTerm;
 	}
@@ -949,7 +949,7 @@ public class FullDoc {
 		this.enrichmentConceptTerm = enrichmentConceptTerm;
 	}
 
-	@XmlElement(name = "concept_label", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "concept_label", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentConceptLabel() {
 		return enrichmentConceptLabel;
 	}
@@ -958,7 +958,7 @@ public class FullDoc {
 		this.enrichmentConceptLabel = enrichmentConceptLabel;
 	}
 
-	@XmlElement(name = "concept_broader_term", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "concept_broader_term", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentConceptBroaderTerm() {
 		return enrichmentConceptBroaderTerm;
 	}
@@ -968,7 +968,7 @@ public class FullDoc {
 		this.enrichmentConceptBroaderTerm = enrichmentConceptBroaderTerm;
 	}
 
-	@XmlElement(name = "concept_broader_label", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "concept_broader_label", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentConceptBroaderLabel() {
 		return enrichmentConceptBroaderLabel;
 	}
@@ -978,7 +978,7 @@ public class FullDoc {
 		this.enrichmentConceptBroaderLabel = enrichmentConceptBroaderLabel;
 	}
 
-	@XmlElement(name = "agent_term", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "agent_term", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentAgentTerm() {
 		return enrichmentAgentTerm;
 	}
@@ -987,7 +987,7 @@ public class FullDoc {
 		this.enrichmentAgentTerm = enrichmentAgentTerm;
 	}
 
-	@XmlElement(name = "agent_label", namespace = SRWResponse.NS_ENRICHMENT)
+	@XmlElement(name = "agent_label", namespace = SrwResponse.NS_ENRICHMENT)
 	public String[] getEnrichmentAgentLabel() {
 		return enrichmentAgentLabel;
 	}
