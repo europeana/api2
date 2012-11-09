@@ -66,7 +66,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	private boolean isOptedOut;
 
 	protected String profile;
-	private List<String> thumbnails;
+	private String[] thumbnails;
 	protected String wskey;
 
 	public BriefView(BriefBean bean, String profile, String wskey) {
@@ -273,9 +273,9 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		return null; // isOptedOut;
 	}
 
-	public List<String> getThumbnails() {
+	private String[] getThumbnails() {
 		if (thumbnails == null) {
-			thumbnails = new ArrayList<String>();
+			List<String> thumbs = new ArrayList<String>();
 
 			if (!OptOutDatasetsUtil.checkById(getId()) && edmObject != null) {
 				for (String object : edmObject) {
@@ -288,9 +288,10 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 					}
 					url.append(SIZE_PARAM).append(ThumbSize.LARGE);
 					url.append(TYPE_PARAM).append(getType().toString());
-					thumbnails.add(url.toString());
+					thumbs.add(url.toString());
 				}
 			}
+			thumbnails = thumbs.toArray(new String[thumbs.size()]);
 		}
 		return thumbnails;
 	}
@@ -311,7 +312,8 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public String[] getEdmPreview() {
-		return edmPreview;
+		return getThumbnails();
+		// return edmPreview;
 	}
 
 	protected boolean isProfile(Profile _profile) {
