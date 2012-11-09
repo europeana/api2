@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonGenerationException;
@@ -110,7 +112,8 @@ public class SearchController {
 		@RequestParam(value = "start", required = false, defaultValue="1") int start,
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort,
-		@RequestParam(value = "wskey", required = true) String wskey
+		@RequestParam(value = "wskey", required = true) String wskey,
+		HttpServletRequest request, HttpServletResponse response
 	) {
 		if (maxRows == -1) {
 			maxRows = Integer.parseInt(rowLimit);
@@ -130,6 +133,7 @@ public class SearchController {
 		try{
 			apiKey = apiService.findByID(wskey);
 			if (apiKey == null) {
+				response.setStatus(401);
 				return new ApiError(wskey, "search.json", "Unregistered user");
 			}
 			usageLimit = apiKey.getUsageLimit();
@@ -139,9 +143,11 @@ public class SearchController {
 			}
 		} catch (DatabaseException e){
 			apiLogger.saveApiRequest(wskey, query.getQuery(), RecordType.SEARCH, profile);
+			response.setStatus(401);
 			return new ApiError(wskey, "search.json", e.getMessage(), requestNumber);
 		} catch (LimitReachedException e){
 			apiLogger.saveApiRequest(wskey, query.getQuery(), RecordType.LIMIT, profile);
+			response.setStatus(429);
 			return new ApiError(wskey, "search.json", "Rate limit exceeded. " + usageLimit, requestNumber);
 		}
 
@@ -150,14 +156,15 @@ public class SearchController {
 			clazz = BriefBean.class;
 		}
 		try {
-			SearchResults<? extends IdBean> response = createResults(wskey, profile, query, clazz);
-			response.requestNumber = requestNumber;
-			log.info("got response " + response.items.size());
+			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
+			result.requestNumber = requestNumber;
+			log.info("got response " + result.items.size());
 			apiLogger.saveApiRequest(wskey, query.getQuery(), RecordType.SEARCH, profile);
-			return response;
+			return result;
 		} catch (SolrTypeException e) {
 			log.severe(wskey + " [search.json] " + e.getMessage());
 			e.printStackTrace();
+			response.setStatus(500);
 			return new ApiError(wskey, "search.json", e.getMessage());
 		}
 	}
@@ -210,34 +217,35 @@ public class SearchController {
 		@RequestParam(value = "start", required = false, defaultValue="1") int start,
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort,
-		@RequestParam(value = "wskey", required = true) String wskey
-	) {
+		@RequestParam(value = "wskey", required = true) String wskey,
+		HttpServletRequest request, HttpServletResponse response
+			) throws Exception {
 		long usageLimit = 0;
 		try{
 			usageLimit = apiService.findByID(wskey).getUsageLimit();
 			if(apiLogger.getRequestNumber(wskey) > usageLimit){
+				response.setStatus(429);
 				throw new LimitReachedException();
 			}
 		} catch (DatabaseException e){
-			
+			throw new Exception(e);
 		} catch (LimitReachedException e){
-			return null;
+			throw new Exception(e);
 		}
-		KmlResponse response = new KmlResponse();
+		KmlResponse kmlResponse = new KmlResponse();
 		Query query = new Query(q);
 		query.setRefinements("edm_place_latLon:[* TO *]");
 		try {
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
-			response.document.extendedData.totalResults.value = Long.toString(resultSet.getResultSize());
-			response.document.extendedData.startIndex.value = Integer.toString(start);
-			response.setItems(resultSet.getResults());
+			kmlResponse.document.extendedData.totalResults.value = Long.toString(resultSet.getResultSize());
+			kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
+			kmlResponse.setItems(resultSet.getResults());
 			apiLogger.saveApiRequest(wskey, query.getQuery(), RecordType.SEARCH, "kml");
 		} catch (SolrTypeException e) {
-//			ApiError error = new ApiError();
-//			error.error = e.getMessage();
-//			return error;
+			response.setStatus(429);
+			throw new Exception(e);
 		}
-		return response;
+		return kmlResponse;
 	}
 
 	@RequestMapping(value = "/v2/opensearch.rss", produces= MediaType.APPLICATION_XML_VALUE) //, produces = "?rss?")
@@ -247,17 +255,17 @@ public class SearchController {
 		@RequestParam(value = "count", required = false, defaultValue="12") int count,
 		@RequestParam(value = "sort", required = false) String sort
 	) {
+		RssResponse rss = new RssResponse();
+		Channel channel = rss.channel;
+		channel.startIndex.value = start;
+		channel.itemsPerPage.value = count;
+		channel.query.searchTerms = q;
+		channel.query.startPage = start;
+
 		try {
-			
 			Query query = new Query(q).setPageSize(count).setStart(start);
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
-			RssResponse rss = new RssResponse();
-			Channel channel = rss.channel;
 			channel.totalResults.value = resultSet.getResultSize();
-			channel.startIndex.value = start;
-			channel.itemsPerPage.value = count;
-			channel.query.searchTerms = q;
-			channel.query.startPage = start;
 			for (BriefBean bean : resultSet.getResults()) {
 				Item item = new Item();
 				item.guid = getPortalUrl() + "/record" + bean.getId() + ".html";
@@ -266,10 +274,14 @@ public class SearchController {
 				log.info("item: " + item);
 				channel.items.add(item);
 			}
-			return rss;
 		} catch (SolrTypeException e) {
-			return null;
+			channel.totalResults.value = 0;
+			Item item = new Item();
+			item.title = "Error";
+			item.description = e.getMessage();
+			channel.items.add(item);
 		}
+		return rss;
 	}
 
 	@RequestMapping(value = "/v2/suggestions.json")//, produces = MediaType.APPLICATION_JSON_VALUE)

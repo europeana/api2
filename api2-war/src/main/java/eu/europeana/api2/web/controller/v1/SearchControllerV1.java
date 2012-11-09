@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.solr.common.SolrException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -68,7 +70,7 @@ public class SearchControllerV1 {
 		@RequestParam(value = "start", required = false, defaultValue="1") int start,
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort,
-		HttpServletRequest request
+		HttpServletRequest request, HttpServletResponse response
 			) throws Exception {
 
 		path = fixPath(request.getContextPath());
@@ -79,11 +81,13 @@ public class SearchControllerV1 {
 		boolean hasResult = false;
 		if (!hasResult && StringUtils.isBlank(wskey)) {
 			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "No API authorisation key.")));
+			response.setStatus(401);
 			hasResult = true;
 		}
 
 		if (!hasResult && (userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null)) {
 			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Unregistered user")));
+			response.setStatus(401);
 			hasResult = true;
 		}
 
@@ -95,16 +99,20 @@ public class SearchControllerV1 {
 				clazz = BriefBean.class;
 			}
 			try {
-				Api1SearchResults<Map<String, Object>> response = createResultsForApi1(wskey, profile, query, clazz);
-				if (response != null) {
-					log.info("got response " + response.items.size());
-					model.put("json", utils.toJson(response));
+				Api1SearchResults<Map<String, Object>> result = createResultsForApi1(wskey, profile, query, clazz);
+				if (result != null) {
+					log.info("got response " + result.items.size());
+					model.put("json", utils.toJson(result));
 				}
-				model.put("result", response);
+				model.put("result", result);
 			} catch (SolrTypeException e) {
 				logException(e);
+				model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Internal Server Error. Something is broken.")));
+				response.setStatus(500);
 			} catch (Exception e) {
 				logException(e);
+				model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Internal Server Error. Something is broken.")));
+				response.setStatus(500);
 			}
 		}
 
@@ -125,7 +133,19 @@ public class SearchControllerV1 {
 		log.info("===== openSearchControllerRSS =====");
 		response.setCharacterEncoding("UTF-8");
 
-		Map<String, Object> model = new HashMap<String, Object>();
+		String cannonicalLink = "http://europeana.eu";
+		String baseLink = getPortalServer() + "/" + path + "/v1/opensearch.rss";
+		String href = baseLink + "?searchTerms=" + URLEncoder.encode(searchTerms, "UTF-8") + "&startPage=" + startPage;
+
+		RssResponse rss = new RssResponse();
+		Channel channel = rss.channel;
+		channel.startIndex.value = Integer.parseInt(startPage);
+		channel.itemsPerPage.value = RESULT_ROWS_PER_PAGE;
+		channel.query.searchTerms = searchTerms;
+		channel.query.startPage = Integer.parseInt(startPage);
+		channel.setLink(cannonicalLink);
+		channel.atomLink.href = href;
+		channel.updateDescription();
 
 		try {
 			log.info(searchTerms + ", " + RESULT_ROWS_PER_PAGE + ", " + (Integer.parseInt(startPage) - 1));
@@ -133,20 +153,8 @@ public class SearchControllerV1 {
 			Class<? extends IdBean> clazz = ApiBean.class;
 			Api1SearchResults<BriefDoc> resultSet = createResultsForRSS(wskey, null, query, clazz);
 
-			String cannonicalLink = "http://europeana.eu";
-			String baseLink = getPortalServer() + "/" + path + "/v1/opensearch.rss";
-			String href = baseLink + "?searchTerms=" + URLEncoder.encode(searchTerms, "UTF-8") + "&startPage=" + startPage;
-
-			RssResponse rss = new RssResponse();
-			Channel channel = rss.channel;
 			channel.totalResults.value = resultSet.totalResults;
-			channel.startIndex.value = Integer.parseInt(startPage);
-			channel.itemsPerPage.value = RESULT_ROWS_PER_PAGE;
-			channel.query.searchTerms = searchTerms;
-			channel.query.startPage = Integer.parseInt(startPage);
-			channel.setLink(cannonicalLink);
-			channel.atomLink.href = href;
-			channel.updateDescription();
+
 			for (BriefDoc bean : resultSet.items) {
 
 				Item item = new Item();
@@ -182,15 +190,23 @@ public class SearchControllerV1 {
 
 				channel.items.add(item);
 			}
-			return rss;
-			// model.put("rss", rss);
-			// model.put("hasErrors", false);
+			response.setStatus(200);
 		} catch (SolrTypeException e) {
 			log.severe(e.getMessage());
-			model.put("hasErrors", true);
-			model.put("errors", e.getMessage());
-			return null;
+			channel.totalResults.value = 0;
+			Item item = new Item();
+			item.title = "Error";
+			item.description = e.getMessage();
+			channel.items.add(item);
+		} catch (SolrException e) {
+			log.severe(e.getMessage());
+			channel.totalResults.value = 0;
+			Item item = new Item();
+			item.title = "Error";
+			item.description = e.getMessage();
+			channel.items.add(item);
 		}
+		return rss;
 	}
 
 	private <T extends IdBean> Api1SearchResults<Map<String, Object>> createResultsForApi1(String wskey, String profile, Query q, 
@@ -236,13 +252,8 @@ public class SearchControllerV1 {
 	}
 
 	private void logException(Exception e) {
-		StringBuilder sb = new StringBuilder(e.getClass().getName());
-		sb.append(": ").append(e.getMessage()).append("\n");
-		StackTraceElement[] trace = e.getStackTrace();
-		for (StackTraceElement el : trace) {
-			sb.append(String.format("%s:%d %s()\n", el.getClassName(), el.getLineNumber(), el.getMethodName()));
-		}
-		log.severe(sb.toString());
+		log.severe(ExceptionUtils.getRootCauseMessage(e));
+		log.severe(ExceptionUtils.getFullStackTrace(e));
 	}
 
 	public String getPortalServer() {

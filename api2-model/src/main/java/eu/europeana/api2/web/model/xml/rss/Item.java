@@ -47,10 +47,10 @@ public class Item {
 	public String[] europeanaRights;
 
 	@XmlElement(name = "place_latitude", namespace = RssResponse.NS_ENRICHMENT)
-	public float enrichmentPlaceLatitude;
+	public Float enrichmentPlaceLatitude;
 
 	@XmlElement(name = "place_longitude", namespace = RssResponse.NS_ENRICHMENT)
-	public float enrichmentPlaceLongitude;
+	public Float enrichmentPlaceLongitude;
 
 	@XmlElement(name = "place_term", namespace = RssResponse.NS_ENRICHMENT)
 	public String[] enrichmentPlaceTerm;
