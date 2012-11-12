@@ -22,7 +22,6 @@
 		<constructor-arg ref="corelib_db_mongo"/>
 	</bean>
 
-
 	<!-- DEVELOPMENT -->
 	<!-- import resource="internal/api2-development.xml" / -->
 </beans>

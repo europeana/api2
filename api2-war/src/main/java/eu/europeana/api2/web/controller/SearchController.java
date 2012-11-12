@@ -112,7 +112,7 @@ public class SearchController {
 		@RequestParam(value = "start", required = false, defaultValue="1") int start,
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
 		@RequestParam(value = "sort", required = false) String sort,
-		@RequestParam(value = "wskey", required = true) String wskey,
+		@RequestParam(value = "wskey", required = false) String wskey,
 		HttpServletRequest request, HttpServletResponse response
 	) {
 		if (maxRows == -1) {
@@ -163,13 +163,17 @@ public class SearchController {
 			return result;
 		} catch (SolrTypeException e) {
 			log.severe(wskey + " [search.json] " + e.getMessage());
-			e.printStackTrace();
+			response.setStatus(500);
+			return new ApiError(wskey, "search.json", e.getMessage());
+		} catch (Exception e) {
+			log.severe(wskey + " [search.json] " + e.getClass().getSimpleName() + " " + e.getMessage());
 			response.setStatus(500);
 			return new ApiError(wskey, "search.json", e.getMessage());
 		}
 	}
 
-	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query q, Class<T> clazz) throws SolrTypeException {
+	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query q, Class<T> clazz) 
+			throws SolrTypeException {
 		SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, q);
 		response.totalResults = resultSet.getResultSize();
