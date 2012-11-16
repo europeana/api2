@@ -20,13 +20,13 @@ package eu.europeana.api2.web.model.json;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
-import eu.europeana.api2.web.model.json.abstracts.AbstractSearchResults;
+import eu.europeana.api2.web.model.json.abstracts.Api1AbstractSearchResults;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @JsonSerialize(include = Inclusion.NON_EMPTY)
-public class Api1SearchResults<BriefDoc> extends AbstractSearchResults<BriefDoc> {
+public class Api1SearchResults<BriefDoc> extends Api1AbstractSearchResults<BriefDoc> {
 
 	public Api1SearchResults(String apikey, String action) {
 		super(apikey, action);

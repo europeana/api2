@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
+import eu.europeana.api2.web.util.OptOutDatasetsUtil;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
@@ -141,7 +142,9 @@ public class BriefDoc {
 			addValue("title", title);
 			addValue("link", getLink(JSON));
 			addValue("description", getDescription());
-			addValue("enclosure", thumbnail);
+			if (!OptOutDatasetsUtil.checkById(url)) {
+				addValue("enclosure", thumbnail);
+			}
 			addValue("dc:creator", creator);
 			addValue("dcterms:hasPart", dcTermsHasPart);
 			addValue("dcterms:isPartOf", dcTermsIsPartOf);

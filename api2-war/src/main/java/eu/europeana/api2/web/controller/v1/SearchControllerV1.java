@@ -30,10 +30,10 @@ import eu.europeana.api2.web.model.xml.rss.Channel;
 import eu.europeana.api2.web.model.xml.rss.Enclosure;
 import eu.europeana.api2.web.model.xml.rss.Item;
 import eu.europeana.api2.web.model.xml.rss.RssResponse;
+import eu.europeana.api2.web.util.OptOutDatasetsUtil;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
-import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.IdBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
@@ -53,27 +53,34 @@ public class SearchControllerV1 {
 
 	private static final int RESULT_ROWS_PER_PAGE = 12;
 
-	@Value("#{europeanaProperties['portal.server']}")
-	private String portalServer;
+	private static final String DESCRIPTION_SUFFIX = " - Europeana Open Search";
 
-	@Value("#{europeanaProperties['portal.name']}")
-	private String portalName;
+	@Value("#{europeanaProperties['portal.server']}") private String portalServer;
+
+	@Value("#{europeanaProperties['portal.name']}") private String portalName;
+
+	@Value("#{europeanaProperties['api2.url']}") private String apiUrl;
+
+	@Value("#{europeanaProperties['api.optOutList']}") private String optOutList;
 
 	private String path;
 
 	@RequestMapping(value = {"/opensearch.json", "/v1/search.json"}, method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView search2Json(
 		@RequestParam(value = "wskey", required = true) String wskey,
-		@RequestParam(value = "query", required = true) String q,
-		@RequestParam(value = "qf", required = false) String[] refinements,
-		@RequestParam(value = "profile", required = false, defaultValue="standard") String profile,
-		@RequestParam(value = "start", required = false, defaultValue="1") int start,
-		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
-		@RequestParam(value = "sort", required = false) String sort,
+		@RequestParam(value = "searchTerms", required = true) String q,
+		// @RequestParam(value = "qf", required = false) String[] refinements,
+		// @RequestParam(value = "profile", required = false, defaultValue="standard") String profile,
+		@RequestParam(value = "startPage", required = false, defaultValue="1") int start,
+		// @RequestParam(value = "rows", required = false, defaultValue="12") int rows,
+		// @RequestParam(value = "sort", required = false) String sort,
 		HttpServletRequest request, HttpServletResponse response
 			) throws Exception {
 
 		path = fixPath(request.getContextPath());
+		String profile = "standard";
+		int rows = 12;
+		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
 
 		Map<String, Object> model = new HashMap<String, Object>();
 		Api1Utils utils = new Api1Utils();
@@ -93,15 +100,17 @@ public class SearchControllerV1 {
 
 		if (!hasResult) {
 			log.info("opensearch.json");
-			Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
+			// Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
+			Query query = new Query(q).setPageSize(rows).setStart(start - 1);
 			Class<? extends IdBean> clazz = ApiBean.class;
-			if (StringUtils.containsIgnoreCase(profile, "minimal")) {
-				clazz = BriefBean.class;
-			}
 			try {
 				Api1SearchResults<Map<String, Object>> result = createResultsForApi1(wskey, profile, query, clazz);
+				result.startIndex = start;
+				result.description = q + DESCRIPTION_SUFFIX;
+				result.link = String.format("%s?searchTerms=%s&startPage=%d", apiUrl, URLEncoder.encode(q), start);
 				if (result != null) {
 					log.info("got response " + result.items.size());
+					log.info("itemsPerPage: " + utils.toJson(result));
 					model.put("json", utils.toJson(result));
 				}
 				model.put("result", result);
@@ -215,7 +224,7 @@ public class SearchControllerV1 {
 		Api1SearchResults<Map<String, Object>> response = new Api1SearchResults<Map<String, Object>>(wskey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, q);
 		response.totalResults = resultSet.getResultSize();
-		response.itemsCount = resultSet.getResults().size();
+		response.itemsPerPage = resultSet.getResults().size();
 
 		BriefDoc.setPortalServer(getPortalServer());
 		BriefDoc.setPortalName(portalName);
@@ -227,6 +236,7 @@ public class SearchControllerV1 {
 			items.add(doc.asMap());
 		}
 		response.items = items;
+		log.info("response: " + response);
 		return response;
 	}
 
@@ -236,7 +246,7 @@ public class SearchControllerV1 {
 		Api1SearchResults<BriefDoc> response = new Api1SearchResults<BriefDoc>(wskey, "search.json");
 		ResultSet<? extends IdBean> resultSet = searchService.search(clazz, q);
 		response.totalResults = resultSet.getResultSize();
-		response.itemsCount = resultSet.getResults().size();
+		response.itemsPerPage = resultSet.getResults().size();
 
 		BriefDoc.setPortalServer(getPortalServer());
 		BriefDoc.setPortalName(portalName);

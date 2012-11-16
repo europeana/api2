@@ -17,7 +17,7 @@
 
 package eu.europeana.api2.web.model.json.abstracts;
 
-import java.util.Date;
+import java.util.List;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
@@ -26,28 +26,26 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @JsonSerialize(include = Inclusion.NON_EMPTY)
-public abstract class ApiResponse {
+public class Api1AbstractSearchResults<T> extends ApiResponse {
 
-	public String apikey;
+	public String description;
 
-	public String action;
+	public String link;
 
-	public boolean success = true;
+	public Long totalResults;
 
-	public String error;
+	public Integer startIndex;
 
-	public Date statsStartTime;
+	public Integer itemsPerPage;
 
-	public Long statsDuration;
+	public List<T> items;
 
-	public Long requestNumber;
-
-	public ApiResponse(String apikey, String action) {
-		this.apikey = apikey;
-		this.action = action;
+	public Api1AbstractSearchResults(String apikey, String action) {
+		super(apikey, action);
 	}
 
-	public ApiResponse() {
+	public Api1AbstractSearchResults() {
 		// used by Jackson
+		super();
 	}
 }
