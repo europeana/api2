@@ -134,7 +134,6 @@ public class FullDoc {
 			europeanaIsShownBy = add(europeanaIsShownBy, aggregation.getEdmIsShownBy());
 			thumbnails = add(thumbnails, aggregation.getEdmObject());
 			// addValue(fields, EUROPEANA_USERTAG, bean.getEuropeanaUserTag());
-			// addValue(fields, EUROPEANA_YEAR, bean.getEuropeanaYear());
 			europeanaRights = add(europeanaRights, map2Array(aggregation.getEdmRights()));
 			europeanaDataProvider = add(europeanaDataProvider, map2Array(aggregation.getEdmDataProvider()));
 			europeanaUGC = add(europeanaUGC, aggregation.getEdmUgc());
@@ -180,6 +179,8 @@ public class FullDoc {
 			dcSubject = add(dcSubject, map2Array(proxy.getDcSubject()));
 			dcTitle = add(dcTitle, map2Array(proxy.getDcTitle()));
 			dcType = add(dcType, map2Array(proxy.getDcType()));
+
+			europeanaYear = add(europeanaYear, map2Array(proxy.getYear()));
 		}
 
 		europeanaCompleteness = bean.getEuropeanaCompleteness();
