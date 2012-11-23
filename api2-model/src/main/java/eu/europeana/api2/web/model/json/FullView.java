@@ -2,6 +2,7 @@ package eu.europeana.api2.web.model.json;
 
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -22,6 +23,8 @@ import eu.europeana.corelib.definitions.solr.entity.Timespan;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class FullView implements FullBean {
+
+	private final Logger log = Logger.getLogger(this.getClass().getSimpleName());
 
 	FullBean bean;
 
@@ -110,15 +113,17 @@ public class FullView implements FullBean {
 	public void setTimespans(List<? extends Timespan> timespans) {}
 
 	@Override
-	public  List<? extends Aggregation> getAggregations() {
+	public List<? extends Aggregation> getAggregations() {
 		@SuppressWarnings("unchecked")
-		List<Aggregation> items =(List<Aggregation>) bean.getAggregations();
+		List<Aggregation> items = (List<Aggregation>) bean.getAggregations();
 		for (int i=0, la=items.size(); i < la; i++) {
 			items.get(i).setId(null);
 
 			// add bt=europanaapi
 			String isShownAt = items.get(i).getEdmIsShownAt();
-			items.get(i).setEdmIsShownAt(isShownAt + (isShownAt.indexOf("?") > -1 ? "&" : "?") + "bt=europeanaapi");
+			if (isShownAt != null) {
+				items.get(i).setEdmIsShownAt(isShownAt + (isShownAt.indexOf("?") > -1 ? "&" : "?") + "bt=europeanaapi");
+			}
 
 			// remove edm:object if it is a opted out record
 			if (OptOutDatasetsUtil.checkById(bean.getAbout())) {
@@ -129,7 +134,6 @@ public class FullView implements FullBean {
 			for (int j = 0, lw = items.get(i).getWebResources().size(); j < lw; j++) {
 				items.get(i).getWebResources().get(j).setId(null);
 			}
-			
 		}
 		return items;
 	}

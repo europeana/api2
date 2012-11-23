@@ -149,6 +149,7 @@ public class ObjectController {
 		} catch (SolrTypeException e) {
 			return new ApiError(wskey, "record.json", e.getMessage(), requestNumber);
 		}
+
 		return response;
 	}
 

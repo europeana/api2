@@ -305,16 +305,6 @@ public class SearchController {
 		return response;
 	}
 
-	private void logException(Exception e) {
-		StringBuilder sb = new StringBuilder(e.getClass().getName());
-		sb.append(": ").append(e.getMessage()).append("\n");
-		StackTraceElement[] trace = e.getStackTrace();
-		for (StackTraceElement el : trace) {
-			sb.append(String.format("%s:%d %s()\n", el.getClassName(), el.getLineNumber(), el.getMethodName()));
-		}
-		log.severe(sb.toString());
-	}
-
 	private String getPortalUrl() {
 		if (portalUrl == null) {
 			StringBuilder sb = new StringBuilder(portalServer);
@@ -325,27 +315,5 @@ public class SearchController {
 			portalUrl = sb.toString();
 		}
 		return portalUrl;
-	}
-
-	/**
-	 * Test JSON creating
-	 * @param response
-	 */
-	private void createJson(SearchResults<? extends IdBean> response) {
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.setSerializationInclusion(Inclusion.NON_EMPTY);
-		try {
-			String json = objectMapper.writeValueAsString(response);
-			log.info("JSON: " + json);
-		} catch (JsonGenerationException e) {
-			log.info(e.getMessage());
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			log.info(e.getMessage());
-			e.printStackTrace();
-		} catch (IOException e) {
-			log.info(e.getMessage());
-			e.printStackTrace();
-		}
 	}
 }

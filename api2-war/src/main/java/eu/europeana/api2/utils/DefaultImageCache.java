@@ -13,5 +13,4 @@ public class DefaultImageCache {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }
