@@ -17,7 +17,6 @@
 
 package eu.europeana.api2.web.controller;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -28,7 +27,6 @@ import javax.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -88,6 +86,8 @@ public class ObjectController {
 
 	private String similarItemsProfile = "minimal";
 
+	private final static String RESOLVE_PREFIX = "http://www.europeana.eu/resolve/record";
+
 	// @Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse record(
@@ -125,6 +125,9 @@ public class ObjectController {
 		try {
 			long t0 = (new Date()).getTime();
 			FullBean bean = searchService.findById(europeanaObjectId);
+			if (bean == null) {
+				bean = searchService.resolve(RESOLVE_PREFIX + europeanaObjectId);
+			}
 
 			if (bean == null) {
 				apiLogger.saveApiRequest(wskey, request, RecordType.LIMIT, profile);
