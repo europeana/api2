@@ -17,7 +17,6 @@
 
 package eu.europeana.api2.web.controller;
 
-import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -114,7 +109,8 @@ public class SearchController {
 		@RequestParam(value = "sort", required = false) String sort,
 		@RequestParam(value = "wskey", required = false) String wskey,
 		HttpServletRequest request, HttpServletResponse response
-	) {
+			) {
+		response.setCharacterEncoding("UTF-8");
 		if (maxRows == -1) {
 			maxRows = Integer.parseInt(rowLimit);
 		}
