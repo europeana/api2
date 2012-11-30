@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -94,12 +96,14 @@ public class ObjectController {
 		@PathVariable String collectionId,
 		@PathVariable String recordId,
 		@RequestParam(value = "profile", required = false, defaultValue="full") String profile,
-		@RequestParam(value = "wskey", required = true) String wskey
-	) {
+		@RequestParam(value = "wskey", required = true) String wskey,
+		HttpServletRequest request, HttpServletResponse response
+			) {
 		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
+		response.setCharacterEncoding("UTF-8");
 
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
-		String request = europeanaObjectId + ".json";
+		String requestUri = europeanaObjectId + ".json";
 		long usageLimit = 0;
 		ApiKey apiKey;
 		long requestNumber = 0;
@@ -114,14 +118,14 @@ public class ObjectController {
 				throw new LimitReachedException();
 			}
 		} catch (DatabaseException e){
-			apiLogger.saveApiRequest(wskey, request, RecordType.OBJECT, profile);
+			apiLogger.saveApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
 			return new ApiError(wskey, "record.json", e.getMessage(), requestNumber);
 		} catch (LimitReachedException e){
-			apiLogger.saveApiRequest(wskey, request, RecordType.LIMIT, profile);
+			apiLogger.saveApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
 			return new ApiError(wskey, "record.json", "Rate limit exceeded. " + usageLimit, requestNumber);
 		}
 		log.info("record");
-		ObjectResult response = new ObjectResult(wskey, "record.json", requestNumber);
+		ObjectResult objectResult = new ObjectResult(wskey, "record.json", requestNumber);
 		try {
 			long t0 = (new Date()).getTime();
 			FullBean bean = searchService.findById(europeanaObjectId);
@@ -130,7 +134,7 @@ public class ObjectController {
 			}
 
 			if (bean == null) {
-				apiLogger.saveApiRequest(wskey, request, RecordType.LIMIT, profile);
+				apiLogger.saveApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
 				return new ApiError(wskey, "record.json", "Invalid record identifier: " + europeanaObjectId, requestNumber);
 			}
 
@@ -143,17 +147,17 @@ public class ObjectController {
 					BriefView view = new BriefView(b, similarItemsProfile, wskey);
 					beans.add(view);
 				}
-				response.similarItems = beans;
+				objectResult.similarItems = beans;
 			}
-			response.object = new FullView(bean);
+			objectResult.object = new FullView(bean);
 			long t1 = (new Date()).getTime();
-			response.statsDuration = (t1 - t0);
-			apiLogger.saveApiRequest(wskey, request, RecordType.OBJECT, profile);
+			objectResult.statsDuration = (t1 - t0);
+			apiLogger.saveApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
 		} catch (SolrTypeException e) {
 			return new ApiError(wskey, "record.json", e.getMessage(), requestNumber);
 		}
 
-		return response;
+		return objectResult;
 	}
 
 	@RequestMapping(value = "/{collectionId}/{recordId}.kml", produces = "application/vnd.google-earth.kml+xml")
