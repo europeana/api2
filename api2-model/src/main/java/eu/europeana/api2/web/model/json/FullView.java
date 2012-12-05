@@ -1,9 +1,11 @@
 package eu.europeana.api2.web.model.json;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
@@ -24,12 +26,25 @@ import eu.europeana.corelib.definitions.solr.entity.Timespan;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class FullView implements FullBean {
 
-	private final Logger log = Logger.getLogger(this.getClass().getSimpleName());
+	protected static String apiUrl;
+	protected static String portalUrl;
 
 	FullBean bean;
+	String profile;
+	long uid;
 
 	public FullView(FullBean bean) {
 		this.bean = bean;
+	}
+
+	public FullView(FullBean bean, String profile) {
+		this(bean);
+		this.profile = profile;
+	}
+
+	public FullView(FullBean bean, String profile, long uid) {
+		this(bean, profile);
+		this.uid = uid;
 	}
 
 	@Override
@@ -122,7 +137,19 @@ public class FullView implements FullBean {
 			// add bt=europanaapi
 			String isShownAt = items.get(i).getEdmIsShownAt();
 			if (isShownAt != null) {
-				items.get(i).setEdmIsShownAt(isShownAt + (isShownAt.indexOf("?") > -1 ? "&" : "?") + "bt=europeanaapi");
+				isShownAt = isShownAt + (isShownAt.indexOf("?") > -1 ? "&" : "?") + "bt=europeanaapi";
+				// items.get(i).setEdmIsShownAt(isShownAt);
+
+				String provider = items.get(i).getEdmProvider().values().iterator().next().get(0);
+				String isShownAtLink = String.format(
+						"%s/%d/redirect.json?shownAt=%s&provider=%s&id=http://www.europeana.eu/resolve/record%s&profile=%s", 
+						apiUrl,
+						uid,
+						encode(isShownAt),
+						encode(provider),
+						bean.getAbout(),
+						profile);
+				items.get(i).setEdmIsShownAt(isShownAtLink);
 			}
 
 			// remove edm:object if it is a opted out record
@@ -257,4 +284,25 @@ public class FullView implements FullBean {
 
 	@Override
 	public void setOptOut(boolean optOut) {}
+
+	public static void setApiUrl(String _apiUrl) {
+		apiUrl = _apiUrl;
+	}
+
+	public static void setPortalUrl(String _portalUrl) {
+		portalUrl = _portalUrl;
+	}
+	
+	private String encode(String value) {
+		if (StringUtils.isBlank(value)) {
+			return "";
+		}
+		try {
+			value = URLEncoder.encode(value, "utf-8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return value;
+	}
 }

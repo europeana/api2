@@ -63,14 +63,11 @@ public class ObjectController {
 
 	private final Logger log = Logger.getLogger(getClass().getName());
 
-	@Resource
-	private SearchService searchService;
+	@Resource private SearchService searchService;
 
-	@Resource
-	private ApiLogger apiLogger;
+	@Resource private ApiLogger apiLogger;
 
-	@Resource
-	private ApiKeyService apiService;
+	@Resource private ApiKeyService apiService;
 
 	@Value("#{europeanaProperties['portal.server']}")
 	private String portalServer;
@@ -149,7 +146,9 @@ public class ObjectController {
 				}
 				objectResult.similarItems = beans;
 			}
-			objectResult.object = new FullView(bean);
+			FullView.setApiUrl(apiUrl);
+			FullView.setPortalUrl(getPortalUrl());
+			objectResult.object = new FullView(bean, profile, apiKey.getUser().getId());
 			long t1 = (new Date()).getTime();
 			objectResult.statsDuration = (t1 - t0);
 			apiLogger.saveApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
