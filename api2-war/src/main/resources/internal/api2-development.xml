@@ -27,7 +27,7 @@
         http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 	">
-	
+
 	<!-- OVERRIDE FOR TESTING -->
 	<bean name="corelib_solr_searchService" class="eu.europeana.corelib.solr.service.impl.SearchServiceImpl"
 		p:solrServer-ref="corelib_solr_solrEmbedded"

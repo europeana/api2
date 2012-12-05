@@ -23,9 +23,7 @@
 	<mvc:default-servlet-handler />	
 	
 	<context:component-scan base-package="eu.europeana.api2.web.controller" />
-	
-    <import resource="api2-mvc-views.xml"/>
-    	
+
+	<import resource="api2-mvc-views.xml"/>
 	<import resource="../api2-context.xml"/>
-    	
 </beans>
