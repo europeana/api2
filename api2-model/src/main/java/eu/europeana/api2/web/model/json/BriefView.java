@@ -298,14 +298,14 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	public String getLink() {
 		StringBuilder url = new StringBuilder(apiUrl);
-		url.append(RECORD_PATH).append(getId()).append(RECORD_EXT);
+		url.append(RECORD_PATH).append(getId().substring(1)).append(RECORD_EXT);
 		url.append(WSKEY_PARAM).append(wskey);
 		return url.toString();
 	}
 
 	public String getGuid() {
 		StringBuilder url = new StringBuilder(portalUrl);
-		url.append(PORTAL_PATH).append(getId());
+		url.append(PORTAL_PATH).append(getId().substring(1));
 		url.append(PORTAL_PARAMS).append(wskey);
 		return url.toString();
 	}
