@@ -54,6 +54,7 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.logging.api.ApiLogger;
 import eu.europeana.corelib.db.logging.api.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
+import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
@@ -77,6 +78,8 @@ public class SearchController {
 	@Resource private SearchService searchService;
 
 	@Resource private ApiKeyService apiService;
+
+	@Resource private UserService userService;
 
 	@Value("#{europeanaProperties['api.rowLimit']}")
 	private String rowLimit = "96";
@@ -128,11 +131,20 @@ public class SearchController {
 		long requestNumber = 0;
 		try{
 			apiKey = apiService.findByID(wskey);
-			if (apiKey == null) {
+			boolean unregisteredUser = false;
+			if (apiKey != null) {
+				usageLimit = apiKey.getUsageLimit();
+			} else {
+				unregisteredUser = true;
+				if (userService.findByApiKey(wskey) != null) {
+					usageLimit = 10000;
+					unregisteredUser = false;
+				}
+			}
+			if (unregisteredUser) {
 				response.setStatus(401);
 				return new ApiError(wskey, "search.json", "Unregistered user");
 			}
-			usageLimit = apiKey.getUsageLimit();
 			requestNumber = apiLogger.getRequestNumber(wskey);
 			if (apiLogger.getRequestNumber(wskey) > usageLimit) {
 				throw new LimitReachedException();
