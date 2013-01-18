@@ -129,22 +129,13 @@ public class SearchController {
 		long usageLimit = 0;
 		ApiKey apiKey;
 		long requestNumber = 0;
-		try{
+		try {
 			apiKey = apiService.findByID(wskey);
-			boolean unregisteredUser = false;
-			if (apiKey != null) {
-				usageLimit = apiKey.getUsageLimit();
-			} else {
-				unregisteredUser = true;
-				if (userService.findByApiKey(wskey) != null) {
-					usageLimit = 10000;
-					unregisteredUser = false;
-				}
-			}
-			if (unregisteredUser) {
+			if (apiKey == null) {
 				response.setStatus(401);
 				return new ApiError(wskey, "search.json", "Unregistered user");
 			}
+			usageLimit = apiKey.getUsageLimit();
 			requestNumber = apiLogger.getRequestNumber(wskey);
 			if (apiLogger.getRequestNumber(wskey) > usageLimit) {
 				throw new LimitReachedException();
