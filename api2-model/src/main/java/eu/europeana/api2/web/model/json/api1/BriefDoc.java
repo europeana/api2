@@ -43,8 +43,8 @@ public class BriefDoc {
 	private String dataProvider3; //
 	private String[] europeanaRights;
 	private String positionAvailable;
-	private float enrichmentPlaceLatitude;
-	private float enrichmentPlaceLongitude;
+	private List<String> enrichmentPlaceLatitude;
+	private List<String> enrichmentPlaceLongitude;
 	private String[] enrichmentPlaceTerm;
 	private String[] enrichmentPlaceLabel;
 	private String[] enrichmentPeriodTerm;
@@ -296,18 +296,18 @@ public class BriefDoc {
 	}
 
 	public float getEnrichmentPlaceLatitude() {
-		return enrichmentPlaceLatitude;
+		return Float.valueOf(enrichmentPlaceLatitude.get(0));
 	}
 
-	public void setEnrichmentPlaceLatitude(float enrichmentPlaceLatitude) {
+	public void setEnrichmentPlaceLatitude(List<String> enrichmentPlaceLatitude) {
 		this.enrichmentPlaceLatitude = enrichmentPlaceLatitude;
 	}
 
 	public float getEnrichmentPlaceLongitude() {
-		return enrichmentPlaceLongitude;
+		return Float.valueOf(enrichmentPlaceLongitude.get(0));
 	}
 
-	public void setEnrichmentPlaceLongitude(float enrichmentPlaceLongitude) {
+	public void setEnrichmentPlaceLongitude(List<String> enrichmentPlaceLongitude) {
 		this.enrichmentPlaceLongitude = enrichmentPlaceLongitude;
 	}
 

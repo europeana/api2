@@ -52,8 +52,8 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	private String[] dcContributor;
 	private String[] edmPlace;
 	private List<Map<String, String>> edmPlacePrefLabel;
-	private Float edmPlaceLatitude;
-	private Float edmPlaceLongitude;
+	private List<String> edmPlaceLatitude;
+	private List<String> edmPlaceLongitude;
 	private String[] edmTimespan;
 	private List<Map<String, String>> edmTimespanLabel;
 	private String[] edmTimespanBegin;
@@ -183,12 +183,12 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	}
 
 	@Override
-	public Float getEdmPlaceLatitude() {
+	public List<String> getEdmPlaceLatitude() {
 		return edmPlaceLatitude;
 	}
 
 	@Override
-	public Float getEdmPlaceLongitude() {
+	public List<String> getEdmPlaceLongitude() {
 		return edmPlaceLongitude;
 	}
 
