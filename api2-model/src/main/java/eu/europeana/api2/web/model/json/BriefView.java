@@ -4,9 +4,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -21,8 +21,6 @@ import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
-
-	protected final Logger log = Logger.getLogger(getClass().getName());
 
 	protected static final String RECORD_PATH = "/v2/record/";
 	protected static final String PORTAL_PATH = "/record/";
@@ -95,7 +93,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		edmTimespanBegin = bean.getEdmTimespanBegin();
 		edmTimespanEnd = bean.getEdmTimespanEnd();
 		edmAgentTerm = bean.getEdmAgent();
-		edmAgentLabel = bean.getEdmAgentLabel();
+		edmAgentLabel = transformToMap(bean.getEdmAgentLabel());
 		dctermsHasPart = bean.getDctermsHasPart();
 		dctermsSpatial = bean.getDctermsSpatial();
 		isOptedOut = bean.isOptedOut();
@@ -327,4 +325,26 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	public static void setPortalUrl(String _portalUrl) {
 		portalUrl = _portalUrl;
 	}
+	
+	private List<Map<String, String>> transformToMap(List<Map<String, String>> fieldValues) {
+		if (fieldValues == null) {
+			return null;
+		}
+
+		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+		if (fieldValues.size() > 0) {
+			for (int i = 0, max = fieldValues.size(); i < max; i++) {
+				Object label = fieldValues.get(i);
+				if (label.getClass().getName() == "java.lang.String") {
+					Map<String, String> map = new HashMap<String, String>();
+					map.put("def", (String)label);
+					list.add(map);
+				} else {
+					list.add((Map<String, String>)label);
+				}
+			}
+		}
+		return list;
+	}
+
 }

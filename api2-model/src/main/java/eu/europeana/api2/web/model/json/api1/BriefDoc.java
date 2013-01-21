@@ -115,11 +115,7 @@ public class BriefDoc {
 		if (bean.getEdmAgent() != null)
 			enrichmentAgentTerm = bean.getEdmAgent();
 		if (bean.getEdmAgentLabel() != null) {
-			List<String> terms = new ArrayList<String>();
-			for (Map<String, String> entry : bean.getEdmAgentLabel()) {
-				terms.addAll(entry.values());
-			}
-			enrichmentAgentLabel = terms.toArray(new String[terms.size()]);
+			enrichmentAgentLabel = bean.getEdmAgentLabel().toArray(new String[bean.getEdmAgentLabel().size()]);
 		}
 		if (bean.getEdmConcept() != null)
 			enrichmentPeriodTerm = bean.getEdmConcept();
