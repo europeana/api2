@@ -292,7 +292,12 @@ public class BriefDoc {
 	}
 
 	public float getEnrichmentPlaceLatitude() {
-		return Float.valueOf(enrichmentPlaceLatitude.get(0));
+		if (enrichmentPlaceLatitude != null 
+				&& enrichmentPlaceLatitude.size() > 0
+				&& !StringUtils.isBlank(enrichmentPlaceLatitude.get(0))) {
+			return Float.valueOf(enrichmentPlaceLatitude.get(0));
+		}
+		return 0;
 	}
 
 	public void setEnrichmentPlaceLatitude(List<String> enrichmentPlaceLatitude) {
@@ -300,7 +305,12 @@ public class BriefDoc {
 	}
 
 	public float getEnrichmentPlaceLongitude() {
-		return Float.valueOf(enrichmentPlaceLongitude.get(0));
+		if (enrichmentPlaceLongitude != null 
+				&& enrichmentPlaceLongitude.size() > 0 
+				&& !StringUtils.isBlank(enrichmentPlaceLongitude.get(0))) {
+			return Float.valueOf(enrichmentPlaceLongitude.get(0));
+		}
+		return 0;
 	}
 
 	public void setEnrichmentPlaceLongitude(List<String> enrichmentPlaceLongitude) {

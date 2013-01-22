@@ -237,7 +237,7 @@ public class SearchController {
 		}
 		KmlResponse kmlResponse = new KmlResponse();
 		Query query = new Query(q);
-		query.setRefinements("edm_place_latLon:[* TO *]");
+		query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
 		try {
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
 			kmlResponse.document.extendedData.totalResults.value = Long.toString(resultSet.getResultSize());
