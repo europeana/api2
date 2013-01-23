@@ -100,8 +100,8 @@ public class SearchControllerV1 {
 
 		if (!hasResult) {
 			log.info("opensearch.json");
-			// Query query = new Query(q).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
-			Query query = new Query(q).setPageSize(rows).setStart(start - 1);
+			// Query query = new Query(q).setApiQuery(true).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
+			Query query = new Query(q).setApiQuery(true).setPageSize(rows).setStart(start - 1);
 			Class<? extends IdBean> clazz = ApiBean.class;
 			try {
 				Api1SearchResults<Map<String, Object>> result = createResultsForApi1(wskey, profile, query, clazz);
@@ -158,7 +158,7 @@ public class SearchControllerV1 {
 
 		try {
 			log.info(searchTerms + ", " + RESULT_ROWS_PER_PAGE + ", " + (Integer.parseInt(startPage) - 1));
-			Query query = new Query(searchTerms).setPageSize(RESULT_ROWS_PER_PAGE).setStart(Integer.parseInt(startPage) - 1);
+			Query query = new Query(searchTerms).setApiQuery(true).setPageSize(RESULT_ROWS_PER_PAGE).setStart(Integer.parseInt(startPage) - 1);
 			Class<? extends IdBean> clazz = ApiBean.class;
 			Api1SearchResults<BriefDoc> resultSet = createResultsForRSS(wskey, null, query, clazz);
 

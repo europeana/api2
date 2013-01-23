@@ -122,6 +122,7 @@ public class SearchController {
 		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
 
 		Query query = new Query(q)
+							.setApiQuery(true)
 							.setRefinements(refinements)
 							.setPageSize(rows)
 							.setStart(start - 1)
@@ -236,7 +237,7 @@ public class SearchController {
 			throw new Exception(e);
 		}
 		KmlResponse kmlResponse = new KmlResponse();
-		Query query = new Query(q);
+		Query query = new Query(q).setApiQuery(true);
 		query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
 		try {
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
@@ -266,7 +267,7 @@ public class SearchController {
 		channel.query.startPage = start;
 
 		try {
-			Query query = new Query(q).setPageSize(count).setStart(start);
+			Query query = new Query(q).setApiQuery(true).setPageSize(count).setStart(start);
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
 			channel.totalResults.value = resultSet.getResultSize();
 			for (BriefBean bean : resultSet.getResults()) {
