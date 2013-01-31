@@ -126,7 +126,15 @@ public class SearchController {
 							.setRefinements(refinements)
 							.setPageSize(rows)
 							.setStart(start - 1)
-							.setParameter("facet.mincount", "1");
+							.setParameter("facet.mincount", "1")
+							.setAllowSpellcheck(false)
+							.setAllowFacets(false);
+		if (profile.equals("portal") || profile.equals("spelling")) {
+			query.setAllowSpellcheck(true);
+		}
+		if (profile.equals("portal") || profile.equals("facets")) {
+			query.setAllowFacets(true);
+		}
 		long usageLimit = 0;
 		ApiKey apiKey;
 		long requestNumber = 0;
@@ -237,7 +245,10 @@ public class SearchController {
 			throw new Exception(e);
 		}
 		KmlResponse kmlResponse = new KmlResponse();
-		Query query = new Query(q).setApiQuery(true);
+		Query query = new Query(q)
+					.setApiQuery(true)
+					.setAllowSpellcheck(false)
+					.setAllowFacets(false);
 		query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
 		try {
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
@@ -267,7 +278,7 @@ public class SearchController {
 		channel.query.startPage = start;
 
 		try {
-			Query query = new Query(q).setApiQuery(true).setPageSize(count).setStart(start);
+			Query query = new Query(q).setApiQuery(true).setPageSize(count).setStart(start).setAllowFacets(false).setAllowSpellcheck(false);
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
 			channel.totalResults.value = resultSet.getResultSize();
 			for (BriefBean bean : resultSet.getResults()) {
