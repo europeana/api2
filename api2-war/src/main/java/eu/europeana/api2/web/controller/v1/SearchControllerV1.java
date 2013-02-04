@@ -39,6 +39,7 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
+import eu.europeana.corelib.solr.utils.SolrUtils;
 
 @Controller
 public class SearchControllerV1 {
@@ -101,7 +102,7 @@ public class SearchControllerV1 {
 		if (!hasResult) {
 			log.info("opensearch.json");
 			// Query query = new Query(q).setApiQuery(true).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
-			Query query = new Query(q)
+			Query query = new Query(SolrUtils.translateQuery(q))
 					.setApiQuery(true)
 					.setPageSize(rows)
 					.setStart(start - 1)
