@@ -30,7 +30,6 @@ import eu.europeana.api2.web.model.xml.rss.Channel;
 import eu.europeana.api2.web.model.xml.rss.Enclosure;
 import eu.europeana.api2.web.model.xml.rss.Item;
 import eu.europeana.api2.web.model.xml.rss.RssResponse;
-import eu.europeana.api2.web.util.OptOutDatasetsUtil;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
@@ -40,6 +39,7 @@ import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.SolrUtils;
+import eu.europeana.corelib.utils.OptOutDatasetsUtil;
 
 @Controller
 public class SearchControllerV1 {

@@ -13,11 +13,11 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.web.model.json.common.Profile;
-import eu.europeana.api2.web.util.OptOutDatasetsUtil;
 import eu.europeana.corelib.definitions.model.ThumbSize;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
+import eu.europeana.corelib.utils.OptOutDatasetsUtil;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {

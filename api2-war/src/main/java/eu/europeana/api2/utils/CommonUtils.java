@@ -11,7 +11,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 public class CommonUtils {
 
-	private static final Logger log = Logger.getLogger("CommonUtils");
+	private static final Logger log = Logger.getLogger(CommonUtils.class.getCanonicalName());
 
 	/**
 	 * Test JSON creating

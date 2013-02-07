@@ -43,7 +43,6 @@ import eu.europeana.api2.web.model.json.FullView;
 import eu.europeana.api2.web.model.json.ObjectResult;
 import eu.europeana.api2.web.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.web.model.json.common.Profile;
-import eu.europeana.api2.web.util.OptOutDatasetsUtil;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.logging.api.ApiLogger;
 import eu.europeana.corelib.db.logging.api.enums.RecordType;
@@ -53,6 +52,7 @@ import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
+import eu.europeana.corelib.utils.OptOutDatasetsUtil;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -94,7 +94,8 @@ public class ObjectController {
 		@PathVariable String recordId,
 		@RequestParam(value = "profile", required = false, defaultValue="full") String profile,
 		@RequestParam(value = "wskey", required = true) String wskey,
-		HttpServletRequest request, HttpServletResponse response
+		HttpServletRequest request,
+		HttpServletResponse response
 			) {
 		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
 		response.setCharacterEncoding("UTF-8");

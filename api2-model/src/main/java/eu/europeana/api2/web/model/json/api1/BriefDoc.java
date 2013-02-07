@@ -10,8 +10,8 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
-import eu.europeana.api2.web.util.OptOutDatasetsUtil;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
+import eu.europeana.corelib.utils.OptOutDatasetsUtil;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefDoc {

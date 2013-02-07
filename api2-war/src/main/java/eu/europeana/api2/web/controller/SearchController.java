@@ -49,7 +49,6 @@ import eu.europeana.api2.web.model.xml.kml.KmlResponse;
 import eu.europeana.api2.web.model.xml.rss.Channel;
 import eu.europeana.api2.web.model.xml.rss.Item;
 import eu.europeana.api2.web.model.xml.rss.RssResponse;
-import eu.europeana.api2.web.util.OptOutDatasetsUtil;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.logging.api.ApiLogger;
 import eu.europeana.corelib.db.logging.api.enums.RecordType;
@@ -63,6 +62,7 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
+import eu.europeana.corelib.utils.OptOutDatasetsUtil;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 
 /**
