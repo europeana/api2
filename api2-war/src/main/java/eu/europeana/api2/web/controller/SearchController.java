@@ -113,6 +113,13 @@ public class SearchController {
 		@RequestParam(value = "wskey", required = false) String wskey,
 		HttpServletRequest request, HttpServletResponse response
 			) {
+
+		// workaround of a Spring issue (https://jira.springsource.org/browse/SPR-7963)
+		String[] _qf = (String[]) request.getParameterMap().get("qf");
+		if (_qf.length != refinements.length) {
+			refinements = _qf;
+		}
+
 		response.setCharacterEncoding("UTF-8");
 		if (maxRows == -1) {
 			maxRows = Integer.parseInt(rowLimit);
@@ -198,6 +205,7 @@ public class SearchController {
 				ApiView view = new ApiView(bean, profile, apiKey);
 				//bean.setProfile(profile);
 				beans.add((T) view);
+			// in case profile = 'minimal'
 			} else if (b instanceof BriefBean) {
 				BriefBean bean = (BriefBean)b;
 				BriefView view = new BriefView(bean, profile, apiKey);
@@ -221,7 +229,8 @@ public class SearchController {
 		return response;
 	}
 
-	@RequestMapping(value = "/v2/search.kml", produces= MediaType.APPLICATION_XML_VALUE)//, produces = "application/vnd.google-earth.kml+xml")
+	@RequestMapping(value = "/v2/search.kml", produces= MediaType.APPLICATION_XML_VALUE)
+	// @RequestMapping(value = "/v2/search.kml", produces = "application/vnd.google-earth.kml+xml")
 	public @ResponseBody KmlResponse searchKml(
 		Principal principal,
 		@RequestParam(value = "query", required = true) String q,
@@ -232,6 +241,13 @@ public class SearchController {
 		@RequestParam(value = "wskey", required = true) String wskey,
 		HttpServletRequest request, HttpServletResponse response
 			) throws Exception {
+
+		// workaround of a Spring issue (https://jira.springsource.org/browse/SPR-7963)
+		String[] _qf = (String[]) request.getParameterMap().get("qf");
+		if (_qf.length != refinements.length) {
+			refinements = _qf;
+		}
+
 		long usageLimit = 0;
 		try{
 			usageLimit = apiService.findByID(wskey).getUsageLimit();
