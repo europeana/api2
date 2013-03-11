@@ -116,7 +116,7 @@ public class SearchController {
 
 		// workaround of a Spring issue (https://jira.springsource.org/browse/SPR-7963)
 		String[] _qf = (String[]) request.getParameterMap().get("qf");
-		if (_qf.length != refinements.length) {
+		if (_qf != null && _qf.length != refinements.length) {
 			refinements = _qf;
 		}
 
@@ -244,7 +244,7 @@ public class SearchController {
 
 		// workaround of a Spring issue (https://jira.springsource.org/browse/SPR-7963)
 		String[] _qf = (String[]) request.getParameterMap().get("qf");
-		if (_qf.length != refinements.length) {
+		if (_qf != null & _qf.length != refinements.length) {
 			refinements = _qf;
 		}
 
