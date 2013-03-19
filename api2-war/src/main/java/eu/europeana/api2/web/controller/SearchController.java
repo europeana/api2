@@ -153,7 +153,7 @@ public class SearchController {
 			}
 			usageLimit = apiKey.getUsageLimit();
 			requestNumber = apiLogger.getRequestNumber(wskey);
-			if (apiLogger.getRequestNumber(wskey) > usageLimit) {
+			if (requestNumber > usageLimit) {
 				throw new LimitReachedException();
 			}
 		} catch (DatabaseException e){
@@ -166,10 +166,13 @@ public class SearchController {
 			return new ApiError(wskey, "search.json", "Rate limit exceeded. " + usageLimit, requestNumber);
 		}
 
-		Class<? extends IdBean> clazz = ApiBean.class;
+		Class<? extends IdBean> clazz;
 		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
 			clazz = BriefBean.class;
+		} else {
+			clazz = ApiBean.class;
 		}
+
 		try {
 			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
 			result.requestNumber = requestNumber;
