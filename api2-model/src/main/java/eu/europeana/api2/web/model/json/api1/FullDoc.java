@@ -67,7 +67,7 @@ public class FullDoc {
 	private String[] dcTermsSpatial;
 	private String[] dcTermsTableOfContents;
 	private String[] dcTermsTemporal;
-	
+
 	private String[] dcContributor;
 	private String[] dcCoverage;
 	private String[] dcCreator;
@@ -188,8 +188,12 @@ public class FullDoc {
 		for (Place item : bean.getPlaces()) {
 			enrichmentPlaceTerm = add(enrichmentPlaceTerm, item.getAbout()); // ????
 			enrichmentPlaceLabel = add(enrichmentPlaceLabel, map2Array(item.getPrefLabel()));
-			enrichmentPlaceLatitude = item.getLatitude();
-			enrichmentPlaceLongitude = item.getLongitude();
+			if (item.getLatitude() != null) {
+				enrichmentPlaceLatitude = item.getLatitude();
+			}
+			if (item.getLongitude() != null) {
+				enrichmentPlaceLongitude = item.getLongitude();
+			}
 			// addValue(fields, ENRICHMENT_PLACE_BROADER_TERM, bean.getEnrichmentPlaceBroaderTerm());
 			// addValue(fields, ENRICHMENT_PLACE_BROADER_LABEL, bean.getEnrichmentPlaceBroaderLabel());
 		}
@@ -198,8 +202,12 @@ public class FullDoc {
 			enrichmentPeriodTerm = add(enrichmentPeriodTerm, item.getAbout()); // ????
 			enrichmentPeriodLabel = add(enrichmentPeriodLabel, map2Array(item.getPrefLabel()));
 			try {
-				enrichmentPeriodBegin = new SimpleDateFormat("yyyy-mm-dd").parse(map2Array(item.getBegin())[0]);
-				enrichmentPeriodEnd = new SimpleDateFormat("yyyy-mm-dd").parse(map2Array(item.getEnd())[0]);
+				if (item.getBegin() != null) {
+					enrichmentPeriodBegin = new SimpleDateFormat("yyyy-mm-dd").parse(map2Array(item.getBegin())[0]);
+				}
+				if (item.getEnd() != null) {
+					enrichmentPeriodEnd = new SimpleDateFormat("yyyy-mm-dd").parse(map2Array(item.getEnd())[0]);
+				}
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
