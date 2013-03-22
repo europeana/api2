@@ -62,6 +62,7 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
+import eu.europeana.corelib.solr.utils.SolrUtils;
 import eu.europeana.corelib.utils.OptOutDatasetsUtil;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 
@@ -104,7 +105,7 @@ public class SearchController {
 
 	@RequestMapping(value = "/v2/search.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody ApiResponse searchJson(
-		@RequestParam(value = "query", required = true) String q,
+		@RequestParam(value = "query", required = true) String queryString,
 		@RequestParam(value = "qf", required = false) String[] refinements,
 		@RequestParam(value = "profile", required = false, defaultValue="standard") String profile,
 		@RequestParam(value = "start", required = false, defaultValue="1") int start,
@@ -128,7 +129,7 @@ public class SearchController {
 		log.info("=== search.json: " + rows);
 		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
 
-		Query query = new Query(q)
+		Query query = new Query(SolrUtils.translateQuery(queryString))
 							.setApiQuery(true)
 							.setRefinements(refinements)
 							.setPageSize(rows)
@@ -190,10 +191,10 @@ public class SearchController {
 		}
 	}
 
-	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query q, Class<T> clazz) 
+	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query query, Class<T> clazz) 
 			throws SolrTypeException {
 		SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
-		ResultSet<T> resultSet = searchService.search(clazz, q);
+		ResultSet<T> resultSet = searchService.search(clazz, query);
 		response.totalResults = resultSet.getResultSize();
 		response.itemsCount = resultSet.getResults().size();
 		response.items = resultSet.getResults();
@@ -222,7 +223,7 @@ public class SearchController {
 			response.facets = ModelUtils.conventFacetList(resultSet.getFacetFields());
 		}
 		if (StringUtils.containsIgnoreCase(profile, "breadcrumb") || StringUtils.containsIgnoreCase(profile, "portal")) {
-			response.breadCrumbs = NavigationUtils.createBreadCrumbList(q);
+			response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
 		}
 		if (StringUtils.containsIgnoreCase(profile, "spelling") || StringUtils.containsIgnoreCase(profile, "portal")) {
 			response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
@@ -236,7 +237,7 @@ public class SearchController {
 	// @RequestMapping(value = "/v2/search.kml", produces = "application/vnd.google-earth.kml+xml")
 	public @ResponseBody KmlResponse searchKml(
 		Principal principal,
-		@RequestParam(value = "query", required = true) String q,
+		@RequestParam(value = "query", required = true) String queryString,
 		@RequestParam(value = "qf", required = false) String[] refinements,
 		@RequestParam(value = "start", required = false, defaultValue="1") int start,
 		@RequestParam(value = "rows", required = false, defaultValue="12") int rows,
@@ -264,7 +265,7 @@ public class SearchController {
 			throw new Exception(e);
 		}
 		KmlResponse kmlResponse = new KmlResponse();
-		Query query = new Query(q)
+		Query query = new Query(SolrUtils.translateQuery(queryString))
 					.setApiQuery(true)
 					.setAllowSpellcheck(false)
 					.setAllowFacets(false);
@@ -284,7 +285,7 @@ public class SearchController {
 
 	@RequestMapping(value = "/v2/opensearch.rss", produces= MediaType.APPLICATION_XML_VALUE) //, produces = "?rss?")
 	public @ResponseBody RssResponse openSearchRss(
-		@RequestParam(value = "searchTerms", required = true) String q,
+		@RequestParam(value = "searchTerms", required = true) String queryString,
 		@RequestParam(value = "startIndex", required = false, defaultValue="1") int start,
 		@RequestParam(value = "count", required = false, defaultValue="12") int count,
 		@RequestParam(value = "sort", required = false) String sort
@@ -293,11 +294,11 @@ public class SearchController {
 		Channel channel = rss.channel;
 		channel.startIndex.value = start;
 		channel.itemsPerPage.value = count;
-		channel.query.searchTerms = q;
+		channel.query.searchTerms = queryString;
 		channel.query.startPage = start;
 
 		try {
-			Query query = new Query(q).setApiQuery(true).setPageSize(count).setStart(start).setAllowFacets(false).setAllowSpellcheck(false);
+			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setPageSize(count).setStart(start).setAllowFacets(false).setAllowSpellcheck(false);
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
 			channel.totalResults.value = resultSet.getResultSize();
 			for (BriefBean bean : resultSet.getResults()) {

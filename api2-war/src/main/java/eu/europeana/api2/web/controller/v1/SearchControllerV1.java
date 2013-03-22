@@ -69,7 +69,7 @@ public class SearchControllerV1 {
 	@RequestMapping(value = {"/opensearch.json", "/v1/search.json"}, method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView search2Json(
 		@RequestParam(value = "wskey", required = true) String wskey,
-		@RequestParam(value = "searchTerms", required = true) String q,
+		@RequestParam(value = "searchTerms", required = true) String queryString,
 		// @RequestParam(value = "qf", required = false) String[] refinements,
 		// @RequestParam(value = "profile", required = false, defaultValue="standard") String profile,
 		@RequestParam(value = "startPage", required = false, defaultValue="1") int start,
@@ -102,7 +102,7 @@ public class SearchControllerV1 {
 		if (!hasResult) {
 			log.info("opensearch.json");
 			// Query query = new Query(q).setApiQuery(true).setRefinements(refinements).setPageSize(rows).setStart(start - 1);
-			Query query = new Query(SolrUtils.translateQuery(q))
+			Query query = new Query(SolrUtils.translateQuery(queryString))
 					.setApiQuery(true)
 					.setPageSize(rows)
 					.setStart(start - 1)
@@ -112,8 +112,8 @@ public class SearchControllerV1 {
 			try {
 				Api1SearchResults<Map<String, Object>> result = createResultsForApi1(wskey, profile, query, clazz);
 				result.startIndex = start;
-				result.description = q + DESCRIPTION_SUFFIX;
-				result.link = String.format("%s?searchTerms=%s&startPage=%d", apiUrl, URLEncoder.encode(q), start);
+				result.description = queryString + DESCRIPTION_SUFFIX;
+				result.link = String.format("%s?searchTerms=%s&startPage=%d", apiUrl, URLEncoder.encode(queryString), start);
 				if (result != null) {
 					log.info("got response " + result.items.size());
 					log.info("itemsPerPage: " + utils.toJson(result));
@@ -138,7 +138,7 @@ public class SearchControllerV1 {
 	// 
 	@RequestMapping(value = {"/opensearch.rss", "/v1/opensearch.rss"}, produces = "application/rss+xml")
 	public @ResponseBody RssResponse openSearchControllerRSS(
-			@RequestParam(value = "searchTerms", required = false) String searchTerms,
+			@RequestParam(value = "searchTerms", required = false) String queryString,
 			@RequestParam(value = "startPage", required = false, defaultValue = "1") String startPage,
 			@RequestParam(value = "wskey", required = false, defaultValue = "") String wskey,
 			HttpServletRequest request, 
@@ -150,21 +150,21 @@ public class SearchControllerV1 {
 
 		String cannonicalLink = "http://europeana.eu";
 		String baseLink = getPortalServer() + "/" + path + "/v1/opensearch.rss";
-		String href = baseLink + "?searchTerms=" + URLEncoder.encode(searchTerms, "UTF-8") + "&startPage=" + startPage;
+		String href = baseLink + "?searchTerms=" + URLEncoder.encode(queryString, "UTF-8") + "&startPage=" + startPage;
 
 		RssResponse rss = new RssResponse();
 		Channel channel = rss.channel;
 		channel.startIndex.value = Integer.parseInt(startPage);
 		channel.itemsPerPage.value = RESULT_ROWS_PER_PAGE;
-		channel.query.searchTerms = searchTerms;
+		channel.query.searchTerms = queryString;
 		channel.query.startPage = Integer.parseInt(startPage);
 		channel.setLink(cannonicalLink);
 		channel.atomLink.href = href;
 		channel.updateDescription();
 
 		try {
-			log.info(searchTerms + ", " + RESULT_ROWS_PER_PAGE + ", " + (Integer.parseInt(startPage) - 1));
-			Query query = new Query(searchTerms)
+			log.info(queryString + ", " + RESULT_ROWS_PER_PAGE + ", " + (Integer.parseInt(startPage) - 1));
+			Query query = new Query(SolrUtils.translateQuery(queryString))
 					.setApiQuery(true)
 					.setPageSize(RESULT_ROWS_PER_PAGE)
 					.setStart(Integer.parseInt(startPage) - 1)
