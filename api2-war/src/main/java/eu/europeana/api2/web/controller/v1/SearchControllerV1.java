@@ -116,7 +116,6 @@ public class SearchControllerV1 {
 				result.link = String.format("%s?searchTerms=%s&startPage=%d", apiUrl, URLEncoder.encode(queryString), start);
 				if (result != null) {
 					log.info("got response " + result.items.size());
-					log.info("itemsPerPage: " + utils.toJson(result));
 					model.put("json", utils.toJson(result));
 				}
 				model.put("result", result);
