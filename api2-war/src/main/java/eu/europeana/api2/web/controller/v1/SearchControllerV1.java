@@ -66,7 +66,7 @@ public class SearchControllerV1 {
 
 	private String path;
 
-	@RequestMapping(value = {"/opensearch.json", "/v1/search.json"}, method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = {"/opensearch.json", "/v1/search.json"}, produces = MediaType.APPLICATION_JSON_VALUE) // method=RequestMethod.GET
 	public ModelAndView search2Json(
 		@RequestParam(value = "wskey", required = true) String wskey,
 		@RequestParam(value = "searchTerms", required = true) String queryString,

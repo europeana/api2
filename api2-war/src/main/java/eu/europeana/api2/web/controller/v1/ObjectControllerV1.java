@@ -64,7 +64,7 @@ public class ObjectControllerV1 {
 	static String portalPath;
 
 	@Transactional
-	@RequestMapping(value = "/{collectionId}/{recordId}.json", method=RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_VALUE) // method=RequestMethod.GET, 
 	public @ResponseBody ModelAndView recordJson(
 		@PathVariable String collectionId,
 		@PathVariable String recordId,
@@ -117,7 +117,7 @@ public class ObjectControllerV1 {
 	}
 
 	@Transactional
-	@RequestMapping(value = "/{collectionId}/{recordId}.srw", method=RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
+	@RequestMapping(value = "/{collectionId}/{recordId}.srw", produces = MediaType.TEXT_XML_VALUE) // method=RequestMethod.GET
 	public @ResponseBody SrwResponse recordSrw(
 		@PathVariable String collectionId,
 		@PathVariable String recordId,

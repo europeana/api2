@@ -207,7 +207,6 @@ public class SearchController {
 			if (b instanceof ApiBean) {
 				ApiBean bean = (ApiBean)b;
 				ApiView view = new ApiView(bean, profile, apiKey);
-				//bean.setProfile(profile);
 				beans.add((T) view);
 			// in case profile = 'minimal'
 			} else if (b instanceof BriefBean) {
