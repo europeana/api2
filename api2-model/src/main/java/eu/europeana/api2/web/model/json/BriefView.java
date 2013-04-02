@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -21,6 +22,8 @@ import eu.europeana.corelib.utils.OptOutDatasetsUtil;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
+
+	private final Logger log = Logger.getLogger(BriefView.class.getCanonicalName());
 
 	protected static final String RECORD_PATH = "/v2/record/";
 	protected static final String PORTAL_PATH = "/record/";
@@ -320,6 +323,9 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	public static void setApiUrl(String _apiUrl) {
 		apiUrl = _apiUrl;
+		if (apiUrl.endsWith("/")) {
+			apiUrl = apiUrl.replace("/$", "");
+		}
 	}
 
 	public static void setPortalUrl(String _portalUrl) {
