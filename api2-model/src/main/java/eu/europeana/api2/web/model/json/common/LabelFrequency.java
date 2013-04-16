@@ -26,7 +26,13 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class LabelFrequency {
 
+	/**
+	 * The term
+	 */
 	public String label;
 
+	/**
+	 * Frequency of term in the index
+	 */
 	public long count;
 }
