@@ -20,21 +20,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.ctc.wstx.util.ExceptionUtil;
-
 import eu.europeana.api2.web.model.json.ApiError;
 import eu.europeana.api2.web.model.json.api1.FullDoc;
-import eu.europeana.api2.web.model.xml.rss.RssResponse;
 import eu.europeana.api2.web.model.xml.srw.Record;
 import eu.europeana.api2.web.model.xml.srw.SrwResponse;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.UserService;
-import eu.europeana.corelib.definitions.exception.EuropeanaException;
 import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.solr.exceptions.EuropeanaQueryException;
