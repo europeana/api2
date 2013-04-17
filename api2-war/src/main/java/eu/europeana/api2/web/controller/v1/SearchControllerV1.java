@@ -14,11 +14,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.common.SolrException;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
@@ -178,7 +178,7 @@ public class SearchControllerV1 {
 
 				Item item = new Item();
 				item.guid = bean.getGuid();
-				item.title = bean.getTitle();
+				item.title = getTitle(bean);
 				item.link = bean.getLink(BriefDoc.SRW);
 				item.description = bean.getDescription();
 				String enclosure = bean.getThumbnail();
@@ -226,6 +226,13 @@ public class SearchControllerV1 {
 			channel.items.add(item);
 		}
 		return rss;
+	}
+
+	private String getTitle(BriefDoc bean) {
+		if (!StringUtils.isEmpty(bean.getTitle())) {
+			return bean.getTitle();
+		}
+		return bean.getDataProvider() + " " + bean.getUrl();
 	}
 
 	private <T extends IdBean> Api1SearchResults<Map<String, Object>> createResultsForApi1(String wskey, String profile, Query q, 

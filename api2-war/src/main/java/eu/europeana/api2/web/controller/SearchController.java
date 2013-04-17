@@ -330,7 +330,7 @@ public class SearchController {
 		return rss;
 	}
 
-	public String getTitle(BriefBean bean) {
+	private String getTitle(BriefBean bean) {
 		if (!ArrayUtils.isEmpty(bean.getTitle())) {
 			for (String title : bean.getTitle()) {
 				if (!StringUtils.isBlank(title)) {
@@ -341,7 +341,7 @@ public class SearchController {
 		return bean.getDataProvider()[0] + " " + bean.getId();
 	}
 
-	public String getThumbnail(BriefBean bean) {
+	private String getThumbnail(BriefBean bean) {
 		if (!ArrayUtils.isEmpty(bean.getEdmObject())) {
 			for (String thumbnail : bean.getEdmObject()) {
 				if (!StringUtils.isBlank(thumbnail)) {
@@ -352,7 +352,7 @@ public class SearchController {
 		return null;
 	}
 
-	public String getDescription(BriefBean bean) {
+	private String getDescription(BriefBean bean) {
 		StringBuilder sb = new StringBuilder();
 		if (bean.getDcCreator() != null
 				&& bean.getDcCreator().length > 0
