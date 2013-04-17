@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -297,15 +298,26 @@ public class SearchController {
 		channel.query.startPage = start;
 
 		try {
-			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setPageSize(count).setStart(start).setAllowFacets(false).setAllowSpellcheck(false);
+			Query query = new Query(SolrUtils.translateQuery(queryString))
+								.setApiQuery(true)
+								.setPageSize(count)
+								.setStart(start-1)
+								.setAllowFacets(false)
+								.setAllowSpellcheck(false);
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
 			channel.totalResults.value = resultSet.getResultSize();
 			for (BriefBean bean : resultSet.getResults()) {
 				Item item = new Item();
 				item.guid = getPortalUrl() + "/record" + bean.getId() + ".html";
-				item.title = bean.getTitle()[0];
+				item.title = getTitle(bean);
+				item.description = getDescription(bean);
+				/*
+				String enclosure = getThumbnail(bean);
+				if (enclosure != null) {
+					item.enclosure = new Enclosure(enclosure);
+				}
+				*/
 				item.link = item.guid;
-				log.info("item: " + item);
 				channel.items.add(item);
 			}
 		} catch (SolrTypeException e) {
@@ -316,6 +328,51 @@ public class SearchController {
 			channel.items.add(item);
 		}
 		return rss;
+	}
+
+	public String getTitle(BriefBean bean) {
+		if (!ArrayUtils.isEmpty(bean.getTitle())) {
+			for (String title : bean.getTitle()) {
+				if (!StringUtils.isBlank(title)) {
+					return title;
+				}
+			}
+		}
+		return bean.getDataProvider()[0] + " " + bean.getId();
+	}
+
+	public String getThumbnail(BriefBean bean) {
+		if (!ArrayUtils.isEmpty(bean.getEdmObject())) {
+			for (String thumbnail : bean.getEdmObject()) {
+				if (!StringUtils.isBlank(thumbnail)) {
+					return thumbnail;
+				}
+			}
+		}
+		return null;
+	}
+
+	public String getDescription(BriefBean bean) {
+		StringBuilder sb = new StringBuilder();
+		if (bean.getDcCreator() != null
+				&& bean.getDcCreator().length > 0
+				&& StringUtils.isNotBlank(bean.getDcCreator()[0])) {
+			sb.append(bean.getDcCreator()[0]);
+		}
+		if (bean.getYear() != null 
+				&& bean.getYear().length > 0) {
+			if (sb.length() > 0) {
+				sb.append("; ");
+			}
+			sb.append(StringUtils.join(bean.getYear(), ", "));
+		}
+		if (!ArrayUtils.isEmpty(bean.getProvider())) {
+			if (sb.length() > 0) {
+				sb.append("; ");
+			}
+			sb.append(StringUtils.join(bean.getProvider(), ", "));
+		}
+		return sb.toString();
 	}
 
 	@RequestMapping(value = "/v2/suggestions.json")//, produces = MediaType.APPLICATION_JSON_VALUE)
