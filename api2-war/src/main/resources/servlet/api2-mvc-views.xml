@@ -33,8 +33,8 @@
 	<bean id="api2_mvc_views_jaxbmarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
 		<property name="classesToBeBound">
 			<list>
-				<value>eu.europeana.api2.web.model.xml.rss.RssResponse</value>
-				<value>eu.europeana.api2.web.model.xml.kml.KmlResponse</value>
+				<value>eu.europeana.api2.v2.model.xml.rss.RssResponse</value>
+				<value>eu.europeana.api2.v2.model.xml.kml.KmlResponse</value>
 			</list>
 		</property>
 		<property name="marshallerProperties">
