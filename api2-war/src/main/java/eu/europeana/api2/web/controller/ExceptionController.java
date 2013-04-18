@@ -23,18 +23,29 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import eu.europeana.api2.web.model.json.ApiError;
+import eu.europeana.api2.exceptions.LimitReachedException;
+import eu.europeana.api2.model.json.ApiError;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
 public class ExceptionController {
-	
-	@ExceptionHandler({TypeMismatchException.class, MissingServletRequestParameterException.class})
+
+	@ExceptionHandler({ TypeMismatchException.class,
+			MissingServletRequestParameterException.class,
+			LimitReachedException.class })
 	@ResponseBody
-	public ApiError handleMismatchException(TypeMismatchException ex) {
-		ApiError error = new ApiError(null, null, "Invalid argument(s): "+ex.toString());
+	public ApiError handleMismatchException(Exception ex) {
+		ApiError error = new ApiError(null, null, "Invalid argument(s): "
+				+ ex.toString());
+		return error;
+	}
+
+	@ExceptionHandler(LimitReachedException.class)
+	@ResponseBody
+	public ApiError handleLimitReachedException(LimitReachedException ex) {
+		ApiError error = new ApiError(null, null, "API Usage Limit Reached.");
 		return error;
 	}
 
