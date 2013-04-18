@@ -1,7 +1,7 @@
 package eu.europeana.api2demo.web.model;
 
-import eu.europeana.api2.web.model.json.UserResults;
-import eu.europeana.api2.web.model.json.user.Tag;
+import eu.europeana.api2.v2.model.json.UserResults;
+import eu.europeana.api2.v2.model.json.user.Tag;
 
 public class UserTags extends UserResults<Tag> {
 	

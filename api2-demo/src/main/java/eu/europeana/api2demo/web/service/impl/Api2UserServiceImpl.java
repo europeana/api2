@@ -10,7 +10,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.web.client.RestOperations;
 
-import eu.europeana.api2.web.model.json.UserModification;
+import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2demo.Config;
 import eu.europeana.api2demo.web.model.UserFavorites;
 import eu.europeana.api2demo.web.model.UserTags;
