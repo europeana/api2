@@ -10,9 +10,10 @@ public class Api2OAuth2ClientDetails extends BaseClientDetails {
 		super();
 		setClientId(apikey);
 		setClientSecret(secret);
-		setAuthorities(AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_CLIENT"));
+		setAuthorities(AuthorityUtils
+				.commaSeparatedStringToAuthorityList("ROLE_CLIENT"));
 	}
-	
+
 	@Override
 	public boolean isSecretRequired() {
 		return true;

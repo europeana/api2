@@ -16,15 +16,16 @@ import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 
 public class UserDetailsServiceImpl implements UserDetailsService {
-	
+
 	@Resource
 	private ApiKeyService apiKeyService;
-	
+
 	@Resource
 	private UserService userService;
 
 	@Override
-	public UserDetails loadUserByUsername(String key) throws UsernameNotFoundException {
+	public UserDetails loadUserByUsername(String key)
+			throws UsernameNotFoundException {
 		if (StringUtils.contains(key, "@")) {
 			User user = userService.findByEmail(key);
 			if (user != null) {

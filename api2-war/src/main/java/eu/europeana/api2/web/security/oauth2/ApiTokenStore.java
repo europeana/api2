@@ -22,9 +22,10 @@ public class ApiTokenStore implements TokenStore {
 	}
 
 	@Override
-	public void storeAccessToken(OAuth2AccessToken token, OAuth2Authentication authentication) {
+	public void storeAccessToken(OAuth2AccessToken token,
+			OAuth2Authentication authentication) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -36,13 +37,14 @@ public class ApiTokenStore implements TokenStore {
 	@Override
 	public void removeAccessToken(OAuth2AccessToken token) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void storeRefreshToken(OAuth2RefreshToken refreshToken, OAuth2Authentication authentication) {
+	public void storeRefreshToken(OAuth2RefreshToken refreshToken,
+			OAuth2Authentication authentication) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -52,7 +54,8 @@ public class ApiTokenStore implements TokenStore {
 	}
 
 	@Override
-	public OAuth2Authentication readAuthenticationForRefreshToken(OAuth2RefreshToken token) {
+	public OAuth2Authentication readAuthenticationForRefreshToken(
+			OAuth2RefreshToken token) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -60,13 +63,14 @@ public class ApiTokenStore implements TokenStore {
 	@Override
 	public void removeRefreshToken(OAuth2RefreshToken token) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void removeAccessTokenUsingRefreshToken(OAuth2RefreshToken refreshToken) {
+	public void removeAccessTokenUsingRefreshToken(
+			OAuth2RefreshToken refreshToken) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override

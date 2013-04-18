@@ -32,27 +32,29 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 
-import eu.europeana.api2.utils.GenericResponseWrapper;
+import eu.europeana.api2.web.interceptor.utils.GenericResponseWrapper;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 public class JsonPFilter implements Filter {
-	
+
 	private static String CB_PARAM = "callback";
 
 	@Override
-	public void doFilter(ServletRequest sReq, ServletResponse sRes, FilterChain chain) throws IOException,
-			ServletException {
+	public void doFilter(ServletRequest sReq, ServletResponse sRes,
+			FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) sReq;
 		HttpServletResponse response = (HttpServletResponse) sRes;
 
 		@SuppressWarnings("unchecked")
 		Map<String, String[]> parms = request.getParameterMap();
 
-		if ((parms != null) && parms.containsKey(CB_PARAM) && StringUtils.isNotBlank(parms.get(CB_PARAM)[0])) {
+		if ((parms != null) && parms.containsKey(CB_PARAM)
+				&& StringUtils.isNotBlank(parms.get(CB_PARAM)[0])) {
 			OutputStream out = response.getOutputStream();
-			GenericResponseWrapper wrapper = new GenericResponseWrapper(response);
+			GenericResponseWrapper wrapper = new GenericResponseWrapper(
+					response);
 			chain.doFilter(request, wrapper);
 			out.write(parms.get(CB_PARAM)[0].getBytes());
 			out.write("(".getBytes());

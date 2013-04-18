@@ -10,9 +10,9 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
 
 public class Api2UserDetails implements UserDetails {
 	private static final long serialVersionUID = -925096405395777537L;
-	
+
 	private User user;
-	
+
 	public Api2UserDetails(User user) {
 		this.user = user;
 	}

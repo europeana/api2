@@ -12,16 +12,17 @@ import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 
 public class Api2ClientDetails implements UserDetails {
 	private static final long serialVersionUID = -925096405395777537L;
-	
+
 	private ApiKey apiKey;
-	
+
 	public Api2ClientDetails(ApiKey apiKey) {
 		this.apiKey = apiKey;
 	}
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_CLIENT");
+		return AuthorityUtils
+				.commaSeparatedStringToAuthorityList("ROLE_CLIENT");
 	}
 
 	@Override
