@@ -151,7 +151,7 @@ public class SearchController1 {
 			}
 		}
 
-		ModelAndView page = new ModelAndView("search", model);
+		ModelAndView page = new ModelAndView("json", model);
 		return page;
 	}
 
