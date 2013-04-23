@@ -26,6 +26,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -148,11 +150,18 @@ public class ObjectController {
 				BriefView.setApiUrl(apiUrl);
 				BriefView.setPortalUrl(getPortalUrl());
 
+				List<BriefBean> similarItems;
 				List<BriefView> beans = new ArrayList<BriefView>();
-				for (BriefBean b : bean.getSimilarItems()) {
-					BriefView view = new BriefView(b, similarItemsProfile,
+				try {
+					similarItems = searchService.findMoreLikeThis(europeanaObjectId);
+					for (BriefBean b : similarItems) {
+						BriefView view = new BriefView(b, similarItemsProfile,
 							wskey, optOutService.check(b.getId()));
-					beans.add(view);
+						beans.add(view);
+					}
+				} catch (SolrServerException e) {
+					log.severe("Error during getting similar items: " + e.getLocalizedMessage());
+					log.severe(ExceptionUtils.getMessage(e));
 				}
 				objectResult.similarItems = beans;
 			}
