@@ -28,7 +28,6 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
-import eu.europeana.corelib.utils.OptOutDatasetsUtil;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefDoc {
@@ -42,6 +41,7 @@ public class BriefDoc {
 
 	private String europeanaUrl = "http://www.europeana.eu/portal/record";
 	private String wskey;
+	private boolean isOptOut;
 
 	private String fullDocUrl;
 	private String title;
@@ -75,7 +75,8 @@ public class BriefDoc {
 
 	private Map<String, Object> map;
 
-	public BriefDoc(ApiBean bean) {
+	public BriefDoc(ApiBean bean, boolean optOut) {
+		this.isOptOut = optOut;
 		if (bean.getTitle() != null && bean.getTitle().length > 0)
 			title = bean.getTitle()[0];
 		url = bean.getId();
@@ -160,7 +161,7 @@ public class BriefDoc {
 			addValue("title", title);
 			addValue("link", getLink(JSON));
 			addValue("description", getDescription());
-			if (!OptOutDatasetsUtil.checkById(url)) {
+			if (!isOptOut) {
 				addValue("enclosure", thumbnail);
 			}
 			addValue("dc:creator", creator);

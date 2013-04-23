@@ -43,16 +43,16 @@ import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.FullView;
+import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
-import eu.europeana.corelib.db.logging.api.ApiLogger;
-import eu.europeana.corelib.db.logging.api.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
+import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
-import eu.europeana.corelib.utils.OptOutDatasetsUtil;
+import eu.europeana.corelib.utils.service.OptOutService;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -67,10 +67,13 @@ public class ObjectController {
 	private SearchService searchService;
 
 	@Resource
-	private ApiLogger apiLogger;
+	private ApiLogService apiLogService;
 
 	@Resource
 	private ApiKeyService apiService;
+	
+	@Resource
+	private OptOutService optOutService;
 
 	@Value("#{europeanaProperties['portal.server']}")
 	private String portalServer;
@@ -80,9 +83,6 @@ public class ObjectController {
 
 	@Value("#{europeanaProperties['api2.url']}")
 	private String apiUrl;
-
-	@Value("#{europeanaProperties['api.optOutList']}")
-	private String optOutList;
 
 	private static String portalUrl;
 
@@ -99,7 +99,6 @@ public class ObjectController {
 			@RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
 			@RequestParam(value = "wskey", required = true) String wskey,
 			HttpServletRequest request, HttpServletResponse response) {
-		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
 		response.setCharacterEncoding("UTF-8");
 
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
@@ -112,18 +111,16 @@ public class ObjectController {
 			if (apiKey == null) {
 				return new ApiError(wskey, "record.json", "Unregistered user");
 			}
-			usageLimit = apiKey.getUsageLimit();
-			requestNumber = apiLogger.getRequestNumber(wskey);
-			if (requestNumber > usageLimit) {
+			if (apiService.checkReachedLimit(apiKey)) {
 				throw new LimitReachedException();
 			}
 		} catch (DatabaseException e) {
-			apiLogger.saveApiRequest(wskey, requestUri, RecordType.OBJECT,
+			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT,
 					profile);
 			return new ApiError(wskey, "record.json", e.getMessage(),
 					requestNumber);
 		} catch (LimitReachedException e) {
-			apiLogger.saveApiRequest(wskey, requestUri, RecordType.LIMIT,
+			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT,
 					profile);
 			return new ApiError(wskey, "record.json", "Rate limit exceeded. "
 					+ usageLimit, requestNumber);
@@ -140,7 +137,7 @@ public class ObjectController {
 			}
 
 			if (bean == null) {
-				apiLogger.saveApiRequest(wskey, requestUri, RecordType.LIMIT,
+				apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT,
 						profile);
 				return new ApiError(wskey, "record.json",
 						"Invalid record identifier: " + europeanaObjectId,
@@ -154,7 +151,7 @@ public class ObjectController {
 				List<BriefView> beans = new ArrayList<BriefView>();
 				for (BriefBean b : bean.getSimilarItems()) {
 					BriefView view = new BriefView(b, similarItemsProfile,
-							wskey);
+							wskey, optOutService.check(b.getId()));
 					beans.add(view);
 				}
 				objectResult.similarItems = beans;
@@ -162,10 +159,10 @@ public class ObjectController {
 			FullView.setApiUrl(apiUrl);
 			FullView.setPortalUrl(getPortalUrl());
 			objectResult.object = new FullView(bean, profile, apiKey.getUser()
-					.getId());
+					.getId(), optOutService.check(bean.getId()));
 			long t1 = (new Date()).getTime();
 			objectResult.statsDuration = (t1 - t0);
-			apiLogger.saveApiRequest(wskey, requestUri, RecordType.OBJECT,
+			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT,
 					profile);
 		} catch (SolrTypeException e) {
 			return new ApiError(wskey, "record.json", e.getMessage(),

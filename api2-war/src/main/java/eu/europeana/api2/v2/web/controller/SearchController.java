@@ -50,10 +50,10 @@ import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.Item;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.utils.ModelUtils;
+import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
-import eu.europeana.corelib.db.logging.api.ApiLogger;
-import eu.europeana.corelib.db.logging.api.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
+import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
@@ -64,7 +64,7 @@ import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.SolrUtils;
-import eu.europeana.corelib.utils.OptOutDatasetsUtil;
+import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 
 /**
@@ -87,6 +87,12 @@ public class SearchController {
 	@Resource
 	private UserService userService;
 
+	@Resource
+	private ApiLogService apiLogService;
+
+	@Resource
+	private OptOutService optOutService;
+
 	@Value("#{europeanaProperties['api.rowLimit']}")
 	private String rowLimit = "96";
 
@@ -98,12 +104,6 @@ public class SearchController {
 
 	@Value("#{europeanaProperties['api2.url']}")
 	private String apiUrl;
-
-	@Value("#{europeanaProperties['api.optOutList']}")
-	private String optOutList;
-
-	@Resource
-	private ApiLogger apiLogger;
 
 	private static String portalUrl;
 
@@ -134,7 +134,6 @@ public class SearchController {
 		}
 		rows = Math.min(rows, maxRows);
 		log.info("=== search.json: " + rows);
-		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
 
 		Query query = new Query(SolrUtils.translateQuery(queryString))
 				.setApiQuery(true).setRefinements(refinements)
@@ -156,19 +155,17 @@ public class SearchController {
 				response.setStatus(401);
 				return new ApiError(wskey, "search.json", "Unregistered user");
 			}
-			usageLimit = apiKey.getUsageLimit();
-			requestNumber = apiLogger.getRequestNumber(wskey);
-			if (requestNumber > usageLimit) {
+			if (apiService.checkReachedLimit(apiKey)) {
 				throw new LimitReachedException();
 			}
 		} catch (DatabaseException e) {
-			apiLogger.saveApiRequest(wskey, query.getQuery(),
+			apiLogService.logApiRequest(wskey, query.getQuery(),
 					RecordType.SEARCH, profile);
 			response.setStatus(401);
 			return new ApiError(wskey, "search.json", e.getMessage(),
 					requestNumber);
 		} catch (LimitReachedException e) {
-			apiLogger.saveApiRequest(wskey, query.getQuery(), RecordType.LIMIT,
+			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.LIMIT,
 					profile);
 			response.setStatus(429);
 			return new ApiError(wskey, "search.json", "Rate limit exceeded. "
@@ -187,7 +184,7 @@ public class SearchController {
 					profile, query, clazz);
 			result.requestNumber = requestNumber;
 			log.info("got response " + result.items.size());
-			apiLogger.saveApiRequest(wskey, query.getQuery(),
+			apiLogService.logApiRequest(wskey, query.getQuery(),
 					RecordType.SEARCH, profile);
 			return result;
 		} catch (SolrTypeException e) {
@@ -218,12 +215,12 @@ public class SearchController {
 		for (T b : resultSet.getResults()) {
 			if (b instanceof ApiBean) {
 				ApiBean bean = (ApiBean) b;
-				ApiView view = new ApiView(bean, profile, apiKey);
+				ApiView view = new ApiView(bean, profile, apiKey, optOutService.check(bean.getId()));
 				beans.add((T) view);
 				// in case profile = 'minimal'
 			} else if (b instanceof BriefBean) {
 				BriefBean bean = (BriefBean) b;
-				BriefView view = new BriefView(bean, profile, apiKey);
+				BriefView view = new BriefView(bean, profile, apiKey, optOutService.check(bean.getId()));
 				beans.add((T) view);
 			}
 		}
@@ -272,10 +269,13 @@ public class SearchController {
 			refinements = _qf;
 		}
 
-		long usageLimit = 0;
 		try {
-			usageLimit = apiService.findByID(wskey).getUsageLimit();
-			if (apiLogger.getRequestNumber(wskey) > usageLimit) {
+			ApiKey apiKey = apiService.findByID(wskey);
+			if (apiKey == null) {
+				response.setStatus(401);
+				throw new LimitReachedException();
+			}
+			if (apiService.checkReachedLimit(apiKey)) {
 				response.setStatus(429);
 				throw new LimitReachedException();
 			}
@@ -297,7 +297,7 @@ public class SearchController {
 			kmlResponse.document.extendedData.startIndex.value = Integer
 					.toString(start);
 			kmlResponse.setItems(resultSet.getResults());
-			apiLogger.saveApiRequest(wskey, query.getQuery(),
+			apiLogService.logApiRequest(wskey, query.getQuery(),
 					RecordType.SEARCH, "kml");
 		} catch (SolrTypeException e) {
 			response.setStatus(429);
@@ -361,16 +361,16 @@ public class SearchController {
 		return bean.getDataProvider()[0] + " " + bean.getId();
 	}
 
-	private String getThumbnail(BriefBean bean) {
-		if (!ArrayUtils.isEmpty(bean.getEdmObject())) {
-			for (String thumbnail : bean.getEdmObject()) {
-				if (!StringUtils.isBlank(thumbnail)) {
-					return thumbnail;
-				}
-			}
-		}
-		return null;
-	}
+//	private String getThumbnail(BriefBean bean) {
+//		if (!ArrayUtils.isEmpty(bean.getEdmObject())) {
+//			for (String thumbnail : bean.getEdmObject()) {
+//				if (!StringUtils.isBlank(thumbnail)) {
+//					return thumbnail;
+//				}
+//			}
+//		}
+//		return null;
+//	}
 
 	private String getDescription(BriefBean bean) {
 		StringBuilder sb = new StringBuilder();

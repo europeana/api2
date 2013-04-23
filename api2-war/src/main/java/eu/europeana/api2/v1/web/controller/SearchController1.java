@@ -14,7 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.common.SolrException;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -40,7 +39,7 @@ import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.SolrUtils;
-import eu.europeana.corelib.utils.OptOutDatasetsUtil;
+import eu.europeana.corelib.utils.service.OptOutService;
 
 @Controller
 public class SearchController1 {
@@ -55,6 +54,9 @@ public class SearchController1 {
 
 	@Resource
 	private ApiKeyService apiService;
+	
+	@Resource
+	private OptOutService optOutService;
 
 	private static final int RESULT_ROWS_PER_PAGE = 12;
 
@@ -68,9 +70,6 @@ public class SearchController1 {
 
 	@Value("#{europeanaProperties['api2.url']}")
 	private String apiUrl;
-
-	@Value("#{europeanaProperties['api.optOutList']}")
-	private String optOutList;
 
 	private String path;
 
@@ -93,7 +92,6 @@ public class SearchController1 {
 		path = fixPath(request.getContextPath());
 		String profile = "standard";
 		int rows = 12;
-		OptOutDatasetsUtil.setOptOutDatasets(optOutList);
 
 		Map<String, Object> model = new HashMap<String, Object>();
 		JsonUtils utils = new JsonUtils();
@@ -130,7 +128,7 @@ public class SearchController1 {
 				result.startIndex = start;
 				result.description = queryString + DESCRIPTION_SUFFIX;
 				result.link = String.format("%s?searchTerms=%s&startPage=%d",
-						apiUrl, URLEncoder.encode(queryString), start);
+						apiUrl, URLEncoder.encode(queryString, "UTF-8"), start);
 				if (result != null) {
 					log.info("got response " + result.items.size());
 					model.put("json", utils.toJson(result));
@@ -274,7 +272,8 @@ public class SearchController1 {
 		BriefDoc.setPath(path);
 		List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
 		for (Object o : resultSet.getResults()) {
-			BriefDoc doc = new BriefDoc((ApiBean) o);
+			ApiBean bean = (ApiBean) o;
+			BriefDoc doc = new BriefDoc(bean, optOutService.check(bean.getId()));
 			doc.setWskey(wskey);
 			items.add(doc.asMap());
 		}
@@ -297,7 +296,8 @@ public class SearchController1 {
 		BriefDoc.setPath(path);
 		List<BriefDoc> items = new ArrayList<BriefDoc>();
 		for (Object o : resultSet.getResults()) {
-			BriefDoc doc = new BriefDoc((ApiBean) o);
+			ApiBean bean = (ApiBean) o;
+			BriefDoc doc = new BriefDoc(bean, optOutService.check(bean.getId()));
 			doc.setWskey(wskey);
 			items.add(doc);
 		}

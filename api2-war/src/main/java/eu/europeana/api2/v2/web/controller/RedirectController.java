@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import eu.europeana.corelib.db.logging.api.ApiLogger;
-import eu.europeana.corelib.db.logging.api.enums.RecordType;
+import eu.europeana.corelib.db.entity.enums.RecordType;
+import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 
@@ -19,7 +19,7 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
 public class RedirectController {
 
 	@Resource
-	private ApiLogger apiLogger;
+	private ApiLogService apiLogService;
 
 	@Resource(name = "corelib_db_userService")
 	private UserService userService;
@@ -45,7 +45,7 @@ public class RedirectController {
 		if (user != null) {
 			wskey = user.getApiKeys().iterator().next().getId();
 		}
-		apiLogger.saveApiRequest(wskey, id, RecordType.REDIRECT, profile);
+		apiLogService.logApiRequest(wskey, id, RecordType.REDIRECT, profile);
 
 		return "redirect:" + isShownAt;
 	}

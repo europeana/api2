@@ -32,8 +32,8 @@ public class ApiView extends BriefView implements ApiBean {
 	private List<Map<String, String>> edmPlaceAltLabel;
 	private String[] dctermsIsPartOf;
 
-	public ApiView(ApiBean bean, String profile, String wskey) {
-		super((BriefBean) bean, profile, wskey);
+	public ApiView(ApiBean bean, String profile, String wskey, boolean optOut) {
+		super((BriefBean) bean, profile, wskey, optOut);
 
 		edmConceptTerm = bean.getEdmConcept();
 		if (bean.getEdmConceptLabel() != null) {
@@ -55,6 +55,7 @@ public class ApiView extends BriefView implements ApiBean {
 		dctermsIsPartOf = bean.getDctermsIsPartOf();
 	}
 
+	@Override
 	public String[] getEdmConcept() {
 		return edmConceptTerm;
 	}
@@ -73,6 +74,7 @@ public class ApiView extends BriefView implements ApiBean {
 		this.edmConceptPrefLabel = edmConceptPrefLabel;
 	}
 
+	@Override
 	public String[] getEdmConceptBroaderTerm() {
 		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)
 				|| isProfile(Profile.RICH)) {
@@ -85,6 +87,7 @@ public class ApiView extends BriefView implements ApiBean {
 		this.edmConceptBroaderTerm = edmConceptBroaderTerm;
 	}
 
+	@Override
 	public List<Map<String, String>> getEdmConceptBroaderLabel() {
 		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)
 				|| isProfile(Profile.RICH)) {
@@ -98,6 +101,7 @@ public class ApiView extends BriefView implements ApiBean {
 		this.edmConceptBroaderLabel = edmConceptBroaderLabel;
 	}
 
+	@Override
 	public String[] getEdmTimespanBroaderTerm() {
 		return edmTimespanBroaderTerm;
 	}
@@ -106,6 +110,7 @@ public class ApiView extends BriefView implements ApiBean {
 		this.edmTimespanBroaderTerm = edmTimespanBroaderTerm;
 	}
 
+	@Override
 	public List<Map<String, String>> getEdmTimespanBroaderLabel() {
 		return edmTimespanBroaderLabel;
 	}
@@ -123,10 +128,12 @@ public class ApiView extends BriefView implements ApiBean {
 		this.recordHashFirstSix = recordHashFirstSix;
 	}
 
+	@Override
 	public boolean[] getUgc() {
 		return ugc;
 	}
 
+	@Override
 	public void setUgc(boolean[] ugc) {
 		this.ugc = ugc;
 	}
@@ -139,6 +146,7 @@ public class ApiView extends BriefView implements ApiBean {
 		this.completeness = completeness;
 	}
 
+	@Override
 	public String[] getCountry() {
 		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)
 				|| isProfile(Profile.RICH)) {
@@ -147,6 +155,7 @@ public class ApiView extends BriefView implements ApiBean {
 		return country;
 	}
 
+	@Override
 	public void setCountry(String[] country) {
 		this.country = country;
 	}
@@ -159,10 +168,12 @@ public class ApiView extends BriefView implements ApiBean {
 		this.debugQuery = debugQuery;
 	}
 
+	@Override
 	public String[] getEuropeanaCollectionName() {
 		return europeanaCollectionName;
 	}
 
+	@Override
 	public void setEuropeanaCollectionName(String[] europeanaCollectionName) {
 		this.europeanaCollectionName = europeanaCollectionName;
 	}
@@ -175,6 +186,7 @@ public class ApiView extends BriefView implements ApiBean {
 		this.index = index;
 	}
 
+	@Override
 	public String[] getEdmPlaceBroaderTerm() {
 		return edmPlaceBroaderTerm;
 	}
@@ -183,6 +195,7 @@ public class ApiView extends BriefView implements ApiBean {
 		this.edmPlaceBroaderTerm = edmPlaceBroaderTerm;
 	}
 
+	@Override
 	public List<Map<String, String>> getEdmPlaceAltLabel() {
 		if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)
 				|| isProfile(Profile.RICH)) {
@@ -195,10 +208,12 @@ public class ApiView extends BriefView implements ApiBean {
 		this.edmPlaceAltLabel = edmPlaceAltLabel;
 	}
 
+	@Override
 	public String[] getDctermsIsPartOf() {
 		return dctermsIsPartOf;
 	}
 
+	@Override
 	public void setDctermsIsPartOf(String[] dctermsIsPartOf) {
 		this.dctermsIsPartOf = dctermsIsPartOf;
 	}

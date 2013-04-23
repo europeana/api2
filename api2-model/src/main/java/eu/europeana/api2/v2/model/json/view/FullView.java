@@ -21,7 +21,6 @@ import eu.europeana.corelib.definitions.solr.entity.Place;
 import eu.europeana.corelib.definitions.solr.entity.ProvidedCHO;
 import eu.europeana.corelib.definitions.solr.entity.Proxy;
 import eu.europeana.corelib.definitions.solr.entity.Timespan;
-import eu.europeana.corelib.utils.OptOutDatasetsUtil;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class FullView implements FullBean {
@@ -29,21 +28,23 @@ public class FullView implements FullBean {
 	protected static String apiUrl;
 	protected static String portalUrl;
 
-	FullBean bean;
-	String profile;
-	long uid;
+	private FullBean bean;
+	private String profile;
+	private long uid;
+	private boolean optOut;
 
-	public FullView(FullBean bean) {
+	public FullView(FullBean bean, boolean optOut) {
 		this.bean = bean;
+		this.optOut = optOut;
 	}
 
-	public FullView(FullBean bean, String profile) {
-		this(bean);
+	public FullView(FullBean bean, String profile, boolean optOut) {
+		this(bean, optOut);
 		this.profile = profile;
 	}
 
-	public FullView(FullBean bean, String profile, long uid) {
-		this(bean, profile);
+	public FullView(FullBean bean, String profile, long uid, boolean optOut) {
+		this(bean, profile, optOut);
 		this.uid = uid;
 	}
 
@@ -142,22 +143,18 @@ public class FullView implements FullBean {
 			// add bt=europanaapi
 			String isShownAt = items.get(i).getEdmIsShownAt();
 			if (isShownAt != null) {
-				isShownAt = isShownAt
-						+ (isShownAt.indexOf("?") > -1 ? "&" : "?")
-						+ "bt=europeanaapi";
+				isShownAt = isShownAt + (isShownAt.indexOf("?") > -1 ? "&" : "?") + "bt=europeanaapi";
 				// items.get(i).setEdmIsShownAt(isShownAt);
 
-				String provider = items.get(i).getEdmProvider().values()
-						.iterator().next().get(0);
-				String isShownAtLink = String
-						.format("%s/%d/redirect?shownAt=%s&provider=%s&id=http://www.europeana.eu/resolve/record%s&profile=%s",
-								apiUrl, uid, encode(isShownAt),
-								encode(provider), bean.getAbout(), profile);
+				String provider = items.get(i).getEdmProvider().values().iterator().next().get(0);
+				String isShownAtLink = String.format(
+						"%s/%d/redirect?shownAt=%s&provider=%s&id=http://www.europeana.eu/resolve/record%s&profile=%s",
+						apiUrl, uid, encode(isShownAt), encode(provider), bean.getAbout(), profile);
 				items.get(i).setEdmIsShownAt(isShownAtLink);
 			}
 
 			// remove edm:object if it is a opted out record
-			if (OptOutDatasetsUtil.checkById(bean.getAbout())) {
+			if (optOut) {
 				items.get(i).setEdmObject(null);
 			}
 
@@ -199,15 +196,13 @@ public class FullView implements FullBean {
 
 	@Override
 	public EuropeanaAggregation getEuropeanaAggregation() {
-		EuropeanaAggregation europeanaAggregation = bean
-				.getEuropeanaAggregation();
+		EuropeanaAggregation europeanaAggregation = bean.getEuropeanaAggregation();
 		europeanaAggregation.setId(null);
 		return europeanaAggregation;
 	}
 
 	@Override
-	public void setEuropeanaAggregation(
-			EuropeanaAggregation europeanaAggregation) {
+	public void setEuropeanaAggregation(EuropeanaAggregation europeanaAggregation) {
 	}
 
 	@Override

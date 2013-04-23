@@ -18,13 +18,9 @@ import eu.europeana.corelib.definitions.model.ThumbSize;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
-import eu.europeana.corelib.utils.OptOutDatasetsUtil;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
-
-	private final Logger log = Logger.getLogger(BriefView.class
-			.getCanonicalName());
 
 	protected static final String RECORD_PATH = "/v2/record/";
 	protected static final String PORTAL_PATH = "/record/";
@@ -44,38 +40,13 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	protected String wskey;
 	protected BriefBean bean;
 
-	private String id;
-	private Date timestamp;
-	private String[] provider;
-	private String[] edmDataProvider;
-	private String[] edmObject;
-	private int europeanaCompleteness;
-	private DocType docType;
-	private String[] language;
-	private String[] year;
-	private String[] rights;
-	private String[] title;
-	private String[] dcCreator;
-	private String[] dcContributor;
-	private String[] edmPlace;
-	private List<Map<String, String>> edmPlacePrefLabel;
-	private List<String> edmPlaceLatitude;
-	private List<String> edmPlaceLongitude;
-	private String[] edmTimespan;
-	private List<Map<String, String>> edmTimespanLabel;
-	private String[] edmTimespanBegin;
-	private String[] edmTimespanEnd;
-	private String[] edmAgentTerm;
-	private List<Map<String, String>> edmAgentLabel;
-	private String[] dctermsHasPart;
-	private String[] dctermsSpatial;
-	private String[] edmPreview;
 	private boolean isOptedOut;
 
-	public BriefView(BriefBean bean, String profile, String wskey) {
+	public BriefView(BriefBean bean, String profile, String wskey, boolean optOut) {
 		this.profile = profile;
 		this.wskey = wskey;
 		this.bean = bean;
+		this.isOptedOut = optOut;
 	}
 
 	public String getProfile() {
@@ -257,14 +228,12 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		if (thumbnails == null) {
 			List<String> thumbs = new ArrayList<String>();
 
-			if (!OptOutDatasetsUtil.checkById(getId())
-					&& bean.getEdmObject() != null) {
+			if (!isOptedOut && bean.getEdmObject() != null) {
 				for (String object : bean.getEdmObject()) {
 					String tn = StringUtils.defaultIfBlank(object, "");
 					StringBuilder url = new StringBuilder(IMAGE_SITE);
 					try {
-						url.append(URI_PARAM).append(
-								URLEncoder.encode(tn, "UTF-8"));
+						url.append(URI_PARAM).append(URLEncoder.encode(tn, "UTF-8"));
 					} catch (UnsupportedEncodingException e) {
 						e.printStackTrace();
 					}
@@ -314,8 +283,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		portalUrl = _portalUrl;
 	}
 
-	private List<Map<String, String>> transformToMap(
-			List<Map<String, String>> fieldValues) {
+	private List<Map<String, String>> transformToMap(List<Map<String, String>> fieldValues) {
 		if (fieldValues == null) {
 			return null;
 		}
@@ -324,7 +292,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		if (fieldValues.size() > 0) {
 			for (int i = 0, max = fieldValues.size(); i < max; i++) {
 				Object label = fieldValues.get(i);
-				if (label.getClass().getName() == "java.lang.String") {
+				if (label instanceof String) {
 					Map<String, String> map = new HashMap<String, String>();
 					map.put("def", (String) label);
 					list.add(map);

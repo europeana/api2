@@ -8,9 +8,9 @@
 	<!-- CORELIB -->
 	<import resource="corelib-db-context.xml" />
 	<import resource="corelib-solr-context.xml" />
+	<import resource="corelib-utils-context.xml" />
 
 	<!-- INTERNAL -->
-	<import resource="internal/api2-apilogger.xml" />
 	<import resource="internal/api2-mvc-interceptors.xml" />
 	<import resource="internal/api2-security.xml" />
 
