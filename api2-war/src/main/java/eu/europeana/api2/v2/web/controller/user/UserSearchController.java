@@ -27,9 +27,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
-import eu.europeana.api2.model.json.abstracts.ApiResponse;
+import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Search;
@@ -49,66 +49,68 @@ public class UserSearchController extends AbstractUserController {
 	private UserService userService;
 
 	@RequestMapping(value = "/user/search.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-	public @ResponseBody
-	ApiResponse defaultAction(Principal principal) {
-		return list(principal);
+	public ModelAndView defaultAction(
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
+		return list(callback, principal);
 	}
 
 	@RequestMapping(value = "/user/search.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse list(Principal principal) {
+	public ModelAndView list(
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			UserResults<Search> result = new UserResults<Search>(
+			UserResults<Search> response = new UserResults<Search>(
 					getApiId(principal), "/user/search.json");
-			result.items = new ArrayList<Search>();
-			result.username = user.getUserName();
+			response.items = new ArrayList<Search>();
+			response.username = user.getUserName();
 			for (SavedSearch item : user.getSavedSearches()) {
 				Search search = new Search();
 				search.id = item.getId();
 				search.query = item.getQuery();
 				search.queryString = item.getQueryString();
 				search.dateSaved = item.getDateSaved();
-				result.items.add(search);
+				response.items.add(search);
 			}
-			return result;
+			return JsonUtils.toJson(response, callback);
 		}
 		return null;
 	}
 
 	@RequestMapping(value = "/user/search.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
-	public @ResponseBody
-	ApiResponse createRest(
+	public ModelAndView createRest(
 			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		return create(query, refinements, start, principal);
+		return create(query, refinements, start, callback, principal);
 	}
 
 	@RequestMapping(value = "/user/search.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse create(
+	public ModelAndView create(
 			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		return null;
 	}
 
 	@RequestMapping(value = "/user/search.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
-	public @ResponseBody
-	ApiResponse deleteRest(
+	public ModelAndView deleteRest(
 			@RequestParam(value = "objectid", required = false) Long objectId,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		return delete(objectId, principal);
+		return delete(objectId, callback, principal);
 	}
 
 	@RequestMapping(value = "/user/search.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse delete(
+	public ModelAndView delete(
 			@RequestParam(value = "searchid", required = true) Long searchId,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal),
@@ -122,7 +124,7 @@ public class UserSearchController extends AbstractUserController {
 				response.error = e.getMessage();
 			}
 		}
-		return response;
+		return JsonUtils.toJson(response, callback);
 	}
 
 }

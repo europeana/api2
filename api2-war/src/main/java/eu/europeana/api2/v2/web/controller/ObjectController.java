@@ -36,12 +36,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.exceptions.LimitReachedException;
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
+import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.FullView;
@@ -94,12 +96,12 @@ public class ObjectController {
 
 	// @Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse record(
+	public ModelAndView record(
 			@PathVariable String collectionId,
 			@PathVariable String recordId,
 			@RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
 			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request, HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
@@ -111,7 +113,7 @@ public class ObjectController {
 		try {
 			apiKey = apiService.findByID(wskey);
 			if (apiKey == null) {
-				return new ApiError(wskey, "record.json", "Unregistered user");
+				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Unregistered user"), callback);
 			}
 			if (apiService.checkReachedLimit(apiKey)) {
 				throw new LimitReachedException();
@@ -119,13 +121,13 @@ public class ObjectController {
 		} catch (DatabaseException e) {
 			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT,
 					profile);
-			return new ApiError(wskey, "record.json", e.getMessage(),
-					requestNumber);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
+					requestNumber), callback);
 		} catch (LimitReachedException e) {
 			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT,
 					profile);
-			return new ApiError(wskey, "record.json", "Rate limit exceeded. "
-					+ usageLimit, requestNumber);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", "Rate limit exceeded. "
+					+ usageLimit, requestNumber), callback);
 		}
 		log.info("record");
 		ObjectResult objectResult = new ObjectResult(wskey, "record.json",
@@ -141,9 +143,9 @@ public class ObjectController {
 			if (bean == null) {
 				apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT,
 						profile);
-				return new ApiError(wskey, "record.json",
+				return JsonUtils.toJson(new ApiError(wskey, "record.json",
 						"Invalid record identifier: " + europeanaObjectId,
-						requestNumber);
+						requestNumber), callback);
 			}
 
 			if (profile.equals(Profile.SIMILAR.getName())) {
@@ -174,16 +176,15 @@ public class ObjectController {
 			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT,
 					profile);
 		} catch (SolrTypeException e) {
-			return new ApiError(wskey, "record.json", e.getMessage(),
-					requestNumber);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
+					requestNumber), callback);
 		}
 
-		return objectResult;
+		return JsonUtils.toJson(objectResult, callback);
 	}
 
 	@RequestMapping(value = "/{collectionId}/{recordId}.kml", produces = "application/vnd.google-earth.kml+xml")
-	public @ResponseBody
-	ApiResponse searchKml(
+	public @ResponseBody ApiResponse searchKml(
 			@PathVariable String collectionId,
 			@PathVariable String recordId,
 			@RequestParam(value = "apikey", required = true) String apiKey,

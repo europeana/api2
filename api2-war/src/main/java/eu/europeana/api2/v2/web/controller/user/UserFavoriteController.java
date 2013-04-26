@@ -25,9 +25,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
-import eu.europeana.api2.model.json.abstracts.ApiResponse;
+import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Favorite;
@@ -43,44 +43,46 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
 public class UserFavoriteController extends AbstractUserController {
 
 	@RequestMapping(value = "/user/favorite.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-	public @ResponseBody
-	ApiResponse defaultAction(Principal principal) {
-		return list(principal);
+	public ModelAndView defaultAction(
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
+		return list(callback, principal);
 	}
 
 	@RequestMapping(value = "/user/favorite.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse list(Principal principal) {
+	public ModelAndView list(
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			UserResults<Favorite> result = new UserResults<Favorite>(
+			UserResults<Favorite> response = new UserResults<Favorite>(
 					getApiId(principal), "/user/favorite.json");
-			result.items = new ArrayList<Favorite>();
-			result.username = user.getUserName();
+			response.items = new ArrayList<Favorite>();
+			response.username = user.getUserName();
 			for (SavedItem item : user.getSavedItems()) {
 				Favorite fav = new Favorite();
 				copyUserObjectData(fav, item);
 				fav.author = item.getAuthor();
-				result.items.add(fav);
+				response.items.add(fav);
 			}
-			return result;
+			return JsonUtils.toJson(response, callback);
 		}
 		return null;
 	}
 
 	@RequestMapping(value = "/user/favorite.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
-	public @ResponseBody
-	ApiResponse createRest(
+	public ModelAndView createRest(
 			@RequestParam(value = "objectid", required = false) String objectId,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		return create(objectId, principal);
+		return create(objectId, callback, principal);
 	}
 
 	@RequestMapping(value = "/user/favorite.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-	public @ResponseBody
-	ApiResponse create(
+	public ModelAndView create(
 			@RequestParam(value = "objectid", required = false) String objectId,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal),
@@ -92,21 +94,21 @@ public class UserFavoriteController extends AbstractUserController {
 			response.success = false;
 			response.error = e.getMessage();
 		}
-		return response;
+		return JsonUtils.toJson(response, callback);
 	}
 
 	@RequestMapping(value = "/user/favorite.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
-	public @ResponseBody
-	ApiResponse deleteRest(
+	public ModelAndView deleteRest(
 			@RequestParam(value = "objectid", required = false) Long objectId,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		return delete(objectId, principal);
+		return delete(objectId, callback, principal);
 	}
 
 	@RequestMapping(value = "/user/favorite.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-	public @ResponseBody
-	ApiResponse delete(
+	public ModelAndView delete(
 			@RequestParam(value = "objectid", required = false) Long favId,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal),
@@ -120,7 +122,7 @@ public class UserFavoriteController extends AbstractUserController {
 				response.error = e.getMessage();
 			}
 		}
-		return response;
+		return JsonUtils.toJson(response, callback);
 	}
 
 }

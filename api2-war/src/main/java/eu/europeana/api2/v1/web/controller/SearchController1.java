@@ -2,7 +2,6 @@ package eu.europeana.api2.v1.web.controller;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -54,7 +53,7 @@ public class SearchController1 {
 
 	@Resource
 	private ApiKeyService apiService;
-	
+
 	@Resource
 	private OptOutService optOutService;
 
@@ -75,102 +74,74 @@ public class SearchController1 {
 
 	@RequestMapping(value = { "/opensearch.json", "/v1/search.json" }, produces = MediaType.APPLICATION_JSON_VALUE)
 	// method=RequestMethod.GET
-	public ModelAndView search2Json(
-			@RequestParam(value = "wskey", required = true) String wskey,
+	public ModelAndView search2Json(@RequestParam(value = "wskey", required = true) String wskey,
 			@RequestParam(value = "searchTerms", required = true) String queryString,
-			// @RequestParam(value = "qf", required = false) String[]
-			// refinements,
-			// @RequestParam(value = "profile", required = false,
-			// defaultValue="standard") String profile,
 			@RequestParam(value = "startPage", required = false, defaultValue = "1") int start,
-			// @RequestParam(value = "rows", required = false,
-			// defaultValue="12") int rows,
-			// @RequestParam(value = "sort", required = false) String sort,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception {
+			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
+			HttpServletResponse response) throws Exception {
 
 		path = fixPath(request.getContextPath());
 		String profile = "standard";
 		int rows = 12;
 
-		Map<String, Object> model = new HashMap<String, Object>();
-		JsonUtils utils = new JsonUtils();
+		ModelAndView mov;
 
-		boolean hasResult = false;
-		if (!hasResult && StringUtils.isBlank(wskey)) {
-			model.put("json", utils.toJson(new ApiError(wskey, "search.json",
-					"No API authorisation key.")));
+		if (StringUtils.isBlank(wskey)) {
 			response.setStatus(401);
-			hasResult = true;
-		}
+			mov = JsonUtils.toJson(new ApiError(wskey, "search.json", "No API authorisation key."), callback);
+		} else
 
-		if (!hasResult
-				&& (userService.findByApiKey(wskey) == null && apiService
-						.findByID(wskey) == null)) {
-			model.put("json", utils.toJson(new ApiError(wskey, "search.json",
-					"Unregistered user")));
+		if ((userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null)) {
 			response.setStatus(401);
-			hasResult = true;
-		}
+			mov = JsonUtils.toJson(new ApiError(wskey, "search.json", "Unregistered user"), callback);
+		} else {
 
-		if (!hasResult) {
 			log.info("opensearch.json");
 			// Query query = new
 			// Query(q).setApiQuery(true).setRefinements(refinements).setPageSize(rows).setStart(start
 			// - 1);
-			Query query = new Query(SolrUtils.translateQuery(queryString))
-					.setApiQuery(true).setPageSize(rows).setStart(start - 1)
-					.setAllowSpellcheck(false).setAllowFacets(false);
+			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setPageSize(rows)
+					.setStart(start - 1).setAllowSpellcheck(false).setAllowFacets(false);
 			Class<? extends IdBean> clazz = ApiBean.class;
 			try {
-				SearchResults<Map<String, Object>> result = createResultsForApi1(
-						wskey, profile, query, clazz);
+				SearchResults<Map<String, Object>> result = createResultsForApi1(wskey, profile, query, clazz);
 				result.startIndex = start;
 				result.description = queryString + DESCRIPTION_SUFFIX;
-				result.link = String.format("%s?searchTerms=%s&startPage=%d",
-						apiUrl, URLEncoder.encode(queryString, "UTF-8"), start);
-				if (result != null) {
-					log.info("got response " + result.items.size());
-					model.put("json", utils.toJson(result));
-				}
-				model.put("result", result);
+				result.link = String.format("%s?searchTerms=%s&startPage=%d", apiUrl,
+						URLEncoder.encode(queryString, "UTF-8"), start);
+				log.info("got response " + result.items.size());
+				mov = JsonUtils.toJson(result, callback);
+
 			} catch (SolrTypeException e) {
 				logException(e);
-				model.put("json", utils.toJson(new ApiError(wskey,
-						"search.json",
-						"Internal Server Error. Something is broken.")));
+				mov = JsonUtils.toJson(
+						new ApiError(wskey, "search.json", "Internal Server Error. Something is broken."), callback);
 				response.setStatus(500);
 			} catch (Exception e) {
 				logException(e);
-				model.put("json", utils.toJson(new ApiError(wskey,
-						"search.json",
-						"Internal Server Error. Something is broken.")));
+				mov = JsonUtils.toJson(
+						new ApiError(wskey, "search.json", "Internal Server Error. Something is broken."), callback);
 				response.setStatus(500);
 			}
 		}
 
-		ModelAndView page = new ModelAndView("json", model);
-		return page;
+		return mov;
 	}
 
 	//
 	@RequestMapping(value = { "/opensearch.rss", "/v1/opensearch.rss" }, produces = "application/rss+xml")
 	public @ResponseBody
-	RssResponse openSearchControllerRSS(
-			@RequestParam(value = "searchTerms", required = false) String queryString,
+	RssResponse openSearchControllerRSS(@RequestParam(value = "searchTerms", required = false) String queryString,
 			@RequestParam(value = "startPage", required = false, defaultValue = "1") String startPage,
 			@RequestParam(value = "wskey", required = false, defaultValue = "") String wskey,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception {
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
 		path = fixPath(request.getContextPath());
 		log.info("===== openSearchControllerRSS =====");
 		response.setCharacterEncoding("UTF-8");
 
 		String cannonicalLink = "http://europeana.eu";
 		String baseLink = getPortalServer() + "/" + path + "/v1/opensearch.rss";
-		String href = baseLink + "?searchTerms="
-				+ URLEncoder.encode(queryString, "UTF-8") + "&startPage="
-				+ startPage;
+		String href = baseLink + "?searchTerms=" + URLEncoder.encode(queryString, "UTF-8") + "&startPage=" + startPage;
 
 		RssResponse rss = new RssResponse();
 		Channel channel = rss.channel;
@@ -183,15 +154,12 @@ public class SearchController1 {
 		channel.updateDescription();
 
 		try {
-			log.info(queryString + ", " + RESULT_ROWS_PER_PAGE + ", "
-					+ (Integer.parseInt(startPage) - 1));
-			Query query = new Query(SolrUtils.translateQuery(queryString))
-					.setApiQuery(true).setPageSize(RESULT_ROWS_PER_PAGE)
-					.setStart(Integer.parseInt(startPage) - 1)
+			log.info(queryString + ", " + RESULT_ROWS_PER_PAGE + ", " + (Integer.parseInt(startPage) - 1));
+			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true)
+					.setPageSize(RESULT_ROWS_PER_PAGE).setStart(Integer.parseInt(startPage) - 1)
 					.setAllowSpellcheck(false).setAllowFacets(false);
 			Class<? extends IdBean> clazz = ApiBean.class;
-			SearchResults<BriefDoc> resultSet = createResultsForRSS(wskey,
-					null, query, clazz);
+			SearchResults<BriefDoc> resultSet = createResultsForRSS(wskey, null, query, clazz);
 
 			channel.totalResults.value = resultSet.totalResults;
 
@@ -215,10 +183,8 @@ public class SearchController1 {
 				item.europeanaProvider = bean.getProvider();
 				item.europeanaDataProvider = bean.getDataProvider();
 				item.europeanaRights = bean.getEuropeanaRights();
-				item.enrichmentPlaceLatitude = bean
-						.getEnrichmentPlaceLatitude();
-				item.enrichmentPlaceLongitude = bean
-						.getEnrichmentPlaceLongitude();
+				item.enrichmentPlaceLatitude = bean.getEnrichmentPlaceLatitude();
+				item.enrichmentPlaceLongitude = bean.getEnrichmentPlaceLongitude();
 				item.enrichmentPlaceTerm = bean.getEnrichmentPlaceTerm();
 				item.enrichmentPlaceLabel = bean.getEnrichmentPlaceLabel();
 				item.enrichmentPeriodTerm = bean.getEnrichmentPeriodTerm();
@@ -258,11 +224,9 @@ public class SearchController1 {
 		return bean.getDataProvider() + " " + bean.getUrl();
 	}
 
-	private <T extends IdBean> SearchResults<Map<String, Object>> createResultsForApi1(
-			String wskey, String profile, Query q, Class<T> clazz)
-			throws SolrTypeException {
-		SearchResults<Map<String, Object>> response = new SearchResults<Map<String, Object>>(
-				wskey, "search.json");
+	private <T extends IdBean> SearchResults<Map<String, Object>> createResultsForApi1(String wskey, String profile,
+			Query q, Class<T> clazz) throws SolrTypeException {
+		SearchResults<Map<String, Object>> response = new SearchResults<Map<String, Object>>(wskey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, q);
 		response.totalResults = resultSet.getResultSize();
 		response.itemsPerPage = resultSet.getResults().size();
@@ -282,11 +246,9 @@ public class SearchController1 {
 		return response;
 	}
 
-	private SearchResults<BriefDoc> createResultsForRSS(String wskey,
-			String profile, Query q, Class<? extends IdBean> clazz)
-			throws SolrTypeException {
-		SearchResults<BriefDoc> response = new SearchResults<BriefDoc>(wskey,
-				"search.json");
+	private SearchResults<BriefDoc> createResultsForRSS(String wskey, String profile, Query q,
+			Class<? extends IdBean> clazz) throws SolrTypeException {
+		SearchResults<BriefDoc> response = new SearchResults<BriefDoc>(wskey, "search.json");
 		ResultSet<? extends IdBean> resultSet = searchService.search(clazz, q);
 		response.totalResults = resultSet.getResultSize();
 		response.itemsPerPage = resultSet.getResults().size();

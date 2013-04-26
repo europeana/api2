@@ -11,7 +11,6 @@
 	<import resource="corelib-utils-context.xml" />
 
 	<!-- INTERNAL -->
-	<import resource="internal/api2-mvc-interceptors.xml" />
 	<import resource="internal/api2-security.xml" />
 
 	<!-- DEVELOPMENT -->

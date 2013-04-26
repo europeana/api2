@@ -35,12 +35,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.mongodb.Mongo;
 
 import eu.europeana.api2.exceptions.LimitReachedException;
 import eu.europeana.api2.model.json.ApiError;
-import eu.europeana.api2.model.json.abstracts.ApiResponse;
+import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.Suggestions;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -110,8 +111,7 @@ public class SearchController {
 	private static int maxRows = -1;
 
 	@RequestMapping(value = "/v2/search.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse searchJson(
+	public ModelAndView searchJson(
 			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
@@ -119,6 +119,7 @@ public class SearchController {
 			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
 			@RequestParam(value = "sort", required = false) String sort,
 			@RequestParam(value = "wskey", required = false) String wskey,
+			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request, HttpServletResponse response) {
 
 		// workaround of a Spring issue
@@ -153,7 +154,7 @@ public class SearchController {
 			apiKey = apiService.findByID(wskey);
 			if (apiKey == null) {
 				response.setStatus(401);
-				return new ApiError(wskey, "search.json", "Unregistered user");
+				return JsonUtils.toJson(new ApiError(wskey, "search.json", "Unregistered user"), callback);
 			}
 			if (apiService.checkReachedLimit(apiKey)) {
 				throw new LimitReachedException();
@@ -162,14 +163,14 @@ public class SearchController {
 			apiLogService.logApiRequest(wskey, query.getQuery(),
 					RecordType.SEARCH, profile);
 			response.setStatus(401);
-			return new ApiError(wskey, "search.json", e.getMessage(),
-					requestNumber);
+			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage(),
+					requestNumber), callback);
 		} catch (LimitReachedException e) {
 			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.LIMIT,
 					profile);
 			response.setStatus(429);
-			return new ApiError(wskey, "search.json", "Rate limit exceeded. "
-					+ usageLimit, requestNumber);
+			return JsonUtils.toJson(new ApiError(wskey, "search.json", "Rate limit exceeded. "
+					+ usageLimit, requestNumber), callback);
 		}
 
 		Class<? extends IdBean> clazz;
@@ -186,17 +187,36 @@ public class SearchController {
 			log.info("got response " + result.items.size());
 			apiLogService.logApiRequest(wskey, query.getQuery(),
 					RecordType.SEARCH, profile);
-			return result;
+			return JsonUtils.toJson(result, callback);
 		} catch (SolrTypeException e) {
 			log.severe(wskey + " [search.json] " + e.getMessage());
 			response.setStatus(500);
-			return new ApiError(wskey, "search.json", e.getMessage());
+			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		} catch (Exception e) {
 			log.severe(wskey + " [search.json] " + e.getClass().getSimpleName()
 					+ " " + e.getMessage());
 			response.setStatus(500);
-			return new ApiError(wskey, "search.json", e.getMessage());
+			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		}
+	}
+
+
+	@RequestMapping(value = "/v2/suggestions.json", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ModelAndView suggestionsJson(
+			@RequestParam(value = "query", required = true) String query,
+			@RequestParam(value = "rows", required = false, defaultValue = "10") int count,
+			@RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases,
+			@RequestParam(value = "callback", required = false) String callback
+	) {
+		log.info("phrases: " + phrases);
+		Suggestions response = new Suggestions(null, "suggestions.json");
+		try {
+			response.items = searchService.suggestions(query, count);
+			response.itemsCount = response.items.size();
+		} catch (SolrTypeException e) {
+			return JsonUtils.toJson(new ApiError(null, "suggestions.json", e.getMessage()), callback);
+		}
+		return JsonUtils.toJson(response, callback);
 	}
 
 	private <T extends IdBean> SearchResults<T> createResults(String apiKey,
@@ -250,8 +270,7 @@ public class SearchController {
 	@RequestMapping(value = "/v2/search.kml", produces = MediaType.APPLICATION_XML_VALUE)
 	// @RequestMapping(value = "/v2/search.kml", produces =
 	// "application/vnd.google-earth.kml+xml")
-	public @ResponseBody
-	KmlResponse searchKml(
+	public @ResponseBody KmlResponse searchKml(
 			Principal principal,
 			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
@@ -308,8 +327,7 @@ public class SearchController {
 
 	@RequestMapping(value = "/v2/opensearch.rss", produces = MediaType.APPLICATION_XML_VALUE)
 	// , produces = "?rss?")
-	public @ResponseBody
-	RssResponse openSearchRss(
+	public @ResponseBody RssResponse openSearchRss(
 			@RequestParam(value = "searchTerms", required = true) String queryString,
 			@RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "count", required = false, defaultValue = "12") int count,
@@ -391,30 +409,6 @@ public class SearchController {
 			sb.append(StringUtils.join(bean.getProvider(), ", "));
 		}
 		return sb.toString();
-	}
-
-	@RequestMapping(value = "/v2/suggestions.json")
-	// , produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse suggestionsJson(
-			@RequestParam(value = "query", required = true) String query,
-			@RequestParam(value = "rows", required = false, defaultValue = "10") int count,
-			@RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases // 0,
-																										// no,
-																										// false,
-																										// 1
-																										// yes,
-																										// true
-	) {
-		log.info("phrases: " + phrases);
-		Suggestions response = new Suggestions(null, "suggestions.json");
-		try {
-			response.items = searchService.suggestions(query, count);
-			response.itemsCount = response.items.size();
-		} catch (SolrTypeException e) {
-			return new ApiError(null, "suggestions.json", e.getMessage());
-		}
-		return response;
 	}
 
 	private String getPortalUrl() {

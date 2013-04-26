@@ -27,9 +27,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
-import eu.europeana.api2.model.json.abstracts.ApiResponse;
+import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Tag;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
@@ -47,66 +47,66 @@ public class UserTagController extends AbstractUserController {
 	private UserService userService;
 
 	@RequestMapping(value = "/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse defaultAction(
+	public ModelAndView defaultAction(
 			@RequestParam(value = "objectid", required = false) String objectId,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		return list(objectId, principal);
+		return list(objectId, callback, principal);
 	}
 
 	@RequestMapping(value = "/user/tag.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse list(
+	public ModelAndView list(
 			@RequestParam(value = "objectid", required = false) String objectId,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			UserResults<Tag> result = new UserResults<Tag>(getApiId(principal),
+			UserResults<Tag> response = new UserResults<Tag>(getApiId(principal),
 					"/user/tag.json");
-			result.items = new ArrayList<Tag>();
-			result.username = user.getUserName();
+			response.items = new ArrayList<Tag>();
+			response.username = user.getUserName();
 			for (SocialTag item : user.getSocialTags()) {
 				Tag tag = new Tag();
 				copyUserObjectData(tag, item);
 				tag.tag = item.getTag();
-				result.items.add(tag);
+				response.items.add(tag);
 			}
-			return result;
+			return JsonUtils.toJson(response, callback);
 		}
 		return null;
 	}
 
 	@RequestMapping(value = "/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
-	public @ResponseBody
-	ApiResponse createRest(
+	public ModelAndView createRest(
 			@RequestParam(value = "objectid", required = true) String objectId,
 			@RequestParam(value = "tag", required = true) String tag,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		return create(objectId, tag, principal);
+		return create(objectId, tag, callback, principal);
 	}
 
 	@RequestMapping(value = "/user/tag.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse create(
+	public ModelAndView create(
 			@RequestParam(value = "objectid", required = true) String objectId,
 			@RequestParam(value = "tag", required = true) String tag,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		return null;
 	}
 
 	@RequestMapping(value = "/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
-	public @ResponseBody
-	ApiResponse deleteRest(
+	public ModelAndView deleteRest(
 			@RequestParam(value = "objectid", required = false) Long objectId,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		return delete(objectId, principal);
+		return delete(objectId, callback, principal);
 	}
 
 	@RequestMapping(value = "/user/tag.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody
-	ApiResponse delete(
+	public ModelAndView delete(
 			@RequestParam(value = "tagid", required = true) Long tagId,
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		return null;
 	}

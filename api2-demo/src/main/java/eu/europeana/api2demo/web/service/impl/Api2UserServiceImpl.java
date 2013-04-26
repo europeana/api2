@@ -20,6 +20,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 
 	private RestOperations restTemplate;
 	
+	@Override
 	public UserFavorites getFavorites() {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
 				URI.create(Config.URI_FAVORITES_GET), byte[].class));

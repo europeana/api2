@@ -34,6 +34,6 @@
 		<module>api2-model</module>
 	</modules>
 	<properties>
-		<version.springSecurityOauth>1.0.0.M6a</version.springSecurityOauth>
+		<version.springSecurityOauth>1.0.4.RELEASE</version.springSecurityOauth>
 	</properties>	
 </project>

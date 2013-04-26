@@ -50,20 +50,6 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
-	<!-- JSON P WRAPPER -->
-	<filter>
-		<filter-name>jsonPFilter</filter-name>
-		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
-		<init-param>
-			<param-name>contextAttribute</param-name>
-			<param-value>org.springframework.web.servlet.FrameworkServlet.CONTEXT.api2</param-value>
-		</init-param>
-	</filter>
-	<filter-mapping>
-		<filter-name>jsonPFilter</filter-name>
-		<url-pattern>*.json</url-pattern>
-	</filter-mapping>
-	
 	<servlet>
 		<servlet-name>api2</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>

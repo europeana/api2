@@ -66,90 +66,56 @@ public class ObjectController1 {
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	// method=RequestMethod.GET,
 	public @ResponseBody
-	ModelAndView recordJson(
-			@PathVariable String collectionId,
-			@PathVariable String recordId,
+	ModelAndView recordJson(@PathVariable String collectionId, @PathVariable String recordId,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception {
+			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
+			HttpServletResponse response) throws Exception {
 		log.info("====== /v1/record/{collectionId}/{recordId}.json ======");
 
 		Map<String, Object> model = new HashMap<String, Object>();
-		JsonUtils utils = new JsonUtils();
 
-		boolean hasResult = false;
-		if (!hasResult && StringUtils.isBlank(wskey)) {
-			model.put("json", utils.toJson(new ApiError(wskey, "search.json",
-					"No API authorisation key.")));
-			hasResult = true;
+		if (StringUtils.isBlank(wskey)) {
 			response.setStatus(401);
+			return JsonUtils.toJson(new ApiError(wskey, "search.json", "No API authorisation key."), callback);
 		}
 
-		if (!hasResult
-				&& (userService.findByApiKey(wskey) == null && apiService
-						.findByID(wskey) == null)) {
-			model.put("json", utils.toJson(new ApiError(wskey, "search.json",
-					"Unregistered user")));
-			hasResult = true;
+		if (userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null) {
 			response.setStatus(401);
+			return JsonUtils.toJson(new ApiError(wskey, "search.json", "Unregistered user"), callback);
 		}
-
-		if (!hasResult) {
-			try {
-				FullBean bean = searchService.findById(collectionId, recordId);
-				FullDoc doc = null;
-				if (bean != null) {
-					doc = new FullDoc(bean);
-				}
-				String json = null;
-				if (doc != null) {
-					json = utils.toJson(doc.asMap());
-					model.put("json", json);
-				} else {
-					model.put("json", utils.toJson(new ApiError(wskey,
-							"record.json", "not found error")));
-					response.setStatus(404);
-				}
-			} catch (SolrTypeException e) {
-				model.put("json", utils.toJson(new ApiError(wskey,
-						"record.json", e.getMessage())));
-				response.setStatus(500);
+		try {
+			FullBean bean = searchService.findById(collectionId, recordId);
+			if (bean != null) {
+				return JsonUtils.toJson(new FullDoc(bean).asMap(), callback);
+			} else {
+				response.setStatus(404);
+				return JsonUtils.toJson(new ApiError(wskey, "record.json", "not found error"), callback);
 			}
+		} catch (SolrTypeException e) {
+			response.setStatus(500);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage()), callback);
 		}
-
-		ModelAndView page = new ModelAndView("json", model);
-		return page;
 	}
 
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.srw", produces = MediaType.TEXT_XML_VALUE)
 	// method=RequestMethod.GET
 	public @ResponseBody
-	SrwResponse recordSrw(
-			@PathVariable String collectionId,
-			@PathVariable String recordId,
+	SrwResponse recordSrw(@PathVariable String collectionId, @PathVariable String recordId,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception {
+			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
+			HttpServletResponse response) throws Exception {
 		log.info("====== /v1/record/{collectionId}/{recordId}.srw ======");
 
 		Map<String, Object> model = new HashMap<String, Object>();
-		JsonUtils utils = new JsonUtils();
-
 		boolean hasResult = false;
 		if (!hasResult && StringUtils.isBlank(wskey)) {
-			model.put("json", utils.toJson(new ApiError(wskey, "search.json",
-					"No API authorisation key.")));
+//			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "No API authorisation key.")));
 			throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
 		}
 
-		if (!hasResult
-				&& (userService.findByApiKey(wskey) == null && apiService
-						.findByID(wskey) == null)) {
-			model.put("json", utils.toJson(new ApiError(wskey, "search.json",
-					"Unregistered user")));
+		if (!hasResult && (userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null)) {
+//			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Unregistered user")));
 			throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
 			// hasResult = true;
 		}
@@ -167,8 +133,7 @@ public class ObjectController1 {
 					log.info("record added");
 				} else {
 					StringBuilder sb = new StringBuilder(getPortalPath());
-					sb.append(collectionId).append("/").append(recordId)
-							.append(EXT_HTML);
+					sb.append(collectionId).append("/").append(recordId).append(EXT_HTML);
 
 					response.setStatus(302);
 					response.setHeader("Location", sb.toString());
@@ -178,8 +143,7 @@ public class ObjectController1 {
 				log.info("xml created");
 				return srwResponse;
 			} catch (SolrTypeException e) {
-				model.put("json", utils.toJson(new ApiError(wskey,
-						"record.json", e.getMessage())));
+//				model.put("json", utils.toJson(new ApiError(wskey, "record.json", e.getMessage())));
 				response.setStatus(500);
 				return null;
 			}
@@ -192,8 +156,7 @@ public class ObjectController1 {
 	public String getPortalPath() {
 		if (portalPath == null) {
 			if (portalServer.endsWith("/")) {
-				portalServer = portalServer.substring(0,
-						portalServer.length() - 1);
+				portalServer = portalServer.substring(0, portalServer.length() - 1);
 			}
 			if (portalName.startsWith("/")) {
 				portalName = portalName.substring(1);
@@ -208,15 +171,13 @@ public class ObjectController1 {
 
 	private void createXml(SrwResponse response) {
 		try {
-			final JAXBContext context = JAXBContext
-					.newInstance(SrwResponse.class);
+			final JAXBContext context = JAXBContext.newInstance(SrwResponse.class);
 			final Marshaller marshaller = context.createMarshaller();
 			final StringWriter stringWriter = new StringWriter();
 			marshaller.marshal(response, stringWriter);
 			log.info("result: " + stringWriter.toString());
 		} catch (JAXBException e) {
-			log.severe("JAXBException: " + e.getMessage() + ", "
-					+ e.getCause().getMessage());
+			log.severe("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage());
 			log.severe(ExceptionUtils.getFullStackTrace(e));
 
 			StringBuilder sb = new StringBuilder();

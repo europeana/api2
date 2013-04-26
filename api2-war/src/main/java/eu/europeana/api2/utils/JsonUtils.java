@@ -1,28 +1,32 @@
 package eu.europeana.api2.utils;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import org.springframework.web.servlet.ModelAndView;
 
 public class JsonUtils {
 
-	private final Logger log = Logger.getLogger(getClass().getName());
+	private static final Logger log = Logger.getLogger(JsonUtils.class.getName());
 
-	private ObjectMapper objectMapper;
-
-	public JsonUtils() {
-		objectMapper = new ObjectMapper();
-		objectMapper.setSerializationInclusion(Inclusion.NON_NULL);
+	public static ModelAndView toJson(Object object) {
+		return toJson(object, null);
 	}
 
-	public String toJson(Object object) {
-		String json = null;
+	public static ModelAndView toJson(Object object, String callback) {
+		String resultPage = "json";
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.setSerializationInclusion(Inclusion.NON_NULL);
+		Map<String, Object> model = new HashMap<String, Object>();
 		try {
-			json = objectMapper.writeValueAsString(object);
+			model.put("json", objectMapper.writeValueAsString(object));
 		} catch (JsonGenerationException e) {
 			log.severe("Json Generation Exception: " + e.getMessage());
 			e.printStackTrace();
@@ -33,6 +37,11 @@ public class JsonUtils {
 			log.severe("I/O Exception: " + e.getMessage());
 			e.printStackTrace();
 		}
-		return json;
+		if (StringUtils.isNotBlank(callback)) {
+			resultPage = "jsonp";
+			model.put("callback", callback);
+		}
+		return new ModelAndView(resultPage, model);
 	}
+	
 }
