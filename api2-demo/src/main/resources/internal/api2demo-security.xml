@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans:beans 
+	xmlns="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans" 
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+		http://www.springframework.org/schema/security 
+		http://www.springframework.org/schema/security/spring-security.xsd 
+	">
+		
+	<http 
+		access-denied-page="/login.jsp?authorization_error=true" 
+		realm="Api2Demo">
+		<intercept-url pattern="/user/**" access="ROLE_USER" />
+		<intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+
+		<!-- <form-login authentication-failure-url="/login.jsp?authentication_error=true" default-target-url="/index.jsp"
+			login-page="/login.jsp" login-processing-url="/login.do" /> -->
+		<logout logout-success-url="/" logout-url="/logout.do" />
+		<http-basic/>
+		<anonymous/>
+		<custom-filter ref="oauth2ClientFilter" after="EXCEPTION_TRANSLATION_FILTER" />
+	</http>
+
+	<authentication-manager>
+		<authentication-provider>
+			<user-service>
+				<user name="demo" password="demo" authorities="ROLE_USER" />
+			</user-service>
+		</authentication-provider>
+	</authentication-manager>
+
+</beans:beans>

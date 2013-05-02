@@ -2,7 +2,7 @@ package eu.europeana.api2demo;
 
 public class Config {
 	
-	public static final String URI_API2 = "http://localhost:8080/api2";
+	public static final String URI_API2 = "http://localhost:8080/api";
 
 	public static final String URI_FAVORITES_GET = URI_API2 + "/user/favorite.json";
 

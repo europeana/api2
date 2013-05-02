@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<beans xmlns="http://www.springframework.org/schema/beans" 
+<beans 
+	xmlns="http://www.springframework.org/schema/beans" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:oauth2="http://www.springframework.org/schema/security/oauth2" 
 	xmlns:security="http://www.springframework.org/schema/security"
@@ -18,6 +19,8 @@
 	<security:http pattern="/suggestions.json" security="none" />
 	<security:http pattern="/opensearch.rss" security="none" />
 	<security:http pattern="/opensearch.json" security="none" />
+	<security:http pattern="/search.**" security="none"  />
+	<security:http pattern="/record/**" security="none" />
 	
 	<security:http pattern="/oauth/token" create-session="stateless" 
 			authentication-manager-ref="api2_oauth2_clientAuthenticationManager"
@@ -28,21 +31,53 @@
 		<security:access-denied-handler ref="api2_oauth2_accessDeniedHandler" />
 	</security:http>
 
-	<!--  entry-point-ref="api2_oauth2_authenticationEntryPoint" 
-				access-decision-manager-ref="api2_oauth2_accessDecisionManager"  
-				authentication-manager-ref="api2_oauth2_userAuthenticationManager" -->
+	<http pattern="/oauth/(users|clients)/.*" request-matcher="regex" create-session="stateless" entry-point-ref="api2_oauth2_authenticationEntryPoint"
+			use-expressions="true" xmlns="http://www.springframework.org/schema/security">
+		<anonymous enabled="false" />
+		<intercept-url pattern="/oauth/users/([^/].*?)/tokens/.*"
+			access="#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('write')"
+			method="DELETE" />
+		<intercept-url pattern="/oauth/users/.*"
+			access="#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('read')"
+			method="GET" />
+		<intercept-url pattern="/oauth/clients/.*"
+			access="#oauth2.clientHasRole('ROLE_CLIENT') and #oauth2.isClient() and #oauth2.hasScope('read')" method="GET" />
+		<intercept-url pattern="/**" access="denyAll()"/>
+		<custom-filter ref="api2_oauth2_resourceServerFilter" before="PRE_AUTH_FILTER" />
+		<access-denied-handler ref="api2_oauth2_accessDeniedHandler" />
+		<expression-handler ref="oauthWebExpressionHandler" />
+	</http>
+	
+	<http pattern="/user/**" create-session="never" entry-point-ref="api2_oauth2_authenticationEntryPoint"
+			access-decision-manager-ref="api2_oauth2_accessDecisionManager" xmlns="http://www.springframework.org/schema/security">
+		<anonymous enabled="false" />
+		<intercept-url pattern="/user" access="ROLE_USER,SCOPE_READ" />
+		<intercept-url pattern="/user/**" access="ROLE_USER,SCOPE_READ" />
+		<custom-filter ref="api2_oauth2_resourceServerFilter" before="PRE_AUTH_FILTER" />
+		<access-denied-handler ref="api2_oauth2_accessDeniedHandler" />
+	</http>	
+	
+	<http access-denied-page="/login.jsp?authorization_error=true" disable-url-rewriting="true"
+			xmlns="http://www.springframework.org/schema/security">
+		<intercept-url pattern="/oauth/**" access="ROLE_USER" />
+		<intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
+		
+		<form-login authentication-failure-url="/login.jsp?authentication_error=true" default-target-url="/index.jsp"
+			login-processing-url="/login.do" username-parameter="api2key" password-parameter="secret"/>
+		<logout logout-success-url="/index.jsp" logout-url="/logout.do" />
+		<anonymous />
+	</http>	
 
-	<security:http auto-config="true" disable-url-rewriting="true" realm="Euroepana API2 Users">
-		<security:intercept-url pattern="/oauth/**" access="ROLE_USER" />
+<!-- 	<security:http auto-config="true" disable-url-rewriting="true" realm="Euroepana API2 Users"
+			entry-point-ref="api2_oauth2_authenticationEntryPoint"
+			access-decision-manager-ref="api2_oauth2_accessDecisionManager">
 		<security:intercept-url pattern="/user/**" access="ROLE_USER"/>
-<!-- 		<security:intercept-url pattern="/search.**" access="ROLE_CLIENT" /> -->
-<!-- 		<security:intercept-url pattern="/record/**" access="ROLE_CLIENT" /> -->
-		<!--  EXCEPTION_TRANSLATION_FILTER" /> -->
+		 EXCEPTION_TRANSLATION_FILTER" />
 		<security:custom-filter ref="api2_oauth2_resourceServerFilter" before="PRE_AUTH_FILTER"/>
 		<security:form-login login-processing-url="/login" username-parameter="api2key" password-parameter="secret"/>
 		<security:logout logout-success-url="/index.html" logout-url="/logoff" />
 	</security:http>
-	
+ -->	
 	<bean id="api2_oauth2_clientCredentialsTokenEndpointFilter" class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter">
 		<property name="authenticationManager" ref="api2_oauth2_clientAuthenticationManager"/>
 	</bean>	
@@ -73,7 +108,7 @@
 	<bean id="api2_oauth2_clientDetailsService" class="eu.europeana.api2.web.security.oauth2.OAuth2ClientDetailsService"/>
 	
 	<!-- id="api2_oauth2_userAuthenticationManager" -->
-	<security:authentication-manager  alias="authenticationManager">
+	<security:authentication-manager alias="authenticationManager">
 		<security:authentication-provider user-service-ref="api2_userDetailsService">
 			<security:password-encoder hash="sha"/>
 		</security:authentication-provider>
@@ -95,6 +130,7 @@
 	<bean id="api2_oauth2_tokenServices" class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
 		<property name="tokenStore" ref="api2_oauth2_tokenStore" />
 		<property name="supportRefreshToken" value="true" />
+		<property name="clientDetailsService" ref="api2_oauth2_clientDetailsService" />
 	</bean>
 		
 	<bean id="api2_oauth2_clientDetailsUserService" class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
@@ -110,7 +146,12 @@
 		<property name="tokenServices" ref="api2_oauth2_tokenServices" />
 	</bean>
 	
-	<oauth2:authorization-server client-details-service-ref="api2_oauth2_clientDetailsService" token-services-ref="api2_oauth2_tokenServices"
+	<oauth2:expression-handler id="oauthExpressionHandler" />
+	<oauth2:web-expression-handler id="oauthWebExpressionHandler" />
+	
+	<oauth2:authorization-server 
+		client-details-service-ref="api2_oauth2_clientDetailsService" 
+		token-services-ref="api2_oauth2_tokenServices"
 		user-approval-handler-ref="api2_oauth2_userApprovalHandler" >
 		<oauth2:authorization-code />
 		<oauth2:implicit />
@@ -119,6 +160,8 @@
 		<oauth2:password />
 	</oauth2:authorization-server>
 		
-	<oauth2:resource-server id="api2_oauth2_resourceServerFilter" resource-id="Europeana API2" token-services-ref="api2_oauth2_tokenServices"  />
+	<oauth2:resource-server id="api2_oauth2_resourceServerFilter" 
+		resource-id="Europeana API2" 
+		token-services-ref="api2_oauth2_tokenServices"  />
 
 </beans>
