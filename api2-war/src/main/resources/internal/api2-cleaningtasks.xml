@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+  Copyright 2007-2012 The Europeana Foundation
+
+  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved 
+  by the European Commission;
+  You may not use this work except in compliance with the Licence.
+  
+  You may obtain a copy of the Licence at:
+  http://joinup.ec.europa.eu/software/page/eupl
+
+  Unless required by applicable law or agreed to in writing, software distributed under 
+  the Licence is distributed on an "AS IS" basis, without warranties or conditions of 
+  any kind, either express or implied.
+  See the Licence for the specific language governing permissions and limitations under 
+  the Licence.
+ -->
+
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/task
+		http://www.springframework.org/schema/task/spring-task.xsd
+	">
+	
+	<task:annotation-driven/>
+	
+<!-- 	<task:annotation-driven scheduler="api2_timer_scheduler"/>
+	
+	<task:scheduler id="api2_timer_scheduler" pool-size="25"/>
+ -->	
+</beans>

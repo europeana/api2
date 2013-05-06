@@ -1,8 +1,6 @@
 package eu.europeana.api2.v1.web.controller;
 
 import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.annotation.Resource;
@@ -65,14 +63,14 @@ public class ObjectController1 {
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	// method=RequestMethod.GET,
-	public @ResponseBody
-	ModelAndView recordJson(@PathVariable String collectionId, @PathVariable String recordId,
+	public ModelAndView recordJson(
+			@PathVariable String collectionId, 
+			@PathVariable String recordId,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
+			@RequestParam(value = "callback", required = false) String callback, 
+			HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		log.info("====== /v1/record/{collectionId}/{recordId}.json ======");
-
-		Map<String, Object> model = new HashMap<String, Object>();
 
 		if (StringUtils.isBlank(wskey)) {
 			response.setStatus(401);
@@ -107,7 +105,6 @@ public class ObjectController1 {
 			HttpServletResponse response) throws Exception {
 		log.info("====== /v1/record/{collectionId}/{recordId}.srw ======");
 
-		Map<String, Object> model = new HashMap<String, Object>();
 		boolean hasResult = false;
 		if (!hasResult && StringUtils.isBlank(wskey)) {
 //			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "No API authorisation key.")));
