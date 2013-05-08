@@ -1,7 +1,6 @@
 package eu.europeana.api2.v1.web.controller;
 
 import java.io.StringWriter;
-import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -11,7 +10,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -38,8 +38,8 @@ import eu.europeana.corelib.solr.service.SearchService;
 @Controller
 @RequestMapping(value = "/v1/record")
 public class ObjectController1 {
-
-	private final Logger log = Logger.getLogger(getClass().getName());
+	
+	final Logger log = LoggerFactory.getLogger(ObjectController1.class);
 
 	private final static String EXT_HTML = ".html";
 
@@ -174,16 +174,7 @@ public class ObjectController1 {
 			marshaller.marshal(response, stringWriter);
 			log.info("result: " + stringWriter.toString());
 		} catch (JAXBException e) {
-			log.severe("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage());
-			log.severe(ExceptionUtils.getFullStackTrace(e));
-
-			StringBuilder sb = new StringBuilder();
-			for (StackTraceElement t : e.getStackTrace()) {
-				sb.append(t.toString()).append("\n");
-			}
-			log.severe(sb.toString());
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
 		}
 	}
 }

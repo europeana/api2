@@ -20,7 +20,6 @@ package eu.europeana.api2.v2.web.controller;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -74,7 +75,7 @@ import eu.europeana.corelib.web.utils.NavigationUtils;
 @Controller
 public class SearchController {
 
-	private final Logger log = Logger.getLogger(getClass().getName());
+	final Logger log = LoggerFactory.getLogger(SearchController.class);
 
 	@Resource(name = "corelib_db_mongo")
 	private Mongo mongo;
@@ -189,12 +190,11 @@ public class SearchController {
 					RecordType.SEARCH, profile);
 			return JsonUtils.toJson(result, callback);
 		} catch (SolrTypeException e) {
-			log.severe(wskey + " [search.json] " + e.getMessage());
+			log.error(wskey + " [search.json] ", e);
 			response.setStatus(500);
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		} catch (Exception e) {
-			log.severe(wskey + " [search.json] " + e.getClass().getSimpleName()
-					+ " " + e.getMessage());
+			log.error(wskey + " [search.json] " + e.getClass().getSimpleName(), e);
 			response.setStatus(500);
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		}

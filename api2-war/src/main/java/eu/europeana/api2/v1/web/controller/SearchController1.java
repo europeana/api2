@@ -4,7 +4,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.common.SolrException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -43,7 +44,7 @@ import eu.europeana.corelib.utils.service.OptOutService;
 @Controller
 public class SearchController1 {
 
-	private final Logger log = Logger.getLogger(getClass().getName());
+	final Logger log = LoggerFactory.getLogger(SearchController1.class);
 
 	@Resource(name = "corelib_db_userService")
 	private UserService userService;
@@ -200,14 +201,14 @@ public class SearchController1 {
 			}
 			response.setStatus(200);
 		} catch (SolrTypeException e) {
-			log.severe(e.getMessage());
+			log.error(e.getMessage());
 			channel.totalResults.value = 0;
 			Item item = new Item();
 			item.title = "Error";
 			item.description = e.getMessage();
 			channel.items.add(item);
 		} catch (SolrException e) {
-			log.severe(e.getMessage());
+			log.error(e.getMessage());
 			channel.totalResults.value = 0;
 			Item item = new Item();
 			item.title = "Error";
@@ -268,8 +269,8 @@ public class SearchController1 {
 	}
 
 	private void logException(Exception e) {
-		log.severe(ExceptionUtils.getRootCauseMessage(e));
-		log.severe(ExceptionUtils.getFullStackTrace(e));
+		log.error(ExceptionUtils.getRootCauseMessage(e));
+		log.error(ExceptionUtils.getFullStackTrace(e));
 	}
 
 	public String getPortalServer() {

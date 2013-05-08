@@ -20,7 +20,6 @@ package eu.europeana.api2.v2.web.controller;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -65,7 +66,7 @@ import eu.europeana.corelib.utils.service.OptOutService;
 @RequestMapping(value = "/v2/record")
 public class ObjectController {
 
-	private final Logger log = Logger.getLogger(getClass().getName());
+	final Logger log = LoggerFactory.getLogger(SearchController.class);
 
 	@Resource
 	private SearchService searchService;
@@ -162,8 +163,8 @@ public class ObjectController {
 						beans.add(view);
 					}
 				} catch (SolrServerException e) {
-					log.severe("Error during getting similar items: " + e.getLocalizedMessage());
-					log.severe(ExceptionUtils.getMessage(e));
+					log.error("Error during getting similar items: " + e.getLocalizedMessage());
+					log.error(ExceptionUtils.getMessage(e));
 				}
 				objectResult.similarItems = beans;
 			}
