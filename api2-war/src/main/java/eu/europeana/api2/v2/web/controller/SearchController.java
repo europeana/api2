@@ -112,16 +112,15 @@ public class SearchController {
 	private static int maxRows = -1;
 
 	@RequestMapping(value = "/v2/search.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView searchJson(
-			@RequestParam(value = "query", required = true) String queryString,
+	public ModelAndView searchJson(@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
 			@RequestParam(value = "sort", required = false) String sort,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback,
-			HttpServletRequest request, HttpServletResponse response) {
+			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
+			HttpServletResponse response) {
 
 		// workaround of a Spring issue
 		// (https://jira.springsource.org/browse/SPR-7963)
@@ -135,12 +134,12 @@ public class SearchController {
 			maxRows = Integer.parseInt(rowLimit);
 		}
 		rows = Math.min(rows, maxRows);
-		log.info("=== search.json: " + rows);
+		if (log.isInfoEnabled()) {
+			log.info("=== search.json: " + rows);
+		}
 
-		Query query = new Query(SolrUtils.translateQuery(queryString))
-				.setApiQuery(true).setRefinements(refinements)
-				.setPageSize(rows).setStart(start - 1)
-				.setParameter("facet.mincount", "1").setAllowSpellcheck(false)
+		Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setRefinements(refinements)
+				.setPageSize(rows).setStart(start - 1).setParameter("facet.mincount", "1").setAllowSpellcheck(false)
 				.setAllowFacets(false);
 		if (profile.equals("portal") || profile.equals("spelling")) {
 			query.setAllowSpellcheck(true);
@@ -161,17 +160,14 @@ public class SearchController {
 				throw new LimitReachedException();
 			}
 		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, query.getQuery(),
-					RecordType.SEARCH, profile);
+			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH, profile);
 			response.setStatus(401);
-			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage(),
-					requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage(), requestNumber), callback);
 		} catch (LimitReachedException e) {
-			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.LIMIT,
-					profile);
+			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.LIMIT, profile);
 			response.setStatus(429);
-			return JsonUtils.toJson(new ApiError(wskey, "search.json", "Rate limit exceeded. "
-					+ usageLimit, requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, "search.json", "Rate limit exceeded. " + usageLimit,
+					requestNumber), callback);
 		}
 
 		Class<? extends IdBean> clazz;
@@ -182,12 +178,12 @@ public class SearchController {
 		}
 
 		try {
-			SearchResults<? extends IdBean> result = createResults(wskey,
-					profile, query, clazz);
+			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
 			result.requestNumber = requestNumber;
-			log.info("got response " + result.items.size());
-			apiLogService.logApiRequest(wskey, query.getQuery(),
-					RecordType.SEARCH, profile);
+			if (log.isInfoEnabled()) {
+				log.info("got response " + result.items.size());
+			}
+			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH, profile);
 			return JsonUtils.toJson(result, callback);
 		} catch (SolrTypeException e) {
 			log.error(wskey + " [search.json] ", e);
@@ -200,15 +196,14 @@ public class SearchController {
 		}
 	}
 
-
 	@RequestMapping(value = "/v2/suggestions.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView suggestionsJson(
-			@RequestParam(value = "query", required = true) String query,
+	public ModelAndView suggestionsJson(@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "rows", required = false, defaultValue = "10") int count,
 			@RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases,
-			@RequestParam(value = "callback", required = false) String callback
-	) {
-		log.info("phrases: " + phrases);
+			@RequestParam(value = "callback", required = false) String callback) {
+		if (log.isInfoEnabled()) {
+			log.info("phrases: " + phrases);
+		}
 		Suggestions response = new Suggestions(null, "suggestions.json");
 		try {
 			response.items = searchService.suggestions(query, count);
@@ -219,8 +214,7 @@ public class SearchController {
 		return JsonUtils.toJson(response, callback);
 	}
 
-	private <T extends IdBean> SearchResults<T> createResults(String apiKey,
-			String profile, Query query, Class<T> clazz)
+	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query query, Class<T> clazz)
 			throws SolrTypeException {
 		SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, query);
@@ -245,21 +239,18 @@ public class SearchController {
 			}
 		}
 
-		log.info("beans: " + beans.size());
-		response.items = beans;
-		if (StringUtils.containsIgnoreCase(profile, "facets")
-				|| StringUtils.containsIgnoreCase(profile, "portal")) {
-			response.facets = ModelUtils.conventFacetList(resultSet
-					.getFacetFields());
+		if (log.isInfoEnabled()) {
+			log.info("beans: " + beans.size());
 		}
-		if (StringUtils.containsIgnoreCase(profile, "breadcrumb")
-				|| StringUtils.containsIgnoreCase(profile, "portal")) {
+		response.items = beans;
+		if (StringUtils.containsIgnoreCase(profile, "facets") || StringUtils.containsIgnoreCase(profile, "portal")) {
+			response.facets = ModelUtils.conventFacetList(resultSet.getFacetFields());
+		}
+		if (StringUtils.containsIgnoreCase(profile, "breadcrumb") || StringUtils.containsIgnoreCase(profile, "portal")) {
 			response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
 		}
-		if (StringUtils.containsIgnoreCase(profile, "spelling")
-				|| StringUtils.containsIgnoreCase(profile, "portal")) {
-			response.spellcheck = ModelUtils.convertSpellCheck(resultSet
-					.getSpellcheck());
+		if (StringUtils.containsIgnoreCase(profile, "spelling") || StringUtils.containsIgnoreCase(profile, "portal")) {
+			response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
 		}
 		// if (StringUtils.containsIgnoreCase(profile, "suggestions") ||
 		// StringUtils.containsIgnoreCase(profile, "portal")) {
@@ -270,16 +261,14 @@ public class SearchController {
 	@RequestMapping(value = "/v2/search.kml", produces = MediaType.APPLICATION_XML_VALUE)
 	// @RequestMapping(value = "/v2/search.kml", produces =
 	// "application/vnd.google-earth.kml+xml")
-	public @ResponseBody KmlResponse searchKml(
-			Principal principal,
-			@RequestParam(value = "query", required = true) String queryString,
+	public @ResponseBody
+	KmlResponse searchKml(Principal principal, @RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
 			@RequestParam(value = "sort", required = false) String sort,
-			@RequestParam(value = "wskey", required = true) String wskey,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception {
+			@RequestParam(value = "wskey", required = true) String wskey, HttpServletRequest request,
+			HttpServletResponse response) throws Exception {
 
 		// workaround of a Spring issue
 		// (https://jira.springsource.org/browse/SPR-7963)
@@ -304,20 +293,15 @@ public class SearchController {
 			throw new Exception(e);
 		}
 		KmlResponse kmlResponse = new KmlResponse();
-		Query query = new Query(SolrUtils.translateQuery(queryString))
-				.setApiQuery(true).setAllowSpellcheck(false)
+		Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setAllowSpellcheck(false)
 				.setAllowFacets(false);
 		query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
 		try {
-			ResultSet<BriefBean> resultSet = searchService.search(
-					BriefBean.class, query);
-			kmlResponse.document.extendedData.totalResults.value = Long
-					.toString(resultSet.getResultSize());
-			kmlResponse.document.extendedData.startIndex.value = Integer
-					.toString(start);
+			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
+			kmlResponse.document.extendedData.totalResults.value = Long.toString(resultSet.getResultSize());
+			kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
 			kmlResponse.setItems(resultSet.getResults());
-			apiLogService.logApiRequest(wskey, query.getQuery(),
-					RecordType.SEARCH, "kml");
+			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH, "kml");
 		} catch (SolrTypeException e) {
 			response.setStatus(429);
 			throw new Exception(e);
@@ -327,8 +311,8 @@ public class SearchController {
 
 	@RequestMapping(value = "/v2/opensearch.rss", produces = MediaType.APPLICATION_XML_VALUE)
 	// , produces = "?rss?")
-	public @ResponseBody RssResponse openSearchRss(
-			@RequestParam(value = "searchTerms", required = true) String queryString,
+	public @ResponseBody
+	RssResponse openSearchRss(@RequestParam(value = "searchTerms", required = true) String queryString,
 			@RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "count", required = false, defaultValue = "12") int count,
 			@RequestParam(value = "sort", required = false) String sort) {
@@ -340,11 +324,9 @@ public class SearchController {
 		channel.query.startPage = start;
 
 		try {
-			Query query = new Query(SolrUtils.translateQuery(queryString))
-					.setApiQuery(true).setPageSize(count).setStart(start - 1)
-					.setAllowFacets(false).setAllowSpellcheck(false);
-			ResultSet<BriefBean> resultSet = searchService.search(
-					BriefBean.class, query);
+			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setPageSize(count)
+					.setStart(start - 1).setAllowFacets(false).setAllowSpellcheck(false);
+			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
 			channel.totalResults.value = resultSet.getResultSize();
 			for (BriefBean bean : resultSet.getResults()) {
 				Item item = new Item();
@@ -352,8 +334,8 @@ public class SearchController {
 				item.title = getTitle(bean);
 				item.description = getDescription(bean);
 				/*
-				 * String enclosure = getThumbnail(bean); if (enclosure != null)
-				 * { item.enclosure = new Enclosure(enclosure); }
+				 * String enclosure = getThumbnail(bean); if (enclosure != null) { item.enclosure = new
+				 * Enclosure(enclosure); }
 				 */
 				item.link = item.guid;
 				channel.items.add(item);
@@ -379,16 +361,16 @@ public class SearchController {
 		return bean.getDataProvider()[0] + " " + bean.getId();
 	}
 
-//	private String getThumbnail(BriefBean bean) {
-//		if (!ArrayUtils.isEmpty(bean.getEdmObject())) {
-//			for (String thumbnail : bean.getEdmObject()) {
-//				if (!StringUtils.isBlank(thumbnail)) {
-//					return thumbnail;
-//				}
-//			}
-//		}
-//		return null;
-//	}
+	// private String getThumbnail(BriefBean bean) {
+	// if (!ArrayUtils.isEmpty(bean.getEdmObject())) {
+	// for (String thumbnail : bean.getEdmObject()) {
+	// if (!StringUtils.isBlank(thumbnail)) {
+	// return thumbnail;
+	// }
+	// }
+	// }
+	// return null;
+	// }
 
 	private String getDescription(BriefBean bean) {
 		StringBuilder sb = new StringBuilder();

@@ -38,7 +38,7 @@ import eu.europeana.corelib.solr.service.SearchService;
 @Controller
 @RequestMapping(value = "/v1/record")
 public class ObjectController1 {
-	
+
 	final Logger log = LoggerFactory.getLogger(ObjectController1.class);
 
 	private final static String EXT_HTML = ".html";
@@ -63,12 +63,9 @@ public class ObjectController1 {
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	// method=RequestMethod.GET,
-	public ModelAndView recordJson(
-			@PathVariable String collectionId, 
-			@PathVariable String recordId,
+	public ModelAndView recordJson(@PathVariable String collectionId, @PathVariable String recordId,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback, 
-			HttpServletRequest request,
+			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		log.info("====== /v1/record/{collectionId}/{recordId}.json ======");
 
@@ -107,12 +104,12 @@ public class ObjectController1 {
 
 		boolean hasResult = false;
 		if (!hasResult && StringUtils.isBlank(wskey)) {
-//			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "No API authorisation key.")));
+			// model.put("json", utils.toJson(new ApiError(wskey, "search.json", "No API authorisation key.")));
 			throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
 		}
 
 		if (!hasResult && (userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null)) {
-//			model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Unregistered user")));
+			// model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Unregistered user")));
 			throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
 			// hasResult = true;
 		}
@@ -140,7 +137,7 @@ public class ObjectController1 {
 				log.info("xml created");
 				return srwResponse;
 			} catch (SolrTypeException e) {
-//				model.put("json", utils.toJson(new ApiError(wskey, "record.json", e.getMessage())));
+				// model.put("json", utils.toJson(new ApiError(wskey, "record.json", e.getMessage())));
 				response.setStatus(500);
 				return null;
 			}
@@ -172,9 +169,13 @@ public class ObjectController1 {
 			final Marshaller marshaller = context.createMarshaller();
 			final StringWriter stringWriter = new StringWriter();
 			marshaller.marshal(response, stringWriter);
-			log.info("result: " + stringWriter.toString());
+			if (log.isInfoEnabled()) {
+				log.info("result: " + stringWriter.toString());
+			}
 		} catch (JAXBException e) {
-			log.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
+			if (log.isErrorEnabled()) {
+				log.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
+			}
 		}
 	}
 }

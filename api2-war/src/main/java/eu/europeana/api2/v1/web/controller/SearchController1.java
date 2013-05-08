@@ -155,7 +155,9 @@ public class SearchController1 {
 		channel.updateDescription();
 
 		try {
-			log.info(queryString + ", " + RESULT_ROWS_PER_PAGE + ", " + (Integer.parseInt(startPage) - 1));
+			if (log.isInfoEnabled()) {
+				log.info(queryString + ", " + RESULT_ROWS_PER_PAGE + ", " + (Integer.parseInt(startPage) - 1));
+			}
 			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true)
 					.setPageSize(RESULT_ROWS_PER_PAGE).setStart(Integer.parseInt(startPage) - 1)
 					.setAllowSpellcheck(false).setAllowFacets(false);
@@ -243,7 +245,9 @@ public class SearchController1 {
 			items.add(doc.asMap());
 		}
 		response.items = items;
-		log.info("response: " + response);
+		if (log.isInfoEnabled()) {
+			log.info("response: " + response);
+		}
 		return response;
 	}
 
@@ -269,8 +273,10 @@ public class SearchController1 {
 	}
 
 	private void logException(Exception e) {
-		log.error(ExceptionUtils.getRootCauseMessage(e));
-		log.error(ExceptionUtils.getFullStackTrace(e));
+		if (log.isErrorEnabled()) {
+			log.error(ExceptionUtils.getRootCauseMessage(e));
+			log.error(ExceptionUtils.getFullStackTrace(e));
+		}
 	}
 
 	public String getPortalServer() {
