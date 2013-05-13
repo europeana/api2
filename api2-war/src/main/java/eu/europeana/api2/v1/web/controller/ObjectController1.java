@@ -11,7 +11,6 @@ import javax.xml.bind.Marshaller;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -31,6 +30,7 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
+import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.solr.exceptions.EuropeanaQueryException;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
@@ -39,7 +39,8 @@ import eu.europeana.corelib.solr.service.SearchService;
 @RequestMapping(value = "/v1/record")
 public class ObjectController1 {
 
-	final Logger log = LoggerFactory.getLogger(ObjectController1.class);
+	@Log
+	private Logger log;
 
 	private final static String EXT_HTML = ".html";
 

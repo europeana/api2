@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -55,6 +54,7 @@ import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
+import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.utils.service.OptOutService;
@@ -66,7 +66,8 @@ import eu.europeana.corelib.utils.service.OptOutService;
 @RequestMapping(value = "/v2/record")
 public class ObjectController {
 
-	final Logger log = LoggerFactory.getLogger(SearchController.class);
+	@Log
+	private Logger log;
 
 	@Resource
 	private SearchService searchService;

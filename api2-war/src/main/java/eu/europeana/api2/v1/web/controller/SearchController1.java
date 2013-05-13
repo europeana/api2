@@ -13,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -35,6 +34,7 @@ import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.IdBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
+import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
@@ -44,7 +44,8 @@ import eu.europeana.corelib.utils.service.OptOutService;
 @Controller
 public class SearchController1 {
 
-	final Logger log = LoggerFactory.getLogger(SearchController1.class);
+	@Log
+	private Logger log;
 
 	@Resource(name = "corelib_db_userService")
 	private UserService userService;
