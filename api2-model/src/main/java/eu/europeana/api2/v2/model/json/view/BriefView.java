@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -283,6 +282,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		portalUrl = _portalUrl;
 	}
 
+	@SuppressWarnings("unchecked")
 	private List<Map<String, String>> transformToMap(List<Map<String, String>> fieldValues) {
 		if (fieldValues == null) {
 			return null;
