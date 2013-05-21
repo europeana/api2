@@ -31,7 +31,6 @@ import eu.europeana.api2.v2.model.xml.rss.opensearch.Statistic;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@SuppressWarnings("unused")
 public class Channel {
 
 	private static final String DESCRIPTION_SUFFIX = " - Europeana Open Search";
