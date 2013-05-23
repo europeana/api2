@@ -23,8 +23,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import eu.europeana.api2.exceptions.LimitReachedException;
 import eu.europeana.api2.model.json.ApiError;
+import eu.europeana.corelib.db.exception.LimitReachedException;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>

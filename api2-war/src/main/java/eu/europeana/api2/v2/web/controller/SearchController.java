@@ -39,7 +39,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.mongodb.Mongo;
 
-import eu.europeana.api2.exceptions.LimitReachedException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.SearchResults;
@@ -53,6 +52,7 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.utils.ModelUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
+import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.db.service.UserService;
@@ -148,27 +148,24 @@ public class SearchController {
 		if (profile.equals("portal") || profile.equals("facets")) {
 			query.setAllowFacets(true);
 		}
-		long usageLimit = 0;
+
 		ApiKey apiKey;
-		long requestNumber = 0;
+		long requested = 0;
 		try {
 			apiKey = apiService.findByID(wskey);
 			if (apiKey == null) {
 				response.setStatus(401);
 				return JsonUtils.toJson(new ApiError(wskey, "search.json", "Unregistered user"), callback);
 			}
-			if (apiService.checkReachedLimit(apiKey)) {
-				throw new LimitReachedException();
-			}
+			requested = apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
 			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH, profile);
 			response.setStatus(401);
-			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage(), requested), callback);
 		} catch (LimitReachedException e) {
 			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.LIMIT, profile);
 			response.setStatus(429);
-			return JsonUtils.toJson(new ApiError(wskey, "search.json", "Rate limit exceeded. " + usageLimit,
-					requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage(), e.getRequested()), callback);
 		}
 
 		Class<? extends IdBean> clazz;
@@ -180,7 +177,7 @@ public class SearchController {
 
 		try {
 			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
-			result.requestNumber = requestNumber;
+			result.requestNumber = requested;
 			if (log.isInfoEnabled()) {
 				log.info("got response " + result.items.size());
 			}
@@ -280,17 +277,12 @@ public class SearchController {
 
 		try {
 			ApiKey apiKey = apiService.findByID(wskey);
-			if (apiKey == null) {
-				response.setStatus(401);
-				throw new LimitReachedException();
-			}
-			if (apiService.checkReachedLimit(apiKey)) {
-				response.setStatus(429);
-				throw new LimitReachedException();
-			}
+			apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
+			response.setStatus(401);
 			throw new Exception(e);
 		} catch (LimitReachedException e) {
+			response.setStatus(429);
 			throw new Exception(e);
 		}
 		KmlResponse kmlResponse = new KmlResponse();

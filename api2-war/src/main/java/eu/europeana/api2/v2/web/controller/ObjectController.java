@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import eu.europeana.api2.exceptions.LimitReachedException;
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
@@ -49,6 +48,7 @@ import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
+import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
@@ -117,19 +117,16 @@ public class ObjectController {
 			if (apiKey == null) {
 				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Unregistered user"), callback);
 			}
-			if (apiService.checkReachedLimit(apiKey)) {
-				throw new LimitReachedException();
-			}
+			usageLimit = apiKey.getUsageLimit();
+			requestNumber = apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
 			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT,
 					profile);
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
 					requestNumber), callback);
 		} catch (LimitReachedException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT,
-					profile);
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", "Rate limit exceeded. "
-					+ usageLimit, requestNumber), callback);
+			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()), callback);
 		}
 		log.info("record");
 		ObjectResult objectResult = new ObjectResult(wskey, "record.json",
