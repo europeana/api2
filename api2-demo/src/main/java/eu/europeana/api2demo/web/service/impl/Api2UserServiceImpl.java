@@ -13,6 +13,7 @@ import org.springframework.web.client.RestOperations;
 import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2demo.Config;
 import eu.europeana.api2demo.web.model.UserFavorites;
+import eu.europeana.api2demo.web.model.UserSearches;
 import eu.europeana.api2demo.web.model.UserTags;
 import eu.europeana.api2demo.web.service.Api2UserService;
 
@@ -97,6 +98,20 @@ public class Api2UserServiceImpl implements Api2UserService {
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	@Override
+	public UserSearches getSavedSearches() {
+		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
+				URI.create(Config.URI_SEARCHES_GET), byte[].class));
+		try {
+			return new ObjectMapper().readValue(is, UserSearches.class);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public void setRestTemplate(OAuth2RestTemplate restTemplate) {

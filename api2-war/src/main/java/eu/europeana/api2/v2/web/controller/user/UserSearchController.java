@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +39,7 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.SavedSearch;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
+import eu.europeana.corelib.web.utils.UrlBuilder;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -83,7 +85,7 @@ public class UserSearchController extends AbstractUserController {
 	public ModelAndView createRest(
 			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "qf", required = false) String[] refinements,
-			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
+			@RequestParam(value = "start", required = false, defaultValue = "1") String start,
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		return create(query, refinements, start, callback, principal);
@@ -93,10 +95,26 @@ public class UserSearchController extends AbstractUserController {
 	public ModelAndView create(
 			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "qf", required = false) String[] refinements,
-			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
+			@RequestParam(value = "start", required = false, defaultValue = "1") String start,
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		return null;
+		User user = userService.findByEmail(principal.getName());
+		UserModification response = new UserModification(getApiId(principal), "/user/tag.search?action=CREATE");
+		if (user != null) {
+			UrlBuilder ub = new UrlBuilder(query);
+			ub.addParam("qf", refinements, true);
+			ub.addParam("start", start, true);
+			String queryString = ub.toString();
+			queryString = StringUtils.replace(queryString, "?", "&");
+			try {
+				userService.createSavedSearch(user.getId(), query, queryString);
+				response.success = true;
+			} catch (DatabaseException e) {
+				response.success = false;
+				response.error = e.getMessage();
+			}
+		}
+		return JsonUtils.toJson(response, callback);
 	}
 
 	@RequestMapping(value = "/user/search.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)

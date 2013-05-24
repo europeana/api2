@@ -15,5 +15,7 @@ public class Config {
 	public static final String URI_TAGS_CREATE = URI_API2 + "/user/tag.json?action=CREATE&objectid=";
 	
 	public static final String URI_TAGS_DELETE = URI_API2 + "/user/tag.json?action=DELETE&objectid=";
+
+	public static final String URI_SEARCHES_GET = URI_API2 + "/user/search.json";
 	
 }

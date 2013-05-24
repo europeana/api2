@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2demo.web.model.UserFavorites;
+import eu.europeana.api2demo.web.model.UserSearches;
 import eu.europeana.api2demo.web.model.UserTags;
 import eu.europeana.api2demo.web.service.Api2UserService;
 
@@ -56,5 +57,13 @@ public class UserController {
 		return tags();
 	}
 
+	@RequestMapping(value = "/searches", params="!action")
+	public ModelAndView searches() {
+		UserSearches userSearches = api2UserService.getSavedSearches();
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("searches", userSearches.items);
+		model.put("username", userSearches.username);
+		return new ModelAndView("user/searches", model);
+	}
 
 }

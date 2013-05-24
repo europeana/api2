@@ -1,6 +1,7 @@
 package eu.europeana.api2demo.web.service;
 
 import eu.europeana.api2demo.web.model.UserFavorites;
+import eu.europeana.api2demo.web.model.UserSearches;
 import eu.europeana.api2demo.web.model.UserTags;
 
 public interface Api2UserService {
@@ -18,4 +19,8 @@ public interface Api2UserService {
 	boolean createTag(String id, String tag);
 
 	boolean deleteTag(Long id);
+	
+	// SAVED SEARCHES
+	UserSearches getSavedSearches();
+	
 }
