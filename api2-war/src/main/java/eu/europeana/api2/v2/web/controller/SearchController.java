@@ -139,8 +139,13 @@ public class SearchController {
 			log.info("=== search.json: " + rows);
 		}
 
-		Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setRefinements(refinements)
-				.setPageSize(rows).setStart(start - 1).setParameter("facet.mincount", "1").setAllowSpellcheck(false)
+		Query query = new Query(SolrUtils.translateQuery(queryString))
+				.setApiQuery(true)
+				.setRefinements(refinements)
+				.setPageSize(rows)
+				.setStart(start - 1)
+				.setParameter("facet.mincount", "1")
+				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
 		if (profile.equals("portal") || profile.equals("spelling")) {
 			query.setAllowSpellcheck(true);
@@ -178,6 +183,7 @@ public class SearchController {
 		try {
 			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
 			result.requestNumber = requested;
+			result.start = start;
 			if (log.isInfoEnabled()) {
 				log.info("got response " + result.items.size());
 			}
