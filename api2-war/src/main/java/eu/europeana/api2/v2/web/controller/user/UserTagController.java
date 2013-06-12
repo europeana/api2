@@ -48,13 +48,13 @@ public class UserTagController extends AbstractUserController {
 	@Resource(name = "corelib_db_userService")
 	private UserService userService;
 
-	@RequestMapping(value = "/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView defaultAction(@RequestParam(value = "objectid", required = false) String objectId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		return list(objectId, callback, principal);
 	}
 
-	@RequestMapping(value = "/user/tag.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/user/tag.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView list(@RequestParam(value = "objectid", required = false) String objectId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
@@ -73,7 +73,7 @@ public class UserTagController extends AbstractUserController {
 		return null;
 	}
 
-	@RequestMapping(value = "/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+	@RequestMapping(value = "/v2/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
 	public ModelAndView createRest(@RequestParam(value = "objectid", required = true) String objectId,
 			@RequestParam(value = "tag", required = true) String tag,
@@ -81,7 +81,7 @@ public class UserTagController extends AbstractUserController {
 		return create(objectId, tag, callback, principal);
 	}
 
-	@RequestMapping(value = "/user/tag.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/user/tag.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView create(@RequestParam(value = "objectid", required = true) String objectId,
 			@RequestParam(value = "tag", required = true) String tag,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
@@ -99,13 +99,13 @@ public class UserTagController extends AbstractUserController {
 		return JsonUtils.toJson(response, callback);
 	}
 
-	@RequestMapping(value = "/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
+	@RequestMapping(value = "/v2/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(@RequestParam(value = "objectid", required = false) Long objectId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		return delete(objectId, callback, principal);
 	}
 
-	@RequestMapping(value = "/user/tag.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/user/tag.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView delete(@RequestParam(value = "tagid", required = true) Long tagId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());

@@ -2,7 +2,7 @@ package eu.europeana.api2demo;
 
 public class Config {
 	
-	public static final String URI_API2 = "http://localhost:8080/api";
+	public static final String URI_API2 = "http://localhost:8080/api/v2";
 
 	public static final String URI_FAVORITES_GET = URI_API2 + "/user/favorite.json";
 
@@ -16,6 +16,8 @@ public class Config {
 	
 	public static final String URI_TAGS_DELETE = URI_API2 + "/user/tag.json?action=DELETE&objectid=";
 
-	public static final String URI_SEARCHES_GET = URI_API2 + "/user/search.json";
+	public static final String URI_SEARCHES_GET = URI_API2 + "/user/savedsearch.json";
+
+	public static final String URI_SEARCHES_DELETE = URI_API2 + "/user/savedsearch.json?action=DELETE&objectid=";
 	
 }

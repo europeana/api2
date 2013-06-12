@@ -65,5 +65,13 @@ public class UserController {
 		model.put("username", userSearches.username);
 		return new ModelAndView("user/searches", model);
 	}
+	
+	@RequestMapping(value = "/searches", params="action=DELETE", method=RequestMethod.GET)
+	public ModelAndView searchesDelete(
+		@RequestParam(value = "id", required = true) Long objectId
+	) {
+		api2UserService.deleteSavedSearche(objectId);
+		return searches();
+	}
 
 }

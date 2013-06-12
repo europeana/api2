@@ -42,14 +42,14 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
 @Controller
 public class UserFavoriteController extends AbstractUserController {
 
-	@RequestMapping(value = "/user/favorite.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+	@RequestMapping(value = "/v2/user/favorite.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		return list(callback, principal);
 	}
 
-	@RequestMapping(value = "/user/favorite.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/user/favorite.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView list(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
@@ -70,7 +70,7 @@ public class UserFavoriteController extends AbstractUserController {
 		return null;
 	}
 
-	@RequestMapping(value = "/user/favorite.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+	@RequestMapping(value = "/v2/user/favorite.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
 	public ModelAndView createRest(
 			@RequestParam(value = "objectid", required = false) String objectId,
@@ -79,7 +79,7 @@ public class UserFavoriteController extends AbstractUserController {
 		return create(objectId, callback, principal);
 	}
 
-	@RequestMapping(value = "/user/favorite.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+	@RequestMapping(value = "/v2/user/favorite.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView create(
 			@RequestParam(value = "objectid", required = false) String objectId,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -97,7 +97,7 @@ public class UserFavoriteController extends AbstractUserController {
 		return JsonUtils.toJson(response, callback);
 	}
 
-	@RequestMapping(value = "/user/favorite.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
+	@RequestMapping(value = "/v2/user/favorite.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(
 			@RequestParam(value = "objectid", required = false) Long objectId,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -105,7 +105,7 @@ public class UserFavoriteController extends AbstractUserController {
 		return delete(objectId, callback, principal);
 	}
 
-	@RequestMapping(value = "/user/favorite.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+	@RequestMapping(value = "/v2/user/favorite.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView delete(
 			@RequestParam(value = "objectid", required = false) Long favId,
 			@RequestParam(value = "callback", required = false) String callback,

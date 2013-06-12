@@ -114,6 +114,21 @@ public class Api2UserServiceImpl implements Api2UserService {
 		return null;
 	}
 	
+	@Override
+	public boolean deleteSavedSearche(Long id) {
+		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
+				URI.create(Config.URI_SEARCHES_DELETE + id.toString()), byte[].class));
+		try {
+			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
+			return response.success;
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
 	public void setRestTemplate(OAuth2RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}

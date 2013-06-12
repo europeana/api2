@@ -50,14 +50,14 @@ public class UserSearchController extends AbstractUserController {
 	@Resource(name = "corelib_db_userService")
 	private UserService userService;
 
-	@RequestMapping(value = "/user/search.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+	@RequestMapping(value = "/v2/user/savedsearch.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		return list(callback, principal);
 	}
 
-	@RequestMapping(value = "/user/search.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/user/savedsearch.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView list(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
@@ -80,7 +80,7 @@ public class UserSearchController extends AbstractUserController {
 		return null;
 	}
 
-	@RequestMapping(value = "/user/search.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+	@RequestMapping(value = "/v2/user/savedsearch.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
 	public ModelAndView createRest(
 			@RequestParam(value = "query", required = true) String query,
@@ -91,7 +91,7 @@ public class UserSearchController extends AbstractUserController {
 		return create(query, refinements, start, callback, principal);
 	}
 
-	@RequestMapping(value = "/user/search.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/user/savedsearch.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView create(
 			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "qf", required = false) String[] refinements,
@@ -117,7 +117,7 @@ public class UserSearchController extends AbstractUserController {
 		return JsonUtils.toJson(response, callback);
 	}
 
-	@RequestMapping(value = "/user/search.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
+	@RequestMapping(value = "/v2/user/savedsearch.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(
 			@RequestParam(value = "objectid", required = false) Long objectId,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -125,7 +125,7 @@ public class UserSearchController extends AbstractUserController {
 		return delete(objectId, callback, principal);
 	}
 
-	@RequestMapping(value = "/user/search.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/user/savedsearch.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView delete(
 			@RequestParam(value = "searchid", required = true) Long searchId,
 			@RequestParam(value = "callback", required = false) String callback,

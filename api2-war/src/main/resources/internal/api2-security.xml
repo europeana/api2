@@ -48,11 +48,11 @@
 		<expression-handler ref="oauthWebExpressionHandler" />
 	</http>
 	
-	<http pattern="/user/**" create-session="never" entry-point-ref="api2_oauth2_authenticationEntryPoint"
+	<http pattern="/v2/user/**" create-session="never" entry-point-ref="api2_oauth2_authenticationEntryPoint"
 			access-decision-manager-ref="api2_oauth2_accessDecisionManager" xmlns="http://www.springframework.org/schema/security">
 		<anonymous enabled="false" />
-		<intercept-url pattern="/user" access="ROLE_USER,SCOPE_READ" />
-		<intercept-url pattern="/user/**" access="ROLE_USER,SCOPE_READ" />
+		<intercept-url pattern="/v2/user" access="ROLE_USER,SCOPE_READ" />
+		<intercept-url pattern="/v2/user/**" access="ROLE_USER,SCOPE_READ" />
 		<custom-filter ref="api2_oauth2_resourceServerFilter" before="PRE_AUTH_FILTER" />
 		<access-denied-handler ref="api2_oauth2_accessDeniedHandler" />
 	</http>	
