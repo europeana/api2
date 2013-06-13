@@ -20,29 +20,16 @@
 <beans
 	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:oauth2="http://www.springframework.org/schema/security/oauth2"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="
 		http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/security/oauth2 
-		http://www.springframework.org/schema/security/spring-security-oauth2.xsd
+		http://www.springframework.org/schema/util
+		http://www.springframework.org/schema/util/spring-util.xsd
 	">
 
-	<oauth2:client id="oauth2ClientFilter" />
-	
-	<oauth2:resource id="api2"
-		type="authorization_code"
-		client-id="#{europeanaProperties['api2.key']}" 
-		client-secret="#{europeanaProperties['api2.secret']}"
-		access-token-uri="http://localhost:8080/api/oauth/token"
-		user-authorization-uri="http://localhost:8080/api/oauth/authorize"
-		scope="read,write"
-	/>
+	<util:properties id="europeanaProperties" location="file:${EUROPEANA_PROPERTIES}" />
 
-	<bean id="userService" class="eu.europeana.api2demo.web.service.impl.Api2UserServiceImpl">
-		<property name="restTemplate">
-			<oauth2:rest-template resource="api2" />
-		</property>
-	</bean>
+	<bean id="config" class="eu.europeana.api2demo.Config" />
 
 </beans>	

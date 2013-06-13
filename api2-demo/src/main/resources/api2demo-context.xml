@@ -8,6 +8,7 @@
     ">
 
 	<!-- INTERNAL -->
+	<import resource="internal/api2demo-configuration.xml" />
 	<import resource="internal/api2demo-security.xml" />
 	<import resource="internal/api2demo-services.xml" />
 
