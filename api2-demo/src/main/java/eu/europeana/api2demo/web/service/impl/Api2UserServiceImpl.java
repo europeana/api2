@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import javax.annotation.Resource;
+
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
@@ -21,10 +23,13 @@ public class Api2UserServiceImpl implements Api2UserService {
 
 	private RestOperations restTemplate;
 	
+	@Resource
+	private Config config;
+	
 	@Override
 	public UserFavorites getFavorites() {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(Config.URI_FAVORITES_GET), byte[].class));
+				URI.create(config.getUriFavoritesGet()), byte[].class));
 		try {
 			return new ObjectMapper().readValue(is, UserFavorites.class);
 		} catch (JsonProcessingException e) {
@@ -38,7 +43,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 	@Override
 	public boolean createFavorite(String id) {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(Config.URI_FAVORITES_CREATE + id), byte[].class));
+				URI.create(config.getUriFavoritesCreate() + id), byte[].class));
 		try {
 			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
 			return response.success;
@@ -53,7 +58,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 	@Override
 	public boolean deleteFavorite(Long id) {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(Config.URI_FAVORITES_DELETE + id.toString()), byte[].class));
+				URI.create(config.getUriFavoritesDelete() + id.toString()), byte[].class));
 		try {
 			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
 			return response.success;
@@ -68,7 +73,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 	@Override
 	public UserTags getTags() {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(Config.URI_TAGS_GET), byte[].class));
+				URI.create(config.getUriTagsGet()), byte[].class));
 		try {
 			return new ObjectMapper().readValue(is, UserTags.class);
 		} catch (JsonProcessingException e) {
@@ -88,7 +93,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 	@Override
 	public boolean deleteTag(Long id) {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(Config.URI_TAGS_DELETE + id.toString()), byte[].class));
+				URI.create(config.getUriTagsDelete() + id.toString()), byte[].class));
 		try {
 			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
 			return response.success;
@@ -103,7 +108,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 	@Override
 	public UserSearches getSavedSearches() {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(Config.URI_SEARCHES_GET), byte[].class));
+				URI.create(config.getUriSearchesGet()), byte[].class));
 		try {
 			return new ObjectMapper().readValue(is, UserSearches.class);
 		} catch (JsonProcessingException e) {
@@ -117,7 +122,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 	@Override
 	public boolean deleteSavedSearche(Long id) {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(Config.URI_SEARCHES_DELETE + id.toString()), byte[].class));
+				URI.create(config.getUriSearchesDelete() + id.toString()), byte[].class));
 		try {
 			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
 			return response.success;
