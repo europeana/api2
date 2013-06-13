@@ -11,7 +11,7 @@ import eu.europeana.corelib.utils.StringArrayUtils;
 public class Api2OAuth2ClientDetails extends BaseClientDetails {
 	private static final long serialVersionUID = -5687602758230210358L;
 	
-	private Set<String> authGrantTypes = StringArrayUtils.toSet("authorization_code","implicit");
+	private Set<String> authGrantTypes = StringArrayUtils.toSet("authorization_code", "implicit");
 	private Set<String> scope = StringArrayUtils.toSet("read", "write");
 
 	
