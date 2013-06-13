@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiLogService;
+import eu.europeana.corelib.db.service.OAuth2TokenService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 
@@ -23,6 +24,9 @@ public class RedirectController {
 
 	@Resource(name = "corelib_db_userService")
 	private UserService userService;
+	
+	@Resource
+	private OAuth2TokenService oAuth2TokenService;
 
 	/*
 	 * The page where you are redirected to the isShownAt and isShownBy links
@@ -48,5 +52,11 @@ public class RedirectController {
 		apiLogService.logApiRequest(wskey, id, RecordType.REDIRECT, profile);
 
 		return "redirect:" + isShownAt;
+	}
+
+	@RequestMapping(value = { "/clearTokens" }, method = RequestMethod.GET)
+	public String removeAll() {
+		oAuth2TokenService.removeAll();
+		return "cleared";
 	}
 }

@@ -7,8 +7,6 @@ public class Config {
 	@Value("#{europeanaProperties['api2.url']}")
 	private String apiUrl;
 
-	private static final String URI_API2 = "/v2";
-
 	private static final String URI_FAVORITES_GET = "/v2/user/favorite.json";
 
 	private static final String URI_FAVORITES_CREATE = "/v2/user/favorite.json?action=CREATE&objectid=";
@@ -27,10 +25,6 @@ public class Config {
 
 	public String getApiUrl() {
 		return apiUrl;
-	}
-
-	public String getUriApi2() {
-		return getApiUrl() + URI_API2;
 	}
 
 	public String getUriFavoritesGet() {
