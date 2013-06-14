@@ -2,8 +2,6 @@ package eu.europeana.api2.v2.model.xml.srw;
 
 import javax.xml.bind.annotation.XmlElement;
 
-import eu.europeana.api2.v1.model.json.view.FullDoc;
-
 public class Record {
 
 	@XmlElement
