@@ -186,6 +186,7 @@ public class SearchController {
 		try {
 			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
 			result.requestNumber = requested;
+			result.start = start;
 			if (StringUtils.containsIgnoreCase(profile, "params")) {
 				result.addParams(RequestUtils.getParameterMap(request), "wskey");
 				result.addParam("profile", profile);
