@@ -34,8 +34,6 @@ public class AbstractSearchResults<T> extends ApiResponse {
 
 	public long totalResults;
 
-	public Integer start; 
-
 	public List<T> items;
 
 	public AbstractSearchResults(String apikey, String action) {
