@@ -68,6 +68,7 @@ import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.SolrUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.utils.NavigationUtils;
+import eu.europeana.corelib.web.utils.RequestUtils;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -113,14 +114,16 @@ public class SearchController {
 	private static int maxRows = -1;
 
 	@RequestMapping(value = "/v2/search.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView searchJson(@RequestParam(value = "query", required = true) String queryString,
+	public ModelAndView searchJson(
+			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
 			@RequestParam(value = "sort", required = false) String sort,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
+			@RequestParam(value = "callback", required = false) String callback, 
+			HttpServletRequest request,
 			HttpServletResponse response) {
 
 		// workaround of a Spring issue
@@ -183,7 +186,13 @@ public class SearchController {
 		try {
 			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
 			result.requestNumber = requested;
-			result.start = start;
+			if (StringUtils.containsIgnoreCase(profile, "params")) {
+				result.addParams(RequestUtils.getParameterMap(request), "wskey");
+				result.addParam("profile", profile);
+				result.addParam("start", start);
+				result.addParam("rows", rows);
+			}
+
 			if (log.isInfoEnabled()) {
 				log.info("got response " + result.items.size());
 			}

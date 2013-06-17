@@ -18,9 +18,17 @@
 package eu.europeana.api2.model.json.abstracts;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+
+import eu.europeana.corelib.utils.StringArrayUtils;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -42,6 +50,8 @@ public abstract class ApiResponse {
 
 	public Long requestNumber;
 
+	public Map<String, Object> params;
+
 	public ApiResponse(String apikey, String action) {
 		this.apikey = apikey;
 		this.action = action;
@@ -49,5 +59,36 @@ public abstract class ApiResponse {
 
 	public ApiResponse() {
 		// used by Jackson
+	}
+	
+	public void addParam(String name, Object value) {
+		if (StringUtils.isNotBlank(name) && value != null) {
+			if (params == null) {
+				params = new LinkedHashMap<String, Object>();
+			}
+			params.put(name, value);
+		}
+	}
+
+	public void addParams(Map<String, String[]> map, String... excl) {
+		List<String> excluded = StringArrayUtils.toList(excl);
+		if (map != null) {
+			for (Entry<String, String[]> item : map.entrySet()) {
+				if (excluded.contains(item.getKey())) {
+					continue;
+				}
+
+				if (item.getValue().length == 1) {
+					String value = item.getValue()[0];
+					if (NumberUtils.isNumber(value)) {
+						addParam(item.getKey(), NumberUtils.toLong(item.getValue()[0]));
+					} else {
+						addParam(item.getKey(), item.getValue()[0]);
+					}
+				} else {
+					addParam(item.getKey(), item.getValue());
+				}
+			}
+		}
 	}
 }
