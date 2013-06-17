@@ -273,8 +273,8 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	public static void setApiUrl(String _apiUrl) {
 		apiUrl = _apiUrl;
-		if (apiUrl.endsWith("/")) {
-			apiUrl = apiUrl.replace("/$", "");
+		if (StringUtils.endsWith(apiUrl, "/")) {
+			apiUrl = StringUtils.chop(apiUrl);
 		}
 	}
 
