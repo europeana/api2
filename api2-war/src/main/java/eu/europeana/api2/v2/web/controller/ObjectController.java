@@ -25,6 +25,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -58,6 +59,7 @@ import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.utils.service.OptOutService;
+import eu.europeana.corelib.web.utils.RequestUtils;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -131,6 +133,11 @@ public class ObjectController {
 		log.info("record");
 		ObjectResult objectResult = new ObjectResult(wskey, "record.json",
 				requestNumber);
+		if (StringUtils.containsIgnoreCase(profile, "params")) {
+			objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
+			objectResult.addParam("profile", profile);
+		}
+
 		try {
 			long t0 = (new Date()).getTime();
 			FullBean bean = searchService.findById(europeanaObjectId);
