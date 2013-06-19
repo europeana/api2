@@ -34,8 +34,8 @@
 		type="authorization_code"
 		client-id="#{europeanaProperties['api2.key']}" 
 		client-secret="#{europeanaProperties['api2.secret']}"
-		access-token-uri="http://localhost:8080/api/oauth/token"
-		user-authorization-uri="http://localhost:8080/api/oauth/authorize"
+		access-token-uri="#{europeanaProperties['api2.url.oauth.token']}"
+		user-authorization-uri="#{europeanaProperties['api2.url.oauth.authorize']}"
 		scope="read,write"
 	/>
 
