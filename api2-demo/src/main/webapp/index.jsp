@@ -5,6 +5,8 @@
 <br/>
 <a href="/api-demo/user/tags">Tags</a>
 <br/>
+<a href="/api-demo/user/tagcloud">Tagcloud</a>
+<br/>
 <a href="/api-demo/user/searches">Saved Searches</a>
 </body>
 </html>

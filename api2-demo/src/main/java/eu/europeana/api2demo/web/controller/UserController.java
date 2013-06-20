@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import eu.europeana.api2demo.web.model.TagCloud;
 import eu.europeana.api2demo.web.model.UserFavorites;
 import eu.europeana.api2demo.web.model.UserSearches;
 import eu.europeana.api2demo.web.model.UserTags;
@@ -41,20 +42,32 @@ public class UserController {
 	}
 	
 	@RequestMapping(value = "/tags", params="!action")
-	public ModelAndView tags() {
-		UserTags userTags = api2UserService.getTags();
+	public ModelAndView tags(
+			@RequestParam(value = "filter", required = false) String filter
+			) {
+		UserTags userTags = api2UserService.getTags(filter);
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("tags", userTags.items);
 		model.put("username", userTags.username);
 		return new ModelAndView("user/tags", model);
 	}
 	
+	@RequestMapping(value = "/tagcloud", params="!action")
+	public ModelAndView tagcloud() {
+		TagCloud tagCloud = api2UserService.createTagCloud();
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("tags", tagCloud.items);
+		model.put("username", tagCloud.username);
+		return new ModelAndView("user/tagcloud", model);
+	}
+	
+	
 	@RequestMapping(value = "/tags", params="action=DELETE", method=RequestMethod.GET)
 	public ModelAndView tagsDelete(
 		@RequestParam(value = "id", required = true) Long objectId
 	) {
 		api2UserService.deleteTag(objectId);
-		return tags();
+		return tags(null);
 	}
 
 	@RequestMapping(value = "/searches", params="!action")

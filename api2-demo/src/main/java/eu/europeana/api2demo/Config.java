@@ -15,6 +15,8 @@ public class Config {
 
 	private static final String URI_TAGS_GET = "/v2/user/tag.json";
 
+	private static final String URI_TAGS_TAGCLOUD = "/v2/user/tag.json?action=TAGCLOUD";
+	
 	private static final String URI_TAGS_CREATE = "/v2/user/tag.json?action=CREATE&objectid=";
 	
 	private static final String URI_TAGS_DELETE = "/v2/user/tag.json?action=DELETE&objectid=";
@@ -41,6 +43,10 @@ public class Config {
 
 	public String getUriTagsGet() {
 		return getApiUrl() + URI_TAGS_GET;
+	}
+
+	public String getUriTagsTagcloud() {
+		return getApiUrl() + URI_TAGS_TAGCLOUD;
 	}
 
 	public String getUriTagsCreate() {

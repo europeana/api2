@@ -1,5 +1,6 @@
 package eu.europeana.api2demo.web.service;
 
+import eu.europeana.api2demo.web.model.TagCloud;
 import eu.europeana.api2demo.web.model.UserFavorites;
 import eu.europeana.api2demo.web.model.UserSearches;
 import eu.europeana.api2demo.web.model.UserTags;
@@ -14,7 +15,9 @@ public interface Api2UserService {
 	boolean deleteFavorite(Long id);
 
 	// TAGS
-	UserTags getTags();
+	UserTags getTags(String filter);
+	
+	TagCloud createTagCloud();
 
 	boolean createTag(String id, String tag);
 
