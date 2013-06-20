@@ -96,7 +96,7 @@ public class ObjectController {
 
 	private String similarItemsProfile = "minimal";
 
-	private final static String RESOLVE_PREFIX = "http://www.europeana.eu/resolve/record";
+//	private final static String RESOLVE_PREFIX = "http://www.europeana.eu/resolve/record";
 
 	// @Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -143,7 +143,7 @@ public class ObjectController {
 			FullBean bean = searchService.findById(europeanaObjectId);
 			if (bean == null) {
 				bean = searchService
-						.resolve(RESOLVE_PREFIX + europeanaObjectId);
+						.resolve(europeanaObjectId);
 			}
 
 			if (bean == null) {
