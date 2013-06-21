@@ -268,7 +268,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	}
 
 	protected boolean isProfile(Profile _profile) {
-		return profile.toLowerCase().equals(_profile.getName());
+		return StringUtils.containsIgnoreCase(profile, _profile.getName());
 	}
 
 	public static void setApiUrl(String _apiUrl) {
