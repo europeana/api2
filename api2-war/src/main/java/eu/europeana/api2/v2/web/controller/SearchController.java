@@ -150,10 +150,10 @@ public class SearchController {
 				.setParameter("facet.mincount", "1")
 				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
-		if (profile.equals("portal") || profile.equals("spelling")) {
+		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) {
 			query.setAllowSpellcheck(true);
 		}
-		if (profile.equals("portal") || profile.equals("facets")) {
+		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets")) {
 			query.setAllowFacets(true);
 		}
 
