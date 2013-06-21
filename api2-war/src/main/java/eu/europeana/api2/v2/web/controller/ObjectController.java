@@ -122,8 +122,7 @@ public class ObjectController {
 			usageLimit = apiKey.getUsageLimit();
 			requestNumber = apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT,
-					profile);
+			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
 					requestNumber), callback);
 		} catch (LimitReachedException e) {
@@ -147,14 +146,13 @@ public class ObjectController {
 			}
 
 			if (bean == null) {
-				apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT,
-						profile);
+				apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
 				return JsonUtils.toJson(new ApiError(wskey, "record.json",
 						"Invalid record identifier: " + europeanaObjectId,
 						requestNumber), callback);
 			}
 
-			if (profile.equals(Profile.SIMILAR.getName())) {
+			if (StringUtils.containsIgnoreCase(profile, Profile.SIMILAR.getName())) {
 				BriefView.setApiUrl(apiUrl);
 				BriefView.setPortalUrl(getPortalUrl());
 
