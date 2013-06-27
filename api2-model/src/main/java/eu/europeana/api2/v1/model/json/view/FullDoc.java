@@ -24,12 +24,10 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import javax.xml.bind.annotation.XmlElement;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 
 import eu.europeana.api2.model.xml.srw.SrwResponse;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
@@ -42,8 +40,6 @@ import eu.europeana.corelib.definitions.solr.entity.Proxy;
 import eu.europeana.corelib.definitions.solr.entity.Timespan;
 
 public class FullDoc {
-
-	private final Logger log = Logger.getLogger(getClass().getName());
 
 	private Map<String, Object> map;
 	boolean isOptedOut = false;
@@ -136,17 +132,9 @@ public class FullDoc {
 		if (euAggregation != null) {
 			try {
 				europeanaCountry = map2Array(euAggregation.getEdmCountry());
-				log.info("europeanaCountry: "
-						+ StringUtils.join(europeanaCountry, ", ") + " ("
-						+ europeanaCountry.length + ")");
 			} catch (Exception e) {
-				log.info("Exception: " + e.getMessage());
-				e.printStackTrace();
 			}
 			europeanaLanguage = map2Array(euAggregation.getEdmLanguage());
-			log.info("europeanaLanguage: "
-					+ StringUtils.join(europeanaLanguage, ", ") + " ("
-					+ europeanaLanguage.length + ")");
 		}
 
 		for (Aggregation aggregation : bean.getAggregations()) {
