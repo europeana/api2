@@ -19,7 +19,9 @@ package eu.europeana.api2.v2.web.controller;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -56,8 +58,10 @@ import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.logging.Log;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
+import eu.europeana.corelib.solr.utils.EDMUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 
@@ -194,6 +198,36 @@ public class ObjectController {
 			@RequestParam(value = "apikey", required = true) String apiKey,
 			@RequestParam(value = "sessionhash", required = true) String sessionHash) {
 		return new ApiNotImplementedYet(apiKey, "record.kml");
+	}
+
+	@RequestMapping(value = "/{collectionId}/{recordId}.rdf", produces = "application/rdf+xml")
+	public ModelAndView recordRdf(
+			@PathVariable String collectionId,
+			@PathVariable String recordId,
+			@RequestParam(value = "wskey", required = true) String apiKey,
+			HttpServletRequest request, 
+			HttpServletResponse response) {
+		response.setCharacterEncoding("UTF-8");
+
+		String europeanaObjectId = "/" + collectionId + "/" + recordId;
+		FullBeanImpl bean = null;
+		try {
+			bean = (FullBeanImpl) searchService.findById(europeanaObjectId);
+			if (bean == null) {
+				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId);
+			}
+		} catch (SolrTypeException e) {
+			log.error(ExceptionUtils.getFullStackTrace(e));
+		}
+
+		Map<String, Object> model = new HashMap<String, Object>();
+		if (bean != null) {
+			model.put("record", EDMUtils.toEDM(bean));
+		} else {
+			model.put("record", "error");
+		}
+
+		return new ModelAndView("record.rdf", model);
 	}
 
 	private String getPortalUrl() {
