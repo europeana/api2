@@ -64,9 +64,12 @@ public class ObjectController1 {
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	// method=RequestMethod.GET,
-	public ModelAndView recordJson(@PathVariable String collectionId, @PathVariable String recordId,
+	public ModelAndView recordJson(
+			@PathVariable String collectionId,
+			@PathVariable String recordId,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
+			@RequestParam(value = "callback", required = false) String callback,
+			HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		log.info("====== /v1/record/{collectionId}/{recordId}.json ======");
 
