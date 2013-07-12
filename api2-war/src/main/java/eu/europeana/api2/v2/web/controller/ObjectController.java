@@ -204,12 +204,46 @@ public class ObjectController {
 	public ModelAndView recordRdf(
 			@PathVariable String collectionId,
 			@PathVariable String recordId,
-			@RequestParam(value = "wskey", required = true) String apiKey,
+			@RequestParam(value = "wskey", required = true) String wskey,
 			HttpServletRequest request, 
 			HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("error", "");
+
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
+		String requestUri = europeanaObjectId + ".rdf";
+		String profile = "full";
+
+		// TODO: how to handle limitations?
+		ApiKey apiKey;
+		long usageLimit = 0;
+		long requestNumber = 0;
+		try {
+			apiKey = apiService.findByID(wskey);
+			if (apiKey == null) {
+				response.setStatus(401);
+				model.put("error", "Unregistered user");
+				return new ModelAndView("record.rdf", model);
+			}
+			usageLimit = apiKey.getUsageLimit();
+			requestNumber = apiService.checkReachedLimit(apiKey);
+		} catch (DatabaseException e) {
+			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
+			model.put("error", e.getMessage());
+			response.setStatus(401);
+			return new ModelAndView("record.rdf", model);
+			// return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber));
+		} catch (LimitReachedException e) {
+			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+			log.error(e.getMessage());
+			model.put("error", e.getMessage());
+			response.setStatus(429);
+			return new ModelAndView("record.rdf", model);
+			// return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()));
+		}
+
 		FullBeanImpl bean = null;
 		try {
 			bean = (FullBeanImpl) searchService.findById(europeanaObjectId);
@@ -220,13 +254,14 @@ public class ObjectController {
 			log.error(ExceptionUtils.getFullStackTrace(e));
 		}
 
-		Map<String, Object> model = new HashMap<String, Object>();
 		if (bean != null) {
 			model.put("record", EDMUtils.toEDM(bean));
 		} else {
-			model.put("record", "error");
+			response.setStatus(500);
+			model.put("error", "Non-existing record identifier");
 		}
 
+		apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
 		return new ModelAndView("record.rdf", model);
 	}
 
