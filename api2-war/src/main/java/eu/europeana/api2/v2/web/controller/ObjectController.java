@@ -257,7 +257,7 @@ public class ObjectController {
 		if (bean != null) {
 			model.put("record", EDMUtils.toEDM(bean));
 		} else {
-			response.setStatus(500);
+			response.setStatus(404);
 			model.put("error", "Non-existing record identifier");
 		}
 
