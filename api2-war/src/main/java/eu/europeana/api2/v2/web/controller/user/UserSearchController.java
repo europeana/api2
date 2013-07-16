@@ -119,7 +119,7 @@ public class UserSearchController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/user/savedsearch.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(
-			@RequestParam(value = "objectid", required = false) Long objectId,
+			@RequestParam(value = "searchid", required = false) Long objectId,
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		return delete(objectId, callback, principal);
