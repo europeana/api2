@@ -83,7 +83,7 @@ public class ObjectController1 {
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", "Unregistered user"), callback);
 		}
 		try {
-			FullBean bean = searchService.findById(collectionId, recordId);
+			FullBean bean = searchService.findById(collectionId, recordId,true);
 			if (bean != null) {
 				return JsonUtils.toJson(new FullDoc(bean).asMap(), callback);
 			} else {
@@ -120,7 +120,7 @@ public class ObjectController1 {
 
 		if (!hasResult) {
 			try {
-				FullBean bean = searchService.findById(collectionId, recordId);
+				FullBean bean = searchService.findById(collectionId, recordId,true);
 				SrwResponse srwResponse = new SrwResponse();
 				FullDoc doc = null;
 				if (bean != null) {

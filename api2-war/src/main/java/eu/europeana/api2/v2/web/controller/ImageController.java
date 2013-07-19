@@ -73,7 +73,7 @@ public class ImageController {
 		if (image == null) {
 			// retrieve record
 			try {
-				FullBean bean = searchService.findById(collectionId, recordId);
+				FullBean bean = searchService.findById(collectionId, recordId,false);
 				if (bean != null) {
 					image = DefaultImageCache.getImage(bean.getType());
 					mediaType = MediaType.IMAGE_GIF;

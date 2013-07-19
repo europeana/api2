@@ -143,10 +143,10 @@ public class ObjectController {
 
 		try {
 			long t0 = (new Date()).getTime();
-			FullBean bean = searchService.findById(europeanaObjectId);
+			FullBean bean = searchService.findById(europeanaObjectId,true);
 			if (bean == null) {
 				bean = searchService
-						.resolve(europeanaObjectId);
+						.resolve(europeanaObjectId,true);
 			}
 
 			if (bean == null) {
@@ -246,9 +246,9 @@ public class ObjectController {
 
 		FullBeanImpl bean = null;
 		try {
-			bean = (FullBeanImpl) searchService.findById(europeanaObjectId);
+			bean = (FullBeanImpl) searchService.findById(europeanaObjectId,true);
 			if (bean == null) {
-				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId);
+				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId,true);
 			}
 		} catch (SolrTypeException e) {
 			log.error(ExceptionUtils.getFullStackTrace(e));
