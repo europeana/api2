@@ -115,7 +115,7 @@ public class ObjectController {
 
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
 		String requestUri = europeanaObjectId + ".json";
-		long usageLimit = 0;
+//		long usageLimit = 0;
 		ApiKey apiKey;
 		long requestNumber = 0;
 		try {
@@ -123,7 +123,7 @@ public class ObjectController {
 			if (apiKey == null) {
 				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Unregistered user"), callback);
 			}
-			usageLimit = apiKey.getUsageLimit();
+			apiKey.getUsageLimit();
 			requestNumber = apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
 			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
@@ -218,8 +218,6 @@ public class ObjectController {
 
 		// TODO: how to handle limitations?
 		ApiKey apiKey;
-		long usageLimit = 0;
-		long requestNumber = 0;
 		try {
 			apiKey = apiService.findByID(wskey);
 			if (apiKey == null) {
@@ -227,8 +225,8 @@ public class ObjectController {
 				model.put("error", "Unregistered user");
 				return new ModelAndView("record.rdf", model);
 			}
-			usageLimit = apiKey.getUsageLimit();
-			requestNumber = apiService.checkReachedLimit(apiKey);
+			apiKey.getUsageLimit();
+			apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
 			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
 			model.put("error", e.getMessage());

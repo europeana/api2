@@ -94,8 +94,7 @@ public class UserTagController extends AbstractUserController {
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=TAGCLOUD", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView listDistinct(@RequestParam(value = "objectid", required = false) String objectId,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+	public ModelAndView listDistinct(@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
 			UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(getApiId(principal), "/user/tag.json");
@@ -139,9 +138,9 @@ public class UserTagController extends AbstractUserController {
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
-	public ModelAndView deleteRest(@RequestParam(value = "objectid", required = false) Long objectId,
+	public ModelAndView deleteRest(@RequestParam(value = "tagid", required = false) Long tagId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
-		return delete(objectId, callback, principal);
+		return delete(tagId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
