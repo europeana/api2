@@ -11,7 +11,7 @@ public class Config {
 
 	private static final String URI_FAVORITES_CREATE = "/v2/user/favorite.json?action=CREATE&objectid=";
 	
-	private static final String URI_FAVORITES_DELETE = "/v2/user/favorite.json?action=DELETE&objectid=";
+	private static final String URI_FAVORITES_DELETE = "/v2/user/favorite.json?action=DELETE&favid=";
 
 	private static final String URI_TAGS_GET = "/v2/user/tag.json";
 
@@ -19,11 +19,11 @@ public class Config {
 	
 	private static final String URI_TAGS_CREATE = "/v2/user/tag.json?action=CREATE&objectid=";
 	
-	private static final String URI_TAGS_DELETE = "/v2/user/tag.json?action=DELETE&objectid=";
+	private static final String URI_TAGS_DELETE = "/v2/user/tag.json?action=DELETE&tagid=";
 
 	private static final String URI_SEARCHES_GET = "/v2/user/savedsearch.json";
 
-	private static final String URI_SEARCHES_DELETE = "/v2/user/savedsearch.json?action=DELETE&objectid=";
+	private static final String URI_SEARCHES_DELETE = "/v2/user/savedsearch.json?action=DELETE&searchid=";
 
 	public String getApiUrl() {
 		return apiUrl;

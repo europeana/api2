@@ -20,6 +20,7 @@ package eu.europeana.api2.v2.web.controller.user;
 import java.security.Principal;
 import java.util.ArrayList;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -99,15 +100,17 @@ public class UserFavoriteController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/user/favorite.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(
-			@RequestParam(value = "objectid", required = false) Long objectId,
+			@RequestParam(value = "favid", required = false) Long favId,
+			@RequestParam(value = "objectid", required = false) String objectId,
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		return delete(objectId, callback, principal);
+		return delete(favId, objectId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/favorite.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView delete(
-			@RequestParam(value = "objectid", required = false) Long favId,
+			@RequestParam(value = "favid", required = false) Long favId,
+			@RequestParam(value = "objectid", required = false) String objectId,
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
@@ -115,8 +118,17 @@ public class UserFavoriteController extends AbstractUserController {
 				"/user/favorite.json?action=DELETE");
 		if (user != null) {
 			try {
-				userService.removeSavedItem(user.getId(), favId);
 				response.success = true;
+				if (favId != null) {
+					userService.removeSavedItem(user.getId(), favId);
+				} else {
+					if (StringUtils.isNotBlank(objectId)) {
+						userService.removeSavedItem(user.getId(), objectId);
+					} else {
+						response.success = false;
+						response.error = "Invalid arguments";
+					}
+				}
 			} catch (DatabaseException e) {
 				response.success = false;
 				response.error = e.getMessage();

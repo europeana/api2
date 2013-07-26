@@ -11,13 +11,9 @@
 	">
 
 	<http 
-		access-denied-page="/login.jsp?authorization_error=true" 
-		realm="Api2Demo">
+		realm="API2 Demo Application">
 		<intercept-url pattern="/user/**" access="ROLE_USER" />
 		<intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
-
-		<!-- <form-login authentication-failure-url="/login.jsp?authentication_error=true" default-target-url="/index.jsp"
-			login-page="/login.jsp" login-processing-url="/login.do" /> -->
 		<logout logout-success-url="/" logout-url="/logout.do" />
 		<http-basic/>
 		<anonymous/>
@@ -27,7 +23,11 @@
 	<authentication-manager>
 		<authentication-provider>
 			<user-service>
-				<user name="demo" password="demo" authorities="ROLE_USER" />
+				<user name="demo1" password="demo1" authorities="ROLE_USER" />
+				<user name="demo2" password="demo2" authorities="ROLE_USER" />
+				<user name="demo3" password="demo3" authorities="ROLE_USER" />
+				<user name="demo4" password="demo4" authorities="ROLE_USER" />
+				<user name="demo5" password="demo5" authorities="ROLE_USER" />
 			</user-service>
 		</authentication-provider>
 	</authentication-manager>
