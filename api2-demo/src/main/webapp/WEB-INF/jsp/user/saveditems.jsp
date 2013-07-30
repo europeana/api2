@@ -7,13 +7,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<title>API2 DEMO - User Favorties</title>
+<title>API2 DEMO - User Saved Items</title>
 <link type="text/css" rel="stylesheet" href="<c:url value="/style.css"/>" />
 </head>
 
 <body>
 <c:import url="../links.jsp" />
-<h1>Favorites for: ${username}</h1>
+<h1>Saved Items for: ${username}</h1>
 <table border="1">
 <tr>
 	<td>title</td>
@@ -22,14 +22,14 @@
 	<td>action</td>
 </tr>
 
-<c:forEach var="fav" items="${favs}"> 
+<c:forEach var="item" items="${items}"> 
 	<tr>
-		<td>${fav.title}</td>
-		<td>${fav.author}</td>
-		<td><fmt:formatDate value="${fav.dateSaved}"/></td>
+		<td>${item.title}</td>
+		<td>${item.author}</td>
+		<td><fmt:formatDate value="${item.dateSaved}"/></td>
 		<td>
-			<a href="${fn:replace(fav.europeanaUri, 'www.europeana.eu/resolve', 'localhost:8081/portal')}.html" target="_blank">view</a>
-			<a href="favorites?action=DELETE&id=${fav.id}">delete</a>
+			<a href="${fn:replace(fav.europeanaId, 'www.europeana.eu/resolve', 'localhost:8081/portal')}.html" target="_blank">view</a>
+			<a href="saveditems?action=DELETE&id=${item.id}">delete</a>
 		</td>
 	</tr>
 </c:forEach>

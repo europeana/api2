@@ -15,7 +15,7 @@
 <c:import url="../links.jsp" />
 <h1>Social Tags for: ${username}</h1>
 <br/><br/>
-<c:forEach var="tag" items="${tags}">
+<c:forEach var="tag" items="${items}">
 	<span>
 		<span style="font-size: ${tag.count}00%;">
 			<a title="${tag.count}" href="tags?filter=${tag.label}">${tag.label}</a>

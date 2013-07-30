@@ -21,6 +21,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Date;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
@@ -40,7 +41,7 @@ public abstract class UserObject {
 	
 	public Long id;
 
-	public String europeanaUri;
+	public String europeanaId;
 
 	public String title;
 
@@ -54,8 +55,8 @@ public abstract class UserObject {
 		return id;
 	}
 
-	public String getEuropeanaUri() {
-		return europeanaUri;
+	public String getEuropeanaId() {
+		return europeanaId;
 	}
 
 	public String getTitle() {
@@ -63,15 +64,18 @@ public abstract class UserObject {
 	}
 
 	public String getEuropeanaObject() {
-		StringBuilder url = new StringBuilder(IMAGE_SITE);
-		try {
-			url.append(URI_PARAM).append(URLEncoder.encode(europeanaObject, "UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+		if (StringUtils.isNotBlank(europeanaObject)) {
+			StringBuilder url = new StringBuilder(IMAGE_SITE);
+			try {
+				url.append(URI_PARAM).append(URLEncoder.encode(europeanaObject, "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+			url.append(SIZE_PARAM).append(ThumbSize.LARGE);
+			url.append(TYPE_PARAM).append(getDocType().toString());
+			return url.toString();
 		}
-		url.append(SIZE_PARAM).append(ThumbSize.LARGE);
-		url.append(TYPE_PARAM).append(getDocType().toString());
-		return url.toString();
+		return null;
 	}
 
 	public DocType getDocType() {

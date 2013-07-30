@@ -26,7 +26,7 @@ import eu.europeana.api2.v2.model.json.abstracts.UserObject;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @JsonSerialize(include = Inclusion.NON_EMPTY)
-public class Favorite extends UserObject {
+public class SavedItem extends UserObject {
 
 	public String author;
 

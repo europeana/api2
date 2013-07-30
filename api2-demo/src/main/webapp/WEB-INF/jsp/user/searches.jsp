@@ -21,7 +21,7 @@
 	<td>action</td>
 </tr>
 
-<c:forEach var="search" items="${searches}"> 
+<c:forEach var="search" items="${items}"> 
 	<tr>
 		<td>${search.query}</td>
 		<td><fmt:formatDate value="${search.dateSaved}"/></td>

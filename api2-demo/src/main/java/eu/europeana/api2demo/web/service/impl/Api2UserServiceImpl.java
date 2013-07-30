@@ -16,7 +16,7 @@ import org.springframework.web.client.RestOperations;
 import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2demo.Config;
 import eu.europeana.api2demo.web.model.TagCloud;
-import eu.europeana.api2demo.web.model.UserFavorites;
+import eu.europeana.api2demo.web.model.UserSavedItems;
 import eu.europeana.api2demo.web.model.UserSearches;
 import eu.europeana.api2demo.web.model.UserTags;
 import eu.europeana.api2demo.web.service.Api2UserService;
@@ -29,11 +29,11 @@ public class Api2UserServiceImpl implements Api2UserService {
 	private Config config;
 	
 	@Override
-	public UserFavorites getFavorites() {
+	public UserSavedItems getSavedItems() {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(config.getUriFavoritesGet()), byte[].class));
+				URI.create(config.getUriSavedItemGet()), byte[].class));
 		try {
-			return new ObjectMapper().readValue(is, UserFavorites.class);
+			return new ObjectMapper().readValue(is, UserSavedItems.class);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -43,9 +43,9 @@ public class Api2UserServiceImpl implements Api2UserService {
 	}
 	
 	@Override
-	public boolean createFavorite(String id) {
+	public boolean createSavedItem(String id) {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(config.getUriFavoritesCreate() + id), byte[].class));
+				URI.create(config.getUriSavedItemCreate() + id), byte[].class));
 		try {
 			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
 			return response.success;
@@ -58,9 +58,9 @@ public class Api2UserServiceImpl implements Api2UserService {
 	}
 	
 	@Override
-	public boolean deleteFavorite(Long id) {
+	public boolean deleteSavedItem(Long id) {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(config.getUriFavoritesDelete() + id.toString()), byte[].class));
+				URI.create(config.getUriSavedItemDelete() + id.toString()), byte[].class));
 		try {
 			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
 			return response.success;

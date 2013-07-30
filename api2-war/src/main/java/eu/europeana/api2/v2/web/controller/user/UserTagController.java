@@ -53,22 +53,22 @@ public class UserTagController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView defaultAction(
-			@RequestParam(value = "objectid", required = false) String objectId,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "filter", required = false) String filter,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		return list(objectId, filter, callback, principal);
+		return list(europeanaId, filter, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView list(
-			@RequestParam(value = "objectid", required = false) String objectId,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "filter", required = false) String filter,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			UserResults<Tag> response = new UserResults<Tag>(getApiId(principal), "/user/tag.json");
+			UserResults<Tag> response = new UserResults<Tag>(getApiId(principal), "/v2/user/tag.json");
 			response.items = new ArrayList<Tag>();
 			response.username = user.getUserName();
 			List<SocialTag> tags;
@@ -94,7 +94,9 @@ public class UserTagController extends AbstractUserController {
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=TAGCLOUD", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView listDistinct(@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+	public ModelAndView listDistinct(
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
 			UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(getApiId(principal), "/user/tag.json");
@@ -113,21 +115,25 @@ public class UserTagController extends AbstractUserController {
 	
 	@RequestMapping(value = "/v2/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
-	public ModelAndView createRest(@RequestParam(value = "objectid", required = true) String objectId,
+	public ModelAndView createRest(
+			@RequestParam(value = "europeanaid", required = true) String europeanaId,
 			@RequestParam(value = "tag", required = true) String tag,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
-		return create(objectId, tag, callback, principal);
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
+		return create(europeanaId, tag, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView create(@RequestParam(value = "objectid", required = true) String objectId,
+	public ModelAndView create(
+			@RequestParam(value = "europeanaid", required = true) String europeanaId,
 			@RequestParam(value = "tag", required = true) String tag,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
-		UserModification response = new UserModification(getApiId(principal), "/user/tag.json?action=CREATE");
+		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.json?action=CREATE");
 		if (user != null) {
 			try {
-				userService.createSocialTag(user.getId(), objectId, tag);
+				userService.createSocialTag(user.getId(), europeanaId, tag);
 				response.success = true;
 			} catch (DatabaseException e) {
 				response.success = false;
@@ -138,16 +144,20 @@ public class UserTagController extends AbstractUserController {
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
-	public ModelAndView deleteRest(@RequestParam(value = "tagid", required = false) Long tagId,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+	public ModelAndView deleteRest(
+			@RequestParam(value = "tagid", required = false) Long tagId,
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
 		return delete(tagId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView delete(@RequestParam(value = "tagid", required = true) Long tagId,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+	public ModelAndView delete(
+			@RequestParam(value = "tagid", required = true) Long tagId,
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
-		UserModification response = new UserModification(getApiId(principal), "/user/tag.json?action=DELETE");
+		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.json?action=DELETE");
 		if (user != null) {
 			try {
 				userService.removeSocialTag(user.getId(), tagId);

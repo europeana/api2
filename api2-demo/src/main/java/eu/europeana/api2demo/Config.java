@@ -7,17 +7,17 @@ public class Config {
 	@Value("#{europeanaProperties['api2.url']}")
 	private String apiUrl;
 
-	private static final String URI_FAVORITES_GET = "/v2/user/favorite.json";
+	private static final String URI_SAVEDITEM_GET = "/v2/user/saveditem.json";
 
-	private static final String URI_FAVORITES_CREATE = "/v2/user/favorite.json?action=CREATE&objectid=";
+	private static final String URI_SAVEDITEM_CREATE = "/v2/user/saveditem.json?action=CREATE&europeanaid=";
 	
-	private static final String URI_FAVORITES_DELETE = "/v2/user/favorite.json?action=DELETE&favid=";
+	private static final String URI_SAVEDITEM_DELETE = "/v2/user/saveditem.json?action=DELETE&itemid=";
 
 	private static final String URI_TAGS_GET = "/v2/user/tag.json";
 
 	private static final String URI_TAGS_TAGCLOUD = "/v2/user/tag.json?action=TAGCLOUD";
 	
-	private static final String URI_TAGS_CREATE = "/v2/user/tag.json?action=CREATE&objectid=";
+	private static final String URI_TAGS_CREATE = "/v2/user/tag.json?action=CREATE&europeanaid=";
 	
 	private static final String URI_TAGS_DELETE = "/v2/user/tag.json?action=DELETE&tagid=";
 
@@ -29,16 +29,16 @@ public class Config {
 		return apiUrl;
 	}
 
-	public String getUriFavoritesGet() {
-		return getApiUrl() + URI_FAVORITES_GET;
+	public String getUriSavedItemGet() {
+		return getApiUrl() + URI_SAVEDITEM_GET;
 	}
 
-	public String getUriFavoritesCreate() {
-		return getApiUrl() + URI_FAVORITES_CREATE;
+	public String getUriSavedItemCreate() {
+		return getApiUrl() + URI_SAVEDITEM_CREATE;
 	}
 
-	public String getUriFavoritesDelete() {
-		return getApiUrl() + URI_FAVORITES_DELETE;
+	public String getUriSavedItemDelete() {
+		return getApiUrl() + URI_SAVEDITEM_DELETE;
 	}
 
 	public String getUriTagsGet() {

@@ -1,4 +1,4 @@
-<a href="/api-demo/user/favorites">Favorites</a>
+<a href="/api-demo/user/saveditems">Saved Items</a>
 <br/>
 <a href="/api-demo/user/tags">Tags</a>
 <br/>

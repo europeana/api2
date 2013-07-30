@@ -29,6 +29,6 @@ public abstract class AbstractUserController {
 		to.dateSaved = from.getDateSaved();
 		to.docType = from.getDocType();
 		to.europeanaObject = from.getEuropeanaObject();
-		to.europeanaUri = from.getEuropeanaUri();
+		to.europeanaId = from.getEuropeanaUri();
 	}
 }

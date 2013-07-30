@@ -22,7 +22,7 @@
 	<td>action</td>
 </tr>
 
-<c:forEach var="tag" items="${tags}"> 
+<c:forEach var="tag" items="${items}"> 
 	<tr>
 		<td>${tag.title}</td>
 		<td>${tag.tag}</td>

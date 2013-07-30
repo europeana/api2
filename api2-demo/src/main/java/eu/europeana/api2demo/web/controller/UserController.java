@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2demo.web.model.TagCloud;
-import eu.europeana.api2demo.web.model.UserFavorites;
+import eu.europeana.api2demo.web.model.UserSavedItems;
 import eu.europeana.api2demo.web.model.UserSearches;
 import eu.europeana.api2demo.web.model.UserTags;
 import eu.europeana.api2demo.web.service.Api2UserService;
@@ -24,20 +24,20 @@ public class UserController {
 	@Resource
 	private Api2UserService api2UserService;
 	
-	@RequestMapping(value = "/favorites", params="!action")
+	@RequestMapping(value = "/saveditems", params="!action")
 	public ModelAndView favorites() {
-		UserFavorites userFavs = api2UserService.getFavorites();
+		UserSavedItems userFavs = api2UserService.getSavedItems();
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("favs", userFavs.items);
+		model.put("items", userFavs.items);
 		model.put("username", userFavs.username);
-		return new ModelAndView("user/favorites", model);
+		return new ModelAndView("user/saveditems", model);
 	}
 	
-	@RequestMapping(value = "/favorites", params="action=DELETE", method=RequestMethod.GET)
+	@RequestMapping(value = "/saveditems", params="action=DELETE", method=RequestMethod.GET)
 	public ModelAndView favoritesDelete(
 		@RequestParam(value = "id", required = true) Long objectId
 	) {
-		api2UserService.deleteFavorite(objectId);
+		api2UserService.deleteSavedItem(objectId);
 		return favorites();
 	}
 	
@@ -47,7 +47,7 @@ public class UserController {
 			) {
 		UserTags userTags = api2UserService.getTags(filter);
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("tags", userTags.items);
+		model.put("items", userTags.items);
 		model.put("username", userTags.username);
 		return new ModelAndView("user/tags", model);
 	}
@@ -56,7 +56,7 @@ public class UserController {
 	public ModelAndView tagcloud() {
 		TagCloud tagCloud = api2UserService.createTagCloud();
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("tags", tagCloud.items);
+		model.put("items", tagCloud.items);
 		model.put("username", tagCloud.username);
 		return new ModelAndView("user/tagcloud", model);
 	}
@@ -74,7 +74,7 @@ public class UserController {
 	public ModelAndView searches() {
 		UserSearches userSearches = api2UserService.getSavedSearches();
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("searches", userSearches.items);
+		model.put("items", userSearches.items);
 		model.put("username", userSearches.username);
 		return new ModelAndView("user/searches", model);
 	}
