@@ -33,7 +33,4 @@
 		<module>api2-demo</module>
 		<module>api2-model</module>
 	</modules>
-	<properties>
-		<version.springSecurityOauth>1.0.5.RELEASE</version.springSecurityOauth>
-	</properties>	
 </project>
