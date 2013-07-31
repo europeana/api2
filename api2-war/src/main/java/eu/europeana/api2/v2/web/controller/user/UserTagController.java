@@ -73,10 +73,12 @@ public class UserTagController extends AbstractUserController {
 			response.username = user.getUserName();
 			List<SocialTag> tags;
 			try {
-				if (StringUtils.isBlank(filter)) {
-					tags = new ArrayList<SocialTag>(user.getSocialTags());
-				} else {
+				if (StringUtils.isNotBlank(filter)) {
 					tags = userService.findSocialTagsByTag(user.getId(), filter);
+				} else if (StringUtils.isNotBlank(europeanaId)) {
+					tags = userService.findSocialTagsByEuropeanaId(user.getId(), europeanaId);
+				} else {
+					tags = new ArrayList<SocialTag>(user.getSocialTags());
 				}
 				response.itemsCount = Long.valueOf(tags.size());
 				for (SocialTag item : tags) {
