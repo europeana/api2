@@ -19,6 +19,8 @@ package eu.europeana.api2.v2.web.controller.user;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
@@ -44,26 +46,40 @@ public class UserItemController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView defaultAction(
-			@RequestParam(value = "callback", required = false) String callback,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		return list(callback, principal);
+		return list(europeanaId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView list(
-			@RequestParam(value = "callback", required = false) String callback,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			UserResults<SavedItem> response = new UserResults<SavedItem>(
-					getApiId(principal), "/v2/user/saveditem.json");
-			response.items = new ArrayList<SavedItem>();
-			response.username = user.getUserName();
-			for (eu.europeana.corelib.definitions.db.entity.relational.SavedItem item : user.getSavedItems()) {
-				SavedItem fav = new SavedItem();
-				copyUserObjectData(fav, item);
-				fav.author = item.getAuthor();
-				response.items.add(fav);
+			UserResults<SavedItem> response = new UserResults<SavedItem>(getApiId(principal), "/v2/user/saveditem.json");
+			try {
+				response.items = new ArrayList<SavedItem>();
+				response.username = user.getUserName();
+				Set<eu.europeana.corelib.definitions.db.entity.relational.SavedItem> results;
+				if (StringUtils.isBlank(europeanaId)) {
+					results = user.getSavedItems();
+				} else {
+					results = new HashSet<eu.europeana.corelib.definitions.db.entity.relational.SavedItem>();
+					results.add(userService.findSavedItemByEuropeanaId(user.getId(), europeanaId));
+				}
+				response.itemsCount = Long.valueOf(results.size());
+				for (eu.europeana.corelib.definitions.db.entity.relational.SavedItem item : results) {
+					SavedItem fav = new SavedItem();
+					copyUserObjectData(fav, item);
+					fav.author = item.getAuthor();
+					response.items.add(fav);
+				}
+			} catch (DatabaseException e) {
+				response.success = false;
+				response.error = e.getMessage();
 			}
 			return JsonUtils.toJson(response, callback);
 		}
@@ -73,22 +89,21 @@ public class UserItemController extends AbstractUserController {
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
 	public ModelAndView createRest(
-			@RequestParam(value = "europeanaid", required = false) String objectId,
-			@RequestParam(value = "callback", required = false) String callback,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		return create(objectId, callback, principal);
+		return create(europeanaId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView create(
-			@RequestParam(value = "europeanaid", required = false) String objectId,
-			@RequestParam(value = "callback", required = false) String callback,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
-		UserModification response = new UserModification(getApiId(principal),
-				"/v2/user/saveditem.json?action=CREATE");
+		UserModification response = new UserModification(getApiId(principal), "/v2/user/saveditem.json?action=CREATE");
 		try {
-			userService.createSavedItem(user.getId(), objectId);
+			userService.createSavedItem(user.getId(), europeanaId);
 			response.success = true;
 		} catch (DatabaseException e) {
 			response.success = false;
@@ -100,29 +115,28 @@ public class UserItemController extends AbstractUserController {
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(
 			@RequestParam(value = "itemid", required = false) Long itemId,
-			@RequestParam(value = "europeanaid", required = false) String objectId,
-			@RequestParam(value = "callback", required = false) String callback,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		return delete(itemId, objectId, callback, principal);
+		return delete(itemId, europeanaId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView delete(
 			@RequestParam(value = "itemid", required = false) Long itemId,
-			@RequestParam(value = "europeanaid", required = false) String objectId,
-			@RequestParam(value = "callback", required = false) String callback,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
-		UserModification response = new UserModification(getApiId(principal),
-				"/v2/user/saveditem.json?action=DELETE");
+		UserModification response = new UserModification(getApiId(principal), "/v2/user/saveditem.json?action=DELETE");
 		if (user != null) {
 			try {
 				response.success = true;
 				if (itemId != null) {
 					userService.removeSavedItem(user.getId(), itemId);
 				} else {
-					if (StringUtils.isNotBlank(objectId)) {
-						userService.removeSavedItem(user.getId(), objectId);
+					if (StringUtils.isNotBlank(europeanaId)) {
+						userService.removeSavedItem(user.getId(), europeanaId);
 					} else {
 						response.success = false;
 						response.error = "Invalid arguments";

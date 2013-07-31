@@ -67,6 +67,7 @@ public class UserSearchController extends AbstractUserController {
 					getApiId(principal), "/user/search.json");
 			response.items = new ArrayList<Search>();
 			response.username = user.getUserName();
+			response.itemsCount = Long.valueOf(user.getSavedSearches().size());
 			for (SavedSearch item : user.getSavedSearches()) {
 				Search search = new Search();
 				search.id = item.getId();

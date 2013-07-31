@@ -78,6 +78,7 @@ public class UserTagController extends AbstractUserController {
 				} else {
 					tags = userService.findSocialTagsByTag(user.getId(), filter);
 				}
+				response.itemsCount = Long.valueOf(tags.size());
 				for (SocialTag item : tags) {
 					Tag tag = new Tag();
 					copyUserObjectData(tag, item);
@@ -102,6 +103,7 @@ public class UserTagController extends AbstractUserController {
 			UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(getApiId(principal), "/user/tag.json");
 			try {
 				response.items = userService.createSocialTagCloud(user.getId());
+				response.itemsCount = Long.valueOf(response.items.size());
 				response.success = true;
 			} catch (DatabaseException e) {
 				response.success = false;
