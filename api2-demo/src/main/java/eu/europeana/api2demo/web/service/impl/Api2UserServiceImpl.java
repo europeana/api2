@@ -16,6 +16,7 @@ import org.springframework.web.client.RestOperations;
 import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2demo.Config;
 import eu.europeana.api2demo.web.model.TagCloud;
+import eu.europeana.api2demo.web.model.UserProfile;
 import eu.europeana.api2demo.web.model.UserSavedItems;
 import eu.europeana.api2demo.web.model.UserSearches;
 import eu.europeana.api2demo.web.model.UserTags;
@@ -28,12 +29,11 @@ public class Api2UserServiceImpl implements Api2UserService {
 	@Resource
 	private Config config;
 	
-	@Override
-	public UserSavedItems getSavedItems() {
+	private <T> T readJson(String uri, Class<T> clazz) {
 		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(config.getUriSavedItemGet()), byte[].class));
+				URI.create(uri), byte[].class));
 		try {
-			return new ObjectMapper().readValue(is, UserSavedItems.class);
+			return new ObjectMapper().readValue(is, clazz);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -43,33 +43,25 @@ public class Api2UserServiceImpl implements Api2UserService {
 	}
 	
 	@Override
+	public UserProfile getProfile() {
+		return readJson(config.getUriProfile(), UserProfile.class);
+	}
+	
+	@Override
+	public UserSavedItems getSavedItems() {
+		return readJson(config.getUriSavedItemGet(), UserSavedItems.class);
+	}
+	
+	@Override
 	public boolean createSavedItem(String id) {
-		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(config.getUriSavedItemCreate() + id), byte[].class));
-		try {
-			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
-			return response.success;
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return false;
+		UserModification result = readJson(config.getUriSavedItemCreate() + id, UserModification.class);
+		return result != null ? result.success : false;
 	}
 	
 	@Override
 	public boolean deleteSavedItem(Long id) {
-		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(config.getUriSavedItemDelete() + id.toString()), byte[].class));
-		try {
-			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
-			return response.success;
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return false;
+		UserModification result = readJson(config.getUriSavedItemDelete() + id.toString(), UserModification.class);
+		return result != null ? result.success : false;
 	}
 	
 	@Override
@@ -78,30 +70,12 @@ public class Api2UserServiceImpl implements Api2UserService {
 		if (StringUtils.isNotBlank(filter)) {
 			url.append("?filter=").append(filter);
 		}
-		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(url.toString()), byte[].class));
-		try {
-			return new ObjectMapper().readValue(is, UserTags.class);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return readJson(url.toString(), UserTags.class);
 	}
 	
 	@Override
 	public TagCloud createTagCloud() {
-		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(config.getUriTagsTagcloud()), byte[].class));
-		try {
-			return new ObjectMapper().readValue(is, TagCloud.class);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return readJson(config.getUriTagsTagcloud(), TagCloud.class);
 	}
 	
 	@Override
@@ -112,46 +86,19 @@ public class Api2UserServiceImpl implements Api2UserService {
 	
 	@Override
 	public boolean deleteTag(Long id) {
-		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(config.getUriTagsDelete() + id.toString()), byte[].class));
-		try {
-			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
-			return response.success;
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return false;
+		UserModification result = readJson(config.getUriTagsDelete() + id.toString(), UserModification.class);
+		return result != null ? result.success : false;
 	}
 	
 	@Override
 	public UserSearches getSavedSearches() {
-		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(config.getUriSearchesGet()), byte[].class));
-		try {
-			return new ObjectMapper().readValue(is, UserSearches.class);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return readJson(config.getUriSearchesGet(), UserSearches.class);
 	}
 	
 	@Override
 	public boolean deleteSavedSearche(Long id) {
-		InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-				URI.create(config.getUriSearchesDelete() + id.toString()), byte[].class));
-		try {
-			UserModification response = new ObjectMapper().readValue(is, UserModification.class);
-			return response.success;
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return false;
+		UserModification result = readJson(config.getUriSearchesDelete() + id.toString(), UserModification.class); 
+		return result != null ? result.success : false;
 	}
 	
 	public void setRestTemplate(OAuth2RestTemplate restTemplate) {

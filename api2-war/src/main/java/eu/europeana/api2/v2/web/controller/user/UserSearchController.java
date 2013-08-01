@@ -20,9 +20,6 @@ package eu.europeana.api2.v2.web.controller.user;
 import java.security.Principal;
 import java.util.ArrayList;
 
-import javax.annotation.Resource;
-
-import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,7 +33,6 @@ import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Search;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
 import eu.europeana.corelib.db.exception.DatabaseException;
-import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.SavedSearch;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 import eu.europeana.corelib.web.utils.UrlBuilder;
@@ -46,9 +42,6 @@ import eu.europeana.corelib.web.utils.UrlBuilder;
  */
 @Controller
 public class UserSearchController extends AbstractUserController {
-
-	@Resource(name = "corelib_db_userService")
-	private UserService userService;
 
 	@RequestMapping(value = "/v2/user/savedsearch.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView defaultAction(
@@ -102,11 +95,11 @@ public class UserSearchController extends AbstractUserController {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/user/tag.search?action=CREATE");
 		if (user != null) {
-			UrlBuilder ub = new UrlBuilder(query);
+			UrlBuilder ub = new UrlBuilder("");
+			ub.addParam("query", query, true);
 			ub.addParam("qf", refinements, true);
 			ub.addParam("start", start, true);
 			String queryString = ub.toString();
-			queryString = StringUtils.replace(queryString, "?", "&");
 			try {
 				userService.createSavedSearch(user.getId(), query, queryString);
 				response.success = true;

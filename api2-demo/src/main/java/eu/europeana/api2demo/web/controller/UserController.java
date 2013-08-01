@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2demo.web.model.TagCloud;
+import eu.europeana.api2demo.web.model.UserProfile;
 import eu.europeana.api2demo.web.model.UserSavedItems;
 import eu.europeana.api2demo.web.model.UserSearches;
 import eu.europeana.api2demo.web.model.UserTags;
@@ -23,6 +24,14 @@ public class UserController {
 	
 	@Resource
 	private Api2UserService api2UserService;
+	
+	@RequestMapping("/")
+	public ModelAndView profile() {
+		UserProfile profile = api2UserService.getProfile();
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("profile", profile);
+		return new ModelAndView("user/profile", model);
+	}
 	
 	@RequestMapping(value = "/saveditems", params="!action")
 	public ModelAndView favorites() {

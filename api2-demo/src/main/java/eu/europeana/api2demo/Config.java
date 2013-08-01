@@ -7,6 +7,8 @@ public class Config {
 	@Value("#{europeanaProperties['api2.url']}")
 	private String apiUrl;
 
+	private static final String URI_PROFILE = "/v2/user/profile.json";
+	
 	private static final String URI_SAVEDITEM_GET = "/v2/user/saveditem.json";
 
 	private static final String URI_SAVEDITEM_CREATE = "/v2/user/saveditem.json?action=CREATE&europeanaid=";
@@ -27,6 +29,10 @@ public class Config {
 
 	public String getApiUrl() {
 		return apiUrl;
+	}
+	
+	public String getUriProfile() {
+		return getApiUrl() + URI_PROFILE;
 	}
 
 	public String getUriSavedItemGet() {

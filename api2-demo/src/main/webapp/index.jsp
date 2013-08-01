@@ -1,14 +1,7 @@
 <html>
 <body>
 <h2>API2 DEMO (USER FUNCTIONS)</h2>
-<a href="/api-demo/user/saveditems">Saved Items</a>
-<br/>
-<a href="/api-demo/user/tags">Tags</a>
-<br/>
-<a href="/api-demo/user/tagcloud">Tagcloud</a>
-<br/>
-<a href="/api-demo/user/searches">Saved Searches</a>
-<br/>
+<a href="/api-demo/user/">Login & Authorize</a>
 <br/>
 <br/>
 <br/>
