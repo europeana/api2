@@ -20,6 +20,7 @@ package eu.europeana.api2.v2.web.controller.user;
 import java.security.Principal;
 import java.util.ArrayList;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -95,11 +96,10 @@ public class UserSearchController extends AbstractUserController {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/user/tag.search?action=CREATE");
 		if (user != null) {
-			UrlBuilder ub = new UrlBuilder("");
-			ub.addParam("query", query, true);
+			UrlBuilder ub = new UrlBuilder(query);
 			ub.addParam("qf", refinements, true);
 			ub.addParam("start", start, true);
-			String queryString = ub.toString();
+			String queryString = StringUtils.replace(ub.toString(), "?", "&"); 
 			try {
 				userService.createSavedSearch(user.getId(), query, queryString);
 				response.success = true;
