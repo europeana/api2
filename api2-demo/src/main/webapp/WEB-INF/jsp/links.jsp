@@ -9,4 +9,4 @@
 <br/>
 <br/>
 <br/>
-<a href="/api-demo/logout.do">Log off</a>
+<a href="/api-demo/user/">Profile</a> / <a href="/api-demo/logout.do">Log off</a>
