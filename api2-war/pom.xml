@@ -61,9 +61,9 @@
 			<artifactId>spring-webmvc</artifactId>
 			<version>${version.springCore}</version>
 			<exclusions>
-	       		<exclusion>
-		            <groupId>commons-logging</groupId>
-		            <artifactId>commons-logging</artifactId>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -72,9 +72,9 @@
 			<artifactId>spring-security-oauth2</artifactId>
 			<version>${version.springSecurityOauth}</version>
 			<exclusions>
-	       		<exclusion>
-		            <groupId>commons-logging</groupId>
-		            <artifactId>commons-logging</artifactId>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -83,11 +83,11 @@
 			<artifactId>spring-security-taglibs</artifactId>
 			<version>${version.springSecurity}</version>
 			<exclusions>
-         		<exclusion>
-		            <groupId>commons-logging</groupId>
-		            <artifactId>commons-logging</artifactId>
-		         </exclusion>
-		      </exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -98,19 +98,26 @@
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
 			<version>2.5</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>2.2.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.jsonld-java</groupId>
+			<artifactId>jsonld-java</artifactId>
+			<version>0.2</version>
 		</dependency>
 	</dependencies>
 
 	<scm>
-		<connection>scm:svn:http://europeanalabs.eu/svn/europeana</connection>
-		<developerConnection>scm:svn:http://europeanalabs.eu/svn/europeana</developerConnection>
+		<connection>scm:git:git@github.com:europeana/api2.git</connection>
+		<developerConnection>scm:git:git@github.com:europeana/api2.git</developerConnection>
 		<tag>HEAD</tag>
-		<url>http://europeanalabs.eu/svn/europeana</url>
+		<url>https://github.com/europeana/api2</url>
 	</scm>
 
 	<build>
