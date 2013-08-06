@@ -1,6 +1,8 @@
-Installation
+# Europeana API
 
-The api2-war.war should be renamed api2.war in order to work.
+## Installation
+
+*The api2-war.war should be renamed api2.war in order to work.*
 
 Important database tables
 
