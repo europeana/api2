@@ -26,7 +26,7 @@
 		<td>${search.query}</td>
 		<td><fmt:formatDate value="${search.dateSaved}"/></td>
 		<td>
-			<a href="http://www.europeana.eu/portal/search.html?rows=24&query=${search.queryString}" target="_blank">view</a>
+			<a href="http://www.europeana.eu/portal/search.html?rows=24&${search.queryString}" target="_blank">view</a>
 			<a href="searches?action=DELETE&id=${search.id}">delete</a>
 		</td>
 	</tr>

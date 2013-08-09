@@ -65,10 +65,10 @@ public class Api2UserServiceImpl implements Api2UserService {
 	}
 	
 	@Override
-	public UserTags getTags(String filter) {
+	public UserTags getTags(String tag) {
 		StringBuilder url = new StringBuilder(config.getUriTagsGet());
-		if (StringUtils.isNotBlank(filter)) {
-			url.append("?filter=").append(filter);
+		if (StringUtils.isNotBlank(tag)) {
+			url.append("?tag=").append(tag);
 		}
 		return readJson(url.toString(), UserTags.class);
 	}

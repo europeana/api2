@@ -19,7 +19,7 @@ public interface Api2UserService {
 	boolean deleteSavedItem(Long id);
 
 	// TAGS
-	UserTags getTags(String filter);
+	UserTags getTags(String tag);
 	
 	TagCloud createTagCloud();
 

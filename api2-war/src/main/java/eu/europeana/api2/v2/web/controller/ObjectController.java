@@ -100,9 +100,6 @@ public class ObjectController {
 
 	private String similarItemsProfile = "minimal";
 
-//	private final static String RESOLVE_PREFIX = "http://www.europeana.eu/resolve/record";
-
-	// @Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView record(
 			@PathVariable String collectionId,
@@ -115,7 +112,6 @@ public class ObjectController {
 
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
 		String requestUri = europeanaObjectId + ".json";
-//		long usageLimit = 0;
 		ApiKey apiKey;
 		long requestNumber = 0;
 		try {
@@ -216,7 +212,6 @@ public class ObjectController {
 		String requestUri = europeanaObjectId + ".rdf";
 		String profile = "full";
 
-		// TODO: how to handle limitations?
 		ApiKey apiKey;
 		try {
 			apiKey = apiService.findByID(wskey);

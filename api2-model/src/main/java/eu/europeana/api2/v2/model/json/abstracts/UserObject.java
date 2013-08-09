@@ -45,9 +45,9 @@ public abstract class UserObject {
 
 	public String title;
 
-	public String europeanaObject;
+	public String edmPreview;
 
-	public DocType docType = DocType.IMAGE;
+	public DocType type = DocType.IMAGE;
 
 	public Date dateSaved;
 
@@ -63,23 +63,23 @@ public abstract class UserObject {
 		return title;
 	}
 
-	public String getEuropeanaObject() {
-		if (StringUtils.isNotBlank(europeanaObject)) {
+	public String getEdmPreview() {
+		if (StringUtils.isNotBlank(edmPreview)) {
 			StringBuilder url = new StringBuilder(IMAGE_SITE);
 			try {
-				url.append(URI_PARAM).append(URLEncoder.encode(europeanaObject, "UTF-8"));
+				url.append(URI_PARAM).append(URLEncoder.encode(edmPreview, "UTF-8"));
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
 			url.append(SIZE_PARAM).append(ThumbSize.LARGE);
-			url.append(TYPE_PARAM).append(getDocType().toString());
+			url.append(TYPE_PARAM).append(type.toString());
 			return url.toString();
 		}
 		return null;
 	}
 
-	public DocType getDocType() {
-		return docType;
+	public DocType getType() {
+		return type;
 	}
 
 	public Date getDateSaved() {
