@@ -106,11 +106,6 @@
 			<version>2.2.4</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.github.jsonld-java</groupId>
-			<artifactId>jsonld-java</artifactId>
-			<version>0.2</version>
-		</dependency>
 	</dependencies>
 
 	<scm>
