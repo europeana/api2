@@ -52,9 +52,9 @@ public class UserController {
 	
 	@RequestMapping(value = "/tags", params="!action")
 	public ModelAndView tags(
-			@RequestParam(value = "filter", required = false) String filter
+			@RequestParam(value = "tag", required = false) String tag
 			) {
-		UserTags userTags = api2UserService.getTags(filter);
+		UserTags userTags = api2UserService.getTags(tag);
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("items", userTags.items);
 		model.put("username", userTags.username);

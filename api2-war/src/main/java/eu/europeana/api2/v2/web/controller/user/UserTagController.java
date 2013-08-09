@@ -48,16 +48,16 @@ public class UserTagController extends AbstractUserController {
 	@RequestMapping(value = "/v2/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "filter", required = false) String filter,
+			@RequestParam(value = "tag", required = false) String tag,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		return list(europeanaId, filter, callback, principal);
+		return list(europeanaId, tag, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView list(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "filter", required = false) String filter,
+			@RequestParam(value = "tag", required = false) String tagFilter,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
@@ -67,8 +67,8 @@ public class UserTagController extends AbstractUserController {
 			response.username = user.getUserName();
 			List<SocialTag> tags;
 			try {
-				if (StringUtils.isNotBlank(filter)) {
-					tags = userService.findSocialTagsByTag(user.getId(), filter);
+				if (StringUtils.isNotBlank(tagFilter)) {
+					tags = userService.findSocialTagsByTag(user.getId(), tagFilter);
 				} else if (StringUtils.isNotBlank(europeanaId)) {
 					tags = userService.findSocialTagsByEuropeanaId(user.getId(), europeanaId);
 				} else {
