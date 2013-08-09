@@ -144,21 +144,31 @@ public class UserTagController extends AbstractUserController {
 	@RequestMapping(value = "/v2/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(
 			@RequestParam(value = "tagid", required = false) Long tagId,
+			@RequestParam(value = "tag", required = true) String tag,
+			@RequestParam(value = "europeanaid", required = true) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		return delete(tagId, callback, principal);
+		return delete(tagId, tag, europeanaId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView delete(
-			@RequestParam(value = "tagid", required = true) Long tagId,
+			@RequestParam(value = "tagid", required = false) Long tagId,
+			@RequestParam(value = "tag", required = true) String tag,
+			@RequestParam(value = "europeanaid", required = true) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.json?action=DELETE");
 		if (user != null) {
 			try {
-				userService.removeSocialTag(user.getId(), tagId);
+				if (tagId != null) {
+					userService.removeSocialTag(user.getId(), tagId);
+				} else {
+					if (StringUtils.isNotBlank(europeanaId) || StringUtils.isNotBlank(tag)) {
+						userService.removeSocialTag(user.getId(), europeanaId, tag);
+					}
+				}
 				response.success = true;
 			} catch (DatabaseException e) {
 				response.success = false;
