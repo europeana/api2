@@ -45,7 +45,7 @@ public class Search {
 	}
 
 	public String getQueryString() {
-		return queryString;
+		return "query="+queryString;
 	}
 
 	public Date getDateSaved() {

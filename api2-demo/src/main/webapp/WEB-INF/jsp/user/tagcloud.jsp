@@ -18,7 +18,7 @@
 <c:forEach var="tag" items="${items}">
 	<span>
 		<span style="font-size: ${tag.count}00%;">
-			<a title="${tag.count}" href="tags?filter=${tag.label}">${tag.label}</a>
+			<a title="${tag.count}" href="tags?tag=${tag.label}">${tag.label}</a>
 		</span>
 	</span>
 </c:forEach>
