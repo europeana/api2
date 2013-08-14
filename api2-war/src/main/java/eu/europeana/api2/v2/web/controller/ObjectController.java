@@ -218,7 +218,7 @@ public class ObjectController {
 			if (apiKey == null) {
 				response.setStatus(401);
 				model.put("error", "Unregistered user");
-				return new ModelAndView("record.rdf", model);
+				return new ModelAndView("rdf", model);
 			}
 			apiKey.getUsageLimit();
 			apiService.checkReachedLimit(apiKey);
@@ -226,14 +226,14 @@ public class ObjectController {
 			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
 			model.put("error", e.getMessage());
 			response.setStatus(401);
-			return new ModelAndView("record.rdf", model);
+			return new ModelAndView("rdf", model);
 			// return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber));
 		} catch (LimitReachedException e) {
 			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
 			log.error(e.getMessage());
 			model.put("error", e.getMessage());
 			response.setStatus(429);
-			return new ModelAndView("record.rdf", model);
+			return new ModelAndView("rdf", model);
 			// return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()));
 		}
 
@@ -255,7 +255,7 @@ public class ObjectController {
 		}
 
 		apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
-		return new ModelAndView("record.rdf", model);
+		return new ModelAndView("rdf", model);
 	}
 
 	private String getPortalUrl() {
