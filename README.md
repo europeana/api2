@@ -4,7 +4,7 @@
 
 *The api2-war.war should be renamed api2.war in order to work.*
 
-Important database tables
+###Important database tables
 
 1) apikey
 Columns: 
