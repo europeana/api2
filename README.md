@@ -4,7 +4,7 @@
 
 *The api2-war.war should be renamed api2.war in order to work.*
 
-###Important database tables
+### Important database tables
 
 1) apikey
 Columns: 
@@ -31,7 +31,7 @@ Columns:
 - username: username when login
 
 
-Usage of API2 form command line
+### Usage of API2 form command line
 
 To improve the understandability of the API documentation here is a short example of how to use it with cURL tool.
 It helps to create a similar implementation with your own favorite tool.
