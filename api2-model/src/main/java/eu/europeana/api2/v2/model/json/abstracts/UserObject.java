@@ -17,15 +17,13 @@
 
 package eu.europeana.api2.v2.model.json.abstracts;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
-import eu.europeana.corelib.definitions.model.ThumbSize;
+import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.corelib.definitions.solr.DocType;
 
 /**
@@ -34,15 +32,14 @@ import eu.europeana.corelib.definitions.solr.DocType;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public abstract class UserObject {
 
-	protected static final String IMAGE_SITE = "http://europeanastatic.eu/api/image";
-	protected static final String URI_PARAM = "?uri=";
-	protected static final String SIZE_PARAM = "&size=";
-	protected static final String TYPE_PARAM = "&type=";
-	
 	public Long id;
-
+	
 	public String europeanaId;
 
+	public String guid;
+
+	public String link;
+	
 	public String title;
 
 	public String edmPreview;
@@ -54,9 +51,17 @@ public abstract class UserObject {
 	public Long getId() {
 		return id;
 	}
-
+	
 	public String getEuropeanaId() {
 		return europeanaId;
+	}
+	
+	public String getGuid() {
+		return guid;
+	}
+	
+	public String getLink() {
+		return link;
 	}
 
 	public String getTitle() {
@@ -65,15 +70,7 @@ public abstract class UserObject {
 
 	public String getEdmPreview() {
 		if (StringUtils.isNotBlank(edmPreview)) {
-			StringBuilder url = new StringBuilder(IMAGE_SITE);
-			try {
-				url.append(URI_PARAM).append(URLEncoder.encode(edmPreview, "UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-			url.append(SIZE_PARAM).append(ThumbSize.LARGE);
-			url.append(TYPE_PARAM).append(type.toString());
-			return url.toString();
+			return LinkUtils.getThumbnailUrl(edmPreview, type.toString());
 		}
 		return null;
 	}

@@ -1,7 +1,5 @@
 package eu.europeana.api2.v2.model.json.view;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -13,23 +11,13 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.model.enums.Profile;
-import eu.europeana.corelib.definitions.model.ThumbSize;
+import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
-
-	protected static final String RECORD_PATH = "/v2/record/";
-	protected static final String PORTAL_PATH = "/record/";
-	protected static final String RECORD_EXT = ".json";
-	protected static final String PORTAL_PARAMS = ".html?utm_source=api&utm_medium=api&utm_campaign=";
-	protected static final String WSKEY_PARAM = "?wskey=";
-	protected static final String IMAGE_SITE = "http://europeanastatic.eu/api/image";
-	protected static final String URI_PARAM = "?uri=";
-	protected static final String SIZE_PARAM = "&size=";
-	protected static final String TYPE_PARAM = "&type=";
 
 	protected static String apiUrl;
 	protected static String portalUrl;
@@ -230,15 +218,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 			if (!isOptedOut && bean.getEdmObject() != null) {
 				for (String object : bean.getEdmObject()) {
 					String tn = StringUtils.defaultIfBlank(object, "");
-					StringBuilder url = new StringBuilder(IMAGE_SITE);
-					try {
-						url.append(URI_PARAM).append(URLEncoder.encode(tn, "UTF-8"));
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
-					url.append(SIZE_PARAM).append(ThumbSize.LARGE);
-					url.append(TYPE_PARAM).append(getType().toString());
-					thumbs.add(url.toString());
+					thumbs.add(LinkUtils.getThumbnailUrl(tn, getType().toString()));
 				}
 			}
 			thumbnails = thumbs.toArray(new String[thumbs.size()]);
@@ -247,17 +227,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	}
 
 	public String getLink() {
-		StringBuilder url = new StringBuilder(apiUrl);
-		url.append(RECORD_PATH).append(getId().substring(1)).append(RECORD_EXT);
-		url.append(WSKEY_PARAM).append(wskey);
-		return url.toString();
+		return LinkUtils.getLink(wskey, apiUrl, getId());
 	}
 
 	public String getGuid() {
-		StringBuilder url = new StringBuilder(portalUrl);
-		url.append(PORTAL_PATH).append(getId().substring(1));
-		url.append(PORTAL_PARAMS).append(wskey);
-		return url.toString();
+		return LinkUtils.getGuid(wskey, portalUrl, getId());
 	}
 
 	@Override

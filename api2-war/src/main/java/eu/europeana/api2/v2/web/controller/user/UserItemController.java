@@ -73,7 +73,7 @@ public class UserItemController extends AbstractUserController {
 				response.itemsCount = Long.valueOf(results.size());
 				for (eu.europeana.corelib.definitions.db.entity.relational.SavedItem item : results) {
 					SavedItem fav = new SavedItem();
-					copyUserObjectData(fav, item);
+					copyUserObjectData(response.apikey, fav, item);
 					fav.author = item.getAuthor();
 					response.items.add(fav);
 				}

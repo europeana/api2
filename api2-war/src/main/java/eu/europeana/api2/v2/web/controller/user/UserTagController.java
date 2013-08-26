@@ -77,7 +77,7 @@ public class UserTagController extends AbstractUserController {
 				response.itemsCount = Long.valueOf(tags.size());
 				for (SocialTag item : tags) {
 					Tag tag = new Tag();
-					copyUserObjectData(tag, item);
+					copyUserObjectData(response.apikey, tag, item);
 					tag.tag = item.getTag();
 					response.items.add(tag);
 				}

@@ -27,18 +27,14 @@
 
 		<h2>Login</h2>
 
-		<p>We've got a grand total of 2 users: marissa and paul. Go ahead
-			and log in. Marissa's password is "koala" and Paul's password is
-			"emu".</p>
+		<p>Use your <strong>MyEuropeana account</strong> to login here!</p>
 		<form id="loginForm" name="loginForm"
 			action="<c:url value="/login.do"/>" method="post">
 			<p>
-				<label>Username: <input type='text' name='j_username'
-					value="marissa" /></label>
+				<label>Username: <input type='text' name='j_username'/></label>
 			</p>
 			<p>
-				<label>Password: <input type='text' name='j_password'
-					value="koala" /></label>
+				<label>Password: <input type='text' name='j_password'/></label>
 			</p>
 
 			<p>
@@ -46,13 +42,6 @@
 			</p>
 		</form>
 	</div>
-
-	<div id="footer">
-		Sample application for <a
-			href="http://github.com/SpringSource/spring-security-oauth"
-			target="_blank">Spring Security OAuth</a>
-	</div>
-
 
 </body>
 </html>

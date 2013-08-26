@@ -15,8 +15,6 @@ import org.springframework.web.servlet.ModelAndView;
 /**
  * Controller for retrieving the model for and displaying the confirmation page
  * for access to a protected resource.
- * 
- * @author Ryan Heaton
  */
 @Controller
 @SessionAttributes(types = AuthorizationRequest.class)
@@ -33,6 +31,11 @@ public class AccessConfirmationController {
 		model.put("auth_request", clientAuth);
 		model.put("client", client);
 		return new ModelAndView("access_confirmation", model);
+	}
+	
+	@RequestMapping("/login")
+	public String loginForm() {
+		return "user/login";
 	}
 
 	@Autowired

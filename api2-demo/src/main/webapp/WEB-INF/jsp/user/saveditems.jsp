@@ -28,7 +28,7 @@
 		<td>${item.author}</td>
 		<td><fmt:formatDate value="${item.dateSaved}"/></td>
 		<td>
-			<a href="${fn:replace(item.europeanaId, 'www.europeana.eu/resolve', 'localhost:8081/portal')}.html" target="_blank">view</a>
+			<a href="${item.guid}" target="_blank">view</a>
 			<a href="saveditems?action=DELETE&id=${item.id}">delete</a>
 		</td>
 	</tr>

@@ -57,27 +57,17 @@
 		<access-denied-handler ref="api2_oauth2_accessDeniedHandler" />
 	</http>	
 	
-	<http access-denied-page="/login.jsp?authorization_error=true" disable-url-rewriting="true"
+	<http access-denied-page="/login?authorization_error=true" disable-url-rewriting="true"
 			xmlns="http://www.springframework.org/schema/security">
 		<intercept-url pattern="/oauth/**" access="ROLE_USER" />
 		<intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
 		
-		<form-login authentication-failure-url="/login.jsp?authentication_error=true" default-target-url="/index.jsp"
-			login-processing-url="/login.do" username-parameter="api2key" password-parameter="secret"/>
+		<form-login authentication-failure-url="/login?authentication_error=true" default-target-url="/index.jsp"
+			login-processing-url="/login.do"/>
 		<logout logout-success-url="/index.jsp" logout-url="/logout.do" />
 		<anonymous />
 	</http>	
 
-<!-- 	<security:http auto-config="true" disable-url-rewriting="true" realm="Euroepana API2 Users"
-			entry-point-ref="api2_oauth2_authenticationEntryPoint"
-			access-decision-manager-ref="api2_oauth2_accessDecisionManager">
-		<security:intercept-url pattern="/user/**" access="ROLE_USER"/>
-		 EXCEPTION_TRANSLATION_FILTER" />
-		<security:custom-filter ref="api2_oauth2_resourceServerFilter" before="PRE_AUTH_FILTER"/>
-		<security:form-login login-processing-url="/login" username-parameter="api2key" password-parameter="secret"/>
-		<security:logout logout-success-url="/index.html" logout-url="/logoff" />
-	</security:http>
- -->	
 	<bean id="api2_oauth2_clientCredentialsTokenEndpointFilter" class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter">
 		<property name="authenticationManager" ref="api2_oauth2_clientAuthenticationManager"/>
 	</bean>	

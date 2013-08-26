@@ -34,20 +34,20 @@ public class UserController {
 	}
 	
 	@RequestMapping(value = "/saveditems", params="!action")
-	public ModelAndView favorites() {
-		UserSavedItems userFavs = api2UserService.getSavedItems();
+	public ModelAndView items() {
+		UserSavedItems userSavedItems = api2UserService.getSavedItems();
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("items", userFavs.items);
-		model.put("username", userFavs.username);
+		model.put("items", userSavedItems.items);
+		model.put("username", userSavedItems.username);
 		return new ModelAndView("user/saveditems", model);
 	}
 	
 	@RequestMapping(value = "/saveditems", params="action=DELETE", method=RequestMethod.GET)
-	public ModelAndView favoritesDelete(
+	public ModelAndView itemsDelete(
 		@RequestParam(value = "id", required = true) Long objectId
 	) {
 		api2UserService.deleteSavedItem(objectId);
-		return favorites();
+		return items();
 	}
 	
 	@RequestMapping(value = "/tags", params="!action")

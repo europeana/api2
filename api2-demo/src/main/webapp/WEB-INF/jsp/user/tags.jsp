@@ -28,7 +28,7 @@
 		<td>${tag.tag}</td>
 		<td><fmt:formatDate value="${tag.dateSaved}"/></td>
 		<td>
-			<a href="http://europeana.eu/portal/record${tag.europeanaId}.html" target="_blank">view</a>
+			<a href="${tag.guid}" target="_blank">view</a>
 			<a href="tags?action=DELETE&id=${tag.id}">delete</a>
 		</td>
 	</tr>

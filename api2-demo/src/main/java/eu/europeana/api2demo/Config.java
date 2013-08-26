@@ -1,5 +1,6 @@
 package eu.europeana.api2demo;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 
 public class Config {
@@ -28,7 +29,7 @@ public class Config {
 	private static final String URI_SEARCHES_DELETE = "/v2/user/savedsearch.json?action=DELETE&searchid=";
 
 	public String getApiUrl() {
-		return apiUrl;
+		return StringUtils.stripEnd(apiUrl, "/");
 	}
 	
 	public String getUriProfile() {
