@@ -45,18 +45,14 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
 public class UserItemController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-	public ModelAndView defaultAction(
-			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "callback", required = false) String callback, 
-			Principal principal) {
+	public ModelAndView defaultAction(@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		return list(europeanaId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView list(
-			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "callback", required = false) String callback, 
-			Principal principal) {
+	public ModelAndView list(@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
 			UserResults<SavedItem> response = new UserResults<SavedItem>(getApiId(principal), "/v2/user/saveditem.json");
@@ -86,20 +82,16 @@ public class UserItemController extends AbstractUserController {
 		return null;
 	}
 
-	@RequestMapping(value = "/v2/user/saveditem.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+	@RequestMapping(value = "/v2/user/saveditem.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
-	public ModelAndView createRest(
-			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "callback", required = false) String callback, 
-			Principal principal) {
+	public ModelAndView createRest(@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		return create(europeanaId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-	public ModelAndView create(
-			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "callback", required = false) String callback, 
-			Principal principal) {
+	public ModelAndView create(@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/saveditem.json?action=CREATE");
 		try {
@@ -112,21 +104,17 @@ public class UserItemController extends AbstractUserController {
 		return JsonUtils.toJson(response, callback);
 	}
 
-	@RequestMapping(value = "/v2/user/saveditem.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
-	public ModelAndView deleteRest(
-			@RequestParam(value = "itemid", required = false) Long itemId,
+	@RequestMapping(value = "/v2/user/saveditem.json", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
+	public ModelAndView deleteRest(@RequestParam(value = "itemid", required = false) Long itemId,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "callback", required = false) String callback, 
-			Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		return delete(itemId, europeanaId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-	public ModelAndView delete(
-			@RequestParam(value = "itemid", required = false) Long itemId,
+	public ModelAndView delete(@RequestParam(value = "itemid", required = false) Long itemId,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "callback", required = false) String callback, 
-			Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/saveditem.json?action=DELETE");
 		if (user != null) {

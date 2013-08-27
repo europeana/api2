@@ -1,17 +1,18 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jstl/core"%>
+<%@ page session="false" language="java" contentType="charset=UTF-8" pageEncoding="UTF-8"  %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<title>API2 Login</title>
+<title>Europeana API Login</title>
 <link type="text/css" rel="stylesheet"
 	href="<c:url value="/style.css"/>" />
 </head>
 
 <body>
 
-	<h1>API 2 Login</h1>
+	<h1>EUROPEANA.EU API</h1>
 
 	<div id="content">
 		<c:if test="${not empty param.authentication_error}">
@@ -31,10 +32,10 @@
 		<form id="loginForm" name="loginForm"
 			action="<c:url value="/login.do"/>" method="post">
 			<p>
-				<label>Username: <input type='text' name='j_username'/></label>
+				<label>E-mail: <input type='text' name='j_username'/></label>
 			</p>
 			<p>
-				<label>Password: <input type='text' name='j_password'/></label>
+				<label>Password: <input type="password" name='j_password'/></label>
 			</p>
 
 			<p>

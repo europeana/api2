@@ -30,7 +30,7 @@ public class AccessConfirmationController {
 		TreeMap<String, Object> model = new TreeMap<String, Object>();
 		model.put("auth_request", clientAuth);
 		model.put("client", client);
-		return new ModelAndView("access_confirmation", model);
+		return new ModelAndView("user/authorize", model);
 	}
 	
 	@RequestMapping("/login")

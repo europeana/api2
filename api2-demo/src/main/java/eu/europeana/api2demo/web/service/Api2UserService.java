@@ -16,7 +16,7 @@ public interface Api2UserService {
 
 	boolean createSavedItem(String id);
 
-	boolean deleteSavedItem(Long id);
+	void deleteSavedItem(Long id);
 
 	// TAGS
 	UserTags getTags(String tag);

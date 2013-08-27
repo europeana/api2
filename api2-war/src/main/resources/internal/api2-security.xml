@@ -55,6 +55,9 @@
 		<intercept-url pattern="/v2/user/**" access="ROLE_USER,SCOPE_READ" />
 		<custom-filter ref="api2_oauth2_resourceServerFilter" before="PRE_AUTH_FILTER" />
 		<access-denied-handler ref="api2_oauth2_accessDeniedHandler" />
+		<form-login authentication-failure-url="/login?authentication_error=true"
+			login-processing-url="/login.do" login-page="/user/login.jsp"/>
+		<logout logout-success-url="/index.jsp" logout-url="/logout.do" />
 	</http>	
 	
 	<http access-denied-page="/login?authorization_error=true" disable-url-rewriting="true"
@@ -62,8 +65,8 @@
 		<intercept-url pattern="/oauth/**" access="ROLE_USER" />
 		<intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" />
 		
-		<form-login authentication-failure-url="/login?authentication_error=true" default-target-url="/index.jsp"
-			login-processing-url="/login.do"/>
+		<form-login authentication-failure-url="/login?authentication_error=true"
+			login-processing-url="/login.do" login-page="/login"/>
 		<logout logout-success-url="/index.jsp" logout-url="/logout.do" />
 		<anonymous />
 	</http>	
@@ -138,7 +141,7 @@
 	<oauth2:expression-handler id="oauthExpressionHandler" />
 	<oauth2:web-expression-handler id="oauthWebExpressionHandler" />
 	
-	<oauth2:authorization-server 
+	<oauth2:authorization-server
 		client-details-service-ref="api2_oauth2_clientDetailsService" 
 		token-services-ref="api2_oauth2_tokenServices"
 		user-approval-handler-ref="api2_oauth2_userApprovalHandler" >

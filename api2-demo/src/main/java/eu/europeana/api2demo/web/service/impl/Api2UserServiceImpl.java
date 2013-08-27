@@ -59,9 +59,8 @@ public class Api2UserServiceImpl implements Api2UserService {
 	}
 	
 	@Override
-	public boolean deleteSavedItem(Long id) {
-		UserModification result = readJson(config.getUriSavedItemDelete() + id.toString(), UserModification.class);
-		return result != null ? result.success : false;
+	public void deleteSavedItem(Long id) {
+		restTemplate.delete(URI.create(config.getUriSavedItemDelete() + id.toString()));
 	}
 	
 	@Override
