@@ -25,6 +25,9 @@ import eu.europeana.corelib.db.entity.nosql.RefreshToken;
 import eu.europeana.corelib.db.service.OAuth2TokenService;
 
 @Service
+/**
+ * Implemetation of oAuth TokenStore. Manages the persistency of access tokens
+ */
 public class ApiTokenStore implements TokenStore {
 
 	@Resource
@@ -36,7 +39,7 @@ public class ApiTokenStore implements TokenStore {
 	public void cleanExpiredTokens() {
 		oAuth2TokenService.cleanExpiredTokens();
 	}
-	
+
 	@Override
 	public OAuth2Authentication readAuthentication(OAuth2AccessToken token) {
 		return readAuthentication(token.getValue());
@@ -44,7 +47,7 @@ public class ApiTokenStore implements TokenStore {
 
 	@Override
 	public OAuth2Authentication readAuthentication(String token) {
-		// "select token_id, authentication from oauth_access_token where token_id = ?";
+		// in SQL it would be "SELECT token_id, authentication FROM oauth_access_token WHERE token_id = ?";
 		OAuth2Authentication authentication = null;
 		AccessToken entity = oAuth2TokenService.findAccessTokenByID(extractTokenKey(token));
 		if (entity != null) {

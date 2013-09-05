@@ -10,6 +10,9 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 
+/**
+ * The entry point into the database of clients.
+ */
 public class OAuth2ClientDetailsService implements
 		org.springframework.security.oauth2.provider.ClientDetailsService {
 
@@ -17,6 +20,9 @@ public class OAuth2ClientDetailsService implements
 	private ApiKeyService apiKeyService;
 
 	@Override
+	/**
+	 * Loads ClientDetails object belongs to an apiKey
+	 */
 	public ClientDetails loadClientByClientId(String oauthClientId)
 			throws OAuth2Exception {
 		try {
@@ -29,5 +35,4 @@ public class OAuth2ClientDetailsService implements
 		}
 		throw new OAuth2Exception("OAuth2 ClientId unknown");
 	}
-
 }
