@@ -83,7 +83,6 @@ public class SearchController1 {
 			HttpServletResponse response) throws Exception {
 
 		path = fixPath(request.getContextPath());
-		String profile = "standard";
 		int rows = 12;
 
 		ModelAndView mov;
@@ -106,7 +105,7 @@ public class SearchController1 {
 					.setStart(start - 1).setAllowSpellcheck(false).setAllowFacets(false);
 			Class<? extends IdBean> clazz = ApiBean.class;
 			try {
-				SearchResults<Map<String, Object>> result = createResultsForApi1(wskey, profile, query, clazz);
+				SearchResults<Map<String, Object>> result = createResultsForApi1(wskey, query, clazz);
 				result.startIndex = start;
 				result.description = queryString + DESCRIPTION_SUFFIX;
 				result.link = String.format("%s?searchTerms=%s&startPage=%d", apiUrl,
@@ -163,7 +162,7 @@ public class SearchController1 {
 					.setPageSize(RESULT_ROWS_PER_PAGE).setStart(Integer.parseInt(startPage) - 1)
 					.setAllowSpellcheck(false).setAllowFacets(false);
 			Class<? extends IdBean> clazz = ApiBean.class;
-			SearchResults<BriefDoc> resultSet = createResultsForRSS(wskey, null, query, clazz);
+			SearchResults<BriefDoc> resultSet = createResultsForRSS(wskey, query, clazz);
 
 			channel.totalResults.value = resultSet.totalResults;
 
@@ -228,7 +227,7 @@ public class SearchController1 {
 		return bean.getDataProvider() + " " + bean.getUrl();
 	}
 
-	private <T extends IdBean> SearchResults<Map<String, Object>> createResultsForApi1(String wskey, String profile,
+	private <T extends IdBean> SearchResults<Map<String, Object>> createResultsForApi1(String wskey,
 			Query q, Class<T> clazz) throws SolrTypeException {
 		SearchResults<Map<String, Object>> response = new SearchResults<Map<String, Object>>(wskey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, q);
@@ -252,7 +251,7 @@ public class SearchController1 {
 		return response;
 	}
 
-	private SearchResults<BriefDoc> createResultsForRSS(String wskey, String profile, Query q,
+	private SearchResults<BriefDoc> createResultsForRSS(String wskey, Query q,
 			Class<? extends IdBean> clazz) throws SolrTypeException {
 		SearchResults<BriefDoc> response = new SearchResults<BriefDoc>(wskey, "search.json");
 		ResultSet<? extends IdBean> resultSet = searchService.search(clazz, q);

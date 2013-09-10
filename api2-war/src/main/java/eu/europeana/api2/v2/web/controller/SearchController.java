@@ -17,7 +17,6 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -120,7 +119,6 @@ public class SearchController {
 			@RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
-			@RequestParam(value = "sort", required = false) String sort,
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback, 
 			HttpServletRequest request,
@@ -227,6 +225,7 @@ public class SearchController {
 		return JsonUtils.toJson(response, callback);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query query, Class<T> clazz)
 			throws SolrTypeException {
 		SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
@@ -275,11 +274,9 @@ public class SearchController {
 	// @RequestMapping(value = "/v2/search.kml", produces =
 	// "application/vnd.google-earth.kml+xml")
 	public @ResponseBody
-	KmlResponse searchKml(Principal principal, @RequestParam(value = "query", required = true) String queryString,
+	KmlResponse searchKml(@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
-			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
-			@RequestParam(value = "sort", required = false) String sort,
 			@RequestParam(value = "wskey", required = true) String wskey, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
@@ -322,8 +319,7 @@ public class SearchController {
 	public @ResponseBody
 	RssResponse openSearchRss(@RequestParam(value = "searchTerms", required = true) String queryString,
 			@RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
-			@RequestParam(value = "count", required = false, defaultValue = "12") int count,
-			@RequestParam(value = "sort", required = false) String sort) {
+			@RequestParam(value = "count", required = false, defaultValue = "12") int count) {
 		RssResponse rss = new RssResponse();
 		Channel channel = rss.channel;
 		channel.startIndex.value = start;

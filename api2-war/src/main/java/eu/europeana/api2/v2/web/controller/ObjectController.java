@@ -41,6 +41,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.github.jsonldjava.core.JSONLD;
+import com.github.jsonldjava.core.JSONLDProcessingError;
+import com.github.jsonldjava.utils.JSONUtils;
+
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
@@ -59,6 +63,7 @@ import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
+import eu.europeana.corelib.solr.exceptions.MongoDBException;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.EDMUtils;
@@ -182,7 +187,10 @@ public class ObjectController {
 		} catch (SolrTypeException e) {
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
 					requestNumber), callback);
-		}
+		} catch (MongoDBException e) {
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
+					requestNumber), callback);
+		} 
 
 		return JsonUtils.toJson(objectResult, callback);
 	}
@@ -195,13 +203,54 @@ public class ObjectController {
 			@RequestParam(value = "sessionhash", required = true) String sessionHash) {
 		return new ApiNotImplementedYet(apiKey, "record.kml");
 	}
+	
+	@RequestMapping(value = {"/{collectionId}/{recordId}.jsonld","/{collectionId}/{recordId}.json-ld"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ModelAndView recordJSONLD(
+			@PathVariable String collectionId,
+			@PathVariable String recordId,
+			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "callback", required = false) String callback,
+			HttpServletResponse response) {
+		response.setCharacterEncoding("UTF-8");
+		
+		String europeanaObjectId = "/" + collectionId + "/" + recordId;
+		
+		String jsonld = null;
+		
+		FullBeanImpl bean = null;
+		try {
+			bean = (FullBeanImpl) searchService.findById(europeanaObjectId,true);
+			if (bean == null) {
+				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId,true);
+			}
+		} catch (SolrTypeException e) {
+			log.error(ExceptionUtils.getFullStackTrace(e));
+		} catch (MongoDBException e) {
+			log.error(ExceptionUtils.getFullStackTrace(e));
+		}
+		
+
+		if (bean != null) {
+			String rdf = EDMUtils.toEDM(bean);
+			try {
+				jsonld = JSONUtils.toString(JSONLD.fromRDF(rdf));
+			} catch (JSONLDProcessingError e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			response.setStatus(404);
+		}
+		
+		return JsonUtils.toJson(jsonld, callback);
+	}
+	
 
 	@RequestMapping(value = "/{collectionId}/{recordId}.rdf", produces = "application/rdf+xml")
 	public ModelAndView recordRdf(
 			@PathVariable String collectionId,
 			@PathVariable String recordId,
 			@RequestParam(value = "wskey", required = true) String wskey,
-			HttpServletRequest request, 
 			HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
@@ -244,6 +293,8 @@ public class ObjectController {
 				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId,true);
 			}
 		} catch (SolrTypeException e) {
+			log.error(ExceptionUtils.getFullStackTrace(e));
+		} catch (MongoDBException e) {
 			log.error(ExceptionUtils.getFullStackTrace(e));
 		}
 

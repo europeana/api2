@@ -37,7 +37,7 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ThumbnailService;
 import eu.europeana.corelib.definitions.model.ThumbSize;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
-import eu.europeana.corelib.solr.exceptions.SolrTypeException;
+import eu.europeana.corelib.solr.exceptions.MongoDBException;
 import eu.europeana.corelib.solr.service.SearchService;
 
 /**
@@ -57,15 +57,11 @@ public class ImageController {
 	public ResponseEntity<byte[]> image(
 			@PathVariable String collectionId,
 			@PathVariable String recordId,
-			@RequestParam(value = "apikey", required = true) String apiKey,
 			@RequestParam(value = "imageid", required = false, defaultValue = ThumbnailService.DEFAULT_IMAGEID) String imageId,
 			@RequestParam(value = "size", required = false, defaultValue = "MEDIUM") ThumbSize size) {
-		// TODO: apikey checking
 		byte[] image = null;
-		String objectId = "/" + collectionId + "/" + recordId; // TODO Use
-																// corelib for
-																// object id
-																// generation
+		String objectId = "/" + collectionId + "/" + recordId;
+		// TODO Use corelib for object id generation
 		MediaType mediaType = MediaType.IMAGE_JPEG;
 		if (thumbnailService.exists(objectId, imageId)) {
 			image = thumbnailService.retrieveThumbnail(objectId, imageId, size);
@@ -73,12 +69,12 @@ public class ImageController {
 		if (image == null) {
 			// retrieve record
 			try {
-				FullBean bean = searchService.findById(collectionId, recordId,false);
+				FullBean bean = searchService.findById(collectionId, recordId, false);
 				if (bean != null) {
 					image = DefaultImageCache.getImage(bean.getType());
 					mediaType = MediaType.IMAGE_GIF;
 				}
-			} catch (SolrTypeException e) {
+			} catch (MongoDBException e) {
 				// ignore and image for unknown
 			}
 		}
@@ -95,7 +91,6 @@ public class ImageController {
 
 	@RequestMapping(value = "/image")
 	public void imageRedirect(HttpServletResponse response,
-			@RequestParam(value = "type", required = false) String type,
 			@RequestParam(value = "uri", required = false) String uri,
 			@RequestParam(value = "size", required = false) String sizeString) {
 		ImageCache imageCache = null;

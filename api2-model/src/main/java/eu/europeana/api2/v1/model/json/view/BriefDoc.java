@@ -46,7 +46,6 @@ public class BriefDoc {
 	private String fullDocUrl;
 	private String title;
 	private String url;
-	private String description;
 	private String thumbnail; //
 	private String creator; //
 	private String[] dcTermsHasPart;
@@ -220,10 +219,6 @@ public class BriefDoc {
 
 	public void setUrl(String url) {
 		this.url = url;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
 	}
 
 	public String getThumbnail() {

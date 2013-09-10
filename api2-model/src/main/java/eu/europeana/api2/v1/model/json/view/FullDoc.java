@@ -1069,10 +1069,6 @@ public class FullDoc {
 		this.enrichmentAgentLabel = enrichmentAgentLabel;
 	}
 
-	private boolean isOptedOut() {
-		return isOptedOut;
-	}
-
 	public void setOptedOut(boolean isOptedOut) {
 		this.isOptedOut = isOptedOut;
 	}

@@ -20,14 +20,23 @@ public class JsonUtils {
 	public static ModelAndView toJson(Object object) {
 		return toJson(object, null);
 	}
+	
+	public static ModelAndView toJson(String json, String callback) {
+		String resultPage = "json";
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("json", json);
+		if (StringUtils.isNotBlank(callback)) {
+			resultPage = "jsonp";
+			model.put("callback", callback);
+		}
+		return new ModelAndView(resultPage, model);
+	}
 
 	public static ModelAndView toJson(Object object, String callback) {
-		String resultPage = "json";
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setSerializationInclusion(Inclusion.NON_NULL);
-		Map<String, Object> model = new HashMap<String, Object>();
 		try {
-			model.put("json", objectMapper.writeValueAsString(object));
+			return toJson(objectMapper.writeValueAsString(object), callback);
 		} catch (JsonGenerationException e) {
 			log.error("Json Generation Exception: " + e.getMessage(),e);
 		} catch (JsonMappingException e) {
@@ -35,6 +44,9 @@ public class JsonUtils {
 		} catch (IOException e) {
 			log.error("I/O Exception: " + e.getMessage(),e);
 		}
+		// TODO report error...
+		String resultPage = "json";
+		Map<String, Object> model = new HashMap<String, Object>();
 		if (StringUtils.isNotBlank(callback)) {
 			resultPage = "jsonp";
 			model.put("callback", callback);

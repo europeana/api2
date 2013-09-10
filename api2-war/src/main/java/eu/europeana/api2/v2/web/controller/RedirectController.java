@@ -1,7 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Controller;
@@ -36,9 +35,7 @@ public class RedirectController {
 			@PathVariable String uid,
 			@RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
 			@RequestParam(value = "shownAt", required = true) String isShownAt,
-			@RequestParam(value = "provider", required = true) String provider,
-			@RequestParam(value = "id", required = true) String id,
-			HttpServletRequest request) throws Exception {
+			@RequestParam(value = "id", required = true) String id) throws Exception {
 
 		if (StringUtils.isBlank(isShownAt)) {
 			throw new IllegalArgumentException(

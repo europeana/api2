@@ -13,7 +13,7 @@ public class ChannelImage {
 	@XmlElement(name = "url")
 	private String url = "http://www.europeana.eu/portal/sp/img/europeana-logo-en.png";
 
-	private int width = 206;
-
-	private int height = 123;
+//	private int width = 206;
+//
+//	private int height = 123;
 }

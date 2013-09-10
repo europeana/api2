@@ -3,7 +3,6 @@ package eu.europeana.api2.v1.web.controller;
 import java.io.StringWriter;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -32,7 +31,6 @@ import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.solr.exceptions.EuropeanaQueryException;
-import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
 
 @Controller
@@ -64,13 +62,10 @@ public class ObjectController1 {
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	// method=RequestMethod.GET,
-	public ModelAndView recordJson(
-			@PathVariable String collectionId,
-			@PathVariable String recordId,
+	public ModelAndView recordJson(@PathVariable String collectionId, @PathVariable String recordId,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback,
-			HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+			@RequestParam(value = "callback", required = false) String callback, HttpServletResponse response)
+			throws Exception {
 		log.info("====== /v1/record/{collectionId}/{recordId}.json ======");
 
 		if (StringUtils.isBlank(wskey)) {
@@ -82,17 +77,12 @@ public class ObjectController1 {
 			response.setStatus(401);
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", "Unregistered user"), callback);
 		}
-		try {
-			FullBean bean = searchService.findById(collectionId, recordId,true);
-			if (bean != null) {
-				return JsonUtils.toJson(new FullDoc(bean).asMap(), callback);
-			} else {
-				response.setStatus(404);
-				return JsonUtils.toJson(new ApiError(wskey, "record.json", "not found error"), callback);
-			}
-		} catch (SolrTypeException e) {
-			response.setStatus(500);
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage()), callback);
+		FullBean bean = searchService.findById(collectionId, recordId, true);
+		if (bean != null) {
+			return JsonUtils.toJson(new FullDoc(bean).asMap(), callback);
+		} else {
+			response.setStatus(404);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", "not found error"), callback);
 		}
 	}
 
@@ -101,9 +91,8 @@ public class ObjectController1 {
 	// method=RequestMethod.GET
 	public @ResponseBody
 	SrwResponse recordSrw(@PathVariable String collectionId, @PathVariable String recordId,
-			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+			@RequestParam(value = "wskey", required = false) String wskey, HttpServletResponse response)
+			throws Exception {
 		log.info("====== /v1/record/{collectionId}/{recordId}.srw ======");
 
 		boolean hasResult = false;
@@ -119,32 +108,26 @@ public class ObjectController1 {
 		}
 
 		if (!hasResult) {
-			try {
-				FullBean bean = searchService.findById(collectionId, recordId,true);
-				SrwResponse srwResponse = new SrwResponse();
-				FullDoc doc = null;
-				if (bean != null) {
-					doc = new FullDoc(bean);
-					Record record = new Record();
-					record.recordData.dc = doc;
-					srwResponse.records.record.add(record);
-					log.info("record added");
-				} else {
-					StringBuilder sb = new StringBuilder(getPortalPath());
-					sb.append(collectionId).append("/").append(recordId).append(EXT_HTML);
+			FullBean bean = searchService.findById(collectionId, recordId, true);
+			SrwResponse srwResponse = new SrwResponse();
+			FullDoc doc = null;
+			if (bean != null) {
+				doc = new FullDoc(bean);
+				Record record = new Record();
+				record.recordData.dc = doc;
+				srwResponse.records.record.add(record);
+				log.info("record added");
+			} else {
+				StringBuilder sb = new StringBuilder(getPortalPath());
+				sb.append(collectionId).append("/").append(recordId).append(EXT_HTML);
 
-					response.setStatus(302);
-					response.setHeader("Location", sb.toString());
-					return null; // "redirect:" + sb.toString();
-				}
-				createXml(srwResponse);
-				log.info("xml created");
-				return srwResponse;
-			} catch (SolrTypeException e) {
-				// model.put("json", utils.toJson(new ApiError(wskey, "record.json", e.getMessage())));
-				response.setStatus(500);
-				return null;
+				response.setStatus(302);
+				response.setHeader("Location", sb.toString());
+				return null; // "redirect:" + sb.toString();
 			}
+			createXml(srwResponse);
+			log.info("xml created");
+			return srwResponse;
 		}
 
 		// ModelAndView page = new ModelAndView("json", model);
