@@ -274,10 +274,12 @@ public class SearchController {
 	// @RequestMapping(value = "/v2/search.kml", produces =
 	// "application/vnd.google-earth.kml+xml")
 	public @ResponseBody
-	KmlResponse searchKml(@RequestParam(value = "query", required = true) String queryString,
+	KmlResponse searchKml(
+			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
-			@RequestParam(value = "wskey", required = true) String wskey, HttpServletRequest request,
+			@RequestParam(value = "wskey", required = true) String wskey,
+			HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
 		// workaround of a Spring issue
@@ -298,7 +300,10 @@ public class SearchController {
 			throw new Exception(e);
 		}
 		KmlResponse kmlResponse = new KmlResponse();
-		Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setAllowSpellcheck(false)
+		Query query = new Query(SolrUtils.translateQuery(queryString))
+				.setRefinements(refinements)
+				.setApiQuery(true)
+				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
 		query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
 		try {
