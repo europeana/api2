@@ -110,7 +110,6 @@ public class ObjectController {
 		response.setCharacterEncoding("UTF-8");
 
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
-		String requestUri = europeanaObjectId + ".json";
 		ApiKey apiKey;
 		long requestNumber = 0;
 		try {
@@ -121,10 +120,10 @@ public class ObjectController {
 			apiKey.getUsageLimit();
 			requestNumber = apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
+			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, profile);
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
 		} catch (LimitReachedException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.LIMIT, profile);
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()), callback);
 		}
 		log.info("record");
@@ -142,7 +141,7 @@ public class ObjectController {
 			}
 
 			if (bean == null) {
-				apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+				apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.LIMIT, profile);
 				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Invalid record identifier: "
 						+ europeanaObjectId, requestNumber), callback);
 			}
@@ -162,13 +161,11 @@ public class ObjectController {
 				}
 				objectResult.similarItems = beans;
 			}
-			FullView.setApiUrl(urlService.getApi2Home(wskey));
-			FullView.setPortalUrl(urlService.getPortalHome(false));
 			objectResult.object = new FullView(bean, profile, apiKey.getUser().getId(), optOutService.check(bean
 					.getId()));
 			long t1 = (new Date()).getTime();
 			objectResult.statsDuration = (t1 - t0);
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
+			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, profile);
 		} catch (SolrTypeException e) {
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
 		} catch (MongoDBException e) {
@@ -179,17 +176,20 @@ public class ObjectController {
 	}
 
 	@RequestMapping(value = "/{collectionId}/{recordId}.kml", produces = "application/vnd.google-earth.kml+xml")
-	public @ResponseBody
-	ApiResponse searchKml(@PathVariable String collectionId, @PathVariable String recordId,
+	public @ResponseBody ApiResponse searchKml(
+			@PathVariable String collectionId, @PathVariable String recordId,
 			@RequestParam(value = "apikey", required = true) String apiKey,
 			@RequestParam(value = "sessionhash", required = true) String sessionHash) {
 		return new ApiNotImplementedYet(apiKey, "record.kml");
 	}
 
 	@RequestMapping(value = { "/{collectionId}/{recordId}.jsonld", "/{collectionId}/{recordId}.json-ld" }, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView recordJSONLD(@PathVariable String collectionId, @PathVariable String recordId,
+	public ModelAndView recordJSONLD(
+			@PathVariable String collectionId, 
+			@PathVariable String recordId,
 			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "callback", required = false) String callback, HttpServletResponse response) {
+			@RequestParam(value = "callback", required = false) String callback, 
+			HttpServletRequest request, HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
 		ApiKey apiKey;
@@ -202,10 +202,10 @@ public class ObjectController {
 			apiKey.getUsageLimit();
 			requestNumber = apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
+			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, Profile.STANDARD.toString());
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
 		} catch (LimitReachedException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.LIMIT, Profile.STANDARD.toString());
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()), callback);
 		}
 		
