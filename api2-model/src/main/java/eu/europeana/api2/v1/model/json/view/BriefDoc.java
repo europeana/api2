@@ -28,6 +28,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefDoc {
@@ -35,13 +36,9 @@ public class BriefDoc {
 	public final static int JSON = 0;
 	public final static int SRW = 1;
 
-	private static String portalServer;
-	private static String portalName;
-	private static String path;
-
-	private String europeanaUrl = "http://www.europeana.eu/portal/record";
 	private String wskey;
 	private boolean isOptOut;
+	private EuropeanaUrlService urlService;
 
 	private String fullDocUrl;
 	private String title;
@@ -74,8 +71,9 @@ public class BriefDoc {
 
 	private Map<String, Object> map;
 
-	public BriefDoc(ApiBean bean, boolean optOut) {
+	public BriefDoc(ApiBean bean, boolean optOut, EuropeanaUrlService urlService) {
 		this.isOptOut = optOut;
+		this.urlService = urlService;
 		if (bean.getTitle() != null && bean.getTitle().length > 0)
 			title = bean.getTitle()[0];
 		url = bean.getId();
@@ -416,14 +414,6 @@ public class BriefDoc {
 		this.enrichmentConceptLabel = enrichmentConceptLabel;
 	}
 
-	public String getEuropeanaUrl() {
-		return europeanaUrl;
-	}
-
-	public void setEuropeanaUrl(String europeanaUrl) {
-		this.europeanaUrl = europeanaUrl;
-	}
-
 	public String getWskey() {
 		return wskey;
 	}
@@ -432,62 +422,22 @@ public class BriefDoc {
 		this.wskey = wskey;
 	}
 
-	public static String getPortalServer() {
-		return portalServer;
-	}
-
-	public static void setPortalServer(String portalServer) {
-		if (portalServer.endsWith("/")) {
-			portalServer = portalServer.substring(0, portalServer.length() - 1);
-		}
-		BriefDoc.portalServer = portalServer;
-	}
-
-	public static String getPortalName() {
-		return portalName;
-	}
-
-	public static void setPortalName(String portalName) {
-		if (portalName.endsWith("/")) {
-			portalName = portalName.substring(0, portalServer.length() - 1);
-		}
-		if (portalName.startsWith("/")) {
-			portalName = portalName.substring(1);
-		}
-		BriefDoc.portalName = portalName;
-	}
-
-	public static String getPath() {
-		return path;
-	}
-
-	public static void setPath(String path) {
-		if (path.endsWith("/")) {
-			path = path.substring(0, portalServer.length() - 1);
-		}
-		if (path.startsWith("/")) {
-			path = path.substring(1);
-		}
-		BriefDoc.path = path;
-	}
-
 	public String getGuid() {
-		return portalServer + "/" + portalName + "/record" + url + ".html";
+		return urlService.getPortalRecord(false, url).toString();
 	}
 
 	public String getLink(int target) {
 		String extension;
 		switch (target) {
 		case SRW:
-			extension = ".srw";
+			extension = EuropeanaUrlService.EXT_SRW;
 			break;
 		case JSON:
 		default:
-			extension = ".json";
+			extension = EuropeanaUrlService.EXT_JSON;
 			break;
 		}
-		return portalServer + "/" + path + "/v1/record" + url + extension
-				+ "?wskey=" + wskey;
+		return urlService.getApi1Record(wskey, url, extension).toString();
 	}
 
 	public String getDescription() {
