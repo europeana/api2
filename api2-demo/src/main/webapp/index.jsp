@@ -1,7 +1,8 @@
 <html>
 <body>
+
 <h2>API2 DEMO (USER FUNCTIONS)</h2>
-<a href="/api-demo/user/">Login & Authorize</a>
+<a href="/api-demo/user/">Login &amp; Authorize</a>
 <br/>
 <br/>
 <br/>
@@ -11,5 +12,6 @@ demo2/demo2<br/>
 demo3/demo3<br/>
 demo4/demo4<br/>
 demo5/demo5<br/>
+
 </body>
 </html>
