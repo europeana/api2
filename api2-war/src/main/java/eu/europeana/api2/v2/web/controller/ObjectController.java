@@ -32,7 +32,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -72,6 +71,7 @@ import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.EDMUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 
 /**
@@ -95,17 +95,9 @@ public class ObjectController {
 
 	@Resource
 	private OptOutService optOutService;
-
-	@Value("#{europeanaProperties['portal.server']}")
-	private String portalServer;
-
-	@Value("#{europeanaProperties['portal.name']}")
-	private String portalName;
-
-	@Value("#{europeanaProperties['api2.url']}")
-	private String apiUrl;
-
-	private static String portalUrl;
+	
+	@Resource
+	private EuropeanaUrlService urlService;
 
 	private String similarItemsProfile = "minimal";
 
@@ -156,9 +148,6 @@ public class ObjectController {
 			}
 
 			if (StringUtils.containsIgnoreCase(profile, Profile.SIMILAR.getName())) {
-				BriefView.setApiUrl(apiUrl);
-				BriefView.setPortalUrl(getPortalUrl());
-
 				List<BriefBean> similarItems;
 				List<BriefView> beans = new ArrayList<BriefView>();
 				try {
@@ -173,8 +162,8 @@ public class ObjectController {
 				}
 				objectResult.similarItems = beans;
 			}
-			FullView.setApiUrl(apiUrl);
-			FullView.setPortalUrl(getPortalUrl());
+			FullView.setApiUrl(urlService.getApi2Home(wskey));
+			FullView.setPortalUrl(urlService.getPortalHome(false));
 			objectResult.object = new FullView(bean, profile, apiKey.getUser().getId(), optOutService.check(bean
 					.getId()));
 			long t1 = (new Date()).getTime();
@@ -203,6 +192,23 @@ public class ObjectController {
 			@RequestParam(value = "callback", required = false) String callback, HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
+		ApiKey apiKey;
+		long requestNumber = 0;
+		try {
+			apiKey = apiService.findByID(wskey);
+			if (apiKey == null) {
+				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Unregistered user"), callback);
+			}
+			apiKey.getUsageLimit();
+			requestNumber = apiService.checkReachedLimit(apiKey);
+		} catch (DatabaseException e) {
+			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
+		} catch (LimitReachedException e) {
+			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()), callback);
+		}
+		
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
 
 		String jsonld = null;
@@ -294,17 +300,5 @@ public class ObjectController {
 
 		apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
 		return new ModelAndView("rdf", model);
-	}
-
-	private String getPortalUrl() {
-		if (portalUrl == null) {
-			StringBuilder sb = new StringBuilder(portalServer);
-			if (!portalServer.endsWith("/") && !portalName.startsWith("/")) {
-				sb.append("/");
-			}
-			sb.append(portalName);
-			portalUrl = sb.toString();
-		}
-		return portalUrl;
 	}
 }

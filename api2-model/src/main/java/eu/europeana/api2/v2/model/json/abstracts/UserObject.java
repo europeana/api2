@@ -23,8 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
-import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.corelib.definitions.solr.DocType;
+import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -70,7 +70,7 @@ public abstract class UserObject {
 
 	public String getEdmPreview() {
 		if (StringUtils.isNotBlank(edmPreview)) {
-			return LinkUtils.getThumbnailUrl(edmPreview, type.toString());
+			return EuropeanaUrlServiceImpl.getBeanInstance().getThumbnailUrl(edmPreview, type).toString();
 		}
 		return null;
 	}

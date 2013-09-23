@@ -15,12 +15,13 @@ import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
+import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
-	protected static String apiUrl;
-	protected static String portalUrl;
+	protected EuropeanaUrlService urlService;
 
 	protected String profile;
 	private String[] thumbnails;
@@ -34,6 +35,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		this.wskey = wskey;
 		this.bean = bean;
 		this.isOptedOut = optOut;
+		urlService = EuropeanaUrlServiceImpl.getBeanInstance();
 	}
 
 	public String getProfile() {
@@ -218,7 +220,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 			if (!isOptedOut && bean.getEdmObject() != null) {
 				for (String object : bean.getEdmObject()) {
 					String tn = StringUtils.defaultIfBlank(object, "");
-					thumbs.add(LinkUtils.getThumbnailUrl(tn, getType().toString()));
+					thumbs.add(urlService.getThumbnailUrl(tn, getType()).toString());
 				}
 			}
 			thumbnails = thumbs.toArray(new String[thumbs.size()]);
@@ -227,11 +229,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	}
 
 	public String getLink() {
-		return LinkUtils.getLink(wskey, apiUrl, getId());
+		return urlService.getApi2RecordJson(wskey, getId()).toString();
 	}
 
 	public String getGuid() {
-		return LinkUtils.getGuid(wskey, portalUrl, getId());
+		return LinkUtils.addCampaignCodes(urlService.getPortalRecord(false, id), wskey);
 	}
 
 	@Override
@@ -243,17 +245,6 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	protected boolean isProfile(Profile _profile) {
 		return StringUtils.containsIgnoreCase(profile, _profile.getName());
-	}
-
-	public static void setApiUrl(String _apiUrl) {
-		apiUrl = _apiUrl;
-		if (StringUtils.endsWith(apiUrl, "/")) {
-			apiUrl = StringUtils.chop(apiUrl);
-		}
-	}
-
-	public static void setPortalUrl(String _portalUrl) {
-		portalUrl = _portalUrl;
 	}
 
 	@SuppressWarnings("unchecked")

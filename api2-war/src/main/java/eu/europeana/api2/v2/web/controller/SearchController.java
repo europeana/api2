@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,6 +65,8 @@ import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.SolrUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
+import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
 
@@ -95,22 +96,12 @@ public class SearchController {
 
 	@Resource
 	private OptOutService optOutService;
-
-	@Value("#{europeanaProperties['api.rowLimit']}")
-	private String rowLimit = "96";
-
-	@Value("#{europeanaProperties['portal.server']}")
-	private String portalServer;
-
-	@Value("#{europeanaProperties['portal.name']}")
-	private String portalName;
-
-	@Value("#{europeanaProperties['api2.url']}")
-	private String apiUrl;
-
-	private static String portalUrl;
-
-	private static int maxRows = -1;
+	
+	@Resource
+	private Configuration configuration;
+	
+	@Resource
+	private EuropeanaUrlService urlService;
 
 	@RequestMapping(value = "/v2/search.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
@@ -132,10 +123,7 @@ public class SearchController {
 		}
 
 		response.setCharacterEncoding("UTF-8");
-		if (maxRows == -1) {
-			maxRows = Integer.parseInt(rowLimit);
-		}
-		rows = Math.min(rows, maxRows);
+		rows = Math.min(rows, configuration.getApiRowLimit());
 		if (log.isInfoEnabled()) {
 			log.info("=== search.json: " + rows);
 		}
@@ -234,9 +222,6 @@ public class SearchController {
 		response.itemsCount = resultSet.getResults().size();
 		response.items = resultSet.getResults();
 
-		BriefView.setApiUrl(apiUrl);
-		BriefView.setPortalUrl(getPortalUrl());
-
 		List<T> beans = new ArrayList<T>();
 		for (T b : resultSet.getResults()) {
 			if (b instanceof ApiBean) {
@@ -274,10 +259,12 @@ public class SearchController {
 	// @RequestMapping(value = "/v2/search.kml", produces =
 	// "application/vnd.google-earth.kml+xml")
 	public @ResponseBody
-	KmlResponse searchKml(@RequestParam(value = "query", required = true) String queryString,
+	KmlResponse searchKml(
+			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
-			@RequestParam(value = "wskey", required = true) String wskey, HttpServletRequest request,
+			@RequestParam(value = "wskey", required = true) String wskey,
+			HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
 		// workaround of a Spring issue
@@ -298,7 +285,10 @@ public class SearchController {
 			throw new Exception(e);
 		}
 		KmlResponse kmlResponse = new KmlResponse();
-		Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setAllowSpellcheck(false)
+		Query query = new Query(SolrUtils.translateQuery(queryString))
+				.setRefinements(refinements)
+				.setApiQuery(true)
+				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
 		query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
 		try {
@@ -334,7 +324,7 @@ public class SearchController {
 			channel.totalResults.value = resultSet.getResultSize();
 			for (BriefBean bean : resultSet.getResults()) {
 				Item item = new Item();
-				item.guid = getPortalUrl() + "/record" + bean.getId() + ".html";
+				item.guid = urlService.getPortalRecord(false, bean.getId()).toString();
 				item.title = getTitle(bean);
 				item.description = getDescription(bean);
 				/*
@@ -397,15 +387,4 @@ public class SearchController {
 		return sb.toString();
 	}
 
-	private String getPortalUrl() {
-		if (portalUrl == null) {
-			StringBuilder sb = new StringBuilder(portalServer);
-			if (!portalServer.endsWith("/") && !portalName.startsWith("/")) {
-				sb.append("/");
-			}
-			sb.append(portalName);
-			portalUrl = sb.toString();
-		}
-		return portalUrl;
-	}
 }

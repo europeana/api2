@@ -21,12 +21,10 @@ import eu.europeana.corelib.definitions.solr.entity.Place;
 import eu.europeana.corelib.definitions.solr.entity.ProvidedCHO;
 import eu.europeana.corelib.definitions.solr.entity.Proxy;
 import eu.europeana.corelib.definitions.solr.entity.Timespan;
+import eu.europeana.corelib.web.utils.UrlBuilder;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class FullView implements FullBean {
-
-	protected static String apiUrl;
-	protected static String portalUrl;
 
 	private FullBean bean;
 	private String profile;
@@ -298,14 +296,6 @@ public class FullView implements FullBean {
 
 	@Override
 	public void setOptOut(boolean optOut) {
-	}
-
-	public static void setApiUrl(String _apiUrl) {
-		apiUrl = _apiUrl;
-	}
-
-	public static void setPortalUrl(String _portalUrl) {
-		portalUrl = _portalUrl;
 	}
 
 	private String encode(String value) {
