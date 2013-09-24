@@ -122,7 +122,6 @@ public class SearchController1 {
 		log.info("===== openSearchControllerRSS =====");
 		response.setCharacterEncoding("UTF-8");
 
-		String cannonicalLink = "http://europeana.eu";
 		UrlBuilder url = urlService.getApi1Home(null).addPage("opensearch.rss");
 		url.addParam("searchTerms", URLEncoder.encode(queryString, "UTF-8"));
 		url.addParam("startPage", startPage);
@@ -133,7 +132,7 @@ public class SearchController1 {
 		channel.itemsPerPage.value = RESULT_ROWS_PER_PAGE;
 		channel.query.searchTerms = queryString;
 		channel.query.startPage = Integer.parseInt(startPage);
-		channel.setLink(cannonicalLink);
+		channel.setLink(EuropeanaUrlService.URL_EUROPEANA);
 		channel.atomLink.href = url.toString();
 		channel.updateDescription();
 
