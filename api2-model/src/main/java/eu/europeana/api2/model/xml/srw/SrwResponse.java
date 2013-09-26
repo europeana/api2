@@ -5,6 +5,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import eu.europeana.api2.v2.model.xml.srw.EchoedSearchRetrieveRequest;
 import eu.europeana.api2.v2.model.xml.srw.Records;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
 
 @XmlRootElement(name = "searchRetrieveResponse")
 public class SrwResponse {
@@ -13,8 +14,8 @@ public class SrwResponse {
 	public static final String NS_DIAG = "http://www.loc.gov/zing/srw/diagnostic/";
 	public static final String NS_XCQL = "http://www.loc.gov/zing/cql/xcql/";
 	public static final String NS_MODS = "http://www.loc.gov/mods/v3";
-	public static final String NS_EUROPEANA = "http://www.europeana.eu";
-	public static final String NS_ENRICHMENT = "http://www.europeana.eu/schemas/ese/enrichment/";
+	public static final String NS_EUROPEANA = EuropeanaUrlService.URL_EUROPEANA;
+	public static final String NS_ENRICHMENT = EuropeanaUrlService.URL_EUROPEANA + "/schemas/ese/enrichment/";
 	public static final String NS_DCTERMS = "http://purl.org/dc/terms/";
 	public static final String NS_DC = "http://purl.org/dc/elements/1.1/";
 	public static final String NS_DCX = "http://purl.org/dc/elements/1.1/";

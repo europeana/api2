@@ -27,11 +27,11 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,7 +43,10 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.github.jsonldjava.core.JSONLD;
 import com.github.jsonldjava.core.JSONLDProcessingError;
+import com.github.jsonldjava.impl.JenaRDFParser;
 import com.github.jsonldjava.utils.JSONUtils;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.api2.model.json.ApiError;
@@ -68,6 +71,7 @@ import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.EDMUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 
 /**
@@ -88,35 +92,24 @@ public class ObjectController {
 
 	@Resource
 	private ApiKeyService apiService;
-	
+
 	@Resource
 	private OptOutService optOutService;
-
-	@Value("#{europeanaProperties['portal.server']}")
-	private String portalServer;
-
-	@Value("#{europeanaProperties['portal.name']}")
-	private String portalName;
-
-	@Value("#{europeanaProperties['api2.url']}")
-	private String apiUrl;
-
-	private static String portalUrl;
+	
+	@Resource
+	private EuropeanaUrlService urlService;
 
 	private String similarItemsProfile = "minimal";
 
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView record(
-			@PathVariable String collectionId,
-			@PathVariable String recordId,
+	public ModelAndView record(@PathVariable String collectionId, @PathVariable String recordId,
 			@RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
 			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "callback", required = false) String callback,
-			HttpServletRequest request, HttpServletResponse response) {
+			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
+			HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
-		String requestUri = europeanaObjectId + ".json";
 		ApiKey apiKey;
 		long requestNumber = 0;
 		try {
@@ -127,16 +120,14 @@ public class ObjectController {
 			apiKey.getUsageLimit();
 			requestNumber = apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
-					requestNumber), callback);
+			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, profile);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
 		} catch (LimitReachedException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.LIMIT, profile);
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()), callback);
 		}
 		log.info("record");
-		ObjectResult objectResult = new ObjectResult(wskey, "record.json",
-				requestNumber);
+		ObjectResult objectResult = new ObjectResult(wskey, "record.json", requestNumber);
 		if (StringUtils.containsIgnoreCase(profile, "params")) {
 			objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
 			objectResult.addParam("profile", profile);
@@ -144,30 +135,24 @@ public class ObjectController {
 
 		try {
 			long t0 = (new Date()).getTime();
-			FullBean bean = searchService.findById(europeanaObjectId,true);
+			FullBean bean = searchService.findById(europeanaObjectId, true);
 			if (bean == null) {
-				bean = searchService
-						.resolve(europeanaObjectId,true);
+				bean = searchService.resolve(europeanaObjectId, true);
 			}
 
 			if (bean == null) {
-				apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
-				return JsonUtils.toJson(new ApiError(wskey, "record.json",
-						"Invalid record identifier: " + europeanaObjectId,
-						requestNumber), callback);
+				apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.LIMIT, profile);
+				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Invalid record identifier: "
+						+ europeanaObjectId, requestNumber), callback);
 			}
 
 			if (StringUtils.containsIgnoreCase(profile, Profile.SIMILAR.getName())) {
-				BriefView.setApiUrl(apiUrl);
-				BriefView.setPortalUrl(getPortalUrl());
-
 				List<BriefBean> similarItems;
 				List<BriefView> beans = new ArrayList<BriefView>();
 				try {
 					similarItems = searchService.findMoreLikeThis(europeanaObjectId);
 					for (BriefBean b : similarItems) {
-						BriefView view = new BriefView(b, similarItemsProfile,
-							wskey, optOutService.check(b.getId()));
+						BriefView view = new BriefView(b, similarItemsProfile, wskey, optOutService.check(b.getId()));
 						beans.add(view);
 					}
 				} catch (SolrServerException e) {
@@ -176,64 +161,76 @@ public class ObjectController {
 				}
 				objectResult.similarItems = beans;
 			}
-			FullView.setApiUrl(apiUrl);
-			FullView.setPortalUrl(getPortalUrl());
-			objectResult.object = new FullView(bean, profile, apiKey.getUser()
-					.getId(), optOutService.check(bean.getId()));
+			objectResult.object = new FullView(bean, profile, apiKey.getUser().getId(), optOutService.check(bean
+					.getId()));
 			long t1 = (new Date()).getTime();
 			objectResult.statsDuration = (t1 - t0);
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT,
-					profile);
+			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, profile);
 		} catch (SolrTypeException e) {
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
-					requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
 		} catch (MongoDBException e) {
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
-					requestNumber), callback);
-		} 
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
+		}
 
 		return JsonUtils.toJson(objectResult, callback);
 	}
 
 	@RequestMapping(value = "/{collectionId}/{recordId}.kml", produces = "application/vnd.google-earth.kml+xml")
 	public @ResponseBody ApiResponse searchKml(
-			@PathVariable String collectionId,
-			@PathVariable String recordId,
+			@PathVariable String collectionId, @PathVariable String recordId,
 			@RequestParam(value = "apikey", required = true) String apiKey,
 			@RequestParam(value = "sessionhash", required = true) String sessionHash) {
 		return new ApiNotImplementedYet(apiKey, "record.kml");
 	}
-	
-	@RequestMapping(value = {"/{collectionId}/{recordId}.jsonld","/{collectionId}/{recordId}.json-ld"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+
+	@RequestMapping(value = { "/{collectionId}/{recordId}.jsonld", "/{collectionId}/{recordId}.json-ld" }, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView recordJSONLD(
-			@PathVariable String collectionId,
+			@PathVariable String collectionId, 
 			@PathVariable String recordId,
 			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "callback", required = false) String callback,
-			HttpServletResponse response) {
+			@RequestParam(value = "callback", required = false) String callback, 
+			HttpServletRequest request, HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
+
+		ApiKey apiKey;
+		long requestNumber = 0;
+		try {
+			apiKey = apiService.findByID(wskey);
+			if (apiKey == null) {
+				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Unregistered user"), callback);
+			}
+			apiKey.getUsageLimit();
+			requestNumber = apiService.checkReachedLimit(apiKey);
+		} catch (DatabaseException e) {
+			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, Profile.STANDARD.toString());
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
+		} catch (LimitReachedException e) {
+			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.LIMIT, Profile.STANDARD.toString());
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()), callback);
+		}
 		
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
-		
+
 		String jsonld = null;
-		
+
 		FullBeanImpl bean = null;
 		try {
-			bean = (FullBeanImpl) searchService.findById(europeanaObjectId,true);
+			bean = (FullBeanImpl) searchService.findById(europeanaObjectId, true);
 			if (bean == null) {
-				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId,true);
+				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, true);
 			}
 		} catch (SolrTypeException e) {
 			log.error(ExceptionUtils.getFullStackTrace(e));
 		} catch (MongoDBException e) {
 			log.error(ExceptionUtils.getFullStackTrace(e));
 		}
-		
 
 		if (bean != null) {
 			String rdf = EDMUtils.toEDM(bean);
 			try {
-				jsonld = JSONUtils.toString(JSONLD.fromRDF(rdf));
+				Model modelResult = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(rdf), "", "RDF/XML");
+				JenaRDFParser parser = new JenaRDFParser();
+				jsonld = JSONUtils.toString(JSONLD.fromRDF(modelResult, parser));
 			} catch (JSONLDProcessingError e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -241,17 +238,13 @@ public class ObjectController {
 		} else {
 			response.setStatus(404);
 		}
-		
+
 		return JsonUtils.toJson(jsonld, callback);
 	}
-	
 
 	@RequestMapping(value = "/{collectionId}/{recordId}.rdf", produces = "application/rdf+xml")
-	public ModelAndView recordRdf(
-			@PathVariable String collectionId,
-			@PathVariable String recordId,
-			@RequestParam(value = "wskey", required = true) String wskey,
-			HttpServletResponse response) {
+	public ModelAndView recordRdf(@PathVariable String collectionId, @PathVariable String recordId,
+			@RequestParam(value = "wskey", required = true) String wskey, HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
 		Map<String, Object> model = new HashMap<String, Object>();
@@ -288,9 +281,9 @@ public class ObjectController {
 
 		FullBeanImpl bean = null;
 		try {
-			bean = (FullBeanImpl) searchService.findById(europeanaObjectId,true);
+			bean = (FullBeanImpl) searchService.findById(europeanaObjectId, true);
 			if (bean == null) {
-				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId,true);
+				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, true);
 			}
 		} catch (SolrTypeException e) {
 			log.error(ExceptionUtils.getFullStackTrace(e));
@@ -307,17 +300,5 @@ public class ObjectController {
 
 		apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
 		return new ModelAndView("rdf", model);
-	}
-
-	private String getPortalUrl() {
-		if (portalUrl == null) {
-			StringBuilder sb = new StringBuilder(portalServer);
-			if (!portalServer.endsWith("/") && !portalName.startsWith("/")) {
-				sb.append("/");
-			}
-			sb.append(portalName);
-			portalUrl = sb.toString();
-		}
-		return portalUrl;
 	}
 }

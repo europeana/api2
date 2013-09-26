@@ -21,12 +21,10 @@ import eu.europeana.corelib.definitions.solr.entity.Place;
 import eu.europeana.corelib.definitions.solr.entity.ProvidedCHO;
 import eu.europeana.corelib.definitions.solr.entity.Proxy;
 import eu.europeana.corelib.definitions.solr.entity.Timespan;
+import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class FullView implements FullBean {
-
-	protected static String apiUrl;
-	protected static String portalUrl;
 
 	private FullBean bean;
 	private String profile;
@@ -147,9 +145,8 @@ public class FullView implements FullBean {
 				// items.get(i).setEdmIsShownAt(isShownAt);
 
 				String provider = items.get(i).getEdmProvider().values().iterator().next().get(0);
-				String isShownAtLink = String.format(
-						"%s/%d/redirect?shownAt=%s&provider=%s&id=http://www.europeana.eu/resolve/record%s&profile=%s",
-						apiUrl, uid, encode(isShownAt), encode(provider), bean.getAbout(), profile);
+				String isShownAtLink = EuropeanaUrlServiceImpl.getBeanInstance()
+						.getApi2Redirect(uid, encode(isShownAt), encode(provider), bean.getAbout(), profile).toString();
 				items.get(i).setEdmIsShownAt(isShownAtLink);
 			}
 
@@ -298,14 +295,6 @@ public class FullView implements FullBean {
 
 	@Override
 	public void setOptOut(boolean optOut) {
-	}
-
-	public static void setApiUrl(String _apiUrl) {
-		apiUrl = _apiUrl;
-	}
-
-	public static void setPortalUrl(String _portalUrl) {
-		portalUrl = _portalUrl;
 	}
 
 	private String encode(String value) {

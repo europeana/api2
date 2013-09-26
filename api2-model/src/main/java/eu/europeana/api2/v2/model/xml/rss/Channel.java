@@ -27,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import eu.europeana.api2.v2.model.xml.rss.atom.AtomLink;
 import eu.europeana.api2.v2.model.xml.rss.opensearch.Query;
 import eu.europeana.api2.v2.model.xml.rss.opensearch.Statistic;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -39,7 +40,7 @@ public class Channel {
 	private String title = "Europeana Open Search";
 
 	@XmlElement
-	private String link = "http://www.europeana.eu";
+	private String link = EuropeanaUrlService.URL_EUROPEANA;
 
 	@XmlElement
 	private String description = "Europeana Open Search results";

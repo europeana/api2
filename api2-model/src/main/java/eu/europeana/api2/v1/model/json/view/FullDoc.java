@@ -38,6 +38,7 @@ import eu.europeana.corelib.definitions.solr.entity.EuropeanaAggregation;
 import eu.europeana.corelib.definitions.solr.entity.Place;
 import eu.europeana.corelib.definitions.solr.entity.Proxy;
 import eu.europeana.corelib.definitions.solr.entity.Timespan;
+import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 
 public class FullDoc {
 
@@ -123,7 +124,7 @@ public class FullDoc {
 	private String[] enrichmentAgentLabel;
 
 	public FullDoc(FullBean bean) {
-		id = "http://www.europeana.eu/resolve/record" + bean.getAbout();
+		id = EuropeanaUrlServiceImpl.getBeanInstance().getPortalResolve(bean.getAbout());
 		europeanaCollectionName = bean.getEuropeanaCollectionName();
 		if (bean.getType() != null)
 			type = bean.getType().toString();

@@ -6,14 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,6 +38,8 @@ import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.SolrUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
+import eu.europeana.corelib.web.utils.UrlBuilder;
 
 @Controller
 public class SearchController1 {
@@ -58,32 +58,21 @@ public class SearchController1 {
 
 	@Resource
 	private OptOutService optOutService;
+	
+	@Resource
+	private EuropeanaUrlService urlService;
 
 	private static final int RESULT_ROWS_PER_PAGE = 12;
 
 	private static final String DESCRIPTION_SUFFIX = " - Europeana Open Search";
 
-	@Value("#{europeanaProperties['portal.server']}")
-	private String portalServer;
-
-	@Value("#{europeanaProperties['portal.name']}")
-	private String portalName;
-
-	@Value("#{europeanaProperties['api2.url']}")
-	private String apiUrl;
-
-	private String path;
-
 	@RequestMapping(value = { "/opensearch.json", "/v1/search.json" }, produces = MediaType.APPLICATION_JSON_VALUE)
-	// method=RequestMethod.GET
-	public ModelAndView search2Json(@RequestParam(value = "wskey", required = true) String wskey,
+	public ModelAndView search2Json(
+			@RequestParam(value = "wskey", required = true) String wskey,
 			@RequestParam(value = "searchTerms", required = true) String queryString,
 			@RequestParam(value = "startPage", required = false, defaultValue = "1") int start,
-			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
+			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletResponse response) throws Exception {
-
-		path = fixPath(request.getContextPath());
-		int rows = 12;
 
 		ModelAndView mov;
 
@@ -96,20 +85,15 @@ public class SearchController1 {
 			response.setStatus(401);
 			mov = JsonUtils.toJson(new ApiError(wskey, "search.json", "Unregistered user"), callback);
 		} else {
-
 			log.info("opensearch.json");
-			// Query query = new
-			// Query(q).setApiQuery(true).setRefinements(refinements).setPageSize(rows).setStart(start
-			// - 1);
-			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setPageSize(rows)
+			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setPageSize(12)
 					.setStart(start - 1).setAllowSpellcheck(false).setAllowFacets(false);
 			Class<? extends IdBean> clazz = ApiBean.class;
 			try {
 				SearchResults<Map<String, Object>> result = createResultsForApi1(wskey, query, clazz);
 				result.startIndex = start;
 				result.description = queryString + DESCRIPTION_SUFFIX;
-				result.link = String.format("%s?searchTerms=%s&startPage=%d", apiUrl,
-						URLEncoder.encode(queryString, "UTF-8"), start);
+				result.link = urlService.getApi1SearchJson(wskey, queryString, start).toString(); 
 				log.info("got response " + result.items.size());
 				mov = JsonUtils.toJson(result, callback);
 
@@ -129,20 +113,18 @@ public class SearchController1 {
 		return mov;
 	}
 
-	//
 	@RequestMapping(value = { "/opensearch.rss", "/v1/opensearch.rss" }, produces = "application/rss+xml")
-	public @ResponseBody
-	RssResponse openSearchControllerRSS(@RequestParam(value = "searchTerms", required = false) String queryString,
+	public @ResponseBody RssResponse openSearchControllerRSS(
+			@RequestParam(value = "searchTerms", required = false) String queryString,
 			@RequestParam(value = "startPage", required = false, defaultValue = "1") String startPage,
 			@RequestParam(value = "wskey", required = false, defaultValue = "") String wskey,
-			HttpServletRequest request, HttpServletResponse response) throws Exception {
-		path = fixPath(request.getContextPath());
+			HttpServletResponse response) throws Exception {
 		log.info("===== openSearchControllerRSS =====");
 		response.setCharacterEncoding("UTF-8");
 
-		String cannonicalLink = "http://europeana.eu";
-		String baseLink = getPortalServer() + "/" + path + "/v1/opensearch.rss";
-		String href = baseLink + "?searchTerms=" + URLEncoder.encode(queryString, "UTF-8") + "&startPage=" + startPage;
+		UrlBuilder url = urlService.getApi1Home(null).addPage("opensearch.rss");
+		url.addParam("searchTerms", URLEncoder.encode(queryString, "UTF-8"));
+		url.addParam("startPage", startPage);
 
 		RssResponse rss = new RssResponse();
 		Channel channel = rss.channel;
@@ -150,8 +132,8 @@ public class SearchController1 {
 		channel.itemsPerPage.value = RESULT_ROWS_PER_PAGE;
 		channel.query.searchTerms = queryString;
 		channel.query.startPage = Integer.parseInt(startPage);
-		channel.setLink(cannonicalLink);
-		channel.atomLink.href = href;
+		channel.setLink(EuropeanaUrlService.URL_EUROPEANA);
+		channel.atomLink.href = url.toString();
 		channel.updateDescription();
 
 		try {
@@ -234,13 +216,10 @@ public class SearchController1 {
 		response.totalResults = resultSet.getResultSize();
 		response.itemsPerPage = resultSet.getResults().size();
 
-		BriefDoc.setPortalServer(getPortalServer());
-		BriefDoc.setPortalName(portalName);
-		BriefDoc.setPath(path);
 		List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
 		for (Object o : resultSet.getResults()) {
 			ApiBean bean = (ApiBean) o;
-			BriefDoc doc = new BriefDoc(bean, optOutService.check(bean.getId()));
+			BriefDoc doc = new BriefDoc(bean, optOutService.check(bean.getId()), urlService);
 			doc.setWskey(wskey);
 			items.add(doc.asMap());
 		}
@@ -258,13 +237,10 @@ public class SearchController1 {
 		response.totalResults = resultSet.getResultSize();
 		response.itemsPerPage = resultSet.getResults().size();
 
-		BriefDoc.setPortalServer(getPortalServer());
-		BriefDoc.setPortalName(portalName);
-		BriefDoc.setPath(path);
 		List<BriefDoc> items = new ArrayList<BriefDoc>();
 		for (Object o : resultSet.getResults()) {
 			ApiBean bean = (ApiBean) o;
-			BriefDoc doc = new BriefDoc(bean, optOutService.check(bean.getId()));
+			BriefDoc doc = new BriefDoc(bean, optOutService.check(bean.getId()), urlService);
 			doc.setWskey(wskey);
 			items.add(doc);
 		}
@@ -279,20 +255,4 @@ public class SearchController1 {
 		}
 	}
 
-	public String getPortalServer() {
-		if (portalServer.endsWith("/")) {
-			portalServer = portalServer.substring(0, portalServer.length() - 1);
-		}
-		return portalServer;
-	}
-
-	private String fixPath(String path) {
-		if (path.startsWith("/")) {
-			path = path.substring(1);
-		}
-		if (path.endsWith("/")) {
-			path = path.substring(0, path.length() - 1);
-		}
-		return path;
-	}
 }

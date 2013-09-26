@@ -10,7 +10,6 @@ import javax.xml.bind.Marshaller;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +31,7 @@ import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.solr.exceptions.EuropeanaQueryException;
 import eu.europeana.corelib.solr.service.SearchService;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
 
 @Controller
 @RequestMapping(value = "/v1/record")
@@ -39,8 +39,6 @@ public class ObjectController1 {
 
 	@Log
 	private Logger log;
-
-	private final static String EXT_HTML = ".html";
 
 	@Resource(name = "corelib_db_userService")
 	private UserService userService;
@@ -51,11 +49,8 @@ public class ObjectController1 {
 	@Resource
 	private SearchService searchService;
 
-	@Value("#{europeanaProperties['portal.server']}")
-	private String portalServer;
-
-	@Value("#{europeanaProperties['portal.name']}")
-	private String portalName;
+	@Resource
+	private EuropeanaUrlService urlService;
 
 	static String portalPath;
 
@@ -70,12 +65,12 @@ public class ObjectController1 {
 
 		if (StringUtils.isBlank(wskey)) {
 			response.setStatus(401);
-			return JsonUtils.toJson(new ApiError(wskey, "search.json", "No API authorisation key."), callback);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", "No API authorisation key."), callback);
 		}
 
 		if (userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null) {
 			response.setStatus(401);
-			return JsonUtils.toJson(new ApiError(wskey, "search.json", "Unregistered user"), callback);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", "Unregistered user"), callback);
 		}
 		FullBean bean = searchService.findById(collectionId, recordId, true);
 		if (bean != null) {
@@ -118,12 +113,10 @@ public class ObjectController1 {
 				srwResponse.records.record.add(record);
 				log.info("record added");
 			} else {
-				StringBuilder sb = new StringBuilder(getPortalPath());
-				sb.append(collectionId).append("/").append(recordId).append(EXT_HTML);
-
+				String url = urlService.getPortalRecord(true, collectionId, recordId).toString();
 				response.setStatus(302);
-				response.setHeader("Location", sb.toString());
-				return null; // "redirect:" + sb.toString();
+				response.setHeader("Location", url);
+				return null;
 			}
 			createXml(srwResponse);
 			log.info("xml created");
@@ -132,22 +125,6 @@ public class ObjectController1 {
 
 		// ModelAndView page = new ModelAndView("json", model);
 		return null;
-	}
-
-	public String getPortalPath() {
-		if (portalPath == null) {
-			if (portalServer.endsWith("/")) {
-				portalServer = portalServer.substring(0, portalServer.length() - 1);
-			}
-			if (portalName.startsWith("/")) {
-				portalName = portalName.substring(1);
-			}
-			if (portalName.endsWith("/")) {
-				portalName = portalName.substring(0, portalName.length() - 1);
-			}
-			portalPath = portalServer + "/" + portalName + "/record/";
-		}
-		return portalPath;
 	}
 
 	private void createXml(SrwResponse response) {
