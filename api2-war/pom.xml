@@ -26,6 +26,52 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.springframework.ws</groupId>
+			<artifactId>spring-ws-core</artifactId>
+			<version>2.1.0.RELEASE</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-beans</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-context-support</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-oxm</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-web</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.ws</groupId>
+					<artifactId>spring-xml</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>eu.europeana.corelib</groupId>
+			<artifactId>corelib-sugarcrm-client</artifactId>
+			<version>${version.europeanaCorelib}</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.europeana.corelib</groupId>
+			<artifactId>corelib-sugarcrm-bindings</artifactId>
+			<version>${version.europeanaCorelib}</version>
+		</dependency>
+		<dependency>
 			<groupId>eu.europeana.api2</groupId>
 			<artifactId>api2-model</artifactId>
 			<version>${version.europeanaApi2}</version>
@@ -67,6 +113,38 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>${version.springCore}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${version.springCore}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>${version.springCore}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-oxm</artifactId>
+			<version>${version.springCore}</version>
+		</dependency>
+		
+<dependency>
+	<groupId>org.springframework.ws</groupId>
+	<artifactId>spring-xml</artifactId>
+	<version>2.1.0.RELEASE</version>
+</dependency>
+		
+		
 		<dependency>
 			<groupId>org.springframework.security.oauth</groupId>
 			<artifactId>spring-security-oauth2</artifactId>
@@ -161,6 +239,19 @@
 							</includes>
 						</resource>
 					</webResources>
+				</configuration>
+			</plugin>
+			<!-- For more information on how to use the maven tomcat plugin see: http://tomcat.apache.org/maven-plugin.html 
+				On how to enable the Tomcat manager application: http://tomcat.apache.org/tomcat-6.0-doc/manager-howto.html -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>tomcat-maven-plugin</artifactId>
+				<configuration>
+					<charset>UTF-8</charset>
+					<url>http://localhost:8484/manager/html</url>
+					<path>/api2</path>
+					<username>tomcat</username>
+					<password>tomcat</password>
 				</configuration>
 			</plugin>
 		</plugins>
