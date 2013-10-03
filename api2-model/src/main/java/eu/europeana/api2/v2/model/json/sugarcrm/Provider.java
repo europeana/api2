@@ -14,7 +14,7 @@
  *  See the Licence for the specific language governing permissions and limitations under 
  *  the Licence.
  */
-package eu.europeana.api2.model.json.sugarcrm;
+package eu.europeana.api2.v2.model.json.sugarcrm;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
