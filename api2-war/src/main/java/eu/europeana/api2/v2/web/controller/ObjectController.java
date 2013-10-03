@@ -69,7 +69,7 @@ import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.solr.exceptions.MongoDBException;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
-import eu.europeana.corelib.solr.utils.EDMUtils;
+import eu.europeana.corelib.solr.utils.EdmUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
@@ -226,7 +226,7 @@ public class ObjectController {
 		}
 
 		if (bean != null) {
-			String rdf = EDMUtils.toEDM(bean);
+			String rdf = EdmUtils.toEDM(bean);
 			try {
 				Model modelResult = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(rdf), "", "RDF/XML");
 				JenaRDFParser parser = new JenaRDFParser();
@@ -292,7 +292,7 @@ public class ObjectController {
 		}
 
 		if (bean != null) {
-			model.put("record", EDMUtils.toEDM(bean));
+			model.put("record", EdmUtils.toEDM(bean));
 		} else {
 			response.setStatus(404);
 			model.put("error", "Non-existing record identifier");
