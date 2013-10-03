@@ -72,7 +72,7 @@ public class SugarCRMController {
 	 * @return
 	 */
 	@RequestMapping(value = "/v2/providers.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.PUT, RequestMethod.GET })
+			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findproviders(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -114,7 +114,7 @@ public class SugarCRMController {
 	 * @return
 	 */
 	@RequestMapping(value = "/v2/providers/provider_id.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.PUT, RequestMethod.GET })
+			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findprovidersByID(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "id", required = true) String id,
@@ -157,7 +157,7 @@ public class SugarCRMController {
 	 * @return
 	 */
 	@RequestMapping(value = "/v2/datasets/provider_id.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.PUT, RequestMethod.GET })
+			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findDatasetsPerProvider(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "id", required = true) String id,
@@ -201,7 +201,7 @@ public class SugarCRMController {
 	 * @return
 	 */
 	@RequestMapping(value = "/v2/datasets/dataset_id.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.PUT, RequestMethod.GET })
+			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findDatasetsById(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "id", required = true) String id,
@@ -263,7 +263,8 @@ public class SugarCRMController {
 		request.setOrderBy(EuropeanaRetrievableField.DATE_ENTERED.getFieldId());
 		request.setMaxResults(200);
 		request.setOffset(0);
-		request.setQuery("(accounts.id LIKE '%')");
+		
+		request.setQuery("(accounts_cstm.agg_status_c LIKE '%P' OR accounts_cstm.agg_status_c LIKE '%D')");
 		GetEntryListResponse response = sugarwsClient.getentrylist(request);
 		ArrayList<Element> list = (ArrayList<Element>) response.getReturn()
 				.getEntryList().getArray().getAnyList();
