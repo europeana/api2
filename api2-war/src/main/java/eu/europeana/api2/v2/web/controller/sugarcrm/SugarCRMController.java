@@ -26,8 +26,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.Resource;
+import org.slf4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,6 +39,10 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
+import eu.europeana.corelib.db.service.ApiKeyService;
+import eu.europeana.corelib.db.service.ApiLogService;
+import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
+import eu.europeana.corelib.logging.Log;
 import eu.europeana.uim.sugarcrmclient.enums.EuropeanaRetrievableField;
 import eu.europeana.uim.sugarcrmclient.enums.EuropeanaDatasets;
 import eu.europeana.uim.sugarcrmclient.enums.EuropeanaUpdatableField;
@@ -60,9 +66,19 @@ import eu.europeana.uim.sugarcrmclient.internal.helpers.ClientUtils;
 @Controller
 public class SugarCRMController {
 
+	@Log
+	private Logger log;
+	
 	@Resource
 	private SugarWsClient sugarwsClient;
 
+	@Resource
+	private ApiKeyService apiService;
+
+	@Resource
+	private ApiLogService apiLogService;
+	
+	
 	/**
 	 * Returns the list of Europeana providers. The response is an Array of JSON
 	 * objects, each one containing the identifier and the name of a provider.
@@ -80,8 +96,10 @@ public class SugarCRMController {
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response = null;
-
+		
 		try {
+			ApiKey apiKey = apiService.findByID(wskey);
+			apiService.checkReachedLimit(apiKey);			
 			response = retrieveproviders();
 			response.action = "/v2/providers.json";
 			response.apikey = wskey;
@@ -94,10 +112,10 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			response = new SugarCRMSearchResults<Provider>(wskey,
 					"/v2/providers.json");
-			response.error = "Error querying CRM knowledgebase: "
+			response.error = "Error querying for providers "
 					+ e.getMessage();
 			response.success = false;
-			e.printStackTrace();
+			log.error("Error fetching all providers ", e);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -113,11 +131,12 @@ public class SugarCRMController {
 	 * @param principal
 	 * @return
 	 */
-	@RequestMapping(value = "/v2/providers/provider_id.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+	@RequestMapping(value = "/v2/providers/provider_{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findprovidersByID(
+			@PathVariable  String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "id", required = true) String id,
+			//@RequestParam(value = "id", required = true) String id,
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 
@@ -125,8 +144,10 @@ public class SugarCRMController {
 		SugarCRMSearchResults<Provider> response = null;
 
 		try {
+			ApiKey apiKey = apiService.findByID(wskey);
+			apiService.checkReachedLimit(apiKey);
 			response = retrieveprovider("name_id_c", id);
-			response.action = "/v2/providers/provider_id.json";
+			response.action = "/v2/providers/provider_"+id+".json";
 			response.apikey = wskey;
 			response.itemsCount = response.items.size();
 			response.totalResults = response.items.size();
@@ -136,13 +157,15 @@ public class SugarCRMController {
 			response.success = true;
 		} catch (Exception e) {
 			response = new SugarCRMSearchResults<Provider>(wskey,
-					"/v2/providers/provider_id.json");
-			response.error = "Error querying CRM knowledgebase"
+					"/v2/providers/provider_"+id+".json");
+			response.error = "Error fetching provider by id"
 					+ e.getMessage();
 			response.success = false;
-			e.printStackTrace();
+			
+			log.error("Error fetching provider by id", e);
 		}
 
+		
 		return JsonUtils.toJson(response, callback);
 	}
 
@@ -156,19 +179,21 @@ public class SugarCRMController {
 	 * @param principal
 	 * @return
 	 */
-	@RequestMapping(value = "/v2/datasets/provider_id.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+	@RequestMapping(value = "/v2/datasets/provider_{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findDatasetsPerProvider(
+			@PathVariable  String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "id", required = true) String id,
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
 		try {
+			ApiKey apiKey = apiService.findByID(wskey);
+			apiService.checkReachedLimit(apiKey);
 			response = retrieveDatasetByProvider(id);
-			response.action = "/v2/datasets/provider_id.json";
+			response.action = "/v2/datasets/provider_"+id+".json";
 			response.apikey = wskey;
 			response.itemsCount = response.items.size();
 			response.totalResults = response.items.size();
@@ -178,11 +203,11 @@ public class SugarCRMController {
 			response.success = true;
 		} catch (Exception e) {
 			response = new SugarCRMSearchResults<DataSet>(wskey,
-					"/v2/datasets/provider_id.json");
+					"/v2/datasets/provider_"+id+".json");
 			response.error = "Error querying CRM knowledgebase"
 					+ e.getMessage();
 			response.success = false;
-			e.printStackTrace();
+			log.error("Error fetching datasets by provider id", e);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -200,11 +225,11 @@ public class SugarCRMController {
 	 * @param principal
 	 * @return
 	 */
-	@RequestMapping(value = "/v2/datasets/dataset_id.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+	@RequestMapping(value = "/v2/datasets/dataset_{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findDatasetsById(
+			@PathVariable  String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "id", required = true) String id,
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 
@@ -212,8 +237,10 @@ public class SugarCRMController {
 		SugarCRMSearchResults<DataSet> response = null;
 
 		try {
+			ApiKey apiKey = apiService.findByID(wskey);
+			apiService.checkReachedLimit(apiKey);
 			response = retrieveDataset("name", id);
-			response.action = "/v2/datasets/dataset_id.json";
+			response.action = "/v2/datasets/dataset_"+id+".json";
 			response.apikey = wskey;
 			response.itemsCount = response.items.size();
 			response.totalResults = response.items.size();
@@ -222,12 +249,11 @@ public class SugarCRMController {
 			response.statsDuration = endtime.getTime() - starttime.getTime();
 			response.success = true;
 		} catch (Exception e) {
-			response = new SugarCRMSearchResults<DataSet>("key", "action");
+			response = new SugarCRMSearchResults<DataSet>(wskey, "/v2/datasets/dataset_"+id+".json");
 			response.success = false;
 			response.error = "Error querying CRM knowledgebase"
 					+ e.getMessage();
-
-			e.printStackTrace();
+			log.error("Error fetching datasets by dataset id", e);
 		}
 
 		return JsonUtils.toJson(response, callback);

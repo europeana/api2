@@ -18,7 +18,7 @@ package eu.europeana.api2.v2.model.json.sugarcrm;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
-import eu.europeana.api2.model.json.abstracts.ApiResponse;
+
 
 /**
  * @author Georgios Markakis (gwarkx@hotmail.com)
@@ -26,7 +26,7 @@ import eu.europeana.api2.model.json.abstracts.ApiResponse;
  * @since Sep 24, 2013
  */ 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
-public class Provider extends ApiResponse{
+public class Provider{
 
 	/**
 	 * Default constructor used by Jackson (do not remove)
@@ -34,16 +34,7 @@ public class Provider extends ApiResponse{
 	public Provider(){
 		//Used by Jackson
 	}
-	
-	/**
-	 * @param apikey
-	 * @param action
-	 */
-	public Provider(String apikey, String action){
-		super(apikey,action);
-	}
-	
-	
+		 
 	public String identifier;
 	
 	public String name;
