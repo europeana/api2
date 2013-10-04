@@ -99,6 +99,9 @@ public class SugarCRMController {
 		
 		try {
 			ApiKey apiKey = apiService.findByID(wskey);
+			if (apiKey == null) {
+				throw new Exception("API key not found");
+			}
 			apiService.checkReachedLimit(apiKey);			
 			response = retrieveproviders();
 			response.action = "/v2/providers.json";
@@ -112,7 +115,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			response = new SugarCRMSearchResults<Provider>(wskey,
 					"/v2/providers.json");
-			response.error = "Error querying for providers "
+			response.error = "Error fetching all providers "
 					+ e.getMessage();
 			response.success = false;
 			log.error("Error fetching all providers ", e);
@@ -145,6 +148,9 @@ public class SugarCRMController {
 
 		try {
 			ApiKey apiKey = apiService.findByID(wskey);
+			if (apiKey == null) {
+				throw new Exception("API key not found");
+			}
 			apiService.checkReachedLimit(apiKey);
 			response = retrieveprovider("name_id_c", id);
 			response.action = "/v2/providers/provider_"+id+".json";
@@ -191,6 +197,9 @@ public class SugarCRMController {
 		SugarCRMSearchResults<DataSet> response = null;
 		try {
 			ApiKey apiKey = apiService.findByID(wskey);
+			if (apiKey == null) {
+				throw new Exception("API key not found");
+			}
 			apiService.checkReachedLimit(apiKey);
 			response = retrieveDatasetByProvider(id);
 			response.action = "/v2/datasets/provider_"+id+".json";
@@ -204,7 +213,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			response = new SugarCRMSearchResults<DataSet>(wskey,
 					"/v2/datasets/provider_"+id+".json");
-			response.error = "Error querying CRM knowledgebase"
+			response.error = "Error fetching datasets by provider id"
 					+ e.getMessage();
 			response.success = false;
 			log.error("Error fetching datasets by provider id", e);
@@ -238,6 +247,9 @@ public class SugarCRMController {
 
 		try {
 			ApiKey apiKey = apiService.findByID(wskey);
+			if (apiKey == null) {
+				throw new Exception("API key not found");
+			}
 			apiService.checkReachedLimit(apiKey);
 			response = retrieveDataset("name", id);
 			response.action = "/v2/datasets/dataset_"+id+".json";
@@ -251,7 +263,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			response = new SugarCRMSearchResults<DataSet>(wskey, "/v2/datasets/dataset_"+id+".json");
 			response.success = false;
-			response.error = "Error querying CRM knowledgebase"
+			response.error = "Error fetching datasets by dataset id"
 					+ e.getMessage();
 			log.error("Error fetching datasets by dataset id", e);
 		}
