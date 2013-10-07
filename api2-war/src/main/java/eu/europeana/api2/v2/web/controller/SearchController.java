@@ -18,7 +18,10 @@
 package eu.europeana.api2.v2.web.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -69,6 +72,7 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -107,6 +111,7 @@ public class SearchController {
 	public ModelAndView searchJson(
 			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
+			@RequestParam(value = "reusability", required = false) String reusability,
 			@RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
@@ -128,14 +133,35 @@ public class SearchController {
 			log.info("=== search.json: " + rows);
 		}
 
+		Map<String, String> valueReplacements = new HashMap<String, String>();
+		if (StringUtils.isNotBlank(reusability)) {
+			List<String> ref = (refinements == null) ? new ArrayList<String>() : Arrays.asList(refinements);
+			if (StringUtils.containsIgnoreCase(reusability, "free") && StringUtils.containsIgnoreCase(reusability, "limited")) {
+				valueReplacements.put("REUSABILITY:Free", RightReusabilityCategorizer.getAllRightsQuery());
+				ref.add("REUSABILITY:Free");
+			} else {
+				if (StringUtils.containsIgnoreCase(reusability, "free")) {
+					valueReplacements.put("REUSABILITY:Free", RightReusabilityCategorizer.getFreeRightsQuery());
+					ref.add("REUSABILITY:Free");
+				}
+				if (StringUtils.containsIgnoreCase(reusability, "limited")) {
+					valueReplacements.put("REUSABILITY:Limited", RightReusabilityCategorizer.getLimitedRightsQuery());
+					ref.add("REUSABILITY:Limited");
+				}
+			}
+			refinements = ref.toArray(new String[ref.size()]);
+		}
+
 		Query query = new Query(SolrUtils.translateQuery(queryString))
 				.setApiQuery(true)
 				.setRefinements(refinements)
+				.setValueReplacements(valueReplacements)
 				.setPageSize(rows)
 				.setStart(start - 1)
 				.setParameter("facet.mincount", "1")
 				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
+		
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) {
 			query.setAllowSpellcheck(true);
 		}
