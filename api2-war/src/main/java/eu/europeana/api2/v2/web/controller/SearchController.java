@@ -129,27 +129,27 @@ public class SearchController {
 
 		response.setCharacterEncoding("UTF-8");
 		rows = Math.min(rows, configuration.getApiRowLimit());
-		if (log.isInfoEnabled()) {
-			log.info("=== search.json: " + rows);
-		}
 
 		Map<String, String> valueReplacements = new HashMap<String, String>();
 		if (StringUtils.isNotBlank(reusability)) {
-			List<String> ref = (refinements == null) ? new ArrayList<String>() : Arrays.asList(refinements);
+			List<String> refList = new ArrayList<String>();
+			if (refinements != null) {
+				refList.addAll(Arrays.asList(refinements));
+			}
 			if (StringUtils.containsIgnoreCase(reusability, "free") && StringUtils.containsIgnoreCase(reusability, "limited")) {
 				valueReplacements.put("REUSABILITY:Free", RightReusabilityCategorizer.getAllRightsQuery());
-				ref.add("REUSABILITY:Free");
+				refList.add("REUSABILITY:Free");
 			} else {
 				if (StringUtils.containsIgnoreCase(reusability, "free")) {
 					valueReplacements.put("REUSABILITY:Free", RightReusabilityCategorizer.getFreeRightsQuery());
-					ref.add("REUSABILITY:Free");
+					refList.add("REUSABILITY:Free");
 				}
 				if (StringUtils.containsIgnoreCase(reusability, "limited")) {
 					valueReplacements.put("REUSABILITY:Limited", RightReusabilityCategorizer.getLimitedRightsQuery());
-					ref.add("REUSABILITY:Limited");
+					refList.add("REUSABILITY:Limited");
 				}
 			}
-			refinements = ref.toArray(new String[ref.size()]);
+			refinements = refList.toArray(new String[refList.size()]);
 		}
 
 		Query query = new Query(SolrUtils.translateQuery(queryString))
