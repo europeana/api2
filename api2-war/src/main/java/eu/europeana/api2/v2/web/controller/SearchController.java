@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.slf4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -161,13 +162,16 @@ public class SearchController {
 				.setParameter("facet.mincount", "1")
 				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
-		
+
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) {
 			query.setAllowSpellcheck(true);
 		}
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets")) {
 			query.setAllowFacets(true);
 		}
+
+		Query usabilityQuery = createUsabilityQuery(queryString, refinements);
+		log.info("usabilityQuery: " + usabilityQuery);
 
 		ApiKey apiKey;
 		long requested = 0;
@@ -196,7 +200,7 @@ public class SearchController {
 		}
 
 		try {
-			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
+			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz, usabilityQuery);
 			result.requestNumber = requested;
 			if (StringUtils.containsIgnoreCase(profile, "params")) {
 				result.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -240,7 +244,8 @@ public class SearchController {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query query, Class<T> clazz)
+	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query query, Class<T> clazz, 
+			Query usabilityQuery)
 			throws SolrTypeException {
 		SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, query);
@@ -259,6 +264,23 @@ public class SearchController {
 				BriefBean bean = (BriefBean) b;
 				BriefView view = new BriefView(bean, profile, apiKey, optOutService.check(bean.getId()));
 				beans.add((T) view);
+			}
+		}
+
+		List<FacetField> facetFields = resultSet.getFacetFields();
+		if (usabilityQuery != null) {
+			Map<String, Integer> usability = searchService.queryFacetSearch(
+				usabilityQuery.getQuery(),
+				usabilityQuery.getRefinements(true),
+				usabilityQuery.getFacetQueries()
+			);
+			List<FacetField> allQueryFacetsMap = SolrUtils.extractQueryFacets(usability);
+			if (allQueryFacetsMap != null && !allQueryFacetsMap.isEmpty()) {
+				if (facetFields != null) {
+					facetFields.addAll(allQueryFacetsMap);
+				} else {
+					facetFields = allQueryFacetsMap;
+				}
 			}
 		}
 
@@ -411,6 +433,27 @@ public class SearchController {
 			sb.append(StringUtils.join(bean.getProvider(), ", "));
 		}
 		return sb.toString();
+	}
+
+	private static Query createUsabilityQuery(String q, String[] qf) {
+		List<String> refinements = new ArrayList<String>();
+		for (String value : qf) {
+			if (!value.equals("REUSABILITY:Free") && !value.equals("REUSABILITY:Limited")) {
+				refinements.add(value);
+			}
+		}
+		String[] filteredQf = refinements.toArray(new String[refinements.size()]);
+		Query query = new Query(q)
+					.setRefinements(filteredQf)
+					.setPageSize(0)
+					.setProduceFacetUnion(true)
+		;
+
+		Map<String, String> replMap = RightReusabilityCategorizer.getQueryFacets();
+		if (replMap != null) {
+			query.setFacetQueries(replMap);
+		}
+		return query;
 	}
 
 }
