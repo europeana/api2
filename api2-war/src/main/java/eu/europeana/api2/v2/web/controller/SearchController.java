@@ -437,9 +437,11 @@ public class SearchController {
 
 	private static Query createUsabilityQuery(String q, String[] qf) {
 		List<String> refinements = new ArrayList<String>();
-		for (String value : qf) {
-			if (!value.equals("REUSABILITY:Free") && !value.equals("REUSABILITY:Limited")) {
-				refinements.add(value);
+		if (qf != null) {
+			for (String value : qf) {
+				if (!value.equals("REUSABILITY:Free") && !value.equals("REUSABILITY:Limited")) {
+					refinements.add(value);
+				}
 			}
 		}
 		String[] filteredQf = refinements.toArray(new String[refinements.size()]);
