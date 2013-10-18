@@ -157,6 +157,7 @@ public class SearchController {
 				.setApiQuery(true)
 				.setRefinements(refinements)
 				.setValueReplacements(valueReplacements)
+				.setFacetQueries(RightReusabilityCategorizer.getQueryFacets())
 				.setPageSize(rows)
 				.setStart(start - 1)
 				.setParameter("facet.mincount", "1")
@@ -169,9 +170,6 @@ public class SearchController {
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets")) {
 			query.setAllowFacets(true);
 		}
-
-		Query usabilityQuery = createUsabilityQuery(queryString, refinements);
-		log.info("usabilityQuery: " + usabilityQuery);
 
 		ApiKey apiKey;
 		long requested = 0;
@@ -200,7 +198,7 @@ public class SearchController {
 		}
 
 		try {
-			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz, usabilityQuery);
+			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
 			result.requestNumber = requested;
 			if (StringUtils.containsIgnoreCase(profile, "params")) {
 				result.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -244,9 +242,12 @@ public class SearchController {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile, Query query, Class<T> clazz, 
-			Query usabilityQuery)
-			throws SolrTypeException {
+	private <T extends IdBean> SearchResults<T> createResults(
+			String apiKey,
+			String profile,
+			Query query,
+			Class<T> clazz)
+					throws SolrTypeException {
 		SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, query);
 		response.totalResults = resultSet.getResultSize();
@@ -268,19 +269,10 @@ public class SearchController {
 		}
 
 		List<FacetField> facetFields = resultSet.getFacetFields();
-		if (usabilityQuery != null) {
-			Map<String, Integer> usability = searchService.queryFacetSearch(
-				usabilityQuery.getQuery(),
-				usabilityQuery.getRefinements(true),
-				usabilityQuery.getFacetQueries()
-			);
-			List<FacetField> allQueryFacetsMap = SolrUtils.extractQueryFacets(usability);
+		if (resultSet.getQueryFacets() != null) {
+			List<FacetField> allQueryFacetsMap = SolrUtils.extractQueryFacets(resultSet.getQueryFacets());
 			if (allQueryFacetsMap != null && !allQueryFacetsMap.isEmpty()) {
-				if (facetFields != null) {
-					facetFields.addAll(allQueryFacetsMap);
-				} else {
-					facetFields = allQueryFacetsMap;
-				}
+				facetFields.addAll(allQueryFacetsMap);
 			}
 		}
 
