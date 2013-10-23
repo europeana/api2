@@ -17,6 +17,8 @@
 
 package eu.europeana.api2.v2.web.controller;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -43,6 +45,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.github.jsonldjava.core.JSONLD;
 import com.github.jsonldjava.core.JSONLDProcessingError;
+import com.github.jsonldjava.core.Options;
 import com.github.jsonldjava.impl.JenaRDFParser;
 import com.github.jsonldjava.utils.JSONUtils;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -175,6 +178,7 @@ public class ObjectController {
 		return JsonUtils.toJson(objectResult, callback);
 	}
 
+	@SuppressWarnings("unused")
 	@RequestMapping(value = "/{collectionId}/{recordId}.kml", produces = "application/vnd.google-earth.kml+xml")
 	public @ResponseBody ApiResponse searchKml(
 			@PathVariable String collectionId, @PathVariable String recordId,
@@ -182,12 +186,21 @@ public class ObjectController {
 			@RequestParam(value = "sessionhash", required = true) String sessionHash) {
 		return new ApiNotImplementedYet(apiKey, "record.kml");
 	}
+	
+	@RequestMapping(value = { "/context.jsonld", "/context.json-ld" }, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ModelAndView contextJSONLD(
+			@RequestParam(value = "callback", required = false) String callback 
+			) {
+		String jsonld = JSONUtils.toString(getJsonContext());
+		return JsonUtils.toJson(jsonld, callback);
+	}
 
 	@RequestMapping(value = { "/{collectionId}/{recordId}.jsonld", "/{collectionId}/{recordId}.json-ld" }, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView recordJSONLD(
 			@PathVariable String collectionId, 
 			@PathVariable String recordId,
 			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "format", required = false, defaultValue="compacted") String format,
 			@RequestParam(value = "callback", required = false) String callback, 
 			HttpServletRequest request, HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
@@ -230,13 +243,21 @@ public class ObjectController {
 			try {
 				Model modelResult = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(rdf), "", "RDF/XML");
 				JenaRDFParser parser = new JenaRDFParser();
-				jsonld = JSONUtils.toString(JSONLD.fromRDF(modelResult, parser));
+				Object raw = JSONLD.fromRDF(modelResult, parser);
+				if (StringUtils.equalsIgnoreCase(format, "compacted")) {
+					raw = JSONLD.compact(raw, getJsonContext(), new Options());
+				} else if (StringUtils.equalsIgnoreCase(format, "flattened")) {
+					raw = JSONLD.flatten(raw);
+				} else if (StringUtils.equalsIgnoreCase(format, "normalized")) {
+					raw = JSONLD.normalize(raw);
+				}
+				jsonld = JSONUtils.toString(raw);
 			} catch (JSONLDProcessingError e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				log.error(e.getMessage(), e);
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 		} else {
-			response.setStatus(404);
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}
 
 		return JsonUtils.toJson(jsonld, callback);
@@ -300,5 +321,18 @@ public class ObjectController {
 
 		apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
 		return new ModelAndView("rdf", model);
+	}
+	
+	private Object getJsonContext() {
+		InputStream in = this.getClass().getResourceAsStream("/jsonld/context.jsonld");
+		try {
+			return JSONUtils.fromInputStream(in);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+			e.printStackTrace();
+		} finally {
+			IOUtils.closeQuietly(in);
+		}
+		return null;
 	}
 }
