@@ -233,7 +233,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	}
 
 	public String getGuid() {
-		return LinkUtils.addCampaignCodes(urlService.getPortalRecord(false, id), wskey);
+		return LinkUtils.addCampaignCodes(urlService.getPortalRecord(false, getId()), wskey);
 	}
 
 	@Override
