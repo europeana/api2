@@ -21,7 +21,6 @@
 
 package eu.europeana.api2.v2.web.controller.sugarcrm;
 
-import java.security.Principal;
 import java.util.Date;
 
 import javax.annotation.Resource;
@@ -43,17 +42,6 @@ import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
-import eu.europeana.uim.sugarcrmclient.enums.EuropeanaDatasets;
-import eu.europeana.uim.sugarcrmclient.enums.EuropeanaRetrievableField;
-import eu.europeana.uim.sugarcrmclient.enums.EuropeanaUpdatableField;
-import eu.europeana.uim.sugarcrmclient.internal.helpers.ClientUtils;
-import eu.europeana.uim.sugarcrmclient.jibxbindings.GetEntryList;
-import eu.europeana.uim.sugarcrmclient.jibxbindings.GetEntryListResponse;
-import eu.europeana.uim.sugarcrmclient.jibxbindings.GetRelationships;
-import eu.europeana.uim.sugarcrmclient.jibxbindings.GetRelationshipsResponse;
-import eu.europeana.uim.sugarcrmclient.jibxbindings.SelectFields;
-import eu.europeana.uim.sugarcrmclient.ws.SugarWsClient;
-import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
 
 /**
  * Controller for providing Provider/DataSet specific information contained into
@@ -91,8 +79,7 @@ public class SugarCRMController {
 			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findproviders(
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback,
-			Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback) {
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response = null;
@@ -139,9 +126,7 @@ public class SugarCRMController {
 	public ModelAndView findprovidersByID(
 			@PathVariable  String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			//@RequestParam(value = "id", required = true) String id,
-			@RequestParam(value = "callback", required = false) String callback,
-			Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback) {
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response = null;
@@ -190,8 +175,7 @@ public class SugarCRMController {
 	public ModelAndView findDatasetsPerProvider(
 			@PathVariable  String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback,
-			Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback) {
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
@@ -239,8 +223,7 @@ public class SugarCRMController {
 	public ModelAndView findDatasetsById(
 			@PathVariable  String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback,
-			Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback) {
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;

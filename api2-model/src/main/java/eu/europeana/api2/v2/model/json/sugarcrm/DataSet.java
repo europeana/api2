@@ -16,14 +16,20 @@
  */
 package eu.europeana.api2.v2.model.json.sugarcrm;
 
+import java.util.Map;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import com.google.code.morphia.annotations.Entity;
+import com.google.code.morphia.annotations.Indexed;
+import com.google.code.morphia.annotations.NotSaved;
 
 /**
  * @author Georgios Markakis (gwarkx@hotmail.com)
  *
  * @since Sep 24, 2013
- */ 
+ */
+@Entity
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class DataSet{
 
@@ -33,17 +39,32 @@ public class DataSet{
 	public DataSet(){
 		//Used by Jackson
 	}
-		
+	
+
+	@Indexed
 	public String identifier;
 	
+	@JsonIgnore
+	@Indexed
+	public String provIdentifier;
+	
+	@NotSaved
 	public String name;
 
+	@NotSaved
 	public String description;
 	
+	@NotSaved
 	public String status;
 	
+	@NotSaved
 	public String publishedRecords;
 	
+	@NotSaved
 	public String deletedRecords;
+	
+	@JsonIgnore
+	public Map<String,String> savedsugarcrmFields;
+	
 	
 }

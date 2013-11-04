@@ -16,15 +16,21 @@
  */
 package eu.europeana.api2.v2.model.json.sugarcrm;
 
+import java.util.Map;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import com.google.code.morphia.annotations.Entity;
+import com.google.code.morphia.annotations.Indexed;
+import com.google.code.morphia.annotations.NotSaved;
 
 
 /**
  * @author Georgios Markakis (gwarkx@hotmail.com)
  *
  * @since Sep 24, 2013
- */ 
+ */
+@Entity
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class Provider{
 
@@ -34,15 +40,39 @@ public class Provider{
 	public Provider(){
 		//Used by Jackson
 	}
-		 
+	
+	/**
+	 * Stored in both 
+	 */
+	@Indexed
 	public String identifier;
 	
+	/**
+	 * Used in JSON output but not stored in Mongo
+	 */
+	@NotSaved
 	public String name;
 
+	/**
+	 * Used in JSON output but not stored in Mongo
+	 */
+	@NotSaved
 	public String description;
 	
+	/**
+	 * Used in JSON output but not stored in Mongo
+	 */
+	@NotSaved
 	public String website;
 	
+	/**
+	 * Used in JSON output but not stored in Mongo
+	 */
+	@NotSaved
 	public String country;
+	
+	
+	@JsonIgnore
+	public Map<String,String> savedsugarcrmFields;
 
 }
