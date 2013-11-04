@@ -9,13 +9,15 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.ModelAndView;
+
+import com.github.jsonldjava.utils.JSONUtils;
+
+import eu.europeana.corelib.logging.Logger;
 
 public class JsonUtils {
 	
-	private static final Logger log = LoggerFactory.getLogger(JsonUtils.class);
+	private static final Logger log = Logger.getLogger(JSONUtils.class);
 
 	public static ModelAndView toJson(Object object) {
 		return toJson(object, null);

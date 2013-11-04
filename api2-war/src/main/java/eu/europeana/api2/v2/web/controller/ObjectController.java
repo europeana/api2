@@ -33,7 +33,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.slf4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -68,6 +67,7 @@ import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
 import eu.europeana.corelib.logging.Log;
+import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.solr.exceptions.MongoDBException;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
@@ -159,8 +159,7 @@ public class ObjectController {
 						beans.add(view);
 					}
 				} catch (SolrServerException e) {
-					log.error("Error during getting similar items: " + e.getLocalizedMessage());
-					log.error(ExceptionUtils.getMessage(e));
+					log.error("Error during getting similar items: " + e.getLocalizedMessage(),e);
 				}
 				objectResult.similarItems = beans;
 			}
