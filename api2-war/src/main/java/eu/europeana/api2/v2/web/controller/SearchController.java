@@ -211,6 +211,9 @@ public class SearchController {
 				log.info("got response " + result.items.size());
 			}
 			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH, profile);
+			response.addHeader("Access-Control-Allow-Origin", "*");
+			response.addHeader("Access-Control-Allow-Methods", "POST");
+			response.addHeader("Access-Control-Max-Age", "1000");
 			return JsonUtils.toJson(result, callback);
 		} catch (SolrTypeException e) {
 			log.error(wskey + " [search.json] ", e);
