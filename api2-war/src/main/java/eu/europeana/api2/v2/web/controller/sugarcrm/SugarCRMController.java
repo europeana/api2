@@ -51,7 +51,7 @@ import eu.europeana.corelib.logging.Logger;
  * 
  * @since Sep 24, 2013
  */
-@Controller
+//@Controller
 public class SugarCRMController {
 
 	@Log
