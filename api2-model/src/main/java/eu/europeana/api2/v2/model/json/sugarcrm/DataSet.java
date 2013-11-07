@@ -21,6 +21,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import com.google.code.morphia.annotations.Entity;
+import com.google.code.morphia.annotations.Id;
 import com.google.code.morphia.annotations.Indexed;
 import com.google.code.morphia.annotations.NotSaved;
 
@@ -41,6 +42,7 @@ public class DataSet{
 	}
 	
 
+	@Id
 	@Indexed
 	public String identifier;
 	

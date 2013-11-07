@@ -57,7 +57,7 @@ public class SugarCRMController {
 
 	@Resource
 	private SugarCRMCache sugarCRMCache;
-	
+		
 	@Resource
 	private ApiKeyService apiService;
 
@@ -78,6 +78,9 @@ public class SugarCRMController {
 	public ModelAndView findproviders(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
+			@RequestParam(value = "countryCode", required = false) String countryCode,
+			@RequestParam(value = "offset", required = false) String offset,
+			@RequestParam(value = "pagesize", required = false) String pagesize,
 			Principal principal) {
 
 		Date starttime = new Date();
@@ -88,12 +91,16 @@ public class SugarCRMController {
 			if (apiKey == null) {
 				throw new Exception("API key not found");
 			}
-			apiService.checkReachedLimit(apiKey);			
-			response = sugarCRMCache.getProviders();
+			apiService.checkReachedLimit(apiKey);
+			
+			int intOffset = offset== null ?0 :Integer.parseInt(offset);
+			int intPagesize = offset== null ?0 :Integer.parseInt(offset);
+			
+			response = sugarCRMCache.getProviders(countryCode,intOffset,intPagesize);
 			response.action = "/v2/providers.json";
 			response.apikey = wskey;
 			response.itemsCount = response.items.size();
-			response.totalResults = response.items.size();
+			//response.totalResults = response.items.size();
 			response.statsStartTime = starttime;
 			Date endtime = new Date();
 			response.statsDuration = endtime.getTime() - starttime.getTime();
@@ -125,7 +132,6 @@ public class SugarCRMController {
 	public ModelAndView findprovidersByID(
 			@PathVariable  String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			//@RequestParam(value = "id", required = true) String id,
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 
