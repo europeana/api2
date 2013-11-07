@@ -21,6 +21,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import com.google.code.morphia.annotations.Entity;
+import com.google.code.morphia.annotations.Id;
 import com.google.code.morphia.annotations.Indexed;
 import com.google.code.morphia.annotations.NotSaved;
 
@@ -38,14 +39,21 @@ public class Provider{
 	 * Default constructor used by Jackson (do not remove)
 	 */
 	public Provider(){
-		//Used by Jackson
+		//Used by both Jackson  & Morphia do not remove 
 	}
 	
 	/**
 	 * Stored in both 
 	 */
+	@Id
 	@Indexed
 	public String identifier;
+	
+	/**
+	 * Stored in both 
+	 */
+	@Indexed
+	public String country;
 	
 	/**
 	 * Used in JSON output but not stored in Mongo
@@ -64,13 +72,7 @@ public class Provider{
 	 */
 	@NotSaved
 	public String website;
-	
-	/**
-	 * Used in JSON output but not stored in Mongo
-	 */
-	@NotSaved
-	public String country;
-	
+		
 	
 	@JsonIgnore
 	public Map<String,String> savedsugarcrmFields;
