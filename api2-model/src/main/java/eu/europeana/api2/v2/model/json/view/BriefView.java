@@ -247,7 +247,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	public float getScore(){
 		return bean.getScore();
 	}
-	
+
 	protected boolean isProfile(Profile _profile) {
 		return StringUtils.containsIgnoreCase(profile, _profile.getName());
 	}

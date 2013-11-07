@@ -161,6 +161,7 @@ public class SearchController {
 				.setPageSize(rows)
 				.setStart(start - 1)
 				.setParameter("facet.mincount", "1")
+				.setParameter("fl", "*,score")
 				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
 
