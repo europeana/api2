@@ -94,7 +94,7 @@ public class UserTagController extends AbstractUserController {
 			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(getApiId(principal), "/user/tag.json");
+			UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(getApiId(principal), "/v2/user/tag.json");
 			try {
 				response.items = userService.createSocialTagCloud(user.getId());
 				response.itemsCount = Long.valueOf(response.items.size());
