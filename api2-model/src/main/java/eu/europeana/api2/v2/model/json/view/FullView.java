@@ -21,6 +21,7 @@ import eu.europeana.corelib.definitions.solr.entity.Place;
 import eu.europeana.corelib.definitions.solr.entity.ProvidedCHO;
 import eu.europeana.corelib.definitions.solr.entity.Proxy;
 import eu.europeana.corelib.definitions.solr.entity.Timespan;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
@@ -30,10 +31,12 @@ public class FullView implements FullBean {
 	private String profile;
 	private long uid;
 	private boolean optOut;
+	private EuropeanaUrlService europeanaUrlService;
 
 	public FullView(FullBean bean, boolean optOut) {
 		this.bean = bean;
 		this.optOut = optOut;
+		europeanaUrlService = EuropeanaUrlServiceImpl.getBeanInstance();
 	}
 
 	public FullView(FullBean bean, String profile, boolean optOut) {
@@ -145,8 +148,8 @@ public class FullView implements FullBean {
 				// items.get(i).setEdmIsShownAt(isShownAt);
 
 				String provider = items.get(i).getEdmProvider().values().iterator().next().get(0);
-				String isShownAtLink = EuropeanaUrlServiceImpl.getBeanInstance()
-						.getApi2Redirect(uid, encode(isShownAt), encode(provider), bean.getAbout(), profile).toString();
+				String isShownAtLink = europeanaUrlService.getApi2Redirect(uid, encode(isShownAt), encode(provider),
+						bean.getAbout(), profile).toString();
 				items.get(i).setEdmIsShownAt(isShownAtLink);
 			}
 
@@ -195,6 +198,14 @@ public class FullView implements FullBean {
 	public EuropeanaAggregation getEuropeanaAggregation() {
 		EuropeanaAggregation europeanaAggregation = bean.getEuropeanaAggregation();
 		europeanaAggregation.setId(null);
+		String edmPreview = "";
+		if (this.getAggregations().get(0).getEdmObject() != null) {
+			String url = this.getAggregations().get(0).getEdmObject();
+			if (StringUtils.isNotBlank(url)) {
+				edmPreview = europeanaUrlService.getThumbnailUrl(url, getType()).toString();
+			}
+		}
+		europeanaAggregation.setEdmPreview(edmPreview);
 		return europeanaAggregation;
 	}
 
@@ -304,8 +315,7 @@ public class FullView implements FullBean {
 		try {
 			value = URLEncoder.encode(value, "utf-8");
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// ignore, won't happen normally
 		}
 		return value;
 	}
