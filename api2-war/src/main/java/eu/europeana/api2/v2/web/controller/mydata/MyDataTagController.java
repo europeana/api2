@@ -31,6 +31,7 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Tag;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
+import eu.europeana.corelib.db.entity.relational.custom.TagCloudItem;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.SocialTag;
@@ -82,6 +83,37 @@ public class MyDataTagController extends AbstractUserController {
 					response.items.add(tag);
 				}
 				return JsonUtils.toJson(response, callback);
+			} else {
+				response.success = false;
+				response.error = "Invalid credentials";
+			}
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
+		}
+		return JsonUtils.toJson(response, callback);
+	}
+	
+
+	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=TAGCLOUD", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ModelAndView listDistinct(
+			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "username", required = true) String username,
+			@RequestParam(value = "callback", required = false) String callback) {
+		UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(wskey, "/v2/mydata/tag.json?action=TAGCLOUD");
+		try {
+			ApiKey apiKey = apiKeyService.findByID(wskey);
+			if ((apiKey != null) && StringUtils.equalsIgnoreCase(username, apiKey.getUser().getUserName())) {
+				User user = apiKey.getUser();
+				try {
+					response.items = userService.createSocialTagCloud(user.getId());
+					response.itemsCount = Long.valueOf(response.items.size());
+					response.success = true;
+				} catch (DatabaseException e) {
+					response.success = false;
+					response.error = e.getMessage();
+				}
+				response.username = user.getUserName();
 			} else {
 				response.success = false;
 				response.error = "Invalid credentials";
