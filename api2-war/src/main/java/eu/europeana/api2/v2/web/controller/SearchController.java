@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
-import org.slf4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,16 +63,17 @@ import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.IdBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.logging.Log;
+import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.SolrUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
+import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -108,7 +108,7 @@ public class SearchController {
 	@Resource
 	private EuropeanaUrlService urlService;
 
-	@RequestMapping(value = "/v2/search.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
 			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
@@ -161,6 +161,7 @@ public class SearchController {
 				.setPageSize(rows)
 				.setStart(start - 1)
 				.setParameter("facet.mincount", "1")
+				.setParameter("fl", "*,score")
 				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
 
@@ -211,6 +212,9 @@ public class SearchController {
 				log.info("got response " + result.items.size());
 			}
 			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH, profile);
+			response.addHeader("Access-Control-Allow-Origin", "*");
+			response.addHeader("Access-Control-Allow-Methods", "POST");
+			response.addHeader("Access-Control-Max-Age", "1000");
 			return JsonUtils.toJson(result, callback);
 		} catch (SolrTypeException e) {
 			log.error(wskey + " [search.json] ", e);
