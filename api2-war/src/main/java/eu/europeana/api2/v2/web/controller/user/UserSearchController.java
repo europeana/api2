@@ -54,7 +54,7 @@ public class UserSearchController extends AbstractUserController {
 	public ModelAndView list(@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			UserResults<Search> response = new UserResults<Search>(getApiId(principal), "/user/search.json");
+			UserResults<Search> response = new UserResults<Search>(getApiId(principal), "/v2/user/search.json");
 			response.items = new ArrayList<Search>();
 			response.username = user.getUserName();
 			response.itemsCount = Long.valueOf(user.getSavedSearches().size());
@@ -86,7 +86,7 @@ public class UserSearchController extends AbstractUserController {
 			@RequestParam(value = "start", required = false, defaultValue = "1") String start,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
-		UserModification response = new UserModification(getApiId(principal), "/user/tag.search?action=CREATE");
+		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.search?action=CREATE");
 		if (user != null) {
 			UrlBuilder ub = new UrlBuilder(query);
 			ub.addParam("qf", refinements, true);
@@ -113,7 +113,7 @@ public class UserSearchController extends AbstractUserController {
 	public ModelAndView delete(@RequestParam(value = "searchid", required = true) Long searchId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
-		UserModification response = new UserModification(getApiId(principal), "/user/search.json?action=DELETE");
+		UserModification response = new UserModification(getApiId(principal), "/v2/user/search.json?action=DELETE");
 		if (user != null) {
 			try {
 				userService.removeSavedSearch(user.getId(), searchId);
