@@ -23,9 +23,8 @@ package eu.europeana.api2.v2.web.controller.sugarcrm;
 
 import java.security.Principal;
 import java.util.Date;
-
 import javax.annotation.Resource;
-
+import eu.europeana.corelib.logging.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
@@ -42,7 +40,6 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.logging.Log;
-import eu.europeana.corelib.logging.Logger;
 
 /**
  * Controller for providing Provider/DataSet specific information contained into
@@ -52,7 +49,7 @@ import eu.europeana.corelib.logging.Logger;
  * 
  * @since Sep 24, 2013
  */
-//@Controller
+@Controller
 public class SugarCRMController {
 
 	@Log
@@ -138,7 +135,6 @@ public class SugarCRMController {
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 
-
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response = null;
 
@@ -186,7 +182,8 @@ public class SugarCRMController {
 	public ModelAndView findDatasetsPerProvider(
 			@PathVariable  String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback) {
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
@@ -234,7 +231,8 @@ public class SugarCRMController {
 	public ModelAndView findDatasetsById(
 			@PathVariable  String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback) {
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
