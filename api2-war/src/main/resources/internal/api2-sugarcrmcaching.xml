@@ -12,9 +12,9 @@
     <task:executor id="sugarcrm_taskExecutor" pool-size="10"/>
 
 	<bean id="sugarCRMPoller"
-		class="eu.europeana.api2.v2.web.controller.sugarcrm.SugarCRMPollingScheduler" />
+		class="eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler" />
 		
 	<bean id="sugarCRMCache"
-		class="eu.europeana.api2.v2.web.controller.sugarcrm.SugarCRMCache" />
+		class="eu.europeana.api2.v2.service.SugarCRMCache" />
 
 </beans>
