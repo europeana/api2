@@ -14,21 +14,14 @@
  *  See the Licence for the specific language governing permissions and limitations under 
  *  the Licence.
  */
-package eu.europeana.api2.v2.web.controller.sugarcrm;
+package eu.europeana.api2.v2.service;
 
 import java.io.StringWriter;
 import java.net.UnknownHostException;
-import java.sql.Date;
 import java.util.ArrayList;
-
 import java.util.List;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import eu.europeana.corelib.logging.Logger;
 import org.w3c.dom.Element;
 import com.google.code.morphia.Datastore;
@@ -55,6 +48,8 @@ import eu.europeana.uim.sugarcrmclient.ws.SugarWsClient;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
 
 /**
+ * Implementation of the caching mechanism 
+ * 
  * @author Georgios Markakis (gwarkx@hotmail.com)
  * 
  * @since Oct 30, 2013
@@ -73,28 +68,19 @@ public class SugarCRMCache {
 	private Datastore ds;
 	
 	private final static String CACHEDB = "sugarcrmCache";
-
-	/**
-	 * 
-	 */
-	public SugarCRMCache() {
-
-	}
-
 	
+	/**
+	 * Use a local instance if MongoDB version cannot be injected from Spring 
+     * from Spring Context (useful in Unit Testing)
+	 */
 	@PostConstruct
-	public void init(){
-		// Use a local instance if MongoDB version fails to be injected 
-		// from Spring Context (useful in Unit Testing)
+	public void initLocal(){
 		if(mongo == null){
-			log.debug("Failed to get Mongo Driver reference from Spring context...");
 			try {
 				mongo = new Mongo();
 			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (MongoException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -109,41 +95,44 @@ public class SugarCRMCache {
 		mongo.getDB(CACHEDB).getCollection("Provider")
 				.ensureIndex("identifier");
 	}
+	
 	/*
 	 * Mongo (retrieval from cache) related operations
 	 */
 	
+	/**
+	 * Gets all providers from the Mongo Cache.
+	 * 
+	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
+	 */
 	public SugarCRMSearchResults<Provider> getProviders(){
 		return getProviders(null,0,0);
 	}
 	
-	
 	/**
-	 * @return
+	 * Gets all providers from the Mongo Cache.
+	 * @param country the country code filter (might be null)
+	 * @param offset the offset of search (might be 0)
+	 * @param pagesize the page size (might be 0: 200 will be set as default in that case)
+	 * 
+	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<Provider> getProviders(String country,int offset,int pagesize) {
-		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<Provider>("","");
-		
+		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<Provider>("","");	
 		Query<Provider> query = ds.find(Provider.class);
-		
 		if(country != null){
 			query.filter("country", country);
 		}
-		
 		if(offset != 0){
 			query.offset(offset);
 		}
-		
 		if(offset != 0 && pagesize!=0){
 			query.limit(pagesize);
 		}
-		
 		if(offset != 0 && pagesize == 0){
 			query.limit(200);
 		}
-		
 		List<Provider> res =  query.asList();
-		
 		long count = ds.find(Provider.class).countAll();
 		results.totalResults = count;
 		results.items = res;
@@ -158,44 +147,56 @@ public class SugarCRMCache {
 	}
 
 	/**
-	 * @param id
-	 * @return
+	 * Gets a provider according to the given ID
+	 * 
+	 * @param id the provider ID
+	 * @return the JSON/Morphia annotated provider bean wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<Provider> getProviderbyID(String id) {
-		Provider prov = ds.find(Provider.class).field("_id").equal(id).get();
-		prov.description = prov.savedsugarcrmFields.get("description");
-		prov.name = prov.savedsugarcrmFields.get("name");
-		prov.country = prov.savedsugarcrmFields.get("country_c");
-		
 		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<Provider>("","");
 		results.items = new ArrayList<Provider>();
-		results.items.add(prov);
-		return results;
+		Provider prov = ds.find(Provider.class).field("_id").equal(id).get();
+		if(prov != null){
+			prov.description = prov.savedsugarcrmFields.get("description");
+			prov.name = prov.savedsugarcrmFields.get("name");
+			prov.country = prov.savedsugarcrmFields.get("country_c");
+			results.items.add(prov);
+			return results;
+		}
+		else{	
+			return results;
+		}
 	}
 
 	/**
-	 * @param id
-	 * @return
+	 * Gets a dataset according to the given ID
+	 * @param id the dataset ID
+	 * @return the JSON/Morphia annotated dataset bean wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<DataSet> getCollectionByID(String id) {
-		DataSet dts = ds.find(DataSet.class).field("_id").equal(id).get();
-		
-		dts.status = dts.savedsugarcrmFields.get(EuropeanaUpdatableField.STATUS.getFieldId()); 
-		dts.name = dts.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId()); 
-		//dts.description = "Hidden";
-		dts.description = dts.savedsugarcrmFields.get(EuropeanaRetrievableField.DESCRIPTION.getFieldId()); 
-		dts.publishedRecords = dts.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId()); 
-		dts.deletedRecords = "Not implemented yet";
-		
 		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("","");
 		results.items = new ArrayList<DataSet>();
-		results.items.add(dts);
-		return results;
+		DataSet dts = ds.find(DataSet.class).field("_id").equal(id).get();
+		if(dts!= null){
+			dts.status = dts.savedsugarcrmFields.get(EuropeanaUpdatableField.STATUS.getFieldId()); 
+			dts.name = dts.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId()); 
+			dts.description = "Hidden";
+			//dts.description = dts.savedsugarcrmFields.get(EuropeanaRetrievableField.DESCRIPTION.getFieldId()); 
+			dts.publishedRecords = dts.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId()); 
+			dts.deletedRecords = "Not implemented yet";
+			results.items.add(dts);
+			return results;
+		}
+		else{
+			return results;
+		}
+
 	}
 
 	/**
-	 * @param id
-	 * @return
+	 * Gets the set of the collections that belong to a provider given the provider ID
+	 * @param id the provider ID
+	 * @return the JSON/Morphia annotated dataset beans wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<DataSet> getCollectionByProviderID(String id) {
 		List<DataSet> reslist = ds.find(DataSet.class).field("provIdentifier").equal(id).asList();
@@ -208,7 +209,6 @@ public class SugarCRMCache {
 			dts.publishedRecords = dts.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId()); 
 			dts.deletedRecords = "Not implemented yet";
 		}
-	
 		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("","");
 		results.items = new ArrayList<DataSet>();
 		results.items.addAll(reslist);
@@ -222,33 +222,28 @@ public class SugarCRMCache {
 	
 	
 	/**
-	 * @throws JIXBQueryResultException
+	 * Performs a re-population/synchronization of the MongoDB cache if found that
+	 * the latter is empty.
 	 * 
+	 * @throws JIXBQueryResultException
 	 */
 	public void populateRepositoryFromScratch() throws JIXBQueryResultException {
-
-		SugarCRMSearchResults<Provider> provs = retrieveproviders();
-		
+		SugarCRMSearchResults<Provider> provs = getProviders();
 		if(provs.items.isEmpty()){
-			
 		ArrayList<Element> list = new ArrayList<Element>();
 		GetEntryList prrequest = new GetEntryList();
 		// We want to retrieve all fields
 		SelectFields fields = new SelectFields();
-
 		prrequest.setSelectFields(fields);
 		prrequest.setModuleName(EuropeanaDatasets.ORGANIZATIONS.getSysId());
 		prrequest.setSession(sugarwsClient.getSessionID());
 		prrequest.setOrderBy(EuropeanaRetrievableField.DATE_ENTERED
 				.getFieldId());
 		prrequest.setMaxResults(100);
-
 		prrequest.setOffset(0);
 		prrequest
-				.setQuery("(accounts_cstm.agg_status_c LIKE '%P' OR accounts_cstm.agg_status_c LIKE '%D')");
-		
-		int offset = 0;
-		
+				.setQuery("(accounts_cstm.agg_status_c LIKE '%P' OR accounts_cstm.agg_status_c LIKE '%D')");		
+		int offset = 0;		
 		while (true) {
 
 			GetEntryListResponse response = sugarwsClient
@@ -260,11 +255,8 @@ public class SugarCRMCache {
 			} else {
 				break;
 			}
-
-
 			offset = response.getReturn().getNextOffset();
 			prrequest.setOffset(offset);
-
 		}
 		
 		for(Element el : list){
@@ -279,10 +271,8 @@ public class SugarCRMCache {
 			prov.description = "Hidden";
 			prov.name = name;
 			prov.country = country;
-			prov.savedsugarcrmFields = ClientUtils.mapFromElement(el);
-			
+			prov.savedsugarcrmFields = ClientUtils.mapFromElement(el);			
 			ds.save(prov);
-			//ds.merge(prov);
 			extractDatasetsFromProvider(el);
 		}
 		
@@ -290,7 +280,11 @@ public class SugarCRMCache {
 	}
 
 	/**
-	 * @param prel
+	 * Auxiliary method that extracts and populates the Mongo cache with  all the Datasets
+	 * that belong to a provider given the provider's DOM represention contained in the
+	 * web service response.
+	 * 
+	 * @param prel The provider DOM element
 	 * @throws JIXBQueryResultException
 	 */
 	private void extractDatasetsFromProvider(Element prel)
@@ -298,7 +292,6 @@ public class SugarCRMCache {
 
 		String sugarCRMProvID = ClientUtils.extractFromElement("id", prel);
 		String uimprovID = ClientUtils.extractFromElement("name_id_c", prel);
-
 		GetRelationships request = new GetRelationships();
 		request.setDeleted(0);
 		request.setModuleId(sugarCRMProvID);
@@ -306,9 +299,7 @@ public class SugarCRMCache {
 		request.setRelatedModule("Opportunities");
 		request.setRelatedModuleQuery("");
 		request.setSession(sugarwsClient.getSessionID());
-
 		GetRelationshipsResponse resp = sugarwsClient.getrelationships(request);
-
 		if (resp.getReturn().getIds().getArray() != null) {
 			List<Element> el = resp.getReturn().getIds().getArray()
 					.getAnyList();
@@ -328,7 +319,7 @@ public class SugarCRMCache {
 				if (datasetiD != null) {
 					 String query = "opportunities.id LIKE '" + datasetiDSb.toString() + "%'";
 					
-					  SugarCRMSearchResults<DataSet> datasets =  retrieveDataset( query); 
+					  SugarCRMSearchResults<DataSet> datasets =  retrieveDataset(query,uimprovID); 
 					  if   (datasets.items.size() != 0) {					  
 						  for (DataSet dts : datasets.items){
 								ds.save(dts);
@@ -341,45 +332,41 @@ public class SugarCRMCache {
 	
 	
 	/**
+	 * Basic polling function for providers (sugarcrm 2 cache)
 	 * @throws JIXBQueryResultException 
-	 * 
 	 */
 	public void pollProviders() throws JIXBQueryResultException{
 		String q1 ="accounts.date_modified between (NOW() - INTERVAL 2 HOUR) and NOW()";
 		String q2 = "accounts_cstm.agg_status_c LIKE '%P' OR accounts_cstm.agg_status_c LIKE '%D'";
-	    SugarCRMSearchResults<Provider> provres = retrieveproviders(q1,q2);
-	    
+	    SugarCRMSearchResults<Provider> provres = retrieveproviders(q1,q2);    
 	    for(Provider prov : provres.items){
-	    	System.out.println(prov.identifier);
+	    	log.info("Provider:"+prov.identifier+" was updated by the scheduler...");
 	    	saveupdateProvider2Cache(prov);
 	    }
-	     
 	}
 	
 	
 	/**
-	 * @param datevalue
+	 * Basic polling function for datasets (sugarcrm 2 cache)
 	 * @throws JIXBQueryResultException
 	 */
 	public void pollCollections() throws JIXBQueryResultException{
-		SugarCRMSearchResults<DataSet> retrdatasets = retrieveDataset("opportunities.date_modified between (NOW() - INTERVAL 2 HOUR) and NOW()");
-		
+		SugarCRMSearchResults<DataSet> retrdatasets = retrieveDataset("opportunities.date_modified between (NOW() - INTERVAL 2 HOUR) and NOW()",null);
 		for(DataSet ds : retrdatasets.items){
-			System.out.println(ds.identifier);
+	    	log.info("Dataset:"+ds.identifier+" was updated by the scheduler...");
 			saveupdateCollection2Cache(ds);
 		}
-		
 	}
 	
 
 
 	/**
-	 * Method used to retrieve datasets by ID
-	 * @param id
-	 * @return A Jackson object containing results
+	 * Auxiliary Method used to retrieve datasets by ID (from SugarCRM)
+	 * @param id 
+	 * @return the JSON/Morphia annotated dataset beans wrapped in a SugarCRMSearchResults JSON object
 	 * @throws JIXBQueryResultException
 	 */
-	private SugarCRMSearchResults<DataSet> retrieveDataset(String query) throws JIXBQueryResultException {
+	private SugarCRMSearchResults<DataSet> retrieveDataset(String query,String providerID) throws JIXBQueryResultException {
 
 		GetEntryList request = new GetEntryList();
 		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>(
@@ -412,7 +399,7 @@ public class SugarCRMCache {
 			
 			String identifier = ClientUtils.extractFromElement(EuropeanaRetrievableField.NAME.getFieldId(), el).split("_")[0];			
 			ds.identifier = identifier;
-			//ds.provIdentifier = providerID;
+			ds.provIdentifier = providerID;
 			ds.status = ClientUtils.translateStatus(ClientUtils.extractFromElement(
 					EuropeanaUpdatableField.STATUS.getFieldId(), el));			
 			ds.name = ClientUtils.extractFromElement(
@@ -436,10 +423,9 @@ public class SugarCRMCache {
 	}
 	
 	/**
-	 * Method for retrieving all the providers
+	 * Auxiliary Method for retrieving all the providers (from SugarCRM)
 	 * 
-	 * @return  A Jackson object containing a complete list of the providers
-	 * 
+	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
 	 * @throws JIXBQueryResultException
 	 */
 	private SugarCRMSearchResults<Provider> retrieveproviders(String... query)
@@ -510,7 +496,8 @@ public class SugarCRMCache {
 	}
 	
 	/**
-	 * Saves or updates a Provider into the Cache
+	 * Auxiliary method that saves or updates a Provider into the Cache (MongoDB)
+	 * @param prov the provider object
 	 */
 	private void saveupdateProvider2Cache(Provider prov) {
 			UpdateOperations<Provider> ops = ds
@@ -523,7 +510,8 @@ public class SugarCRMCache {
 	}
 
 	/**
-	 * Saves or updates a Dataset into the Cache
+	 * Auxiliary method that saves or updates a Dataset into the Cache (MongoDB)
+	 * @param dts the collection object
 	 */
 	private void saveupdateCollection2Cache(DataSet dts) {
 			UpdateOperations<DataSet> ops = ds
@@ -536,12 +524,20 @@ public class SugarCRMCache {
 	
 	
 	
+	/**
+	 * Getter for SugarWsClient instance
+	 * @return
+	 */
 	public SugarWsClient getSugarwsClient() {
 		return sugarwsClient;
 	}
 
+	/**
+	 * Setter for SugarWsClient instance
+	 * @param sugarwsClient
+	 */
 	public void setSugarwsClient(SugarWsClient sugarwsClient) {
 		this.sugarwsClient = sugarwsClient;
 	}
-
+	
 }

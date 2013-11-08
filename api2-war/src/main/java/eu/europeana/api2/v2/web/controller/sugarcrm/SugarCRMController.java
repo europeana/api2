@@ -36,6 +36,7 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
+import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
@@ -69,9 +70,14 @@ public class SugarCRMController {
 	 * Returns the list of Europeana providers. The response is an Array of JSON
 	 * objects, each one containing the identifier and the name of a provider.
 	 * 
+	 * @param wskey
 	 * @param callback
+	 * @param countryCode
+	 * @param offset
+	 * @param pagesize
 	 * @param principal
-	 * @return
+	 * 
+	 * @return the JSON response
 	 */
 	@RequestMapping(value = "/v2/providers.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })
@@ -94,13 +100,12 @@ public class SugarCRMController {
 			apiService.checkReachedLimit(apiKey);
 			
 			int intOffset = offset== null ?0 :Integer.parseInt(offset);
-			int intPagesize = offset== null ?0 :Integer.parseInt(offset);
+			int intPagesize = offset== null ?0 :Integer.parseInt(pagesize);
 			
 			response = sugarCRMCache.getProviders(countryCode,intOffset,intPagesize);
 			response.action = "/v2/providers.json";
 			response.apikey = wskey;
 			response.itemsCount = response.items.size();
-			//response.totalResults = response.items.size();
 			response.statsStartTime = starttime;
 			Date endtime = new Date();
 			response.statsDuration = endtime.getTime() - starttime.getTime();
@@ -125,7 +130,7 @@ public class SugarCRMController {
 	 * @param query
 	 * @param callback
 	 * @param principal
-	 * @return
+	 * @return the JSON response
 	 */
 	@RequestMapping(value = "/v2/provider/{id}/providers.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })
@@ -175,7 +180,7 @@ public class SugarCRMController {
 	 * @param query
 	 * @param callback
 	 * @param principal
-	 * @return
+	 * @return the JSON response
 	 */
 	@RequestMapping(value = "/v2/provider/{id}/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })
@@ -224,7 +229,7 @@ public class SugarCRMController {
 	 * @param id
 	 * @param callback
 	 * @param principal
-	 * @return
+	 * @return the JSON response
 	 */
 	@RequestMapping(value = "/v2/dataset/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })

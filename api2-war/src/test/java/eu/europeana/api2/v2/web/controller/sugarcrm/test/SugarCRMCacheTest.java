@@ -39,7 +39,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
-import eu.europeana.api2.v2.web.controller.sugarcrm.SugarCRMCache;
+import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.uim.sugarcrmclient.internal.ExtendedSaajSoapMessageFactory;
 import eu.europeana.uim.sugarcrmclient.internal.helpers.ClientUtils;
 import eu.europeana.uim.sugarcrmclient.internal.helpers.PropertyReader;
@@ -55,7 +55,7 @@ import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
  *
  * Nov 4, 2013
  */
-public abstract class SugarCRMCacheTest {
+public class SugarCRMCacheTest {
 
 	private static MongodExecutable mongodExe;
 	private static MongodProcess mongod;
@@ -118,6 +118,7 @@ public abstract class SugarCRMCacheTest {
 		
 		caheinstance = new SugarCRMCache();
 		caheinstance.setSugarwsClient(sugarwsClient);
+		caheinstance.initLocal();
 	}
 	
 	
@@ -125,6 +126,7 @@ public abstract class SugarCRMCacheTest {
 	public void getProviderbyIDTest(){
 		String id = "001";
 		SugarCRMSearchResults<Provider> provres = caheinstance.getProviderbyID(id);
+		assertTrue(!provres.items.isEmpty());
 		Provider prov = provres.items.get(0);
 		assertNotNull(prov);
 		assertNotNull(prov.savedsugarcrmFields);
@@ -180,6 +182,7 @@ public abstract class SugarCRMCacheTest {
 
 		SugarCRMSearchResults<DataSet> collres = caheinstance.getCollectionByID("00101");
 		assertNotNull(collres.items);
+		assertTrue(!collres.items.isEmpty());
 		DataSet ds = collres.items.get(0);
 		assertNotNull(ds);
 		
