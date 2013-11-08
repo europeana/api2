@@ -29,7 +29,7 @@ import javax.annotation.Resource;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
+import eu.europeana.corelib.logging.Logger;
 import org.w3c.dom.Element;
 import com.google.code.morphia.Datastore;
 import com.google.code.morphia.Morphia;
@@ -229,7 +229,7 @@ public class SugarCRMCache {
 
 		SugarCRMSearchResults<Provider> provs = retrieveproviders();
 		
-		if(provs.itemsCount == 0 ){
+		if(provs.items.isEmpty()){
 			
 		ArrayList<Element> list = new ArrayList<Element>();
 		GetEntryList prrequest = new GetEntryList();

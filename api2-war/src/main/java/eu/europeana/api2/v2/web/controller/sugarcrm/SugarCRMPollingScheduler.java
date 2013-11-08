@@ -21,7 +21,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import org.slf4j.Logger;
+import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.uim.sugarcrmclient.ws.SugarWsClient;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
