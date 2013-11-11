@@ -16,7 +16,7 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
 @Controller
 public class UserProfileController extends AbstractUserController {
 
-	@RequestMapping(value = "/v2/user/profile.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/user/profile.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
