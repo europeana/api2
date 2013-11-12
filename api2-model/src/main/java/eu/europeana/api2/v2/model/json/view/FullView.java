@@ -144,12 +144,16 @@ public class FullView implements FullBean {
 			// add bt=europanaapi
 			String isShownAt = items.get(i).getEdmIsShownAt();
 			if (isShownAt != null) {
-				isShownAt = isShownAt + (isShownAt.indexOf("?") > -1 ? "&" : "?") + "bt=europeanaapi";
+				isShownAt = isShownAt
+						+ (isShownAt.indexOf("?") > -1 ? "&" : "?")
+						+ "bt=europeanaapi";
 				// items.get(i).setEdmIsShownAt(isShownAt);
 
-				String provider = items.get(i).getEdmProvider().values().iterator().next().get(0);
-				String isShownAtLink = europeanaUrlService.getApi2Redirect(uid, encode(isShownAt), encode(provider),
-						bean.getAbout(), profile).toString();
+				String provider = items.get(i).getEdmProvider().values()
+						.iterator().next().get(0);
+				String isShownAtLink = europeanaUrlService.getApi2Redirect(uid,
+						encode(isShownAt), encode(provider), bean.getAbout(),
+						profile).toString();
 				items.get(i).setEdmIsShownAt(isShownAtLink);
 			}
 
@@ -196,13 +200,15 @@ public class FullView implements FullBean {
 
 	@Override
 	public EuropeanaAggregation getEuropeanaAggregation() {
-		EuropeanaAggregation europeanaAggregation = bean.getEuropeanaAggregation();
+		EuropeanaAggregation europeanaAggregation = bean
+				.getEuropeanaAggregation();
 		europeanaAggregation.setId(null);
 		String edmPreview = "";
 		if (this.getAggregations().get(0).getEdmObject() != null) {
 			String url = this.getAggregations().get(0).getEdmObject();
 			if (StringUtils.isNotBlank(url)) {
-				edmPreview = europeanaUrlService.getThumbnailUrl(url, getType()).toString();
+				edmPreview = europeanaUrlService
+						.getThumbnailUrl(url, getType()).toString();
 			}
 		}
 		europeanaAggregation.setEdmPreview(edmPreview);
@@ -210,7 +216,8 @@ public class FullView implements FullBean {
 	}
 
 	@Override
-	public void setEuropeanaAggregation(EuropeanaAggregation europeanaAggregation) {
+	public void setEuropeanaAggregation(
+			EuropeanaAggregation europeanaAggregation) {
 	}
 
 	@Override
@@ -318,5 +325,26 @@ public class FullView implements FullBean {
 			// ignore, won't happen normally
 		}
 		return value;
+	}
+
+	@Override
+	public Date getTimestampCreated() {
+		return bean.getTimestampCreated() != null ? bean.getTimestampCreated()
+				: new Date(0);
+	}
+
+	@Override
+	public Date getTimestampUpdated() {
+		return bean.getTimestampUpdated() != null ? bean.getTimestampUpdated()
+				: new Date(0);
+	}
+
+	@Override
+	public void setTimestampCreated(Date timestampCreated) {
+		
+	}
+
+	@Override
+	public void setTimestampUpdated(Date timestampUpdated) {
 	}
 }
