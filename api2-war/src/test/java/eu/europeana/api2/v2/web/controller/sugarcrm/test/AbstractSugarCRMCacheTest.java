@@ -17,109 +17,44 @@
 package eu.europeana.api2.v2.web.controller.sugarcrm.test;
 
 import static org.junit.Assert.*;
-import java.io.IOException;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-import org.jibx.runtime.JiBXException;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.oxm.jibx.JibxMarshaller;
-import org.springframework.ws.client.core.WebServiceTemplate;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfig;
-import de.flapdoodle.embed.mongo.distribution.Version;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
 import eu.europeana.api2.v2.service.SugarCRMCache;
-import eu.europeana.uim.sugarcrmclient.internal.ExtendedSaajSoapMessageFactory;
-import eu.europeana.uim.sugarcrmclient.internal.helpers.ClientUtils;
-import eu.europeana.uim.sugarcrmclient.ws.ClientFactory;
 import eu.europeana.uim.sugarcrmclient.ws.SugarWsClient;
-import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBLoginFailureException;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
 
+
 /**
- * Unit Tests for API caching mechnism
+ * Unit Tests for API caching mechanism (actual contenet executed by both Mock & Integration Tests)
  * 
  * @author Georgios Markakis (gwarkx@hotmail.com)
  *
- * Nov 4, 2013
+ * @since Nov 4, 2013
  */
-public abstract class SugarCRMCacheTest {
+public abstract class AbstractSugarCRMCacheTest {
 
-	private static MongodExecutable mongodExe;
-	private static MongodProcess mongod;
-	private static SugarCRMCache caheinstance;
-	private static SugarWsClient sugarwsClient;
-	
-	@BeforeClass
-	public static void init() throws IOException, JiBXException{
-
-		int port = 10000;
-		MongodConfig conf = new MongodConfig(Version.V2_0_7, port, false);
-		MongodStarter runtime = MongodStarter.getDefaultInstance();
-		mongodExe = runtime.prepare(conf);
-		mongod = mongodExe.start();
-
-		
-		
-		ClientFactory clfact = new ClientFactory();
-		
-		MessageFactory mf = null;
-		try {
-		   mf = MessageFactory.newInstance();
-		} catch (SOAPException e1) {
-			e1.printStackTrace();
-		}
-		
-		ExtendedSaajSoapMessageFactory mfactory = new ExtendedSaajSoapMessageFactory(mf);
-		WebServiceTemplate webServiceTemplate = new WebServiceTemplate(mfactory);
-
-		JibxMarshaller marshaller = new JibxMarshaller();
-
-		marshaller.setStandalone(true);
-		marshaller.setTargetClass(eu.europeana.uim.sugarcrmclient.jibxbindings.Login.class);
-		marshaller.setTargetClass(eu.europeana.uim.sugarcrmclient.jibxbindings.GetEntries.class);
-		marshaller.setEncoding("UTF-8");
-		marshaller.setTargetPackage("eu.europeana.uim.sugarcrmclient.jibxbindings");
-
-		try {
-			marshaller.afterPropertiesSet();
-		} catch (JiBXException e1) {
-			e1.printStackTrace();
-		}				
-		
-		webServiceTemplate.setMarshaller(marshaller);
-		webServiceTemplate.setUnmarshaller(marshaller);
-		
-		clfact.setWebServiceTemplate(webServiceTemplate);
-		
-		sugarwsClient = clfact.createInstance("http://sip-manager.isti.cnr.it/sugarcrm/soap.php",
-				"wsaccount", "***REMOVED***");
-		
-		
-		try {
-			sugarwsClient.login(ClientUtils.createStandardLoginObject("wsaccount","***REMOVED***"));
-		} catch (JIXBLoginFailureException e) {
-
-		} catch (Exception e){
-			e.printStackTrace();
-		}
-		
-		caheinstance = new SugarCRMCache();
-		caheinstance.setSugarwsClient(sugarwsClient);
-		caheinstance.initLocal();
-	}
+	protected static MongodExecutable mongodExe;
+	protected static MongodProcess mongod;
+	protected static SugarCRMCache caheinstance;
+	protected static SugarWsClient sugarwsClient;
 	
 	
+	/**
+	 * @throws JIXBQueryResultException
+	 */
 	@Test
 	public void populationTest() throws JIXBQueryResultException{
 		caheinstance.populateRepositoryFromScratch();
 	}
 	
+	
+	/**
+	 * Get provider by ID
+	 */
 	@Test
 	public void getProviderbyIDTest(){
 		String id = "916";
@@ -132,6 +67,9 @@ public abstract class SugarCRMCacheTest {
 	}
 	
 	
+	/**
+	 * Get providers
+	 */
 	@Test
 	public void getProvidersTest(){
 	  SugarCRMSearchResults<Provider> provs = caheinstance.getProviders();
@@ -146,6 +84,9 @@ public abstract class SugarCRMCacheTest {
 	}
 	
 	
+	/**
+	 * Get providers (paged)
+	 */
 	@Test
 	public void getProvidersPagingTest(){
 	  SugarCRMSearchResults<Provider> provs = caheinstance.getProviders(null,0,0);
@@ -159,6 +100,9 @@ public abstract class SugarCRMCacheTest {
 	  }
 	}
 	
+	/**
+	 * Get Collection By Provider ID
+	 */
 	@Test
 	public void getCollectionByProviderIDTest(){
 		SugarCRMSearchResults<DataSet> collres = caheinstance.getCollectionByProviderID("1");
@@ -175,6 +119,9 @@ public abstract class SugarCRMCacheTest {
 		  
 	}
 	
+	/**
+	 * Get Collection By ID
+	 */
 	@Test
 	public void getCollectionByIDTest(){
 		SugarCRMSearchResults<DataSet> collres = caheinstance.getCollectionByID("91612");
@@ -191,11 +138,21 @@ public abstract class SugarCRMCacheTest {
 	
 
 
+	/**
+	 * Collection Polling method
+	 * 
+	 * @throws JIXBQueryResultException
+	 */
 	@Test
 	public void collectionPollingTest() throws JIXBQueryResultException{
 		caheinstance.pollCollections();
 	}
 	
+	/**
+	 * Provider polling method
+	 * 
+	 * @throws JIXBQueryResultException
+	 */
 	@Test
 	public void providerPollingTest() throws JIXBQueryResultException{
 		caheinstance.pollProviders();
