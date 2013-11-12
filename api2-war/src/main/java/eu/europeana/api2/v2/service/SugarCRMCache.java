@@ -280,6 +280,34 @@ public class SugarCRMCache {
 	}
 
 	/**
+	 * Auxiliary method that saves or updates a Provider into the Cache (MongoDB)
+	 * @param prov the provider object
+	 */
+	public void saveupdateProvider2Cache(Provider prov) {
+			UpdateOperations<Provider> ops = ds
+					.createUpdateOperations(Provider.class).disableValidation()
+					.set("savedsugarcrmFields", prov.savedsugarcrmFields);
+			Query<Provider> query = ds.createQuery(Provider.class)
+					.field("identifier").equal(prov.identifier);
+			ds.updateFirst(query, ops, true);
+
+	}
+
+	/**
+	 * Auxiliary method that saves or updates a Dataset into the Cache (MongoDB)
+	 * @param dts the collection object
+	 */
+	public void saveupdateCollection2Cache(DataSet dts) {
+			UpdateOperations<DataSet> ops = ds
+					.createUpdateOperations(DataSet.class).disableValidation()
+					.set("savedsugarcrmFields", dts.savedsugarcrmFields);
+			Query<DataSet> query = ds.createQuery(DataSet.class)
+					.field("identifier").equal(dts.identifier);
+			ds.updateFirst(query, ops, true);
+	}
+	
+	
+	/**
 	 * Auxiliary method that extracts and populates the Mongo cache with  all the Datasets
 	 * that belong to a provider given the provider's DOM represention contained in the
 	 * web service response.
@@ -335,7 +363,7 @@ public class SugarCRMCache {
 	 * Basic polling function for providers (sugarcrm 2 cache)
 	 * @throws JIXBQueryResultException 
 	 */
-	public void pollProviders() throws JIXBQueryResultException{
+	public SugarCRMSearchResults<Provider> pollProviders() throws JIXBQueryResultException{
 		String q1 ="accounts.date_modified between (NOW() - INTERVAL 2 HOUR) and NOW()";
 		String q2 = "accounts_cstm.agg_status_c LIKE '%P' OR accounts_cstm.agg_status_c LIKE '%D'";
 	    SugarCRMSearchResults<Provider> provres = retrieveproviders(q1,q2);    
@@ -343,6 +371,7 @@ public class SugarCRMCache {
 	    	log.info("Provider:"+prov.identifier+" was updated by the scheduler...");
 	    	saveupdateProvider2Cache(prov);
 	    }
+	    return provres;
 	}
 	
 	
@@ -350,12 +379,13 @@ public class SugarCRMCache {
 	 * Basic polling function for datasets (sugarcrm 2 cache)
 	 * @throws JIXBQueryResultException
 	 */
-	public void pollCollections() throws JIXBQueryResultException{
+	public SugarCRMSearchResults<DataSet> pollCollections() throws JIXBQueryResultException{
 		SugarCRMSearchResults<DataSet> retrdatasets = retrieveDataset("opportunities.date_modified between (NOW() - INTERVAL 2 HOUR) and NOW()",null);
 		for(DataSet ds : retrdatasets.items){
 	    	log.info("Dataset:"+ds.identifier+" was updated by the scheduler...");
 			saveupdateCollection2Cache(ds);
 		}
+		return retrdatasets;
 	}
 	
 
@@ -495,32 +525,7 @@ public class SugarCRMCache {
 		return results;
 	}
 	
-	/**
-	 * Auxiliary method that saves or updates a Provider into the Cache (MongoDB)
-	 * @param prov the provider object
-	 */
-	private void saveupdateProvider2Cache(Provider prov) {
-			UpdateOperations<Provider> ops = ds
-					.createUpdateOperations(Provider.class).disableValidation()
-					.set("savedsugarcrmFields", prov.savedsugarcrmFields);
-			Query<Provider> query = ds.createQuery(Provider.class)
-					.field("identifier").equal(prov.identifier);
-			ds.updateFirst(query, ops, true);
 
-	}
-
-	/**
-	 * Auxiliary method that saves or updates a Dataset into the Cache (MongoDB)
-	 * @param dts the collection object
-	 */
-	private void saveupdateCollection2Cache(DataSet dts) {
-			UpdateOperations<DataSet> ops = ds
-					.createUpdateOperations(DataSet.class).disableValidation()
-					.set("savedsugarcrmFields", dts.savedsugarcrmFields);
-			Query<DataSet> query = ds.createQuery(DataSet.class)
-					.field("identifier").equal(dts.identifier);
-			ds.updateFirst(query, ops, true);
-	}
 	
 	
 	
@@ -538,6 +543,15 @@ public class SugarCRMCache {
 	 */
 	public void setSugarwsClient(SugarWsClient sugarwsClient) {
 		this.sugarwsClient = sugarwsClient;
+	}
+	
+	
+	public Mongo getMongo() {
+		return mongo;
+	}
+
+	public void setMongo(Mongo mongo) {
+		this.mongo = mongo;
 	}
 	
 }
