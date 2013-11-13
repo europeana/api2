@@ -226,8 +226,9 @@ public class SugarCRMCache {
 				.getFieldId());
 		prrequest.setMaxResults(100);
 		prrequest.setOffset(0);
-		prrequest
-				.setQuery("(accounts_cstm.agg_status_c LIKE '%P' OR accounts_cstm.agg_status_c LIKE '%D')");		
+		//prrequest.setQuery("(accounts_cstm.agg_status_c LIKE '%P' OR accounts_cstm.agg_status_c LIKE '%D')");		
+		prrequest.setQuery("(accounts_cstm.agg_status_c LIKE '%D')");
+		
 		int offset = 0;		
 		while (true) {
 
@@ -246,7 +247,7 @@ public class SugarCRMCache {
 		
 		for(Element el : list){
 			Provider prov = new Provider();
-			populateProviderFromDOMElament(prov,el);	
+			populateProviderFromDOMElement(prov,el);	
 			ds.save(prov);
 			extractDatasetsFromProvider(el);
 		}
@@ -385,28 +386,21 @@ public class SugarCRMCache {
 		request.setOrderBy(EuropeanaRetrievableField.DATE_ENTERED.getFieldId());
 		request.setMaxResults(100);
 		request.setOffset(0);
-
-		request.setQuery(query);
-		
+		request.setQuery(query);	
 		GetEntryListResponse response = sugarwsClient.getentrylist(request);
-
 		ArrayList<Element> list = null;
-
 		if (response.getReturn().getEntryList().getArray() != null) {
 			list = (ArrayList<Element>) response.getReturn().getEntryList()
 					.getArray().getAnyList();
 		} else {
 			list = new ArrayList<Element>();
 		}
-
 		for (Element el : list) {
 			DataSet ds = new DataSet();
-			populateDatasetFromDOMElament(ds,el, providerID);
+			populateDatasetFromDOMElement(ds,el, providerID);
 			results.items.add(ds);
 		}
-
 		return results;
-
 	}
 	
 	/**
@@ -469,7 +463,7 @@ public class SugarCRMCache {
 		for (Element el : list) {
 			Provider prov = new Provider();
 			// Insert values in Provider Object
-			populateProviderFromDOMElament(prov,el);
+			populateProviderFromDOMElement(prov,el);
 			results.items.add(prov);
 		}
 
@@ -478,10 +472,11 @@ public class SugarCRMCache {
 	
 
 	/**
+	 * 
 	 * @param prov
 	 * @param el
 	 */
-	private void populateDatasetFromDOMElament(DataSet ds,Element el,String providerID){
+	private void populateDatasetFromDOMElement(DataSet ds,Element el,String providerID){
 		String identifier = ClientUtils.extractFromElement(EuropeanaRetrievableField.NAME.getFieldId(), el).split("_")[0];			
 		ds.identifier = identifier;
 		ds.provIdentifier = providerID;
@@ -503,15 +498,17 @@ public class SugarCRMCache {
 	}
 	
 	/**
-	 * @param prov
+	 * Inflate a Dataset JSON object from the cache.
+	 * 
+	 * @param ds the dataset object 
 	 */
 	private void inflateDataset(DataSet ds){
-		ds.status = ds.savedsugarcrmFields.get(ClientUtils.translateStatus(EuropeanaUpdatableField.STATUS.getFieldId()));
+		ds.status = ClientUtils.translateStatus(ds.savedsugarcrmFields.get(EuropeanaUpdatableField.STATUS.getFieldId()));
 		ds.name = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId()); 
 		ds.creationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.DATE_ENTERED.getFieldId());
 		ds.publicationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.EXPECTED_INGESTION_DATE.getFieldId());
 		String precordsStr =  ds.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId()); 
-		if(!precordsStr.equals("") || precordsStr != null){
+		if(precordsStr != null){
 			ds.publishedRecords = Long.parseLong(precordsStr);
 		}
 		String delrecordsStr =  ds.savedsugarcrmFields.get(EuropeanaUpdatableField.DELETED_RECORDS.getFieldId()); 
@@ -521,17 +518,22 @@ public class SugarCRMCache {
 	}
 
 	/**
-	 * @param prov
-	 * @param el
+	 * Copy the fields needed from the DOM element to the related 
+	 * (persisted) Morphia annotated fields. 
+	 * 
+	 * @param prov the provider object
+	 * @param el the DOM element
 	 */
-	private void populateProviderFromDOMElament(Provider prov, Element el){
+	private void populateProviderFromDOMElement(Provider prov, Element el){
 		prov.identifier = ClientUtils.extractFromElement("name_id_c", el);
 		prov.country = ClientUtils.extractFromElement("country_c", el);
 		prov.savedsugarcrmFields = ClientUtils.mapFromElement(el);
 	}
 	
 	/**
-	 * @param prov
+	 * Inflate a Provider JSON object from the cache.
+	 * 
+	 * @param prov the provider object
 	 */
 	private void inflateProvider(Provider prov){
 		prov.name = prov.savedsugarcrmFields.get("name");
@@ -540,8 +542,8 @@ public class SugarCRMCache {
 		prov.altname = prov.savedsugarcrmFields.get("name_alt_c");
 		prov.acronym = prov.savedsugarcrmFields.get("name_acronym_c");
 		prov.domain = prov.savedsugarcrmFields.get("account_type");
-		prov.geolevel = prov.savedsugarcrmFields.get("geo_level_c");
-		prov.role = prov.savedsugarcrmFields.get("agg_name_c");
+		prov.geolevel = prov.savedsugarcrmFields.get("geo_level_c");		
+		prov.role = ClientUtils.translateType(prov.savedsugarcrmFields.get("agg_status_c"));
 		prov.scope = prov.savedsugarcrmFields.get("scope_c");
 		prov.sector = prov.savedsugarcrmFields.get("sector_c");
 		prov.country = prov.savedsugarcrmFields.get("country_c");
@@ -565,13 +567,5 @@ public class SugarCRMCache {
 		this.sugarwsClient = sugarwsClient;
 	}
 	
-	
-	public Mongo getMongo() {
-		return mongo;
-	}
-
-	public void setMongo(Mongo mongo) {
-		this.mongo = mongo;
-	}
 	
 }

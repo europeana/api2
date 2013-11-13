@@ -150,7 +150,7 @@ public class SugarCRMController {
 			}
 			apiService.checkReachedLimit(apiKey);
 			response = sugarCRMCache.getProviderbyID(id);
-			response.action = "/v2/provider/"+id+"/providers.json";
+			response.action = "/v2/provider/"+id+".json";
 			response.apikey = wskey;
 			response.itemsCount = response.items.size();
 			response.totalResults = response.items.size();
@@ -160,7 +160,7 @@ public class SugarCRMController {
 			response.success = true;
 		} catch (Exception e) {
 			response = new SugarCRMSearchResults<Provider>(wskey,
-					"/v2/provider/"+id+"/providers.json");
+					"/v2/provider/"+id+".json");
 			response.error = "Error fetching provider by id"
 					+ e.getMessage();
 			response.success = false;
