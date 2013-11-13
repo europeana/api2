@@ -39,7 +39,7 @@ import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBLoginFailureException;
  *
  * Nov 12, 2013
  */
-public class SugarCRMCacheIntegrationTest extends AbstractSugarCRMCacheTest {
+public abstract class SugarCRMCacheIntegrationTest extends AbstractSugarCRMCacheTest {
 
 	/**
      * Inititlaize the datatasources for Integration tests here
