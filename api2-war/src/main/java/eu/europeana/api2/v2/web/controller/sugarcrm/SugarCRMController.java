@@ -132,7 +132,7 @@ public class SugarCRMController {
 	 * @param principal
 	 * @return the JSON response
 	 */
-	@RequestMapping(value = "/v2/provider/{id}/providers.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+	@RequestMapping(value = "/v2/provider/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findprovidersByID(
 			@PathVariable  String id,

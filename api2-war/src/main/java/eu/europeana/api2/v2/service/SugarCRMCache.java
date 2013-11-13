@@ -121,7 +121,7 @@ public class SugarCRMCache {
 		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<Provider>("","");	
 		Query<Provider> query = ds.find(Provider.class);
 		if(country != null){
-			query.filter("country", country);
+			query.filter("country", country.toUpperCase());
 		}
 		if(offset != 0){
 			query.offset(offset);
@@ -137,10 +137,8 @@ public class SugarCRMCache {
 		results.totalResults = count;
 		results.items = res;
 		
-		for(Provider pr :res){			
-			pr.description = pr.savedsugarcrmFields.get("description");
-			pr.name = pr.savedsugarcrmFields.get("name");
-			pr.country = pr.savedsugarcrmFields.get("country_c");
+		for(Provider pr :res){
+			inflateProvider(pr);
 		}
 		
 		return results;
@@ -157,9 +155,7 @@ public class SugarCRMCache {
 		results.items = new ArrayList<Provider>();
 		Provider prov = ds.find(Provider.class).field("_id").equal(id).get();
 		if(prov != null){
-			prov.description = prov.savedsugarcrmFields.get("description");
-			prov.name = prov.savedsugarcrmFields.get("name");
-			prov.country = prov.savedsugarcrmFields.get("country_c");
+			inflateProvider(prov);
 			results.items.add(prov);
 			return results;
 		}
@@ -178,12 +174,7 @@ public class SugarCRMCache {
 		results.items = new ArrayList<DataSet>();
 		DataSet dts = ds.find(DataSet.class).field("_id").equal(id).get();
 		if(dts!= null){
-			dts.status = dts.savedsugarcrmFields.get(EuropeanaUpdatableField.STATUS.getFieldId()); 
-			dts.name = dts.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId()); 
-			dts.description = "Hidden";
-			//dts.description = dts.savedsugarcrmFields.get(EuropeanaRetrievableField.DESCRIPTION.getFieldId()); 
-			dts.publishedRecords = dts.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId()); 
-			dts.deletedRecords = "Not implemented yet";
+			inflateDataset(dts);
 			results.items.add(dts);
 			return results;
 		}
@@ -200,14 +191,8 @@ public class SugarCRMCache {
 	 */
 	public SugarCRMSearchResults<DataSet> getCollectionByProviderID(String id) {
 		List<DataSet> reslist = ds.find(DataSet.class).field("provIdentifier").equal(id).asList();
-		
 		for(DataSet dts : reslist){
-			dts.status = dts.savedsugarcrmFields.get(EuropeanaUpdatableField.STATUS.getFieldId()); 
-			dts.name = dts.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId()); 
-			//dts.description = "Hidden";
-			dts.description = dts.savedsugarcrmFields.get(EuropeanaRetrievableField.DESCRIPTION.getFieldId()); 
-			dts.publishedRecords = dts.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId()); 
-			dts.deletedRecords = "Not implemented yet";
+			inflateDataset(dts);
 		}
 		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("","");
 		results.items = new ArrayList<DataSet>();
@@ -261,17 +246,7 @@ public class SugarCRMCache {
 		
 		for(Element el : list){
 			Provider prov = new Provider();
-			String identifier = ClientUtils.extractFromElement("name_id_c", el);
-			//String description = ClientUtils.extractFromElement("description", el);
-			String name = ClientUtils.extractFromElement("name", el);
-			String country = ClientUtils.extractFromElement("country_c", el);
-			// Insert values in Provider Object
-			prov.identifier = identifier;
-			//prov.description = description;
-			prov.description = "Hidden";
-			prov.name = name;
-			prov.country = country;
-			prov.savedsugarcrmFields = ClientUtils.mapFromElement(el);			
+			populateProviderFromDOMElament(prov,el);	
 			ds.save(prov);
 			extractDatasetsFromProvider(el);
 		}
@@ -410,7 +385,7 @@ public class SugarCRMCache {
 		request.setOrderBy(EuropeanaRetrievableField.DATE_ENTERED.getFieldId());
 		request.setMaxResults(100);
 		request.setOffset(0);
-		//request.setQuery("(opportunities." + field + " LIKE '" + value + "%')");
+
 		request.setQuery(query);
 		
 		GetEntryListResponse response = sugarwsClient.getentrylist(request);
@@ -426,25 +401,7 @@ public class SugarCRMCache {
 
 		for (Element el : list) {
 			DataSet ds = new DataSet();
-			
-			String identifier = ClientUtils.extractFromElement(EuropeanaRetrievableField.NAME.getFieldId(), el).split("_")[0];			
-			ds.identifier = identifier;
-			ds.provIdentifier = providerID;
-			ds.status = ClientUtils.translateStatus(ClientUtils.extractFromElement(
-					EuropeanaUpdatableField.STATUS.getFieldId(), el));			
-			ds.name = ClientUtils.extractFromElement(
-					EuropeanaRetrievableField.NAME.getFieldId(), el);
-			ds.description = "Hidden";
-			// ds.description =
-			// ClientUtils.extractFromElement(EuropeanaRetrievableField.DESCRIPTION.getFieldId(),
-			// el);
-			ds.publishedRecords = ClientUtils.extractFromElement(
-					EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId(), el);
-			ds.deletedRecords = "Not implemented yet";
-			
-			ds.savedsugarcrmFields = ClientUtils.mapFromElement(el);
-			
-			// ds.deletedRecords = ClientUtils.extractFromElement("name", el);
+			populateDatasetFromDOMElament(ds,el, providerID);
 			results.items.add(ds);
 		}
 
@@ -512,13 +469,7 @@ public class SugarCRMCache {
 		for (Element el : list) {
 			Provider prov = new Provider();
 			// Insert values in Provider Object
-			prov.identifier = ClientUtils.extractFromElement("name_id_c", el);
-			//prov.description =ClientUtils.extractFromElement("description", el);
-			prov.description = "Hidden";
-			prov.name = ClientUtils.extractFromElement("name", el);
-			prov.country = ClientUtils.extractFromElement("country_c", el);
-			prov.website = ClientUtils.extractFromElement("website", el);
-			prov.savedsugarcrmFields = ClientUtils.mapFromElement(el);
+			populateProviderFromDOMElament(prov,el);
 			results.items.add(prov);
 		}
 
@@ -526,7 +477,76 @@ public class SugarCRMCache {
 	}
 	
 
+	/**
+	 * @param prov
+	 * @param el
+	 */
+	private void populateDatasetFromDOMElament(DataSet ds,Element el,String providerID){
+		String identifier = ClientUtils.extractFromElement(EuropeanaRetrievableField.NAME.getFieldId(), el).split("_")[0];			
+		ds.identifier = identifier;
+		ds.provIdentifier = providerID;
+		ds.status = ClientUtils.translateStatus(ClientUtils.extractFromElement(
+				EuropeanaUpdatableField.STATUS.getFieldId(), el));			
+		ds.name = ClientUtils.extractFromElement(
+				EuropeanaRetrievableField.NAME.getFieldId(), el);
+		String precordsStr =  ClientUtils.extractFromElement(
+				EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId(), el);
+		if(precordsStr != null){
+			ds.publishedRecords = Long.parseLong(precordsStr);
+		}
+		String delrecordsStr =  ClientUtils.extractFromElement(
+				EuropeanaUpdatableField.DELETED_RECORDS.getFieldId(), el);
+		if(delrecordsStr != null){
+			ds.deletedRecords = Long.parseLong(delrecordsStr);
+		}
+		ds.savedsugarcrmFields = ClientUtils.mapFromElement(el);
+	}
 	
+	/**
+	 * @param prov
+	 */
+	private void inflateDataset(DataSet ds){
+		ds.status = ds.savedsugarcrmFields.get(ClientUtils.translateStatus(EuropeanaUpdatableField.STATUS.getFieldId()));
+		ds.name = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId()); 
+		ds.creationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.DATE_ENTERED.getFieldId());
+		ds.publicationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.EXPECTED_INGESTION_DATE.getFieldId());
+		String precordsStr =  ds.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId()); 
+		if(!precordsStr.equals("") || precordsStr != null){
+			ds.publishedRecords = Long.parseLong(precordsStr);
+		}
+		String delrecordsStr =  ds.savedsugarcrmFields.get(EuropeanaUpdatableField.DELETED_RECORDS.getFieldId()); 
+		if( delrecordsStr != null){
+			ds.deletedRecords =  Long.parseLong(delrecordsStr);
+		}
+	}
+
+	/**
+	 * @param prov
+	 * @param el
+	 */
+	private void populateProviderFromDOMElament(Provider prov, Element el){
+		prov.identifier = ClientUtils.extractFromElement("name_id_c", el);
+		prov.country = ClientUtils.extractFromElement("country_c", el);
+		prov.savedsugarcrmFields = ClientUtils.mapFromElement(el);
+	}
+	
+	/**
+	 * @param prov
+	 */
+	private void inflateProvider(Provider prov){
+		prov.name = prov.savedsugarcrmFields.get("name");
+		prov.country = prov.savedsugarcrmFields.get("country_c");
+		prov.name = prov.savedsugarcrmFields.get("name");
+		prov.altname = prov.savedsugarcrmFields.get("name_alt_c");
+		prov.acronym = prov.savedsugarcrmFields.get("name_acronym_c");
+		prov.domain = prov.savedsugarcrmFields.get("account_type");
+		prov.geolevel = prov.savedsugarcrmFields.get("geo_level_c");
+		prov.role = prov.savedsugarcrmFields.get("agg_name_c");
+		prov.scope = prov.savedsugarcrmFields.get("scope_c");
+		prov.sector = prov.savedsugarcrmFields.get("sector_c");
+		prov.country = prov.savedsugarcrmFields.get("country_c");
+		prov.website = prov.savedsugarcrmFields.get("website");
+	}
 	
 	
 	/**
