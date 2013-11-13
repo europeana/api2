@@ -68,8 +68,8 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 		DataSet ds = new DataSet();
 		ds.identifier = "mockid";
 		ds.name = "mockname";
-		ds.deletedRecords = "0";
-		ds.publishedRecords = "0";
+		ds.deletedRecords = 0;
+		ds.publishedRecords = 0;
 		ds.provIdentifier = "mockprovID";
 		ds.status = "mockstatus";
 		ds.savedsugarcrmFields = new HashMap<String,String>();

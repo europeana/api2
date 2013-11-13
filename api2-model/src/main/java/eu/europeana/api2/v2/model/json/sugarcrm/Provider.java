@@ -61,12 +61,50 @@ public class Provider{
 	@NotSaved
 	public String name;
 
+	
 	/**
 	 * Used in JSON output but not stored in Mongo
 	 */
 	@NotSaved
-	public String description;
+	public String acronym;
 	
+	/**
+	 * Used in JSON output but not stored in Mongo
+	 */
+	@NotSaved
+	public String altname;
+	
+	/**
+	 * Used in JSON output but not stored in Mongo
+	 */
+	@NotSaved
+	public String scope;
+	
+	/**
+	 * Used in JSON output but not stored in Mongo
+	 */
+	@NotSaved
+	public String domain;
+	
+	/**
+	 * Used in JSON output but not stored in Mongo
+	 */
+	@NotSaved
+	public String sector;
+	
+	/**
+	 * Used in JSON output but not stored in Mongo
+	 */
+	@NotSaved
+	public String geolevel;
+	
+	
+	/**
+	 * Used in JSON output but not stored in Mongo
+	 */
+	@NotSaved
+	public String role;
+		
 	/**
 	 * Used in JSON output but not stored in Mongo
 	 */

@@ -35,36 +35,69 @@ import com.google.code.morphia.annotations.NotSaved;
 public class DataSet{
 
 	/**
-	 * Default constructor used by Jackson (do not remove)
+	 * Default constructor used by Jackson & Morphia (do not remove)
 	 */
 	public DataSet(){
 		//Used by Jackson
 	}
 	
-
+	/**
+	 * 
+	 */
 	@Id
 	@Indexed
 	public String identifier;
 	
-	@JsonIgnore
+	/**
+	 * 
+	 */
 	@Indexed
 	public String provIdentifier;
 	
+	/**
+	 * 
+	 */
+	public String providerName;
+	
+	/**
+	 * 
+	 */
 	@NotSaved
 	public String name;
-
-	@NotSaved
-	public String description;
 	
+	/**
+	 * 
+	 */
 	@NotSaved
 	public String status;
 	
+	/**
+	 * 
+	 */
 	@NotSaved
-	public String publishedRecords;
+	public long publishedRecords;
 	
+	/**
+	 * 
+	 */
 	@NotSaved
-	public String deletedRecords;
+	public long deletedRecords;
 	
+	/**
+	 * 
+	 */
+	@NotSaved
+	public String creationDate;
+	
+	/**
+	 * 
+	 */
+	@NotSaved
+	public String publicationDate;
+	
+	/**
+	 * 
+	 */
 	@JsonIgnore
 	public Map<String,String> savedsugarcrmFields;
 	
