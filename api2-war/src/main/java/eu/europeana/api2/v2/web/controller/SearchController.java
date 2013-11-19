@@ -170,6 +170,7 @@ public class SearchController {
 		}
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets")) {
 			query.setAllowFacets(true);
+			query.setParameter("f.DATA_PROVIDER.facet.limit", "3000");
 		}
 
 		ApiKey apiKey;
