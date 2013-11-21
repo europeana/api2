@@ -549,15 +549,6 @@ public class SugarCRMCache {
 		prov.country = prov.savedsugarcrmFields.get("country_c");
 		prov.website = prov.savedsugarcrmFields.get("website");
 	}
-	
-	
-	/**
-	 * Getter for SugarWsClient instance
-	 * @return
-	 */
-	public SugarWsClient getSugarwsClient() {
-		return sugarwsClient;
-	}
 
 	/**
 	 * Setter for SugarWsClient instance
