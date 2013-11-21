@@ -137,17 +137,20 @@ public class SearchController {
 			if (refinements != null) {
 				refList.addAll(Arrays.asList(refinements));
 			}
-			if (StringUtils.containsIgnoreCase(reusability, "free") && StringUtils.containsIgnoreCase(reusability, "limited")) {
-				valueReplacements.put("REUSABILITY:Free", RightReusabilityCategorizer.getAllRightsQuery());
-				refList.add("REUSABILITY:Free");
+			String free = "REUSABILITY:" + RightReusabilityCategorizer.OPEN;
+			String limited = "REUSABILITY:" + RightReusabilityCategorizer.RESTRICTED;
+			if (StringUtils.containsIgnoreCase(reusability, RightReusabilityCategorizer.OPEN) 
+					&& StringUtils.containsIgnoreCase(reusability, RightReusabilityCategorizer.RESTRICTED)) {
+				valueReplacements.put(free, RightReusabilityCategorizer.getAllRightsQuery());
+				refList.add(free);
 			} else {
-				if (StringUtils.containsIgnoreCase(reusability, "free")) {
-					valueReplacements.put("REUSABILITY:Free", RightReusabilityCategorizer.getFreeRightsQuery());
-					refList.add("REUSABILITY:Free");
+				if (StringUtils.containsIgnoreCase(reusability, RightReusabilityCategorizer.OPEN)) {
+					valueReplacements.put(free, RightReusabilityCategorizer.getOpenStringRightsQuery());
+					refList.add(free);
 				}
-				if (StringUtils.containsIgnoreCase(reusability, "limited")) {
-					valueReplacements.put("REUSABILITY:Limited", RightReusabilityCategorizer.getLimitedRightsQuery());
-					refList.add("REUSABILITY:Limited");
+				if (StringUtils.containsIgnoreCase(reusability, RightReusabilityCategorizer.RESTRICTED)) {
+					valueReplacements.put(limited, RightReusabilityCategorizer.getRestrictedRightsQuery());
+					refList.add(limited);
 				}
 			}
 			refinements = refList.toArray(new String[refList.size()]);
