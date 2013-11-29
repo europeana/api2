@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.v2.web.controller.mydata;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.SavedItem;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
@@ -45,23 +47,21 @@ public class MyDataItemController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView defaultAction(
-			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "username", required = true) String username,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "callback", required = false) String callback) {
-		return list(wskey, username, europeanaId, callback);
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
+		return list(europeanaId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView list(
-			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "username", required = true) String username,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "callback", required = false) String callback) {
-		UserResults<SavedItem> response = new UserResults<SavedItem>(wskey, "/v2/mydata/saveditem.json");
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
+		UserResults<SavedItem> response = new UserResults<SavedItem>(principal.getName(), "/v2/mydata/saveditem.json");
 		try {
-			ApiKey apiKey = apiKeyService.findByID(wskey);
-			if ((apiKey != null) && StringUtils.equalsIgnoreCase(username, apiKey.getUser().getUserName())) {
+			ApiKey apiKey = apiKeyService.findByID(principal.getName());
+			if (apiKey != null) {
 				User user = apiKey.getUser();
 				response.items = new ArrayList<SavedItem>();
 				response.username = user.getUserName();
@@ -90,4 +90,76 @@ public class MyDataItemController extends AbstractUserController {
 		return JsonUtils.toJson(response, callback);
 	}
 
+
+	@RequestMapping(value = "/v2/mydata/saveditem.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+			RequestMethod.POST, RequestMethod.PUT })
+	public ModelAndView createRest(
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
+		return create(europeanaId, callback, principal);
+	}
+
+	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+	public ModelAndView create(
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
+		UserModification response = new UserModification(getApiId(principal), "/v2/mydata/saveditem.json?action=CREATE");
+		try {
+			ApiKey apiKey = apiKeyService.findByID(principal.getName());
+			if (apiKey != null) {
+				User user = apiKey.getUser();
+				userService.createSavedItem(user.getId(), europeanaId);
+				response.success = true;
+			} else {
+				response.success = false;
+				response.error = "Invalid credentials";
+			}
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
+		}
+		return JsonUtils.toJson(response, callback);
+	}
+
+	@RequestMapping(value = "/v2/mydata/saveditem.json", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
+	public ModelAndView deleteRest(
+			@RequestParam(value = "itemid", required = false) Long itemId,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
+		return delete(itemId, europeanaId, callback, principal);
+	}
+
+	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+	public ModelAndView delete(
+			@RequestParam(value = "itemid", required = false) Long itemId,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
+		UserModification response = new UserModification(getApiId(principal), "/v2/mydata/saveditem.json?action=DELETE");
+		try {
+			ApiKey apiKey = apiKeyService.findByID(principal.getName());
+			if (apiKey != null) {
+				User user = apiKey.getUser();
+				response.success = true;
+				if (itemId != null) {
+					userService.removeSavedItem(user.getId(), itemId);
+				} else {
+					if (StringUtils.isNotBlank(europeanaId)) {
+						userService.removeSavedItem(user.getId(), europeanaId);
+					} else {
+						response.success = false;
+						response.error = "Invalid arguments";
+					}
+				}
+			}
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
+		}
+		return JsonUtils.toJson(response, callback);
+	}
+	
 }
