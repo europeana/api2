@@ -238,7 +238,7 @@ public class ObjectController {
 		}
 
 		if (bean != null) {
-			String rdf = EdmUtils.toEDM(bean);
+			String rdf = EdmUtils.toEDM(bean,false);
 			try {
 				Model modelResult = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(rdf), "", "RDF/XML");
 				JenaRDFParser parser = new JenaRDFParser();
@@ -312,7 +312,7 @@ public class ObjectController {
 		}
 
 		if (bean != null) {
-			model.put("record", EdmUtils.toEDM(bean));
+			model.put("record", EdmUtils.toEDM(bean,false));
 		} else {
 			response.setStatus(404);
 			model.put("error", "Non-existing record identifier");
