@@ -46,7 +46,8 @@ import eu.europeana.uim.sugarcrmclient.jibxbindings.GetRelationshipsResponse;
 import eu.europeana.uim.sugarcrmclient.jibxbindings.SelectFields;
 import eu.europeana.uim.sugarcrmclient.ws.SugarWsClient;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
-
+import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 /**
  * Implementation of the caching mechanism 
  * 
@@ -215,7 +216,8 @@ public class SugarCRMCache {
 	public void populateRepositoryFromScratch() throws JIXBQueryResultException {
 		SugarCRMSearchResults<Provider> provs = getProviders();
 		if(provs.items.isEmpty()){
-		ArrayList<Element> list = new ArrayList<Element>();
+				
+		ArrayList<Element> list = Lists.newArrayListWithExpectedSize(1000);
 		GetEntryList prrequest = new GetEntryList();
 		// We want to retrieve all fields
 		SelectFields fields = new SelectFields();
@@ -472,9 +474,11 @@ public class SugarCRMCache {
 	
 
 	/**
+	 * Auxiliary method that populates a Morphia annotated DataSet object 
+	 * given a received DOM element
 	 * 
-	 * @param prov
-	 * @param el
+	 * @param prov a reference to the DataSet object 
+	 * @param el a reference to the DOM element
 	 */
 	private void populateDatasetFromDOMElement(DataSet ds,Element el,String providerID){
 		String identifier = ClientUtils.extractFromElement(EuropeanaRetrievableField.NAME.getFieldId(), el).split("_")[0];			
@@ -498,7 +502,7 @@ public class SugarCRMCache {
 	}
 	
 	/**
-	 * Inflate a Dataset JSON object from the cache.
+	 * Inflate a Dataset JSON annotated object from the cache.
 	 * 
 	 * @param ds the dataset object 
 	 */
