@@ -45,13 +45,16 @@ import eu.europeana.corelib.web.utils.UrlBuilder;
 public class UserSearchController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/user/savedsearch.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-	public ModelAndView defaultAction(@RequestParam(value = "callback", required = false) String callback,
+	public ModelAndView defaultAction(
+			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
 		return list(callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/savedsearch.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView list(@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+	public ModelAndView list(
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
 			UserResults<Search> response = new UserResults<Search>(getApiId(principal), "/v2/user/search.json");
@@ -73,7 +76,8 @@ public class UserSearchController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/user/savedsearch.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
-	public ModelAndView createRest(@RequestParam(value = "query", required = true) String query,
+	public ModelAndView createRest(
+			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") String start,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
@@ -81,7 +85,8 @@ public class UserSearchController extends AbstractUserController {
 	}
 
 	@RequestMapping(value = "/v2/user/savedsearch.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView create(@RequestParam(value = "query", required = true) String query,
+	public ModelAndView create(
+			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") String start,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
@@ -104,13 +109,15 @@ public class UserSearchController extends AbstractUserController {
 	}
 
 	@RequestMapping(value = "/v2/user/savedsearch.json", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
-	public ModelAndView deleteRest(@RequestParam(value = "searchid", required = false) Long objectId,
+	public ModelAndView deleteRest(
+			@RequestParam(value = "searchid", required = false) Long objectId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		return delete(objectId, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/user/savedsearch.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView delete(@RequestParam(value = "searchid", required = true) Long searchId,
+	public ModelAndView delete(
+			@RequestParam(value = "searchid", required = true) Long searchId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/search.json?action=DELETE");

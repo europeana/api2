@@ -16,9 +16,7 @@
 	<!-- INTERNAL -->
 	<import resource="internal/api2-security.xml" />
 	<import resource="internal/api2-sugarcrmcaching.xml" /> 
-	<!--  
-	<import resource="internal/api2-cleaningtasks.xml" /> 
-     -->
+
 	<!-- DEVELOPMENT -->
 	<!-- import resource="internal/api2-development.xml" / -->
 </beans>
