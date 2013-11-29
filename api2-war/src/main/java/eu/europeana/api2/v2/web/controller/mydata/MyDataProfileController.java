@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.web.controller.mydata;
 
-import org.apache.commons.lang.StringUtils;
+import java.security.Principal;
+
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,13 +19,12 @@ public class MyDataProfileController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/mydata/profile.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView defaultAction(
-			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "username", required = true) String username,
-			@RequestParam(value = "callback", required = false) String callback) {
-		Profile response = new Profile(wskey, "/v2/user/profile.json");
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
+		Profile response = new Profile(principal.getName(), "/v2/user/profile.json");
 		try {
-			ApiKey apiKey = apiKeyService.findByID(wskey);
-			if ((apiKey != null) && StringUtils.equalsIgnoreCase(username, apiKey.getUser().getUserName())) {
+			ApiKey apiKey = apiKeyService.findByID(principal.getName());
+			if (apiKey != null) {
 				response.copyDetails(apiKey.getUser());
 			} else {
 				response.success = false;

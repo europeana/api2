@@ -70,7 +70,20 @@
 			authentication-failure-url="/login?authentication_error=true"
 			login-processing-url="/login.do"
 			login-page="/user/login.jsp" />
-		<security:logout logout-success-url="/index.jsp" logout-url="/logout.do" />
+		<security:logout logout-success-url="/index" logout-url="/logout.do" />
+	</security:http>
+
+	<security:http pattern="/v2/mydata/**" auto-config="true"
+			authentication-manager-ref="authenticationManager">
+		<security:intercept-url pattern="/v2/mydata" access="ROLE_CLIENT" />
+		<security:intercept-url pattern="/v2/mydata/**" access="ROLE_CLIENT" />
+		<security:form-login
+			authentication-failure-url="/v2/mydata/login?authentication_error=true"
+			login-processing-url="/v2/mydata/login.do"
+			login-page="/v2/mydata/login" username-parameter="apikey" password-parameter="privatekey" />
+		<security:logout
+			logout-success-url="/"
+			logout-url="/v2/mydata/logout.do" />
 	</security:http>
 
 	<security:http access-denied-page="/login?authorization_error=true" disable-url-rewriting="true">
@@ -81,7 +94,7 @@
 			login-processing-url="/login.do"
 			login-page="/login" />
 		<security:logout
-			logout-success-url="/index.jsp"
+			logout-success-url="/"
 			logout-url="/logout.do" />
 		<security:anonymous />
 	</security:http>

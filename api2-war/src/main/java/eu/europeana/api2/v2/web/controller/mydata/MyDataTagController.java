@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.v2.web.controller.mydata;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,10 +25,12 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Tag;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
@@ -45,25 +48,23 @@ public class MyDataTagController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/mydata/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView defaultAction(
-			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "username", required = true) String username,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "tag", required = false) String tag,
-			@RequestParam(value = "callback", required = false) String callback) {
-		return list(wskey, username, europeanaId, tag, callback);
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
+		return list(europeanaId, tag, callback, principal);
 	}
 
 	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView list(
-			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "username", required = true) String username,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "tag", required = false) String tagFilter,
-			@RequestParam(value = "callback", required = false) String callback) {
-		UserResults<Tag> response = new UserResults<Tag>(wskey, "/v2/mydata/tag.json");
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
+		UserResults<Tag> response = new UserResults<Tag>(principal.getName(), "/v2/mydata/tag.json");
 		try {
-			ApiKey apiKey = apiKeyService.findByID(wskey);
-			if ((apiKey != null) && StringUtils.equalsIgnoreCase(username, apiKey.getUser().getUserName())) {
+			ApiKey apiKey = apiKeyService.findByID(principal.getName());
+			if (apiKey != null) {
 				User user = apiKey.getUser();
 				response.items = new ArrayList<Tag>();
 				response.username = user.getUserName();
@@ -97,13 +98,12 @@ public class MyDataTagController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=TAGCLOUD", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView listDistinct(
-			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "username", required = true) String username,
-			@RequestParam(value = "callback", required = false) String callback) {
-		UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(wskey, "/v2/mydata/tag.json?action=TAGCLOUD");
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
+		UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(principal.getName(), "/v2/mydata/tag.json?action=TAGCLOUD");
 		try {
-			ApiKey apiKey = apiKeyService.findByID(wskey);
-			if ((apiKey != null) && StringUtils.equalsIgnoreCase(username, apiKey.getUser().getUserName())) {
+			ApiKey apiKey = apiKeyService.findByID(principal.getName());
+			if (apiKey != null) {
 				User user = apiKey.getUser();
 				try {
 					response.items = userService.createSocialTagCloud(user.getId());
@@ -117,6 +117,82 @@ public class MyDataTagController extends AbstractUserController {
 			} else {
 				response.success = false;
 				response.error = "Invalid credentials";
+			}
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
+		}
+		return JsonUtils.toJson(response, callback);
+	}
+	
+
+	@RequestMapping(value = "/v2/mydata/tag.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+			RequestMethod.POST, RequestMethod.PUT })
+	public ModelAndView createRest(
+			@RequestParam(value = "europeanaid", required = true) String europeanaId,
+			@RequestParam(value = "tag", required = true) String tag,
+			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+		return create(europeanaId, tag, callback, principal);
+	}
+
+	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ModelAndView create(
+			@RequestParam(value = "europeanaid", required = true) String europeanaId,
+			@RequestParam(value = "tag", required = true) String tag,
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
+		UserModification response = new UserModification(principal.getName(), "/v2/mydata/tag.json?action=CREATE");
+		try {
+			ApiKey apiKey = apiKeyService.findByID(principal.getName());
+			if (apiKey != null) {
+					User user = apiKey.getUser();
+					try {
+						userService.createSocialTag(user.getId(), europeanaId, tag);
+						response.success = true;
+					} catch (DatabaseException e) {
+						response.success = false;
+						response.error = e.getMessage();
+					}
+				} else {
+					response.success = false;
+					response.error = "Invalid credentials";
+				}
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
+		}
+		return JsonUtils.toJson(response, callback);
+	}
+
+	@RequestMapping(value = "/v2/mydata/tag.json", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
+	public ModelAndView deleteRest(
+			@RequestParam(value = "tagid", required = false) Long tagId,
+			@RequestParam(value = "tag", required = false) String tag,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, 
+			Principal principal) {
+		return delete(tagId, tag, europeanaId, callback, principal);
+	}
+
+	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ModelAndView delete(
+			@RequestParam(value = "tagid", required = false) Long tagId,
+			@RequestParam(value = "tag", required = false) String tag,
+			@RequestParam(value = "europeanaid", required = false) String europeanaId,
+			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+		UserModification response = new UserModification(getApiId(principal), "/v2/mydata/tag.json?action=DELETE");
+		try {
+			ApiKey apiKey = apiKeyService.findByID(principal.getName());
+			if (apiKey != null) {
+				User user = apiKey.getUser();
+				if (tagId != null) {
+					userService.removeSocialTag(user.getId(), tagId);
+				} else {
+					if (StringUtils.isNotBlank(europeanaId) || StringUtils.isNotBlank(tag)) {
+						userService.removeSocialTag(user.getId(), europeanaId, tag);
+					}
+				}
+				response.success = true;
 			}
 		} catch (DatabaseException e) {
 			response.success = false;
