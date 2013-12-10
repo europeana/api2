@@ -109,9 +109,6 @@ public class SearchController {
 	@Resource
 	private EuropeanaUrlService urlService;
 
-	@Value("#{europeanaProperties['debug']}")
-	private String debug;
-
 	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
 			@RequestParam(value = "query", required = true) String queryString,
@@ -170,10 +167,9 @@ public class SearchController {
 				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
 
-		if (getDebugMode()) {
-			query.setValueReplacements(valueReplacements);
-			query.setFacetQueries(RightReusabilityCategorizer.getQueryFacets());
-		}
+		// reusability facet settings
+		query.setValueReplacements(valueReplacements);
+		query.setFacetQueries(RightReusabilityCategorizer.getQueryFacets());
 
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) {
 			query.setAllowSpellcheck(true);
@@ -440,12 +436,5 @@ public class SearchController {
 			sb.append(StringUtils.join(bean.getProvider(), ", "));
 		}
 		return sb.toString();
-	}
-
-	private boolean getDebugMode() {
-		if (StringUtils.isBlank(debug)) {
-			return false;
-		}
-		return Boolean.parseBoolean(debug);
 	}
 }
