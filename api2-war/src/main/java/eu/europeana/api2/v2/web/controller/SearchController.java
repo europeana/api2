@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -108,6 +109,9 @@ public class SearchController {
 	@Resource
 	private EuropeanaUrlService urlService;
 
+	@Value("#{europeanaProperties['debug']}")
+	private String debug;
+
 	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
 			@RequestParam(value = "query", required = true) String queryString,
@@ -159,14 +163,17 @@ public class SearchController {
 		Query query = new Query(SolrUtils.translateQuery(queryString))
 				.setApiQuery(true)
 				.setRefinements(refinements)
-				.setValueReplacements(valueReplacements)
-				.setFacetQueries(RightReusabilityCategorizer.getQueryFacets())
 				.setPageSize(rows)
 				.setStart(start - 1)
 				.setParameter("facet.mincount", "1")
 				.setParameter("fl", "*,score")
 				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
+
+		if (getDebugMode()) {
+			query.setValueReplacements(valueReplacements);
+			query.setFacetQueries(RightReusabilityCategorizer.getQueryFacets());
+		}
 
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) {
 			query.setAllowSpellcheck(true);
@@ -433,5 +440,12 @@ public class SearchController {
 			sb.append(StringUtils.join(bean.getProvider(), ", "));
 		}
 		return sb.toString();
+	}
+
+	private boolean getDebugMode() {
+		if (StringUtils.isBlank(debug)) {
+			return false;
+		}
+		return Boolean.parseBoolean(debug);
 	}
 }
