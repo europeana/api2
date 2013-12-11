@@ -57,10 +57,13 @@ public class ObjectController1 {
 	@Transactional
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	// method=RequestMethod.GET,
-	public ModelAndView recordJson(@PathVariable String collectionId, @PathVariable String recordId,
+	public ModelAndView recordJson(
+			@PathVariable String collectionId,
+			@PathVariable String recordId,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback, HttpServletResponse response)
-			throws Exception {
+			@RequestParam(value = "callback", required = false) String callback,
+			HttpServletResponse response)
+					throws Exception {
 		log.info("====== /v1/record/{collectionId}/{recordId}.json ======");
 
 		if (StringUtils.isBlank(wskey)) {
@@ -72,7 +75,13 @@ public class ObjectController1 {
 			response.setStatus(401);
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", "Unregistered user"), callback);
 		}
-		FullBean bean = searchService.findById(collectionId, recordId, true);
+
+		String europeanaObjectId = "/" + collectionId + "/" + recordId;
+		FullBean bean = searchService.findById(europeanaObjectId, true);
+		if (bean == null) {
+			bean = searchService.resolve(europeanaObjectId, true);
+		}
+
 		if (bean != null) {
 			return JsonUtils.toJson(new FullDoc(bean).asMap(), callback);
 		} else {
@@ -103,7 +112,12 @@ public class ObjectController1 {
 		}
 
 		if (!hasResult) {
-			FullBean bean = searchService.findById(collectionId, recordId, true);
+			String europeanaObjectId = "/" + collectionId + "/" + recordId;
+			FullBean bean = searchService.findById(europeanaObjectId, true);
+			if (bean == null) {
+				bean = searchService.resolve(europeanaObjectId, true);
+			}
+
 			SrwResponse srwResponse = new SrwResponse();
 			FullDoc doc = null;
 			if (bean != null) {

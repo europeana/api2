@@ -105,10 +105,13 @@ public class ObjectController {
 	private String similarItemsProfile = "minimal";
 
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView record(@PathVariable String collectionId, @PathVariable String recordId,
+	public ModelAndView record(
+			@PathVariable String collectionId,
+			@PathVariable String recordId,
 			@RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
 			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "callback", required = false) String callback, HttpServletRequest request,
+			@RequestParam(value = "callback", required = false) String callback,
+			HttpServletRequest request,
 			HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
