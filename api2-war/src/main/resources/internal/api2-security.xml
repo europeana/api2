@@ -67,10 +67,10 @@
 		<security:custom-filter ref="api2_oauth2_resourceServerFilter" before="PRE_AUTH_FILTER" />
 		<security:access-denied-handler ref="api2_oauth2_accessDeniedHandler" />
 		<security:form-login
-			authentication-failure-url="/login?authentication_error=true"
+			authentication-failure-url="/user/login?authentication_error=true"
 			login-processing-url="/login.do"
-			login-page="/user/login.jsp" />
-		<security:logout logout-success-url="/index" logout-url="/logout.do" />
+			login-page="/user/login" />
+		<security:logout logout-success-url="/" logout-url="/logout.do" />
 	</security:http>
 
 	<security:http pattern="/v2/mydata/**" auto-config="true"
@@ -78,12 +78,12 @@
 		<security:intercept-url pattern="/v2/mydata" access="ROLE_CLIENT" />
 		<security:intercept-url pattern="/v2/mydata/**" access="ROLE_CLIENT" />
 		<security:form-login
-			authentication-failure-url="/v2/mydata/login?authentication_error=true"
-			login-processing-url="/v2/mydata/login.do"
-			login-page="/v2/mydata/login" username-parameter="apikey" password-parameter="privatekey" />
+			authentication-failure-url="/mydata/login?authentication_error=true"
+			login-processing-url="/mydata/login.do"
+			login-page="/mydata/login" username-parameter="apikey" password-parameter="privatekey" />
 		<security:logout
 			logout-success-url="/"
-			logout-url="/v2/mydata/logout.do" />
+			logout-url="/mydata/logout.do" />
 	</security:http>
 
 	<security:http access-denied-page="/login?authorization_error=true" disable-url-rewriting="true">

@@ -38,6 +38,17 @@ public class AccessConfirmationController {
 		return "user/login";
 	}
 
+	@RequestMapping("/user/login")
+	public String loginUserForm() {
+		return "user/login";
+	}
+
+
+	@RequestMapping("/mydata/login")
+	public String loginMyDataForm() {
+		return "mydata/login";
+	}
+	
 	@Autowired
 	public void setClientDetailsService(
 			ClientDetailsService clientDetailsService) {

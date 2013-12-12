@@ -33,7 +33,7 @@
 		<li><strong>privatekey</strong>: containing your private key</li>
 		</p>
 		<form id="loginForm" name="loginForm"
-			action="<c:url value="/v2/mydata/login.do"/>" method="post">
+			action="<c:url value="/mydata/login.do"/>" method="post">
 			<p>
 				<label>Public api key: <input type='text' name='apikey'/></label>
 			</p>

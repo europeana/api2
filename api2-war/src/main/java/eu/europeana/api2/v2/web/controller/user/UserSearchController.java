@@ -55,9 +55,9 @@ public class UserSearchController extends AbstractUserController {
 	public ModelAndView list(
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
+		UserResults<Search> response = new UserResults<Search>(getApiId(principal), "/v2/user/search.json");
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			UserResults<Search> response = new UserResults<Search>(getApiId(principal), "/v2/user/search.json");
 			response.items = new ArrayList<Search>();
 			response.username = user.getUserName();
 			response.itemsCount = Long.valueOf(user.getSavedSearches().size());
@@ -69,9 +69,11 @@ public class UserSearchController extends AbstractUserController {
 				search.dateSaved = item.getDateSaved();
 				response.items.add(search);
 			}
-			return JsonUtils.toJson(response, callback);
+		} else {
+			response.success = false;
+			response.error = "User Profile not retrievable...";
 		}
-		return null;
+		return JsonUtils.toJson(response, callback);
 	}
 
 	@RequestMapping(value = "/v2/user/savedsearch.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
@@ -90,20 +92,23 @@ public class UserSearchController extends AbstractUserController {
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") String start,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
-		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.search?action=CREATE");
-		if (user != null) {
-			UrlBuilder ub = new UrlBuilder(query);
-			ub.addParam("qf", refinements, true);
-			ub.addParam("start", start, true);
-			String queryString = StringUtils.replace(ub.toString(), "?", "&");
-			try {
+		try {
+			User user = userService.findByEmail(principal.getName());
+			if (user != null) {
+				UrlBuilder ub = new UrlBuilder(query);
+				ub.addParam("qf", refinements, true);
+				ub.addParam("start", start, true);
+				String queryString = StringUtils.replace(ub.toString(), "?", "&");
 				userService.createSavedSearch(user.getId(), query, queryString);
 				response.success = true;
-			} catch (DatabaseException e) {
+			} else {
 				response.success = false;
-				response.error = e.getMessage();
+				response.error = "User Profile not retrievable...";
 			}
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
 		}
 		return JsonUtils.toJson(response, callback);
 	}
@@ -119,16 +124,19 @@ public class UserSearchController extends AbstractUserController {
 	public ModelAndView delete(
 			@RequestParam(value = "searchid", required = true) Long searchId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
-		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/search.json?action=DELETE");
-		if (user != null) {
-			try {
+		try {
+			User user = userService.findByEmail(principal.getName());
+			if (user != null) {
 				userService.removeSavedSearch(user.getId(), searchId);
 				response.success = true;
-			} catch (DatabaseException e) {
+			} else {
 				response.success = false;
-				response.error = e.getMessage();
+				response.error = "User Profile not retrievable...";
 			}
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
 		}
 		return JsonUtils.toJson(response, callback);
 	}
