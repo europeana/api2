@@ -146,7 +146,7 @@ public class SearchController {
 				refList.add(free);
 			} else {
 				if (StringUtils.containsIgnoreCase(reusability, RightReusabilityCategorizer.OPEN)) {
-					valueReplacements.put(free, RightReusabilityCategorizer.getOpenStringRightsQuery());
+					valueReplacements.put(free, RightReusabilityCategorizer.getOpenRightsQuery());
 					refList.add(free);
 				}
 				if (StringUtils.containsIgnoreCase(reusability, RightReusabilityCategorizer.RESTRICTED)) {
