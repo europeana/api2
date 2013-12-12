@@ -58,13 +58,13 @@ public class UserTagController extends AbstractUserController {
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "tag", required = false) String tagFilter,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
-		User user = userService.findByEmail(principal.getName());
-		if (user != null) {
-			UserResults<Tag> response = new UserResults<Tag>(getApiId(principal), "/v2/user/tag.json");
-			response.items = new ArrayList<Tag>();
-			response.username = user.getUserName();
-			List<SocialTag> tags;
-			try {
+		UserResults<Tag> response = new UserResults<Tag>(getApiId(principal), "/v2/user/tag.json");
+		try {
+			User user = userService.findByEmail(principal.getName());
+			if (user != null) {
+				response.items = new ArrayList<Tag>();
+				response.username = user.getUserName();
+				List<SocialTag> tags;
 				if (StringUtils.isNotBlank(tagFilter)) {
 					tags = userService.findSocialTagsByTag(user.getId(), tagFilter);
 				} else if (StringUtils.isNotBlank(europeanaId)) {
@@ -79,34 +79,39 @@ public class UserTagController extends AbstractUserController {
 					tag.tag = item.getTag();
 					response.items.add(tag);
 				}
-			} catch (DatabaseException e) {
+			} else {
 				response.success = false;
-				response.error = e.getMessage();
+				response.error = "User Profile not retrievable...";
 			}
-			return JsonUtils.toJson(response, callback);
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
 		}
-		return null;
+		return JsonUtils.toJson(response, callback);
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=TAGCLOUD", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView listDistinct(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		User user = userService.findByEmail(principal.getName());
-		if (user != null) {
-			UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(getApiId(principal), "/v2/user/tag.json?action=TAGCLOUD");
-			try {
+		UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(getApiId(principal),
+				"/v2/user/tag.json?action=TAGCLOUD");
+		try {
+			User user = userService.findByEmail(principal.getName());
+			if (user != null) {
 				response.items = userService.createSocialTagCloud(user.getId());
 				response.itemsCount = Long.valueOf(response.items.size());
 				response.success = true;
-			} catch (DatabaseException e) {
+				response.username = user.getUserName();
+			} else {
 				response.success = false;
-				response.error = e.getMessage();
+				response.error = "User Profile not retrievable...";
 			}
-			response.username = user.getUserName();
-			return JsonUtils.toJson(response, callback);
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
 		}
-		return null;
+		return JsonUtils.toJson(response, callback);
 	}
 
 	@RequestMapping(value = "/v2/user/tag.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
@@ -133,6 +138,9 @@ public class UserTagController extends AbstractUserController {
 				response.success = false;
 				response.error = e.getMessage();
 			}
+		} else {
+			response.success = false;
+			response.error = "User Profile not retrievable...";
 		}
 		return JsonUtils.toJson(response, callback);
 	}
@@ -168,6 +176,9 @@ public class UserTagController extends AbstractUserController {
 				response.success = false;
 				response.error = e.getMessage();
 			}
+		} else {
+			response.success = false;
+			response.error = "User Profile not retrievable...";
 		}
 		return JsonUtils.toJson(response, callback);
 	}

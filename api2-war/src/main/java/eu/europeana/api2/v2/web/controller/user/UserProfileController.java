@@ -20,14 +20,15 @@ public class UserProfileController extends AbstractUserController {
 	public ModelAndView defaultAction(
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
+		Profile response = new Profile(getApiId(principal), "/v2/user/profile.json");
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			Profile response = new Profile(getApiId(principal), "/v2/user/profile.json");
 			response.copyDetails(user);
-			
-			return JsonUtils.toJson(response, callback);
+		} else {
+			response.success = false;
+			response.error = "User Profile not retrievable...";
 		}
-		return null;
+		return JsonUtils.toJson(response, callback);
 	}
 	
 }

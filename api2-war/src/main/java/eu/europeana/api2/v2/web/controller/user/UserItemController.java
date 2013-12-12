@@ -57,10 +57,10 @@ public class UserItemController extends AbstractUserController {
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		User user = userService.findByEmail(principal.getName());
-		if (user != null) {
-			UserResults<SavedItem> response = new UserResults<SavedItem>(getApiId(principal), "/v2/user/saveditem.json");
-			try {
+		UserResults<SavedItem> response = new UserResults<SavedItem>(getApiId(principal), "/v2/user/saveditem.json");
+		try {
+			User user = userService.findByEmail(principal.getName());
+			if (user != null) {
 				response.items = new ArrayList<SavedItem>();
 				response.username = user.getUserName();
 				Set<eu.europeana.corelib.definitions.db.entity.relational.SavedItem> results;
@@ -77,13 +77,15 @@ public class UserItemController extends AbstractUserController {
 					fav.author = item.getAuthor();
 					response.items.add(fav);
 				}
-			} catch (DatabaseException e) {
+			} else {
 				response.success = false;
-				response.error = e.getMessage();
+				response.error = "User Profile not retrievable...";
 			}
-			return JsonUtils.toJson(response, callback);
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
 		}
-		return null;
+		return JsonUtils.toJson(response, callback);
 	}
 
 	@RequestMapping(value = "/v2/user/saveditem.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
@@ -100,9 +102,9 @@ public class UserItemController extends AbstractUserController {
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/saveditem.json?action=CREATE");
 		try {
+			User user = userService.findByEmail(principal.getName());
 			userService.createSavedItem(user.getId(), europeanaId);
 			response.success = true;
 		} catch (DatabaseException e) {
@@ -127,10 +129,10 @@ public class UserItemController extends AbstractUserController {
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/saveditem.json?action=DELETE");
-		if (user != null) {
-			try {
+		try {
+			User user = userService.findByEmail(principal.getName());
+			if (user != null) {
 				response.success = true;
 				if (itemId != null) {
 					userService.removeSavedItem(user.getId(), itemId);
@@ -142,10 +144,10 @@ public class UserItemController extends AbstractUserController {
 						response.error = "Invalid arguments";
 					}
 				}
-			} catch (DatabaseException e) {
-				response.success = false;
-				response.error = e.getMessage();
 			}
+		} catch (DatabaseException e) {
+			response.success = false;
+			response.error = e.getMessage();
 		}
 		return JsonUtils.toJson(response, callback);
 	}

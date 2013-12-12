@@ -54,6 +54,6 @@ public class RedirectController {
 	@RequestMapping(value = { "/clearTokens" }, method = RequestMethod.GET)
 	public String removeAll() {
 		oAuth2TokenService.removeAll();
-		return "cleared";
+		return "user/cleared";
 	}
 }
