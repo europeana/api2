@@ -216,7 +216,7 @@ public class SearchController {
 		}
 
 		try {
-			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
+			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz, apiKey.getUser().getId());
 			result.requestNumber = requested;
 			if (StringUtils.containsIgnoreCase(profile, "params")) {
 				result.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -267,7 +267,8 @@ public class SearchController {
 			String apiKey,
 			String profile,
 			Query query,
-			Class<T> clazz)
+			Class<T> clazz,
+			long uid)
 					throws SolrTypeException {
 		SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, query);
@@ -279,12 +280,12 @@ public class SearchController {
 		for (T b : resultSet.getResults()) {
 			if (b instanceof ApiBean) {
 				ApiBean bean = (ApiBean) b;
-				ApiView view = new ApiView(bean, profile, apiKey, optOutService.check(bean.getId()));
+				ApiView view = new ApiView(bean, profile, apiKey, uid, optOutService.check(bean.getId()));
 				beans.add((T) view);
 				// in case profile = 'minimal'
 			} else if (b instanceof BriefBean) {
 				BriefBean bean = (BriefBean) b;
-				BriefView view = new BriefView(bean, profile, apiKey, optOutService.check(bean.getId()));
+				BriefView view = new BriefView(bean, profile, apiKey, uid, optOutService.check(bean.getId()));
 				beans.add((T) view);
 			}
 		}
