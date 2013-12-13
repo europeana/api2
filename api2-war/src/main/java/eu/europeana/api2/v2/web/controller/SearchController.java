@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -113,12 +112,12 @@ public class SearchController {
 	public ModelAndView searchJson(
 			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
-			@RequestParam(value = "reusability", required = false) String reusability,
+			@RequestParam(value = "reusability", required = false) String[] aReusability,
 			@RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
 			@RequestParam(value = "wskey", required = false) String wskey,
-			@RequestParam(value = "callback", required = false) String callback, 
+			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse response) {
 
@@ -128,12 +127,22 @@ public class SearchController {
 		if (_qf != null && _qf.length != refinements.length) {
 			refinements = _qf;
 		}
+		String[] reusability = clearReusability(aReusability);
 
 		response.setCharacterEncoding("UTF-8");
 		rows = Math.min(rows, configuration.getApiRowLimit());
 
 		Map<String, String> valueReplacements = new HashMap<String, String>();
-		if (StringUtils.isNotBlank(reusability)) {
+		if (ArrayUtils.isNotEmpty(reusability)) {
+			valueReplacements = RightReusabilityCategorizer.mapValueReplacements(reusability, true);
+			log.info("valueReplacements: " + valueReplacements);
+
+			refinements = (String[]) ArrayUtils.addAll(
+					refinements,
+					valueReplacements.keySet().toArray(new String[valueReplacements.keySet().size()])
+			);
+			log.info("refinements: " + refinements);
+			/*
 			List<String> refList = new ArrayList<String>();
 			if (refinements != null) {
 				refList.addAll(Arrays.asList(refinements));
@@ -155,6 +164,7 @@ public class SearchController {
 				}
 			}
 			refinements = refList.toArray(new String[refList.size()]);
+			*/
 		}
 
 		Query query = new Query(SolrUtils.translateQuery(queryString))
@@ -436,5 +446,23 @@ public class SearchController {
 			sb.append(StringUtils.join(bean.getProvider(), ", "));
 		}
 		return sb.toString();
+	}
+
+	String[] clearReusability(String[] aReusability) {
+		System.out.println("clear Reusability: " + StringUtils.join(aReusability, " // "));
+		if (ArrayUtils.isEmpty(aReusability)) {
+			return aReusability;
+		}
+		List<String> reusabilities = new ArrayList<String>();
+		for (String item : aReusability) {
+			System.out.println("item: " + item);
+			if (StringUtils.isNotBlank(item)) {
+				System.out.println("item: " + item);
+				String[] items = item.replace(",", " ").replace("+", " ").split(" ");
+				System.out.println("item: " + StringUtils.join(items, " // ") + " (" + items.length + ")");
+				reusabilities.addAll(Arrays.asList(items));
+			}
+		}
+		return reusabilities.toArray(new String[reusabilities.size()]);
 	}
 }
