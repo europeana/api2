@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
@@ -27,13 +28,15 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	private String[] thumbnails;
 	protected String wskey;
 	protected BriefBean bean;
+	protected long uid;
 
 	private boolean isOptedOut;
 
-	public BriefView(BriefBean bean, String profile, String wskey, boolean optOut) {
+	public BriefView(BriefBean bean, String profile, String wskey, long uid, boolean optOut) {
+		this.bean = bean;
 		this.profile = profile;
 		this.wskey = wskey;
-		this.bean = bean;
+		this.uid = uid;
 		this.isOptedOut = optOut;
 		urlService = EuropeanaUrlServiceImpl.getBeanInstance();
 	}
@@ -272,6 +275,29 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 			}
 		}
 		return list;
+	}
+
+	@Override
+	public String[] getEdmIsShownAt() {
+		if (ArrayUtils.isEmpty(bean.getEdmIsShownAt())) {
+			return bean.getEdmIsShownAt();
+		}
+		String provider = getProvider()[0];
+		List<String>isShownAtLinks = new ArrayList<String>();
+		for (String isShownAt : bean.getEdmIsShownAt()) {
+			if (StringUtils.isBlank(bean.getEdmIsShownAt()[0])) {
+				continue;
+			}
+			isShownAt = isShownAt 
+				+ (isShownAt.indexOf("?") > -1 ? "&" : "?")
+				+ "bt=europeanaapi";
+			String isShownAtLink = urlService.getApi2Redirect(uid,
+				LinkUtils.encode(isShownAt), LinkUtils.encode(provider), bean.getId(),
+				profile).toString();
+
+			isShownAtLinks.add(isShownAtLink);
+		}
+		return isShownAtLinks.toArray(new String[isShownAtLinks.size()]);
 	}
 
 }

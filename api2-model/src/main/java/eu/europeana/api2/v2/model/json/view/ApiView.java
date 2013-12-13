@@ -32,8 +32,8 @@ public class ApiView extends BriefView implements ApiBean {
 	private List<Map<String, String>> edmPlaceAltLabel;
 	private String[] dctermsIsPartOf;
 
-	public ApiView(ApiBean bean, String profile, String wskey, boolean optOut) {
-		super((BriefBean) bean, profile, wskey, optOut);
+	public ApiView(ApiBean bean, String profile, String wskey, long uid, boolean optOut) {
+		super((BriefBean) bean, profile, wskey, uid, optOut);
 
 		edmConceptTerm = bean.getEdmConcept();
 		if (bean.getEdmConceptLabel() != null) {

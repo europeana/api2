@@ -158,7 +158,7 @@ public class ObjectController {
 				try {
 					similarItems = searchService.findMoreLikeThis(europeanaObjectId);
 					for (BriefBean b : similarItems) {
-						BriefView view = new BriefView(b, similarItemsProfile, wskey, optOutService.check(b.getId()));
+						BriefView view = new BriefView(b, similarItemsProfile, wskey, apiKey.getUser().getId(), optOutService.check(b.getId()));
 						beans.add(view);
 					}
 				} catch (SolrServerException e) {

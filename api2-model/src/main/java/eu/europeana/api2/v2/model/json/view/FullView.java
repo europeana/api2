@@ -10,6 +10,7 @@ import org.bson.types.ObjectId;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
+import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
@@ -152,7 +153,7 @@ public class FullView implements FullBean {
 				String provider = items.get(i).getEdmProvider().values()
 						.iterator().next().get(0);
 				String isShownAtLink = europeanaUrlService.getApi2Redirect(uid,
-						encode(isShownAt), encode(provider), bean.getAbout(),
+						LinkUtils.encode(isShownAt), LinkUtils.encode(provider), bean.getAbout(),
 						profile).toString();
 				items.get(i).setEdmIsShownAt(isShownAtLink);
 			}
@@ -313,18 +314,6 @@ public class FullView implements FullBean {
 
 	@Override
 	public void setOptOut(boolean optOut) {
-	}
-
-	private String encode(String value) {
-		if (StringUtils.isBlank(value)) {
-			return "";
-		}
-		try {
-			value = URLEncoder.encode(value, "utf-8");
-		} catch (UnsupportedEncodingException e) {
-			// ignore, won't happen normally
-		}
-		return value;
 	}
 
 	@Override
