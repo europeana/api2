@@ -449,17 +449,13 @@ public class SearchController {
 	}
 
 	String[] clearReusability(String[] aReusability) {
-		System.out.println("clear Reusability: " + StringUtils.join(aReusability, " // "));
 		if (ArrayUtils.isEmpty(aReusability)) {
 			return aReusability;
 		}
 		List<String> reusabilities = new ArrayList<String>();
 		for (String item : aReusability) {
-			System.out.println("item: " + item);
 			if (StringUtils.isNotBlank(item)) {
-				System.out.println("item: " + item);
 				String[] items = item.replace(",", " ").replace("+", " ").split(" ");
-				System.out.println("item: " + StringUtils.join(items, " // ") + " (" + items.length + ")");
 				reusabilities.addAll(Arrays.asList(items));
 			}
 		}
