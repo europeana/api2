@@ -18,7 +18,6 @@
 package eu.europeana.api2.v2.web.controller;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +67,7 @@ import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.model.ResultSet;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.SolrUtils;
+import eu.europeana.corelib.utils.StringArrayUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
@@ -127,7 +127,7 @@ public class SearchController {
 		if (_qf != null && _qf.length != refinements.length) {
 			refinements = _qf;
 		}
-		String[] reusability = clearReusability(aReusability);
+		String[] reusability = StringArrayUtils.splitWebParamater(aReusability);
 
 		response.setCharacterEncoding("UTF-8");
 		rows = Math.min(rows, configuration.getApiRowLimit());
@@ -417,17 +417,6 @@ public class SearchController {
 		return bean.getDataProvider()[0] + " " + bean.getId();
 	}
 
-	// private String getThumbnail(BriefBean bean) {
-	// if (!ArrayUtils.isEmpty(bean.getEdmObject())) {
-	// for (String thumbnail : bean.getEdmObject()) {
-	// if (!StringUtils.isBlank(thumbnail)) {
-	// return thumbnail;
-	// }
-	// }
-	// }
-	// return null;
-	// }
-
 	private String getDescription(BriefBean bean) {
 		StringBuilder sb = new StringBuilder();
 		if (bean.getDcCreator() != null && bean.getDcCreator().length > 0
@@ -447,19 +436,5 @@ public class SearchController {
 			sb.append(StringUtils.join(bean.getProvider(), ", "));
 		}
 		return sb.toString();
-	}
-
-	String[] clearReusability(String[] aReusability) {
-		if (ArrayUtils.isEmpty(aReusability)) {
-			return aReusability;
-		}
-		List<String> reusabilities = new ArrayList<String>();
-		for (String item : aReusability) {
-			if (StringUtils.isNotBlank(item)) {
-				String[] items = item.replace(",", " ").replace("+", " ").split(" ");
-				reusabilities.addAll(Arrays.asList(items));
-			}
-		}
-		return reusabilities.toArray(new String[reusabilities.size()]);
 	}
 }
