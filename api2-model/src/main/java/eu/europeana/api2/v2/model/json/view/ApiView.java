@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.model.json.view;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ public class ApiView extends BriefView implements ApiBean {
 	private String[] edmPlaceBroaderTerm;
 	private List<Map<String, String>> edmPlaceAltLabel;
 	private String[] dctermsIsPartOf;
+	private Date timestamp;
 
 	public ApiView(ApiBean bean, String profile, String wskey, long uid, boolean optOut) {
 		super((BriefBean) bean, profile, wskey, uid, optOut);
@@ -53,6 +55,7 @@ public class ApiView extends BriefView implements ApiBean {
 		edmPlaceBroaderTerm = bean.getEdmPlaceBroaderTerm();
 		edmPlaceAltLabel = bean.getEdmPlaceAltLabel();
 		dctermsIsPartOf = bean.getDctermsIsPartOf();
+		timestamp = bean.getTimestamp();
 	}
 
 	@Override
@@ -216,5 +219,9 @@ public class ApiView extends BriefView implements ApiBean {
 	@Override
 	public void setDctermsIsPartOf(String[] dctermsIsPartOf) {
 		this.dctermsIsPartOf = dctermsIsPartOf;
+	}
+
+	public Date getTimestamp() {
+		return timestamp;
 	}
 }
