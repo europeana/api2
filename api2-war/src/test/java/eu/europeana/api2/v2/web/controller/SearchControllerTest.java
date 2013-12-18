@@ -13,14 +13,14 @@ public class SearchControllerTest {
 	public void testClearReusability() {
 		SearchController searchController = new SearchController();
 
-		assertArrayEquals(new String[] {"open"}, searchController.clearReusability(new String[]{"open"}));
-		assertArrayEquals(new String[] {"open", "permission"}, searchController.clearReusability(new String[]{"open", "permission"}));
-		assertArrayEquals(new String[] {"open", "permission"}, searchController.clearReusability(new String[]{"open permission"}));
-		assertArrayEquals(new String[] {"open", "permission"}, searchController.clearReusability(new String[]{"open+permission"}));
-		assertArrayEquals(new String[] {"open", "permission"}, searchController.clearReusability(new String[]{"open,permission"}));
+		assertArrayEquals(new String[] {"open"}, searchController.clearPoliformArray(new String[]{"open"}));
+		assertArrayEquals(new String[] {"open", "permission"}, searchController.clearPoliformArray(new String[]{"open", "permission"}));
+		assertArrayEquals(new String[] {"open", "permission"}, searchController.clearPoliformArray(new String[]{"open permission"}));
+		assertArrayEquals(new String[] {"open", "permission"}, searchController.clearPoliformArray(new String[]{"open+permission"}));
+		assertArrayEquals(new String[] {"open", "permission"}, searchController.clearPoliformArray(new String[]{"open,permission"}));
 
 		// this is not cleared
-		assertArrayEquals(new String[] {"open/permission"}, searchController.clearReusability(new String[]{"open/permission"}));
+		assertArrayEquals(new String[] {"open/permission"}, searchController.clearPoliformArray(new String[]{"open/permission"}));
 	}
 
 }

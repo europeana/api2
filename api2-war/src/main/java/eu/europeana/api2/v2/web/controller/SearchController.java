@@ -116,6 +116,7 @@ public class SearchController {
 			@RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
+			@RequestParam(value = "facet", required = false) String[] aFacet,
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
@@ -127,7 +128,8 @@ public class SearchController {
 		if (_qf != null && _qf.length != refinements.length) {
 			refinements = _qf;
 		}
-		String[] reusability = clearReusability(aReusability);
+		String[] reusability = clearPoliformArray(aReusability);
+		String[] facets = clearPoliformArray(aFacet);
 
 		response.setCharacterEncoding("UTF-8");
 		rows = Math.min(rows, configuration.getApiRowLimit());
@@ -141,30 +143,6 @@ public class SearchController {
 					refinements,
 					valueReplacements.keySet().toArray(new String[valueReplacements.keySet().size()])
 			);
-			log.info("refinements: " + refinements);
-			/*
-			List<String> refList = new ArrayList<String>();
-			if (refinements != null) {
-				refList.addAll(Arrays.asList(refinements));
-			}
-			String free = "REUSABILITY:" + RightReusabilityCategorizer.OPEN;
-			String limited = "REUSABILITY:" + RightReusabilityCategorizer.RESTRICTED;
-			if (StringUtils.containsIgnoreCase(reusability, RightReusabilityCategorizer.OPEN) 
-					&& StringUtils.containsIgnoreCase(reusability, RightReusabilityCategorizer.RESTRICTED)) {
-				valueReplacements.put(free, RightReusabilityCategorizer.getAllRightsQuery());
-				refList.add(free);
-			} else {
-				if (StringUtils.containsIgnoreCase(reusability, RightReusabilityCategorizer.OPEN)) {
-					valueReplacements.put(free, RightReusabilityCategorizer.getOpenRightsQuery());
-					refList.add(free);
-				}
-				if (StringUtils.containsIgnoreCase(reusability, RightReusabilityCategorizer.RESTRICTED)) {
-					valueReplacements.put(limited, RightReusabilityCategorizer.getRestrictedRightsQuery());
-					refList.add(limited);
-				}
-			}
-			refinements = refList.toArray(new String[refList.size()]);
-			*/
 		}
 
 		Query query = new Query(SolrUtils.translateQuery(queryString))
@@ -176,6 +154,10 @@ public class SearchController {
 				.setParameter("fl", "*,score")
 				.setAllowSpellcheck(false)
 				.setAllowFacets(false);
+
+		if (ArrayUtils.isNotEmpty(facets)) {
+			query.setFacets(facets);
+		}
 
 		// reusability facet settings
 		query.setValueReplacements(valueReplacements);
@@ -449,12 +431,12 @@ public class SearchController {
 		return sb.toString();
 	}
 
-	String[] clearReusability(String[] aReusability) {
-		if (ArrayUtils.isEmpty(aReusability)) {
-			return aReusability;
+	String[] clearPoliformArray(String[] inputArray) {
+		if (ArrayUtils.isEmpty(inputArray)) {
+			return inputArray;
 		}
 		List<String> reusabilities = new ArrayList<String>();
-		for (String item : aReusability) {
+		for (String item : inputArray) {
 			if (StringUtils.isNotBlank(item)) {
 				String[] items = item.replace(",", " ").replace("+", " ").split(" ");
 				reusabilities.addAll(Arrays.asList(items));
