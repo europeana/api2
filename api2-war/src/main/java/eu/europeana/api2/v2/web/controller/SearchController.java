@@ -160,9 +160,21 @@ public class SearchController {
 			query.setFacets(facets);
 		}
 
-		// reusability facet settings
 		query.setValueReplacements(valueReplacements);
-		query.setFacetQueries(RightReusabilityCategorizer.getQueryFacets());
+
+		// reusability facet settings
+		if (StringUtils.containsIgnoreCase(profile, "portal")
+			|| (
+					StringUtils.containsIgnoreCase(profile, "facets") 
+					&& (
+							ArrayUtils.isEmpty(facets) 
+						||  ArrayUtils.contains(facets, "DEFAULT")
+						||  ArrayUtils.contains(facets, "REUSABILITY")
+					)
+				)
+			) {
+			query.setFacetQueries(RightReusabilityCategorizer.getQueryFacets());
+		}
 
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) {
 			query.setAllowSpellcheck(true);
