@@ -17,7 +17,7 @@ import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ApiView extends BriefView implements ApiBean {
 
-	private static final Format formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	static final Format formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
 	private String[] edmConceptTerm;
 	// private Map<String, String> edmConceptPrefLabel;
