@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
+import eu.europeana.portal2.web.util.JsonFormatter;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ApiView extends BriefView implements ApiBean {
@@ -37,7 +38,8 @@ public class ApiView extends BriefView implements ApiBean {
 	private String[] edmPlaceBroaderTerm;
 	private List<Map<String, String>> edmPlaceAltLabel;
 	private String[] dctermsIsPartOf;
-	private Date timestamp;
+	private Date timestampCreated;
+	private Date timestampUpdate;
 
 	public ApiView(ApiBean bean, String profile, String wskey, long uid, boolean optOut) {
 		super((BriefBean) bean, profile, wskey, uid, optOut);
@@ -60,7 +62,8 @@ public class ApiView extends BriefView implements ApiBean {
 		edmPlaceBroaderTerm = bean.getEdmPlaceBroaderTerm();
 		edmPlaceAltLabel = bean.getEdmPlaceAltLabel();
 		dctermsIsPartOf = bean.getDctermsIsPartOf();
-		timestamp = bean.getTimestamp();
+		timestampCreated = bean.getTimestampCreated();
+		timestampUpdate = bean.getTimestampUpdate();
 	}
 
 	@Override
@@ -226,11 +229,23 @@ public class ApiView extends BriefView implements ApiBean {
 		this.dctermsIsPartOf = dctermsIsPartOf;
 	}
 
-	public Date getTimestamp() {
-		return timestamp;
+	@JsonProperty("timestamp_created")
+	public String getTimestampCreatedString() {
+		return formatter.format(timestampCreated);
 	}
 
-	public String getISOTimestamp() {
-		return formatter.format(timestamp);
+	@JsonProperty("timestamp_created_epoch")
+	public Date getTimestampCreated() {
+		return timestampCreated;
+	}
+
+	@JsonProperty("timestamp_update")
+	public String getTimestampUpdateString() {
+		return formatter.format(timestampUpdate);
+	}
+
+	@JsonProperty("timestamp_update_epoch")
+	public Date getTimestampUpdate() {
+		return timestampUpdate;
 	}
 }
