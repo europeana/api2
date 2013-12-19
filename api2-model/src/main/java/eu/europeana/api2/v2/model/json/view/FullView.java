@@ -1,12 +1,11 @@
 package eu.europeana.api2.v2.model.json.view;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
@@ -33,11 +32,15 @@ public class FullView implements FullBean {
 	private long uid;
 	private boolean optOut;
 	private EuropeanaUrlService europeanaUrlService;
+	private Date timestampCreated;
+	private Date timestampUpdated;
 
 	public FullView(FullBean bean, boolean optOut) {
 		this.bean = bean;
 		this.optOut = optOut;
 		europeanaUrlService = EuropeanaUrlServiceImpl.getBeanInstance();
+		extractTimestampCreated();
+		extractTimestampUpdated();
 	}
 
 	public FullView(FullBean bean, String profile, boolean optOut) {
@@ -316,24 +319,45 @@ public class FullView implements FullBean {
 	public void setOptOut(boolean optOut) {
 	}
 
+	public void extractTimestampCreated() {
+		if (timestampCreated == null) {
+			timestampCreated = bean.getTimestampCreated() != null ? bean.getTimestampCreated()
+				: new Date(0);
+		}
+	}
+
+	public void extractTimestampUpdated() {
+		if (timestampUpdated == null) {
+			timestampUpdated = bean.getTimestampUpdated() != null ? bean.getTimestampUpdated()
+					: new Date(0);
+		}
+	}
+
+	@JsonProperty("timestamp_created")
+	public String getTimestampCreatedAsISO() {
+		return ApiView.formatter.format(timestampCreated);
+	}
+
 	@Override
+	@JsonProperty("timestamp_created_epoch")
 	public Date getTimestampCreated() {
-		return bean.getTimestampCreated() != null ? bean.getTimestampCreated()
-				: new Date(0);
+		return timestampCreated;
+	}
+
+	@JsonProperty("timestamp_update")
+	public String getTimestampUpdatedAsISO() {
+		return ApiView.formatter.format(timestampUpdated);
 	}
 
 	@Override
+	@JsonProperty("timestamp_update_epoch")
 	public Date getTimestampUpdated() {
-		return bean.getTimestampUpdated() != null ? bean.getTimestampUpdated()
-				: new Date(0);
+		return timestampUpdated;
 	}
 
 	@Override
-	public void setTimestampCreated(Date timestampCreated) {
-		
-	}
+	public void setTimestampCreated(Date timestampCreated) {}
 
 	@Override
-	public void setTimestampUpdated(Date timestampUpdated) {
-	}
+	public void setTimestampUpdated(Date timestampUpdated) {}
 }
