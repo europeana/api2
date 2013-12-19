@@ -13,7 +13,6 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
-import eu.europeana.portal2.web.util.JsonFormatter;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ApiView extends BriefView implements ApiBean {
