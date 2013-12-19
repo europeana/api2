@@ -1,9 +1,12 @@
 package eu.europeana.api2.v2.model.json.view;
 
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
@@ -13,6 +16,8 @@ import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ApiView extends BriefView implements ApiBean {
+
+	private static final Format formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
 	private String[] edmConceptTerm;
 	// private Map<String, String> edmConceptPrefLabel;
@@ -223,5 +228,9 @@ public class ApiView extends BriefView implements ApiBean {
 
 	public Date getTimestamp() {
 		return timestamp;
+	}
+
+	public String getISOTimestamp() {
+		return formatter.format(timestamp);
 	}
 }
