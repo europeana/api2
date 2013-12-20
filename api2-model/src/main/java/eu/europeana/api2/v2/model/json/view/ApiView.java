@@ -230,9 +230,13 @@ public class ApiView extends BriefView implements ApiBean {
 
 	@JsonProperty("timestamp_created")
 	public String getTimestampCreatedString() {
-		return formatter.format(timestampCreated);
+		if (timestampCreated != null) {
+			return formatter.format(timestampCreated);
+		}
+		return null;
 	}
 
+	@Override
 	@JsonProperty("timestamp_created_epoch")
 	public Date getTimestampCreated() {
 		return timestampCreated;
@@ -240,9 +244,13 @@ public class ApiView extends BriefView implements ApiBean {
 
 	@JsonProperty("timestamp_update")
 	public String getTimestampUpdateString() {
-		return formatter.format(timestampUpdate);
+		if (timestampUpdate != null) {
+			return formatter.format(timestampUpdate);
+		}
+		return null;
 	}
 
+	@Override
 	@JsonProperty("timestamp_update_epoch")
 	public Date getTimestampUpdate() {
 		return timestampUpdate;
