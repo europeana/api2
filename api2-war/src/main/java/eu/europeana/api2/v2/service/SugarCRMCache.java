@@ -46,8 +46,8 @@ import eu.europeana.uim.sugarcrmclient.jibxbindings.GetRelationshipsResponse;
 import eu.europeana.uim.sugarcrmclient.jibxbindings.SelectFields;
 import eu.europeana.uim.sugarcrmclient.ws.SugarWsClient;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Lists;
+
 /**
  * Implementation of the caching mechanism 
  * 
@@ -145,6 +145,51 @@ public class SugarCRMCache {
 		return results;
 	}
 
+	
+	/**
+	 * Gets all datasets from the Mongo Cache.
+	 * 
+	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
+	 */
+	public SugarCRMSearchResults<DataSet> getCollections(){
+		return getCollections(0,0);
+	}
+	
+	
+	/**
+	 * Gets all datasets from the Mongo Cache.
+	 * @param offset the offset of search (might be 0)
+	 * @param pagesize the page size (might be 0: 200 will be set as default in that case)
+	 * 
+	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
+	 */
+	public SugarCRMSearchResults<DataSet> getCollections(int offset,int pagesize) {
+		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("","");	
+		Query<DataSet> query = ds.find(DataSet.class);
+
+		if(offset != 0){
+			query.offset(offset);
+		}
+		if(offset != 0 && pagesize!=0){
+			query.limit(pagesize);
+		}
+		if(offset != 0 && pagesize == 0){
+			query.limit(200);
+		}
+		List<DataSet> res =  query.asList();
+		long count = ds.find(DataSet.class).countAll();
+		results.totalResults = count;
+		results.items = res;
+		
+		for(DataSet ds :res){
+			inflateDataset(ds);
+		}
+		
+		return results;
+	}
+	
+	
+	
 	/**
 	 * Gets a provider according to the given ID
 	 * 
