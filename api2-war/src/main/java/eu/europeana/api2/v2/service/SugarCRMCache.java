@@ -124,14 +124,16 @@ public class SugarCRMCache {
 		if(country != null){
 			query.filter("country", country.toUpperCase());
 		}
-		if(offset != 0){
-			query.offset(offset);
-		}
 		if(offset != 0 && pagesize!=0){
+			query.offset(offset);
+			query.limit(pagesize);
+		}
+		if(offset == 0 && pagesize!=0){
+			query.offset(0);
 			query.limit(pagesize);
 		}
 		if(offset != 0 && pagesize == 0){
-			query.limit(200);
+			query.offset(offset);
 		}
 		List<Provider> res =  query.asList();
 		long count = ds.find(Provider.class).countAll();
@@ -167,14 +169,16 @@ public class SugarCRMCache {
 		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("","");	
 		Query<DataSet> query = ds.find(DataSet.class);
 
-		if(offset != 0){
-			query.offset(offset);
-		}
 		if(offset != 0 && pagesize!=0){
+			query.offset(offset);
+			query.limit(pagesize);
+		}
+		if(offset == 0 && pagesize!=0){
+			query.offset(0);
 			query.limit(pagesize);
 		}
 		if(offset != 0 && pagesize == 0){
-			query.limit(200);
+			query.offset(offset);
 		}
 		List<DataSet> res =  query.asList();
 		long count = ds.find(DataSet.class).countAll();

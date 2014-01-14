@@ -101,7 +101,7 @@ public class SugarCRMController {
 			apiService.checkReachedLimit(apiKey);
 			
 			int intOffset = offset== null ?0 :Integer.parseInt(offset);
-			int intPagesize = offset== null ?0 :Integer.parseInt(pagesize);
+			int intPagesize = pagesize== null ?0 :Integer.parseInt(pagesize);
 			
 			response = sugarCRMCache.getProviders(countryCode,intOffset,intPagesize);
 			response.action = "/v2/providers.json";
@@ -250,7 +250,7 @@ public class SugarCRMController {
 			apiService.checkReachedLimit(apiKey);
 			
 			int intOffset = offset== null ?0 :Integer.parseInt(offset);
-			int intPagesize = offset== null ?0 :Integer.parseInt(pagesize);
+			int intPagesize = pagesize== null ?0 :Integer.parseInt(pagesize);
 			
 			response = sugarCRMCache.getCollections(intOffset,intPagesize);
 			response.action = "/v2/datasets.json";
