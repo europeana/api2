@@ -28,7 +28,7 @@
 
 		<h2>Login</h2>
 
-		<p>This page is only for testing, please use a POST http request to <strong>/api/v2/mydata/login.do</strong> with the following attributes:<br/>
+		<p>This page is only for testing, please use a POST http request to <strong>/api/mydata/login.do</strong> with the following attributes:<br/>
 		<li><strong>apikey</strong>: containing your public apikey</li>
 		<li><strong>privatekey</strong>: containing your private key</li>
 		</p>
