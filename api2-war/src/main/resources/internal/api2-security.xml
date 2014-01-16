@@ -75,8 +75,8 @@
 
 	<security:http pattern="/v2/mydata/**" auto-config="true"
 			authentication-manager-ref="authenticationManager">
-		<security:intercept-url pattern="/v2/mydata" access="ROLE_CLIENT" />
-		<security:intercept-url pattern="/v2/mydata/**" access="ROLE_CLIENT" />
+		<security:intercept-url pattern="/v2/mydata" access="ROLE_CLIENT,ROLE_USER" />
+		<security:intercept-url pattern="/v2/mydata/**" access="ROLE_CLIENT,ROLE_USER" />
 		<security:form-login
 			authentication-failure-url="/mydata/login?authentication_error=true"
 			login-processing-url="/mydata/login.do"
