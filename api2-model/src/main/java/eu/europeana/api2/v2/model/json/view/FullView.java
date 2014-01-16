@@ -21,6 +21,7 @@ import eu.europeana.corelib.definitions.solr.entity.Place;
 import eu.europeana.corelib.definitions.solr.entity.ProvidedCHO;
 import eu.europeana.corelib.definitions.solr.entity.Proxy;
 import eu.europeana.corelib.definitions.solr.entity.Timespan;
+import eu.europeana.corelib.utils.DateUtils;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 
@@ -335,7 +336,7 @@ public class FullView implements FullBean {
 
 	@JsonProperty("timestamp_created")
 	public String getTimestampCreatedAsISO() {
-		return ApiView.formatter.format(timestampCreated);
+		return DateUtils.format(timestampCreated);
 	}
 
 	@Override
@@ -346,7 +347,7 @@ public class FullView implements FullBean {
 
 	@JsonProperty("timestamp_update")
 	public String getTimestampUpdatedAsISO() {
-		return ApiView.formatter.format(timestampUpdated);
+		return DateUtils.format(timestampUpdated);
 	}
 
 	@Override
