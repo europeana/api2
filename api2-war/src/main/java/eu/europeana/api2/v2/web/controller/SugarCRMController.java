@@ -101,7 +101,7 @@ public class SugarCRMController {
 			apiService.checkReachedLimit(apiKey);
 			
 			int intOffset = offset== null ?0 :Integer.parseInt(offset);
-			int intPagesize = offset== null ?0 :Integer.parseInt(pagesize);
+			int intPagesize = pagesize== null ?0 :Integer.parseInt(pagesize);
 			
 			response = sugarCRMCache.getProviders(countryCode,intOffset,intPagesize);
 			response.action = "/v2/providers.json";
@@ -219,6 +219,61 @@ public class SugarCRMController {
 	}
 
 
+	/**
+	 * Returns the list of Europeana datasets. The response is an Array of JSON
+	 * objects, each one containing the identifier and the name of a dataset.
+	 * 
+	 * @param wskey
+	 * @param callback
+	 * @param offset
+	 * @param pagesize
+	 * @param principal
+	 * 
+	 * @return the JSON response
+	 */
+	@RequestMapping(value = "/v2/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
+			RequestMethod.POST, RequestMethod.GET })
+	public ModelAndView findatasets(
+			@RequestParam(value = "wskey", required = false) String wskey,
+			@RequestParam(value = "callback", required = false) String callback,
+			@RequestParam(value = "offset", required = false) String offset,
+			@RequestParam(value = "pagesize", required = false) String pagesize) {
+
+		Date starttime = new Date();
+		SugarCRMSearchResults<DataSet> response = null;
+		
+		try {
+			ApiKey apiKey = apiService.findByID(wskey);
+			if (apiKey == null) {
+				throw new Exception("API key not found");
+			}
+			apiService.checkReachedLimit(apiKey);
+			
+			int intOffset = offset== null ?0 :Integer.parseInt(offset);
+			int intPagesize = pagesize== null ?0 :Integer.parseInt(pagesize);
+			
+			response = sugarCRMCache.getCollections(intOffset,intPagesize);
+			response.action = "/v2/datasets.json";
+			response.apikey = wskey;
+			response.itemsCount = response.items.size();
+			response.statsStartTime = starttime;
+			Date endtime = new Date();
+			response.statsDuration = endtime.getTime() - starttime.getTime();
+
+		} catch (Exception e) {
+			response = new SugarCRMSearchResults<DataSet>(wskey,
+					"/v2/datasets.json");
+			response.error = "Error fetching all providers "
+					+ e.getMessage();
+			response.success = false;
+			log.error("Error fetching all providers ", e);
+		}
+
+		return JsonUtils.toJson(response, callback);
+	}
+	
+	
+	
 	/**
 	 * Returns information about a dataset identified by dataset_id. The
 	 * response contains the following fields: identifier, name, description,
