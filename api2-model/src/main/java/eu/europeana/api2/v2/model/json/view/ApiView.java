@@ -1,10 +1,10 @@
 package eu.europeana.api2.v2.model.json.view;
 
-import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -17,7 +17,10 @@ import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ApiView extends BriefView implements ApiBean {
 
-	static final Format formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	static {
+		formatter.setTimeZone(TimeZone.getTimeZone("GTM"));
+	}
 
 	private String[] edmConceptTerm;
 	// private Map<String, String> edmConceptPrefLabel;
