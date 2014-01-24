@@ -1,10 +1,10 @@
 package eu.europeana.api2.v2.model.json.view;
 
-import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -13,11 +13,10 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
+import eu.europeana.corelib.utils.DateUtils;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ApiView extends BriefView implements ApiBean {
-
-	static final Format formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
 	private String[] edmConceptTerm;
 	// private Map<String, String> edmConceptPrefLabel;
@@ -231,7 +230,7 @@ public class ApiView extends BriefView implements ApiBean {
 	@JsonProperty("timestamp_created")
 	public String getTimestampCreatedString() {
 		if (timestampCreated != null) {
-			return formatter.format(timestampCreated);
+			return DateUtils.format(timestampCreated);
 		}
 		return null;
 	}
@@ -245,7 +244,7 @@ public class ApiView extends BriefView implements ApiBean {
 	@JsonProperty("timestamp_update")
 	public String getTimestampUpdateString() {
 		if (timestampUpdate != null) {
-			return formatter.format(timestampUpdate);
+			return DateUtils.format(timestampUpdate);
 		}
 		return null;
 	}
