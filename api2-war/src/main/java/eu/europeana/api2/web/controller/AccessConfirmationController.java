@@ -32,19 +32,19 @@ public class AccessConfirmationController {
 		model.put("client", client);
 		return new ModelAndView("user/authorize", model);
 	}
-	
-	@RequestMapping("/login")
-	public String loginForm() {
-		return "user/login";
-	}
+//	
+//	@RequestMapping("/login")
+//	public String loginForm() {
+//		return "user/login";
+//	}
 
-	@RequestMapping("/user/login")
+	@RequestMapping(value="/login", params="form=user")
 	public String loginUserForm() {
 		return "user/login";
 	}
 
 
-	@RequestMapping("/mydata/login")
+	@RequestMapping(value="/login", params="form=myData")
 	public String loginMyDataForm() {
 		return "mydata/login";
 	}

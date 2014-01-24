@@ -1,13 +1,12 @@
-<%@ page session="false" language="java" contentType="charset=UTF-8" pageEncoding="UTF-8"  %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page session="false" language="java" contentType="charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<title>Europeana API Login</title>
-<link type="text/css" rel="stylesheet"
-	href="<c:url value="/style.css"/>" />
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	<title>Europeana API Login</title>
 </head>
 
 <body>
@@ -28,21 +27,24 @@
 
 		<h2>Login</h2>
 
-		<p>This page is only for testing, please use a POST http request to <strong>/api/mydata/login.do</strong> with the following attributes:<br/>
-		<li><strong>apikey</strong>: containing your public apikey</li>
-		<li><strong>privatekey</strong>: containing your private key</li>
+		<p>
+			This page is only for testing, please use a POST http request to <strong>/api/mydata/login</strong>
+			with the following attributes:<br />
+			<li><strong>j_username</strong>: containing your public apikey</li>
+			<li><strong>j_password</strong>: containing your private key</li>
 		</p>
 		<form id="loginForm" name="loginForm"
-			action="<c:url value="/mydata/login.do"/>" method="post">
+			action="<c:url value="/login.do"/>" method="post">
 			<p>
-				<label>Public api key: <input type='text' name='apikey'/></label>
+				<label>Public api key: <input type='text' name='j_username' value="GkacUTDXb"/></label>
 			</p>
 			<p>
-				<label>Secret api key: <input type="password" name='privatekey'/></label>
+				<label>Secret api key: <input type="text" value="3bGgjqJh8"
+					name='j_password' /></label>
 			</p>
 
 			<p>
-				<input name="login" value="Login" type="submit"/>
+				<input name="login" value="Login" type="submit" />
 			</p>
 		</form>
 	</div>
