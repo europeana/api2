@@ -29,7 +29,7 @@ public abstract class AbstractUserController {
 			OAuth2Authentication authentication = (OAuth2Authentication) principal;
 			return authentication.getAuthorizationRequest().getClientId();
 		}
-		return "testing";
+		return "invalid";
 	}
 
 	protected void copyUserObjectData(String wskey, UserObject to, EuropeanaUserObject from) {
