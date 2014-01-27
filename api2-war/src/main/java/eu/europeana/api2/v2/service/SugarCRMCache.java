@@ -562,7 +562,12 @@ public class SugarCRMCache {
 		ds.publicationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.EXPECTED_INGESTION_DATE.getFieldId());
 		String precordsStr =  ds.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId()); 
 		if(precordsStr != null){
-			ds.publishedRecords = Long.parseLong(precordsStr);
+			try{
+				ds.publishedRecords = Long.parseLong(precordsStr);
+			}
+			catch(Exception ex){
+				ds.publishedRecords = 0;
+			}
 		}
 		String delrecordsStr =  ds.savedsugarcrmFields.get(EuropeanaUpdatableField.DELETED_RECORDS.getFieldId()); 
 		if( delrecordsStr != null){
