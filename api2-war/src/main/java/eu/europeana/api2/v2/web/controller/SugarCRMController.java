@@ -263,10 +263,10 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			response = new SugarCRMSearchResults<DataSet>(wskey,
 					"/v2/datasets.json");
-			response.error = "Error fetching all providers "
+			response.error = "Error fetching all datasets "
 					+ e.getMessage();
 			response.success = false;
-			log.error("Error fetching all providers ", e);
+			log.error("Error fetching all datasets ", e);
 		}
 
 		return JsonUtils.toJson(response, callback);
