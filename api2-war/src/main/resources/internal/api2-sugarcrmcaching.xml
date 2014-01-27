@@ -17,4 +17,8 @@
 	<bean id="sugarCRMCache"
 		class="eu.europeana.api2.v2.service.SugarCRMCache" />
 
+	<bean id="api_db_mongo_cache" class="com.mongodb.Mongo">
+		<constructor-arg value="#{europeanaProperties['cachemongodb.host']}"/>
+		<constructor-arg value="#{europeanaProperties['cachemongodb.port']}"/>
+	</bean>
 </beans>

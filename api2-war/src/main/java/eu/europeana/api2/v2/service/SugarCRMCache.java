@@ -63,7 +63,7 @@ public class SugarCRMCache {
 	@Resource
 	private SugarWsClient sugarwsClient;
 
-	@Resource(name = "corelib_db_mongo")
+	@Resource(name = "api_db_mongo_cache")
 	private Mongo mongo;
 
 	private Datastore ds;
