@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.bcel.generic.RETURN;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -41,6 +42,7 @@ import com.mongodb.Mongo;
 
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.model.NumericFacetParameter;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.Suggestions;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -49,6 +51,7 @@ import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.Item;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
+import eu.europeana.api2.v2.utils.FacetParameterUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
@@ -57,6 +60,7 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
+import eu.europeana.corelib.definitions.solr.Facet;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.IdBean;
@@ -129,8 +133,18 @@ public class SearchController {
 			refinements = _qf;
 		}
 
+		boolean isFacetsRequested = isFacetsRequested(profile);
 		String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
 		String[] facets = StringArrayUtils.splitWebParameter(aFacet);
+		boolean isDefaultFacetsRequested = isDefaultFacetsRequested(profile, facets);
+		boolean isDefaultOrReusabilityFacetRequested = isDefaultOrReusabilityFacetRequested(profile, facets);
+		Map<String, Integer> facetLimits = null;
+		Map<String, Integer> facetOffsets = null;
+		if (isFacetsRequested) {
+			Map<Object, Object> parameterMap = (Map<Object, Object>) request.getParameterMap();
+			facetLimits = FacetParameterUtils.getFacetParams("limit", aFacet, parameterMap, isDefaultFacetsRequested);
+			facetOffsets = FacetParameterUtils.getFacetParams("offset", aFacet, parameterMap, isDefaultFacetsRequested);
+		}
 
 		response.setCharacterEncoding("UTF-8");
 		rows = Math.min(rows, configuration.getApiRowLimit());
@@ -138,7 +152,6 @@ public class SearchController {
 		Map<String, String> valueReplacements = new HashMap<String, String>();
 		if (ArrayUtils.isNotEmpty(reusability)) {
 			valueReplacements = RightReusabilityCategorizer.mapValueReplacements(reusability, true);
-			log.info("valueReplacements: " + valueReplacements);
 
 			refinements = (String[]) ArrayUtils.addAll(
 					refinements,
@@ -158,30 +171,35 @@ public class SearchController {
 
 		if (ArrayUtils.isNotEmpty(facets)) {
 			query.setFacets(facets);
+			if (facetLimits != null && !facetLimits.isEmpty()) {
+				for (Map.Entry<String, Integer> entry : facetLimits.entrySet()) {
+					query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
+				}
+			}
+			if (facetOffsets != null && !facetOffsets.isEmpty()) {
+				for (Map.Entry<String, Integer> entry : facetOffsets.entrySet()) {
+					query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
+				}
+			}
 		}
+		
 
 		query.setValueReplacements(valueReplacements);
 
 		// reusability facet settings
-		if (StringUtils.containsIgnoreCase(profile, "portal")
-			|| (
-					StringUtils.containsIgnoreCase(profile, "facets") 
-					&& (
-							ArrayUtils.isEmpty(facets) 
-						||  ArrayUtils.contains(facets, "DEFAULT")
-						||  ArrayUtils.contains(facets, "REUSABILITY")
-					)
-				)
-			) {
+		if (isDefaultOrReusabilityFacetRequested) {
 			query.setFacetQueries(RightReusabilityCategorizer.getQueryFacets());
 		}
 
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) {
 			query.setAllowSpellcheck(true);
 		}
-		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets")) {
+
+		if (isFacetsRequested) {
 			query.setAllowFacets(true);
-			query.setParameter("f.DATA_PROVIDER.facet.limit", "3000");
+			if (!query.hasParameter("f.DATA_PROVIDER.facet.limit")) {
+				query.setParameter("f.DATA_PROVIDER.facet.limit", "3000");
+			}
 		}
 
 		ApiKey apiKey;
@@ -432,4 +450,37 @@ public class SearchController {
 		}
 		return sb.toString();
 	}
+
+	private boolean isFacetsRequested(String profile) {
+		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets")) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isDefaultFacetsRequested(String profile, String[] facets) {
+		if (StringUtils.containsIgnoreCase(profile, "portal") || 
+			(StringUtils.containsIgnoreCase(profile, "facets") 
+				&& (    ArrayUtils.isEmpty(facets)
+					||  ArrayUtils.contains(facets, "DEFAULT")
+			))) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isDefaultOrReusabilityFacetRequested(String profile, String[] facets) {
+		if (StringUtils.containsIgnoreCase(profile, "portal") || 
+			(StringUtils.containsIgnoreCase(profile, "facets") 
+				&& (
+								ArrayUtils.isEmpty(facets) 
+							||  ArrayUtils.contains(facets, "DEFAULT")
+							||  ArrayUtils.contains(facets, "REUSABILITY")
+			))) {
+			return true;
+		}
+		return false;
+	}
+
+
 }
