@@ -36,11 +36,10 @@
 		<form id="loginForm" name="loginForm"
 			action="<c:url value="/login.do"/>" method="post">
 			<p>
-				<label>Public api key: <input type='text' name='j_username' value="GkacUTDXb"/></label>
+				<label>Public api key: <input type='text' name='j_username'/></label>
 			</p>
 			<p>
-				<label>Secret api key: <input type="text" value="3bGgjqJh8"
-					name='j_password' /></label>
+				<label>Secret api key: <input type="text" name='j_password' /></label>
 			</p>
 
 			<p>
