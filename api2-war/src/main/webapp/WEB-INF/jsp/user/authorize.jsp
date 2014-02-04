@@ -29,7 +29,7 @@
 		<authz:authorize ifAllGranted="ROLE_USER">
 			<h2>Please Confirm</h2>
 
-			<p>You hereby authorize "<c:out value="${client.clientId}" />" to access your:</p>
+			<p>You hereby authorize "<c:out value="${appName}" />" to access your:</p>
 			<ul>
 				<li>MyEuropeana profile data (excluding password and API keys)</li>
 				<li>Saved items</li>
