@@ -262,7 +262,6 @@ public class SearchController {
 
 	private String[] limitFacets(String[] facets, boolean isDefaultFacetsRequested) {
 		List<String> requestedFacets = Arrays.asList(facets);
-		log.info("requestedFacets: " + requestedFacets.size());
 		List<String> allowedFacets = new ArrayList<String>();
 		int count = 0;
 		int increment;
@@ -278,8 +277,6 @@ public class SearchController {
 				break;
 			}
 		}
-		log.info("allowedFacets: " + allowedFacets.size());
-		log.info("count: " + count);
 		return allowedFacets.toArray(new String[allowedFacets.size()]);
 	}
 
