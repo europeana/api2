@@ -18,6 +18,7 @@
 package eu.europeana.api2.v2.web.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.bcel.generic.RETURN;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -42,7 +42,6 @@ import com.mongodb.Mongo;
 
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.NumericFacetParameter;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.Suggestions;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -105,12 +104,14 @@ public class SearchController {
 
 	@Resource
 	private OptOutService optOutService;
-	
+
 	@Resource
 	private Configuration configuration;
-	
+
 	@Resource
 	private EuropeanaUrlService urlService;
+
+	final static private int FACET_LIMIT = 16;
 
 	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
@@ -137,6 +138,8 @@ public class SearchController {
 		String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
 		String[] facets = StringArrayUtils.splitWebParameter(aFacet);
 		boolean isDefaultFacetsRequested = isDefaultFacetsRequested(profile, facets);
+		facets = limitFacets(facets, isDefaultFacetsRequested);
+
 		boolean isDefaultOrReusabilityFacetRequested = isDefaultOrReusabilityFacetRequested(profile, facets);
 		Map<String, Integer> facetLimits = null;
 		Map<String, Integer> facetOffsets = null;
@@ -255,6 +258,31 @@ public class SearchController {
 			response.setStatus(500);
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		}
+	}
+
+	private String[] limitFacets(String[] facets, boolean isDefaultFacetsRequested) {
+		List<String> requestedFacets = Arrays.asList(facets);
+		log.info("requestedFacets: " + requestedFacets.size());
+		List<String> allowedFacets = new ArrayList<String>();
+		int count = 0;
+		if (isDefaultFacetsRequested) {
+			if (requestedFacets.contains("DEFAULT")) {
+				allowedFacets.add("DEFAULT");
+			}
+			count += Facet.values().length;
+		}
+		for (String facet : requestedFacets) {
+			if (!StringUtils.equals(facet, "DEFAULT")) {
+				count += 1;
+				allowedFacets.add(facet);
+			}
+			if (count >= FACET_LIMIT) {
+				break;
+			}
+		}
+		log.info("allowedFacets: " + allowedFacets.size());
+		log.info("count: " + count);
+		return allowedFacets.toArray(new String[allowedFacets.size()]);
 	}
 
 	@RequestMapping(value = "/v2/suggestions.json", produces = MediaType.APPLICATION_JSON_VALUE)
