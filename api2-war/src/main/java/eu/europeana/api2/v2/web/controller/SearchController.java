@@ -265,18 +265,16 @@ public class SearchController {
 		log.info("requestedFacets: " + requestedFacets.size());
 		List<String> allowedFacets = new ArrayList<String>();
 		int count = 0;
-		if (isDefaultFacetsRequested) {
-			if (requestedFacets.contains("DEFAULT")) {
-				allowedFacets.add("DEFAULT");
-			}
-			count += Facet.values().length;
-		}
+		int increment;
 		for (String facet : requestedFacets) {
-			if (!StringUtils.equals(facet, "DEFAULT")) {
-				count += 1;
-				allowedFacets.add(facet);
+			increment = 1;
+			if (StringUtils.equals(facet, "DEFAULT")) {
+				increment = Facet.values().length;
 			}
-			if (count >= FACET_LIMIT) {
+			if (count + increment <= FACET_LIMIT) {
+				allowedFacets.add(facet);
+				count += increment;
+			} else {
 				break;
 			}
 		}
