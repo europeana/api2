@@ -111,7 +111,7 @@ public class SearchController {
 	@Resource
 	private EuropeanaUrlService urlService;
 
-	final static private int FACET_LIMIT = 16;
+	final static public int FACET_LIMIT = 16;
 
 	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
@@ -260,10 +260,24 @@ public class SearchController {
 		}
 	}
 
-	private String[] limitFacets(String[] facets, boolean isDefaultFacetsRequested) {
+	/**
+	 * Limits the number of facets
+	 * @param facets
+	 *   The user entered facet names list
+	 * @param isDefaultFacetsRequested
+	 *   Flag if default facets should be returned
+	 * @return
+	 *   The limited set of facet names
+	 */
+	public static String[] limitFacets(String[] facets, boolean isDefaultFacetsRequested) {
 		List<String> requestedFacets = Arrays.asList(facets);
 		List<String> allowedFacets = new ArrayList<String>();
+
 		int count = 0;
+		if (isDefaultFacetsRequested && !requestedFacets.contains("DEFAULT")) {
+			count = Facet.values().length;
+		}
+
 		int increment;
 		for (String facet : requestedFacets) {
 			increment = 1;
@@ -277,6 +291,7 @@ public class SearchController {
 				break;
 			}
 		}
+
 		return allowedFacets.toArray(new String[allowedFacets.size()]);
 	}
 
