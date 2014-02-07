@@ -391,8 +391,8 @@ public class SugarCRMCache {
 	 * @throws JIXBQueryResultException 
 	 */
 	public SugarCRMSearchResults<Provider> pollProviders() throws JIXBQueryResultException{
-		String q1 ="accounts.date_modified between (NOW() - INTERVAL 2 HOUR) and NOW()";
-		String q2 = "accounts_cstm.agg_status_c LIKE '%P' OR accounts_cstm.agg_status_c LIKE '%D'";
+		String q1 ="accounts.date_modified > DATE_SUB(NOW(),INTERVAL 66 MINUTE)";
+		String q2 = "accounts_cstm.agg_status_c LIKE '%D'";
 	    SugarCRMSearchResults<Provider> provres = retrieveproviders(q1,q2);    
 	    for(Provider prov : provres.items){
 	    	log.info("Provider:"+prov.identifier+" was updated by the scheduler...");
@@ -407,7 +407,7 @@ public class SugarCRMCache {
 	 * @throws JIXBQueryResultException
 	 */
 	public SugarCRMSearchResults<DataSet> pollCollections() throws JIXBQueryResultException{
-		SugarCRMSearchResults<DataSet> retrdatasets = retrieveDataset("opportunities.date_modified between (NOW() - INTERVAL 2 HOUR) and NOW()",null);
+		SugarCRMSearchResults<DataSet> retrdatasets = retrieveDataset("opportunities.date_modified > DATE_SUB(NOW(),INTERVAL 66 MINUTE)",null);
 		for(DataSet ds : retrdatasets.items){
 	    	log.info("Dataset:"+ds.identifier+" was updated by the scheduler...");
 			saveupdateCollection2Cache(ds);
@@ -474,7 +474,7 @@ public class SugarCRMCache {
 		request.setOffset(0);
 		
 		if(query.length == 0){
-			request.setQuery("(accounts_cstm.agg_status_c LIKE '%P' OR accounts_cstm.agg_status_c LIKE '%D')");
+			request.setQuery("(accounts_cstm.agg_status_c LIKE '%D')");
 		}
 		else{
 			StringWriter querywrt = new StringWriter();

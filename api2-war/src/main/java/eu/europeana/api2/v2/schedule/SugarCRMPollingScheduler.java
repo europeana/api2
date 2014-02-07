@@ -80,8 +80,8 @@ public class SugarCRMPollingScheduler {
 			e.printStackTrace();
 			log.error("Re-population of MongoDB Cache from SugarCRM failed: " + e.getMessage());
 		}
-    	frequentUpdateTask = scheduler.scheduleAtFixedRate(new FrequentUpdateTask(), 15000);
-    	nightlyUpdateTask = scheduler.scheduleAtFixedRate(new NigthlyUpdateTask(), 50000000);
+    	frequentUpdateTask = scheduler.scheduleAtFixedRate(new FrequentUpdateTask(), 300000);
+    	//nightlyUpdateTask = scheduler.scheduleAtFixedRate(new NigthlyUpdateTask(), 50000000);
     	
     }
 	
