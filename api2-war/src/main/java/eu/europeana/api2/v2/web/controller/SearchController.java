@@ -200,7 +200,8 @@ public class SearchController {
 
 		if (isFacetsRequested) {
 			query.setAllowFacets(true);
-			if (!query.hasParameter("f.DATA_PROVIDER.facet.limit")) {
+			if (!query.hasParameter("f.DATA_PROVIDER.facet.limit")
+					&& (ArrayUtils.contains(facets, "DATA_PROVIDER") || ArrayUtils.contains(facets, "DEFAULT"))) {
 				query.setParameter("f.DATA_PROVIDER.facet.limit", "3000");
 			}
 		}
