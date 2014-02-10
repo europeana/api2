@@ -1,9 +1,12 @@
 package eu.europeana.api2.v2.utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 
 import eu.europeana.api2.v2.model.NumericFacetParameter;
 import eu.europeana.corelib.definitions.solr.Facet;
@@ -17,8 +20,11 @@ public class FacetParameterUtils {
 
 	final static String DEFAULT_LIMIT_KEY = "f.DEFAULT.facet.limit";
 	final static String DEFAULT_OFFSET_KEY = "f.DEFAULT.facet.offset";
+	final static int LIMIT_FOR_DATA_PROVIDER = 3000;
 	final static int LIMIT_FOR_DEFAULT = 750;
 	final static int LIMIT_FOR_CUSTOM = 50;
+
+	private static List<String> facetList;
 
 	/**
 	 * Returns all relevant parameters of a given type (right now: limit and offset)
@@ -36,6 +42,7 @@ public class FacetParameterUtils {
 	public static Map<String, Integer> getFacetParams(String type, String[] facets, 
 			Map<Object, Object> parameters,
 			boolean isDefaultFacetsRequested) {
+		createFacetList();
 		Map<String, Integer> facetParams = new HashMap<String, Integer>();
 		if (isDefaultFacetsRequested) {
 			for (Facet facet : Facet.values()) {
@@ -45,10 +52,19 @@ public class FacetParameterUtils {
 
 		if (ArrayUtils.isNotEmpty(facets)) {
 			for (String facet : facets) {
-				saveFacetParam(type, facet, parameters, false, facetParams);
+				saveFacetParam(type, facet, parameters, facetList.contains(facet), facetParams);
 			}
 		}
 		return facetParams;
+	}
+
+	public static void createFacetList() {
+		if (facetList == null) {
+			facetList = new ArrayList<String>();
+			for (Facet facet : Facet.values()) {
+				facetList.add(facet.toString());
+			}
+		}
 	}
 
 	/**
@@ -80,7 +96,8 @@ public class FacetParameterUtils {
 
 	public static NumericFacetParameter getFacetLimit(String facet, Map<Object, Object> parameters, boolean isDefault) {
 		String key = "f." + facet + ".facet.limit";
-		return extractParameter(key, DEFAULT_LIMIT_KEY, parameters, isDefault, (isDefault ? LIMIT_FOR_DEFAULT : LIMIT_FOR_CUSTOM));
+		Integer defaultLimit = isDefault ? (StringUtils.equals(facet, "DATA_PROVIDER") ? LIMIT_FOR_DATA_PROVIDER : LIMIT_FOR_DEFAULT) : LIMIT_FOR_CUSTOM;
+		return extractParameter(key, DEFAULT_LIMIT_KEY, parameters, isDefault, defaultLimit);
 	}
 
 	public static NumericFacetParameter getFacetOffset(String facet, Map<Object, Object> parameters, boolean isDefault) {
