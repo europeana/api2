@@ -17,6 +17,8 @@ public class FacetParameterUtils {
 
 	final static String DEFAULT_LIMIT_KEY = "f.DEFAULT.facet.limit";
 	final static String DEFAULT_OFFSET_KEY = "f.DEFAULT.facet.offset";
+	final static int LIMIT_FOR_DEFAULT = 750;
+	final static int LIMIT_FOR_CUSTOM = 50;
 
 	/**
 	 * Returns all relevant parameters of a given type (right now: limit and offset)
@@ -67,9 +69,9 @@ public class FacetParameterUtils {
 			boolean isDefault, Map<String, Integer> facetParams) {
 		NumericFacetParameter parameter = null;
 		if (type.equals("limit")) {
-			parameter = getFacetLimit(name, parameters, true);
+			parameter = getFacetLimit(name, parameters, isDefault);
 		} else if (type.equals("offset")) {
-			parameter = getFacetOffset(name, parameters, true);
+			parameter = getFacetOffset(name, parameters, isDefault);
 		}
 		if (parameter != null) {
 			facetParams.put(parameter.getName(), parameter.getValue());
@@ -78,15 +80,16 @@ public class FacetParameterUtils {
 
 	public static NumericFacetParameter getFacetLimit(String facet, Map<Object, Object> parameters, boolean isDefault) {
 		String key = "f." + facet + ".facet.limit";
-		return extractParameter(key, DEFAULT_LIMIT_KEY, parameters, isDefault);
+		return extractParameter(key, DEFAULT_LIMIT_KEY, parameters, isDefault, (isDefault ? LIMIT_FOR_DEFAULT : LIMIT_FOR_CUSTOM));
 	}
 
 	public static NumericFacetParameter getFacetOffset(String facet, Map<Object, Object> parameters, boolean isDefault) {
 		String key = "f." + facet + ".facet.offset";
-		return extractParameter(key, DEFAULT_OFFSET_KEY, parameters, isDefault);
+		return extractParameter(key, DEFAULT_OFFSET_KEY, parameters, isDefault, null);
 	}
 
-	public static NumericFacetParameter extractParameter(String key, String defaultKey, Map<Object, Object> parameters, boolean isDefault) {
+	public static NumericFacetParameter extractParameter(String key, String defaultKey, 
+			Map<Object, Object> parameters, boolean isDefault, Integer defaultValue) {
 		if (parameters.containsKey(key)) {
 			String[] value = (String[]) parameters.get(key);
 			return new NumericFacetParameter(key, value[0]);
@@ -94,6 +97,9 @@ public class FacetParameterUtils {
 		if (isDefault && parameters.containsKey(defaultKey)) {
 			String[] value = (String[]) parameters.get(defaultKey);
 			return new NumericFacetParameter(key, value[0]);
+		}
+		if (defaultValue != null) {
+			return new NumericFacetParameter(key, defaultValue);
 		}
 		return null;
 	}
