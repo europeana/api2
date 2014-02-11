@@ -28,7 +28,7 @@
 		<h2>Login</h2>
 
 		<p>
-			This page is only for testing, please use a POST http request to <strong>/api/mydata/login</strong>
+			This page is only for testing, please use a POST http request to <strong>/api/login.do</strong>
 			with the following attributes:<br />
 			<li><strong>j_username</strong>: containing your public apikey</li>
 			<li><strong>j_password</strong>: containing your private key</li>
