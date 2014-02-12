@@ -559,7 +559,7 @@ public class SugarCRMCache {
 		ds.status = ClientUtils.translateStatus(ds.savedsugarcrmFields.get(EuropeanaUpdatableField.STATUS.getFieldId()));
 		ds.name = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId()); 
 		ds.creationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.DATE_ENTERED.getFieldId());
-		ds.publicationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.EXPECTED_INGESTION_DATE.getFieldId());
+		//ds.publicationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.EXPECTED_INGESTION_DATE.getFieldId());
 		String precordsStr =  ds.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId()); 
 		if(precordsStr != null){
 			try{
