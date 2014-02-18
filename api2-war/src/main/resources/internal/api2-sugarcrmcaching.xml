@@ -1,24 +1,22 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
-        xmlns:task="http://www.springframework.org/schema/task"
-        xsi:schemaLocation="
-                http://www.springframework.org/schema/beans
-                http://www.springframework.org/schema/beans/spring-beans.xsd
-                http://www.springframework.org/schema/task
-                http://www.springframework.org/schema/task/spring-task.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task
+		http://www.springframework.org/schema/task/spring-task.xsd">
 
-    <task:scheduler id="sugarcrm_taskScheduler" pool-size="10" />
-        
-    <task:executor id="sugarcrm_taskExecutor" pool-size="10"/>
+	<task:scheduler id="sugarcrm_taskScheduler" pool-size="10" />
 
-	<bean id="sugarCRMPoller"
-		class="eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler" />
-		
-	<bean id="sugarCRMCache"
-		class="eu.europeana.api2.v2.service.SugarCRMCache" />
+	<task:executor id="sugarcrm_taskExecutor" pool-size="10" />
+
+	<bean id="sugarCRMPoller" class="eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler" />
+
+	<bean id="sugarCRMCache" class="eu.europeana.api2.v2.service.SugarCRMCache" />
 
 	<bean id="api_db_mongo_cache" class="com.mongodb.Mongo">
-		<constructor-arg value="#{europeanaProperties['cachemongodb.host']}"/>
-		<constructor-arg value="#{europeanaProperties['cachemongodb.port']}"/>
+		<constructor-arg value="#{europeanaProperties['cachemongodb.host']}" />
+		<constructor-arg value="#{europeanaProperties['cachemongodb.port']}" />
 	</bean>
 </beans>
