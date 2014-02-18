@@ -44,7 +44,7 @@ public class AbstractSearchResults<T> extends ApiResponse {
 		// used by Jackson
 		super();
 	}
-	
+
 	public long getTotalResults() {
 		if (totalResults < itemsCount) {
 			return itemsCount;

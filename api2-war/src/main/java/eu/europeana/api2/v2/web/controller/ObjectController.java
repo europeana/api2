@@ -104,7 +104,8 @@ public class ObjectController {
 
 	private String similarItemsProfile = "minimal";
 
-	@RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView record(
 			@PathVariable String collectionId,
 			@PathVariable String recordId,
@@ -147,7 +148,7 @@ public class ObjectController {
 			}
 
 			if (bean == null) {
-				apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.LIMIT, profile);
+				apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, profile);
 				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Invalid record identifier: "
 						+ europeanaObjectId, requestNumber), callback);
 			}
@@ -315,7 +316,7 @@ public class ObjectController {
 		}
 
 		if (bean != null) {
-			model.put("record", EdmUtils.toEDM(bean,false));
+			model.put("record", EdmUtils.toEDM(bean, false));
 		} else {
 			response.setStatus(404);
 			model.put("error", "Non-existing record identifier");
