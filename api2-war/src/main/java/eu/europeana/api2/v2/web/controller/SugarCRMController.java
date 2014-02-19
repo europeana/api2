@@ -111,12 +111,13 @@ public class SugarCRMController {
 		}
 		long requestNumber = limitRequest.getRequestNumber();
 
+		String action = "/v2/providers.json";
 		try {
 			int intOffset = offset == null ? 0 : Integer.parseInt(offset);
 			int intPagesize = pagesize == null ? 0 : Integer.parseInt(pagesize);
 
 			response = sugarCRMCache.getProviders(countryCode, intOffset, intPagesize);
-			response.action = "/v2/providers.json";
+			response.action = action;
 			response.apikey = wskey;
 			response.requestNumber = requestNumber;
 			response.itemsCount = response.items.size();
@@ -126,7 +127,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching all providers";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, "providers.json", error + " " + e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), requestNumber), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -163,9 +164,10 @@ public class SugarCRMController {
 		}
 		long requestNumber = limitRequest.getRequestNumber();
 
+		String action = "/v2/provider/" + id + ".json";
 		try {
 			response = sugarCRMCache.getProviderbyID(id);
-			response.action = "/v2/provider/" + id + ".json";
+			response.action = action;
 			response.apikey = wskey;
 			response.requestNumber = requestNumber;
 			response.itemsCount = response.items.size();
@@ -177,7 +179,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching all providers";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, "/v2/provider/" + id + ".json", error + " " + e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), requestNumber), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -196,7 +198,7 @@ public class SugarCRMController {
 	@RequestMapping(value = "/v2/provider/{id}/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findDatasetsPerProvider(
-			@PathVariable  String id,
+			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
@@ -214,9 +216,10 @@ public class SugarCRMController {
 		}
 		long requestNumber = limitRequest.getRequestNumber();
 
+		String action = "/v2/provider/" + id + "/datasets.json";
 		try {
 			response = sugarCRMCache.getCollectionByProviderID(id);
-			response.action = "/v2/provider/"+id+"/datasets.json";
+			response.action = action;
 			response.apikey = wskey;
 			response.requestNumber = requestNumber;
 			response.itemsCount = response.items.size();
@@ -228,7 +231,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching datasets by provider id";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, "/v2/provider/" + id + "/datasets.json", error + " " + e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), requestNumber), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -249,9 +252,12 @@ public class SugarCRMController {
 	 */
 	@RequestMapping(value = "/v2/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })
-	public ModelAndView findatasets(
+	public ModelAndView findDatasets(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
+			@RequestParam(value = "name", required = false) String name,
+			@RequestParam(value = "countryCode", required = false) String country,
+			@RequestParam(value = "status", required = false) String status,
 			@RequestParam(value = "offset", required = false) String offset,
 			@RequestParam(value = "pagesize", required = false) String pagesize,
 			HttpServletRequest request,
@@ -269,12 +275,13 @@ public class SugarCRMController {
 		}
 		long requestNumber = limitRequest.getRequestNumber();
 
+		String action = "/v2/datasets.json";
 		try {
 			int intOffset = offset == null ? 0 : Integer.parseInt(offset);
 			int intPagesize = pagesize == null ? 0 : Integer.parseInt(pagesize);
 
-			response = sugarCRMCache.getCollections(intOffset, intPagesize);
-			response.action = "/v2/datasets.json";
+			response = sugarCRMCache.getCollections(intOffset, intPagesize, name, country, status);
+			response.action = action;
 			response.apikey = wskey;
 			response.requestNumber = requestNumber;
 			response.itemsCount = response.items.size();
@@ -285,7 +292,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching all datasets";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, "/v2/datasets.json", error + " " + e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), requestNumber), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -305,7 +312,7 @@ public class SugarCRMController {
 	@RequestMapping(value = "/v2/dataset/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.GET })
 	public ModelAndView findDatasetsById(
-			@PathVariable  String id,
+			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
@@ -323,9 +330,10 @@ public class SugarCRMController {
 		}
 		long requestNumber = limitRequest.getRequestNumber();
 
+		String action = "/v2/dataset/" + id + ".json";
 		try {
 			response = sugarCRMCache.getCollectionByID(id);
-			response.action = "/v2/dataset/"+id+".json";
+			response.action = action;
 			response.apikey = wskey;
 			response.requestNumber = requestNumber;
 			response.itemsCount = response.items.size();
@@ -337,7 +345,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching datasets by dataset id";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, "/v2/dataset/" + id + ".json", error + " " + e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), requestNumber), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
