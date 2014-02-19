@@ -40,66 +40,64 @@ public class DataSet{
 	public DataSet(){
 		//Used by Jackson
 	}
-	
+
 	/**
 	 * 
 	 */
 	@Id
 	@Indexed
 	public String identifier;
-	
+
 	/**
 	 * 
 	 */
 	@Indexed
 	public String provIdentifier;
-	
+
 	/**
 	 * 
 	 */
 	public String providerName;
-	
+
 	/**
 	 * 
 	 */
 	@NotSaved
 	public String name;
-	
+
 	/**
 	 * 
 	 */
 	@NotSaved
 	public String status;
-	
+
 	/**
 	 * 
 	 */
 	@NotSaved
 	public long publishedRecords;
-	
+
 	/**
 	 * 
 	 */
 	@NotSaved
 	public long deletedRecords;
-	
+
 	/**
 	 * 
 	 */
 	@NotSaved
 	public String creationDate;
-	
+
 	/**
 	 * 
 	 */
 	@NotSaved
 	public String publicationDate;
-	
+
 	/**
 	 * 
 	 */
 	@JsonIgnore
 	public Map<String,String> savedsugarcrmFields;
-	
-	
 }

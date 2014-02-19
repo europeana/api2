@@ -23,6 +23,8 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import eu.europeana.corelib.logging.Logger;
+
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import com.google.code.morphia.Datastore;
 import com.google.code.morphia.Morphia;
@@ -76,7 +78,7 @@ public class SugarCRMCache {
 	 */
 	@PostConstruct
 	public void initLocal() {
-		if(mongo == null){
+		if (mongo == null) {
 			try {
 				mongo = new Mongo();
 			} catch (UnknownHostException e) {
@@ -91,12 +93,13 @@ public class SugarCRMCache {
 		morphia.map(DataSet.class).map(Provider.class);
 		ds = morphia.createDatastore(mongo, CACHEDB);
 
-		mongo.getDB(CACHEDB).getCollection("DataSet")
-				.ensureIndex("identifier");
-		mongo.getDB(CACHEDB).getCollection("Provider")
-				.ensureIndex("identifier");
+		mongo.getDB(CACHEDB).getCollection("DataSet").ensureIndex("identifier");
+		mongo.getDB(CACHEDB).getCollection("DataSet").ensureIndex("savedsugarcrmFields.name");
+		mongo.getDB(CACHEDB).getCollection("DataSet").ensureIndex("savedsugarcrmFields.country_c");
+		mongo.getDB(CACHEDB).getCollection("DataSet").ensureIndex("savedsugarcrmFields.sales_stage");
+		mongo.getDB(CACHEDB).getCollection("Provider").ensureIndex("identifier");
 	}
-	
+
 	/*
 	 * Mongo (retrieval from cache) related operations
 	 */
@@ -107,7 +110,7 @@ public class SugarCRMCache {
 	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<Provider> getProviders() {
-		return getProviders(null,0,0);
+		return getProviders(null, 0, 0);
 	}
 
 	/**
@@ -147,14 +150,17 @@ public class SugarCRMCache {
 		return results;
 	}
 
-	
 	/**
 	 * Gets all datasets from the Mongo Cache.
 	 * 
 	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<DataSet> getCollections() {
-		return getCollections(0,0);
+		return getCollections(0, 0);
+	}
+
+	public SugarCRMSearchResults<DataSet> getCollections(int offset, int pagesize) {
+		return getCollections(0, 0, null, null, null);
 	}
 
 	/**
@@ -164,9 +170,25 @@ public class SugarCRMCache {
 	 * 
 	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
 	 */
-	public SugarCRMSearchResults<DataSet> getCollections(int offset,int pagesize) {
+	public SugarCRMSearchResults<DataSet> getCollections(int offset, int pagesize, String name, String country, String status) {
 		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("", "");
 		Query<DataSet> query = ds.find(DataSet.class);
+
+		if (StringUtils.isNotBlank(name)) {
+			query.field("savedsugarcrmFields.name").equal(name);
+		}
+
+		if (StringUtils.isNotBlank(country)) {
+			query.field("savedsugarcrmFields.country_c").equal(country);
+		}
+
+		if (StringUtils.isNotBlank(status)) {
+			String sysId = ClientUtils.translateDsStatusDescription(status);
+			if (StringUtils.isNotBlank(sysId)) {
+				query.field("savedsugarcrmFields.sales_stage").equal(sysId);
+			}
+			// TODO: create an else branch because it is an invalid query!!!
+		}
 
 		if (offset != 0 && pagesize != 0) {
 			query.offset(offset);
@@ -182,8 +204,9 @@ public class SugarCRMCache {
 			query.offset(offset);
 		}
 
-		List<DataSet> res =  query.asList();
-		long count = ds.find(DataSet.class).countAll();
+		List<DataSet> res = query.asList();
+		long count = query.countAll();
+		// long count = ds.find(DataSet.class).countAll();
 		results.totalResults = count;
 		results.items = res;
 
@@ -223,7 +246,7 @@ public class SugarCRMCache {
 		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("", "");
 		results.items = new ArrayList<DataSet>();
 		DataSet dts = ds.find(DataSet.class).field("_id").equal(id).get();
-		if (dts!= null) {
+		if (dts != null) {
 			inflateDataset(dts);
 			results.items.add(dts);
 			return results;
@@ -240,10 +263,10 @@ public class SugarCRMCache {
 	 */
 	public SugarCRMSearchResults<DataSet> getCollectionByProviderID(String id) {
 		List<DataSet> reslist = ds.find(DataSet.class).field("provIdentifier").equal(id).asList();
-		for(DataSet dts : reslist){
+		for (DataSet dts : reslist) {
 			inflateDataset(dts);
 		}
-		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("","");
+		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("", "");
 		results.items = new ArrayList<DataSet>();
 		results.items.addAll(reslist);
 		return results;
@@ -367,7 +390,7 @@ public class SugarCRMCache {
 				if (datasetiD != null) {
 					String query = "opportunities.id LIKE '" + datasetiDSb.toString() + "%'";
 
-					SugarCRMSearchResults<DataSet> datasets =  retrieveDataset(query,uimprovID); 
+					SugarCRMSearchResults<DataSet> datasets =  retrieveDataset(query, uimprovID); 
 					if (datasets.items.size() != 0) {
 						for (DataSet dts : datasets.items) {
 							ds.save(dts);
@@ -383,9 +406,9 @@ public class SugarCRMCache {
 	 * @throws JIXBQueryResultException 
 	 */
 	public SugarCRMSearchResults<Provider> pollProviders() throws JIXBQueryResultException{
-		String q1 ="accounts.date_modified > DATE_SUB(NOW(),INTERVAL 66 MINUTE)";
+		String q1 = "accounts.date_modified > DATE_SUB(NOW(),INTERVAL 66 MINUTE)";
 		String q2 = "accounts_cstm.agg_status_c LIKE '%D'";
-		SugarCRMSearchResults<Provider> provres = retrieveproviders(q1,q2);
+		SugarCRMSearchResults<Provider> provres = retrieveproviders(q1, q2);
 		for (Provider prov : provres.items) {
 			log.info("Provider:" + prov.identifier + " was updated by the scheduler...");
 			saveupdateProvider2Cache(prov);
@@ -412,8 +435,8 @@ public class SugarCRMCache {
 	 * @return the JSON/Morphia annotated dataset beans wrapped in a SugarCRMSearchResults JSON object
 	 * @throws JIXBQueryResultException
 	 */
-	private SugarCRMSearchResults<DataSet> retrieveDataset(String query,String providerID) throws JIXBQueryResultException {
-
+	private SugarCRMSearchResults<DataSet> retrieveDataset(String query, String providerID) 
+			throws JIXBQueryResultException {
 		GetEntryList request = new GetEntryList();
 		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("", "");
 		results.items = new ArrayList<DataSet>();
@@ -436,7 +459,7 @@ public class SugarCRMCache {
 		}
 		for (Element el : list) {
 			DataSet ds = new DataSet();
-			populateDatasetFromDOMElement(ds,el, providerID);
+			populateDatasetFromDOMElement(ds, el, providerID);
 			results.items.add(ds);
 		}
 		return results;
@@ -502,7 +525,7 @@ public class SugarCRMCache {
 		for (Element el : list) {
 			Provider prov = new Provider();
 			// Insert values in Provider Object
-			populateProviderFromDOMElement(prov,el);
+			populateProviderFromDOMElement(prov, el);
 			results.items.add(prov);
 		}
 
@@ -544,10 +567,12 @@ public class SugarCRMCache {
 	 */
 	private void inflateDataset(DataSet ds) {
 		ds.status = ClientUtils.translateStatus(ds.savedsugarcrmFields.get(EuropeanaUpdatableField.STATUS.getFieldId()));
-		ds.name = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId()); 
+		ds.name = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId());
 		ds.creationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.DATE_ENTERED.getFieldId());
+		ds.providerName = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.ORGANIZATION_NAME.getFieldId());
+
 		//ds.publicationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.EXPECTED_INGESTION_DATE.getFieldId());
-		String precordsStr =  ds.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId());
+		String precordsStr = ds.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId());
 		if (precordsStr != null) {
 			try{
 				ds.publishedRecords = Long.parseLong(precordsStr);
@@ -556,9 +581,9 @@ public class SugarCRMCache {
 				ds.publishedRecords = 0;
 			}
 		}
-		String delrecordsStr =  ds.savedsugarcrmFields.get(EuropeanaUpdatableField.DELETED_RECORDS.getFieldId()); 
+		String delrecordsStr = ds.savedsugarcrmFields.get(EuropeanaUpdatableField.DELETED_RECORDS.getFieldId());
 		if (delrecordsStr != null) {
-			ds.deletedRecords =  Long.parseLong(delrecordsStr);
+			ds.deletedRecords = Long.parseLong(delrecordsStr);
 		}
 	}
 
