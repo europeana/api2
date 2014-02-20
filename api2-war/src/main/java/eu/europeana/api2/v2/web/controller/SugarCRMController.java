@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
@@ -103,13 +104,13 @@ public class SugarCRMController {
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response = null;
 
-		LimitRequest limitRequest = new LimitRequest(request.getRequestURL().toString(),
-				"providers.json", RecordType.PROVIDERS, wskey, callback, null);
-		ModelAndView modelAndView = controllerUtils.checkLimit(limitRequest);
-		if (modelAndView != null) {
-			return modelAndView;
+		long requestNumber = 0;
+		try {
+			requestNumber = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+					"providers.json", RecordType.PROVIDERS, null);
+		} catch (ApiLimitException e) {
+			return JsonUtils.toJson(new ApiError(e), callback);
 		}
-		long requestNumber = limitRequest.getRequestNumber();
 
 		String action = "/v2/providers.json";
 		try {
@@ -156,13 +157,13 @@ public class SugarCRMController {
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response = null;
 
-		LimitRequest limitRequest = new LimitRequest(request.getRequestURL().toString(),
-				"provider.json", RecordType.PROVIDER, wskey, callback, null);
-		ModelAndView modelAndView = controllerUtils.checkLimit(limitRequest);
-		if (modelAndView != null) {
-			return modelAndView;
+		long requestNumber = 0;
+		try {
+			requestNumber = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+					"provider.json", RecordType.PROVIDER, null);
+		} catch (ApiLimitException e) {
+			return JsonUtils.toJson(new ApiError(e), callback);
 		}
-		long requestNumber = limitRequest.getRequestNumber();
 
 		String action = "/v2/provider/" + id + ".json";
 		try {
@@ -208,13 +209,13 @@ public class SugarCRMController {
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
 
-		LimitRequest limitRequest = new LimitRequest(request.getRequestURL().toString(),
-				"provider/datasets.json", RecordType.PROVIDER_DATASETS, wskey, callback, null);
-		ModelAndView modelAndView = controllerUtils.checkLimit(limitRequest);
-		if (modelAndView != null) {
-			return modelAndView;
+		long requestNumber = 0;
+		try {
+			requestNumber = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+					"provider/datasets.json", RecordType.PROVIDER_DATASETS, null);
+		} catch (ApiLimitException e) {
+			return JsonUtils.toJson(new ApiError(e), callback);
 		}
-		long requestNumber = limitRequest.getRequestNumber();
 
 		String action = "/v2/provider/" + id + "/datasets.json";
 		try {
@@ -267,13 +268,13 @@ public class SugarCRMController {
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
 
-		LimitRequest limitRequest = new LimitRequest(request.getRequestURL().toString(),
-				"datasets.json", RecordType.DATASETS, wskey, callback, null);
-		ModelAndView modelAndView = controllerUtils.checkLimit(limitRequest);
-		if (modelAndView != null) {
-			return modelAndView;
+		long requestNumber = 0;
+		try {
+			requestNumber = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+					"datasets.json", RecordType.DATASETS, null);
+		} catch (ApiLimitException e) {
+			return JsonUtils.toJson(new ApiError(e), callback);
 		}
-		long requestNumber = limitRequest.getRequestNumber();
 
 		String action = "/v2/datasets.json";
 		try {
@@ -322,13 +323,13 @@ public class SugarCRMController {
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
 
-		LimitRequest limitRequest = new LimitRequest(request.getRequestURL().toString(),
-				"datasets.json", RecordType.DATASETS, wskey, callback, null);
-		ModelAndView modelAndView = controllerUtils.checkLimit(limitRequest);
-		if (modelAndView != null) {
-			return modelAndView;
+		long requestNumber = 0;
+		try {
+			requestNumber = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+					"datasets.json", RecordType.DATASETS, null);
+		} catch (ApiLimitException e) {
+			return JsonUtils.toJson(new ApiError(e), callback);
 		}
-		long requestNumber = limitRequest.getRequestNumber();
 
 		String action = "/v2/dataset/" + id + ".json";
 		try {
