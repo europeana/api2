@@ -206,6 +206,7 @@ public class SugarCRMCache {
 
 		List<DataSet> res = query.asList();
 		long count = query.countAll();
+		// TODO: check how offset modifies the behaviour
 		// long count = ds.find(DataSet.class).countAll();
 		results.totalResults = count;
 		results.items = res;
@@ -232,7 +233,7 @@ public class SugarCRMCache {
 			results.items.add(prov);
 			return results;
 		}
-		else{
+		else {
 			return results;
 		}
 	}
@@ -251,7 +252,7 @@ public class SugarCRMCache {
 			results.items.add(dts);
 			return results;
 		}
-		else{
+		else {
 			return results;
 		}
 	}
@@ -405,7 +406,7 @@ public class SugarCRMCache {
 	 * Basic polling function for providers (sugarcrm 2 cache)
 	 * @throws JIXBQueryResultException 
 	 */
-	public SugarCRMSearchResults<Provider> pollProviders() throws JIXBQueryResultException{
+	public SugarCRMSearchResults<Provider> pollProviders() throws JIXBQueryResultException {
 		String q1 = "accounts.date_modified > DATE_SUB(NOW(),INTERVAL 66 MINUTE)";
 		String q2 = "accounts_cstm.agg_status_c LIKE '%D'";
 		SugarCRMSearchResults<Provider> provres = retrieveproviders(q1, q2);
@@ -574,7 +575,7 @@ public class SugarCRMCache {
 		//ds.publicationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.EXPECTED_INGESTION_DATE.getFieldId());
 		String precordsStr = ds.savedsugarcrmFields.get(EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId());
 		if (precordsStr != null) {
-			try{
+			try {
 				ds.publishedRecords = Long.parseLong(precordsStr);
 			}
 			catch (Exception ex) {
