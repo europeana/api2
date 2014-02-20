@@ -38,6 +38,7 @@ import org.springframework.web.servlet.ModelAndView;
 import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
@@ -103,11 +104,12 @@ public class SugarCRMController {
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response = null;
 
-		long requestNumber = 0;
+		LimitResponse limitResponse = null;
 		try {
-			requestNumber = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"providers.json", RecordType.PROVIDERS, null);
 		} catch (ApiLimitException e) {
+			httpResponse.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
@@ -119,7 +121,7 @@ public class SugarCRMController {
 			response = sugarCRMCache.getProviders(countryCode, intOffset, intPagesize);
 			response.action = action;
 			response.apikey = wskey;
-			response.requestNumber = requestNumber;
+			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
 			response.statsStartTime = starttime;
 			Date endtime = new Date();
@@ -127,7 +129,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching all providers";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -156,11 +158,12 @@ public class SugarCRMController {
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response = null;
 
-		long requestNumber = 0;
+		LimitResponse limitResponse = null;
 		try {
-			requestNumber = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"provider.json", RecordType.PROVIDER, null);
 		} catch (ApiLimitException e) {
+			httpResponse.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
@@ -169,7 +172,7 @@ public class SugarCRMController {
 			response = sugarCRMCache.getProviderbyID(id);
 			response.action = action;
 			response.apikey = wskey;
-			response.requestNumber = requestNumber;
+			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
 			response.totalResults = response.items.size();
 			response.statsStartTime = starttime;
@@ -179,7 +182,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching all providers";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -208,11 +211,12 @@ public class SugarCRMController {
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
 
-		long requestNumber = 0;
+		LimitResponse limitResponse = null;
 		try {
-			requestNumber = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"provider/datasets.json", RecordType.PROVIDER_DATASETS, null);
 		} catch (ApiLimitException e) {
+			httpResponse.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
@@ -221,7 +225,7 @@ public class SugarCRMController {
 			response = sugarCRMCache.getCollectionByProviderID(id);
 			response.action = action;
 			response.apikey = wskey;
-			response.requestNumber = requestNumber;
+			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
 			response.totalResults = response.items.size();
 			response.statsStartTime = starttime;
@@ -231,7 +235,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching datasets by provider id";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -267,11 +271,12 @@ public class SugarCRMController {
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
 
-		long requestNumber = 0;
+		LimitResponse limitResponse = null;
 		try {
-			requestNumber = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"datasets.json", RecordType.DATASETS, null);
 		} catch (ApiLimitException e) {
+			httpResponse.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
@@ -283,7 +288,7 @@ public class SugarCRMController {
 			response = sugarCRMCache.getCollections(intOffset, intPagesize, name, country, status);
 			response.action = action;
 			response.apikey = wskey;
-			response.requestNumber = requestNumber;
+			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
 			response.statsStartTime = starttime;
 			Date endtime = new Date();
@@ -292,7 +297,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching all datasets";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -322,11 +327,12 @@ public class SugarCRMController {
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
 
-		long requestNumber = 0;
+		LimitResponse limitResponse = null;
 		try {
-			requestNumber = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"datasets.json", RecordType.DATASETS, null);
 		} catch (ApiLimitException e) {
+			httpResponse.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
@@ -335,7 +341,7 @@ public class SugarCRMController {
 			response = sugarCRMCache.getCollectionByID(id);
 			response.action = action;
 			response.apikey = wskey;
-			response.requestNumber = requestNumber;
+			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
 			response.totalResults = response.items.size();
 			response.statsStartTime = starttime;
@@ -345,7 +351,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching datasets by dataset id";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);

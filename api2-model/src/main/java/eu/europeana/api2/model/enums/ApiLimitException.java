@@ -11,6 +11,7 @@ public class ApiLimitException extends Exception {
 	private String action;
 	private String error;
 	private long requestNumber;
+	private int httpStatus;
 
 	public ApiLimitException(String apikey, String action, String error) {
 		super();
@@ -22,6 +23,11 @@ public class ApiLimitException extends Exception {
 	public ApiLimitException(String apikey, String action, String error, long requestNumber) {
 		this(apikey, action, error);
 		this.requestNumber = requestNumber;
+	}
+
+	public ApiLimitException(String apikey, String action, String error, long requestNumber, int httpStatus) {
+		this(apikey, action, error, requestNumber);
+		this.httpStatus = httpStatus;
 	}
 
 	public String getApikey() {
@@ -38,5 +44,9 @@ public class ApiLimitException extends Exception {
 
 	public long getRequestNumber() {
 		return requestNumber;
+	}
+
+	public int getHttpStatus() {
+		return httpStatus;
 	}
 }

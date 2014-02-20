@@ -50,15 +50,19 @@ import com.github.jsonldjava.utils.JSONUtils;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 
+import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.FullView;
+import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
+import eu.europeana.corelib.db.entity.relational.ApiKeyImpl;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
@@ -102,6 +106,9 @@ public class ObjectController {
 	@Resource
 	private EuropeanaUrlService urlService;
 
+	@Resource
+	private ControllerUtils controllerUtils;
+
 	private String similarItemsProfile = "minimal";
 
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, 
@@ -116,30 +123,23 @@ public class ObjectController {
 			HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
-		String europeanaObjectId = "/" + collectionId + "/" + recordId;
-		ApiKey apiKey;
-		long requestNumber = 0;
+		LimitResponse limitResponse = null;
 		try {
-			apiKey = apiService.findByID(wskey);
-			if (apiKey == null) {
-				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Unregistered user"), callback);
-			}
-			apiKey.getUsageLimit();
-			requestNumber = apiService.checkReachedLimit(apiKey);
-		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, profile);
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
-		} catch (LimitReachedException e) {
-			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.LIMIT, profile);
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()), callback);
+			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+					"record.json", RecordType.OBJECT, profile);
+		} catch (ApiLimitException e) {
+			response.setStatus(e.getHttpStatus());
+			return JsonUtils.toJson(new ApiError(e), callback);
 		}
+
 		log.info("record");
-		ObjectResult objectResult = new ObjectResult(wskey, "record.json", requestNumber);
+		ObjectResult objectResult = new ObjectResult(wskey, "record.json", limitResponse.getRequestNumber());
 		if (StringUtils.containsIgnoreCase(profile, "params")) {
 			objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
 			objectResult.addParam("profile", profile);
 		}
 
+		String europeanaObjectId = "/" + collectionId + "/" + recordId;
 		try {
 			long t0 = (new Date()).getTime();
 			FullBean bean = searchService.findById(europeanaObjectId, true);
@@ -148,9 +148,8 @@ public class ObjectController {
 			}
 
 			if (bean == null) {
-				apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, profile);
 				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Invalid record identifier: "
-						+ europeanaObjectId, requestNumber), callback);
+						+ europeanaObjectId, limitResponse.getRequestNumber()), callback);
 			}
 
 			if (StringUtils.containsIgnoreCase(profile, Profile.SIMILAR.getName())) {
@@ -159,7 +158,7 @@ public class ObjectController {
 				try {
 					similarItems = searchService.findMoreLikeThis(europeanaObjectId);
 					for (BriefBean b : similarItems) {
-						BriefView view = new BriefView(b, similarItemsProfile, wskey, apiKey.getUser().getId(), optOutService.check(b.getId()));
+						BriefView view = new BriefView(b, similarItemsProfile, wskey, limitResponse.getApiKey().getUser().getId(), optOutService.check(b.getId()));
 						beans.add(view);
 					}
 				} catch (SolrServerException e) {
@@ -167,15 +166,14 @@ public class ObjectController {
 				}
 				objectResult.similarItems = beans;
 			}
-			objectResult.object = new FullView(bean, profile, apiKey.getUser().getId(), optOutService.check(bean
+			objectResult.object = new FullView(bean, profile, limitResponse.getApiKey().getUser().getId(), optOutService.check(bean
 					.getId()));
 			long t1 = (new Date()).getTime();
 			objectResult.statsDuration = (t1 - t0);
-			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, profile);
 		} catch (SolrTypeException e) {
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), limitResponse.getRequestNumber()), callback);
 		} catch (MongoDBException e) {
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
+			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(objectResult, callback);
@@ -208,23 +206,15 @@ public class ObjectController {
 			HttpServletRequest request, HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
-		ApiKey apiKey;
-		long requestNumber = 0;
+		LimitResponse limitResponse = null;
 		try {
-			apiKey = apiService.findByID(wskey);
-			if (apiKey == null) {
-				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Unregistered user"), callback);
-			}
-			apiKey.getUsageLimit();
-			requestNumber = apiService.checkReachedLimit(apiKey);
-		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.OBJECT, Profile.STANDARD.toString());
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber), callback);
-		} catch (LimitReachedException e) {
-			apiLogService.logApiRequest(wskey, request.getRequestURL().toString(), RecordType.LIMIT, Profile.STANDARD.toString());
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()), callback);
+			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+					"record.jsonld", RecordType.OBJECT_JSONLD, null);
+		} catch (ApiLimitException e) {
+			response.setStatus(e.getHttpStatus());
+			return JsonUtils.toJson(new ApiError(e), callback);
 		}
-		
+
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
 
 		String jsonld = null;
@@ -289,7 +279,7 @@ public class ObjectController {
 			apiKey.getUsageLimit();
 			apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
+			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT_RDF, profile);
 			model.put("error", e.getMessage());
 			response.setStatus(401);
 			return new ModelAndView("rdf", model);
@@ -322,7 +312,7 @@ public class ObjectController {
 			model.put("error", "Non-existing record identifier");
 		}
 
-		apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
+		apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT_RDF, profile);
 		return new ModelAndView("rdf", model);
 	}
 	

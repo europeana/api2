@@ -40,8 +40,10 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.mongodb.Mongo;
 
+import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.Suggestions;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -50,6 +52,7 @@ import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.Item;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
+import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.FacetParameterUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
@@ -110,6 +113,9 @@ public class SearchController {
 
 	@Resource
 	private EuropeanaUrlService urlService;
+
+	@Resource
+	private ControllerUtils controllerUtils;
 
 	final static public int FACET_LIMIT = 16;
 
@@ -206,23 +212,13 @@ public class SearchController {
 			}
 		}
 
-		ApiKey apiKey;
-		long requested = 0;
+		LimitResponse limitResponse = null;
 		try {
-			apiKey = apiService.findByID(wskey);
-			if (apiKey == null) {
-				response.setStatus(401);
-				return JsonUtils.toJson(new ApiError(wskey, "search.json", "Unregistered user"), callback);
-			}
-			requested = apiService.checkReachedLimit(apiKey);
-		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH, profile);
-			response.setStatus(401);
-			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage(), requested), callback);
-		} catch (LimitReachedException e) {
-			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.LIMIT, profile);
-			response.setStatus(429);
-			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage(), e.getRequested()), callback);
+			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+					"search.json", RecordType.SEARCH, profile);
+		} catch (ApiLimitException e) {
+			response.setStatus(e.getHttpStatus());
+			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
 		Class<? extends IdBean> clazz;
@@ -233,8 +229,9 @@ public class SearchController {
 		}
 
 		try {
-			SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz, apiKey.getUser().getId());
-			result.requestNumber = requested;
+			SearchResults<? extends IdBean> result = createResults(wskey, profile, 
+					query, clazz, limitResponse.getApiKey().getUser().getId());
+			result.requestNumber = limitResponse.getRequestNumber();
 			if (StringUtils.containsIgnoreCase(profile, "params")) {
 				result.addParams(RequestUtils.getParameterMap(request), "wskey");
 				result.addParam("profile", profile);
@@ -410,7 +407,7 @@ public class SearchController {
 			kmlResponse.document.extendedData.totalResults.value = Long.toString(resultSet.getResultSize());
 			kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
 			kmlResponse.setItems(resultSet.getResults());
-			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH, "kml");
+			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH_KML, "kml");
 		} catch (SolrTypeException e) {
 			response.setStatus(429);
 			throw new Exception(e);
