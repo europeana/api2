@@ -180,7 +180,7 @@ public class MyDataTagController extends AbstractUserController {
 			@RequestParam(value = "tag", required = false) String tag,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
-		UserModification response = new UserModification(getApiId(principal), "/v2/mydata/tag.json?action=DELETE");
+		UserModification response = new UserModification(principal.getName(), "/v2/mydata/tag.json?action=DELETE");
 		try {
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {

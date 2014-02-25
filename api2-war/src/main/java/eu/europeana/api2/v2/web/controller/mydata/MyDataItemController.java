@@ -105,7 +105,7 @@ public class MyDataItemController extends AbstractUserController {
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		UserModification response = new UserModification(getApiId(principal), "/v2/mydata/saveditem.json?action=CREATE");
+		UserModification response = new UserModification(principal.getName(), "/v2/mydata/saveditem.json?action=CREATE");
 		try {
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {
@@ -138,7 +138,7 @@ public class MyDataItemController extends AbstractUserController {
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		UserModification response = new UserModification(getApiId(principal), "/v2/mydata/saveditem.json?action=DELETE");
+		UserModification response = new UserModification(principal.getName(), "/v2/mydata/saveditem.json?action=DELETE");
 		try {
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {
