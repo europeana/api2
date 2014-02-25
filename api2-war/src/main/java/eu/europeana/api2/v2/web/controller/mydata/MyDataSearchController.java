@@ -99,7 +99,7 @@ public class MyDataSearchController extends AbstractUserController {
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") String start,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
-		UserModification response = new UserModification(getApiId(principal), "/v2/mydata/tag.search?action=CREATE");
+		UserModification response = new UserModification(principal.getName(), "/v2/mydata/tag.search?action=CREATE");
 		try {
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {
@@ -129,7 +129,7 @@ public class MyDataSearchController extends AbstractUserController {
 	public ModelAndView delete(
 			@RequestParam(value = "searchid", required = true) Long searchId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
-		UserModification response = new UserModification(getApiId(principal), "/v2/mydata/search.json?action=DELETE");
+		UserModification response = new UserModification(principal.getName(), "/v2/mydata/search.json?action=DELETE");
 		try {
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {
