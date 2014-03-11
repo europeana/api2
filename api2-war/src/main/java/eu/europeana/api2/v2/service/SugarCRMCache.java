@@ -546,7 +546,7 @@ public class SugarCRMCache {
 		ds.provIdentifier = providerID;
 		ds.status = ClientUtils.translateStatus(ClientUtils.extractFromElement(
 				EuropeanaUpdatableField.STATUS.getFieldId(), el));
-		ds.name = ClientUtils.extractFromElement(
+		ds.edmDatasetName = ClientUtils.extractFromElement(
 				EuropeanaRetrievableField.NAME.getFieldId(), el);
 		String precordsStr =  ClientUtils.extractFromElement(
 				EuropeanaUpdatableField.TOTAL_INGESTED.getFieldId(), el);
@@ -568,7 +568,7 @@ public class SugarCRMCache {
 	 */
 	private void inflateDataset(DataSet ds) {
 		ds.status = ClientUtils.translateStatus(ds.savedsugarcrmFields.get(EuropeanaUpdatableField.STATUS.getFieldId()));
-		ds.name = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId());
+		ds.edmDatasetName = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.NAME.getFieldId());
 		ds.creationDate = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.DATE_ENTERED.getFieldId());
 		ds.providerName = ds.savedsugarcrmFields.get(EuropeanaRetrievableField.ORGANIZATION_NAME.getFieldId());
 

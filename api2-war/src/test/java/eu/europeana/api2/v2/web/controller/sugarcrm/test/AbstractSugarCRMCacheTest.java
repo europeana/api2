@@ -111,7 +111,7 @@ public abstract class AbstractSugarCRMCacheTest {
 		  
 		  for(DataSet ds: collres.items){
 			  assertNotNull(ds.identifier);
-			  assertNotNull(ds.name);
+			  assertNotNull(ds.edmDatasetName);
 			  assertNotNull(ds.status);
 			  assertNotNull(ds.provIdentifier);
 			  assertNotNull(ds.savedsugarcrmFields);
@@ -130,7 +130,7 @@ public abstract class AbstractSugarCRMCacheTest {
 		DataSet ds = collres.items.get(0);
 		assertNotNull(ds);
 		assertNotNull(ds.identifier);
-		assertNotNull(ds.name);
+		assertNotNull(ds.edmDatasetName);
 		assertNotNull(ds.status);
 		assertNotNull(ds.provIdentifier);
 		assertNotNull(ds.savedsugarcrmFields);

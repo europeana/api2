@@ -67,7 +67,7 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 		final SugarCRMSearchResults<DataSet> collectionres = new SugarCRMSearchResults<DataSet>(null, null);
 		DataSet ds = new DataSet();
 		ds.identifier = "mockid";
-		ds.name = "mockname";
+		ds.edmDatasetName = "mockname";
 		ds.deletedRecords = 0;
 		ds.publishedRecords = 0;
 		ds.provIdentifier = "mockprovID";
