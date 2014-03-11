@@ -191,7 +191,6 @@ public class SearchController {
 				}
 			}
 		}
-		
 
 		query.setValueReplacements(valueReplacements);
 

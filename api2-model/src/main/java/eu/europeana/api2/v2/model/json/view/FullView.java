@@ -260,6 +260,10 @@ public class FullView implements FullBean {
 		return bean.getEuropeanaCollectionName();
 	}
 
+	public String[] getEdmDatasetName() {
+		return getEuropeanaCollectionName();
+	}
+
 	@Override
 	public String[] getCountry() {
 		return bean.getCountry();
