@@ -259,7 +259,7 @@ public class SugarCRMController {
 	public ModelAndView findDatasets(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
-			@RequestParam(value = "name", required = false) String name,
+			@RequestParam(value = "edmDatasetName", required = false) String name,
 			@RequestParam(value = "countryCode", required = false) String country,
 			@RequestParam(value = "status", required = false) String status,
 			@RequestParam(value = "offset", required = false) String offset,

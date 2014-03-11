@@ -63,7 +63,7 @@ public class DataSet{
 	 * 
 	 */
 	@NotSaved
-	public String name;
+	public String edmDatasetName;
 
 	/**
 	 * 
