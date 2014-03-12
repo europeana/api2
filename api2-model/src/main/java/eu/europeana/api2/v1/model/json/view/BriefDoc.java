@@ -98,9 +98,6 @@ public class BriefDoc {
 		if (bean.getEuropeanaCollectionName() != null
 				&& bean.getEuropeanaCollectionName().length > 0)
 			dataProvider2 = bean.getEuropeanaCollectionName()[0];
-		if (bean.getEuropeanaCollectionName() != null
-				&& bean.getEuropeanaCollectionName().length > 0)
-			dataProvider2 = bean.getEuropeanaCollectionName()[0];
 		if (bean.getRights() != null && bean.getRights().length > 0)
 			europeanaRights = bean.getRights();
 		if (bean.getEdmPlaceLatitude() != null)
@@ -170,6 +167,7 @@ public class BriefDoc {
 			addValue("europeana:provider", provider);
 			addValue("europeana:dataProvider", dataProvider);
 			addValue("europeana:collectionName", dataProvider2);
+			addValue("edm:datasetName", dataProvider2);
 			addValue("edm:provider", dataProvider3);
 			addValue("europeana:rights", europeanaRights);
 			addValue("enrichment:place_latitude", enrichmentPlaceLatitude);
