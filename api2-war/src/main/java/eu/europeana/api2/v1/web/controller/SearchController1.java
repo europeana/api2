@@ -123,7 +123,7 @@ public class SearchController1 {
 		response.setCharacterEncoding("UTF-8");
 
 		UrlBuilder url = urlService.getApi1Home(null).addPage("opensearch.rss");
-		url.addParam("searchTerms", URLEncoder.encode(queryString, "UTF-8"));
+		url.addParam("searchTerms", queryString);
 		url.addParam("startPage", startPage);
 
 		RssResponse rss = new RssResponse();
