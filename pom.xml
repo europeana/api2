@@ -20,7 +20,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>api2</artifactId>
-	<version>2.0.9</version>
+	<version>${version.europeanaApi2}</version>
 	<packaging>pom</packaging>
 	<name>Europeana API2 parent</name>
 	<url>http://www.europeana.eu</url>
