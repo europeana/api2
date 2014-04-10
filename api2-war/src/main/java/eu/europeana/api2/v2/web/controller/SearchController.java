@@ -150,7 +150,7 @@ public class SearchController {
 		Map<String, Integer> facetLimits = null;
 		Map<String, Integer> facetOffsets = null;
 		if (isFacetsRequested) {
-			Map<Object, Object> parameterMap = (Map<Object, Object>) request.getParameterMap();
+			Map<String,String[]> parameterMap = request.getParameterMap();
 			facetLimits = FacetParameterUtils.getFacetParams("limit", aFacet, parameterMap, isDefaultFacetsRequested);
 			facetOffsets = FacetParameterUtils.getFacetParams("offset", aFacet, parameterMap, isDefaultFacetsRequested);
 		}
@@ -168,7 +168,7 @@ public class SearchController {
 			);
 		}
 
-		Query query = new Query(SolrUtils.translateQuery(queryString))
+		Query query = new Query(SolrUtils.rewriteQueryFields(queryString))
 				.setApiQuery(true)
 				.setRefinements(refinements)
 				.setPageSize(rows)
@@ -395,7 +395,7 @@ public class SearchController {
 			throw new Exception(e);
 		}
 		KmlResponse kmlResponse = new KmlResponse();
-		Query query = new Query(SolrUtils.translateQuery(queryString))
+		Query query = new Query(SolrUtils.rewriteQueryFields(queryString))
 				.setRefinements(refinements)
 				.setApiQuery(true)
 				.setAllowSpellcheck(false)
@@ -428,7 +428,7 @@ public class SearchController {
 		channel.query.startPage = start;
 
 		try {
-			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setPageSize(count)
+			Query query = new Query(SolrUtils.rewriteQueryFields(queryString)).setApiQuery(true).setPageSize(count)
 					.setStart(start - 1).setAllowFacets(false).setAllowSpellcheck(false);
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
 			channel.totalResults.value = resultSet.getResultSize();

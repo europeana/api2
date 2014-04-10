@@ -40,7 +40,7 @@ public class FacetParameterUtils {
 	 * @return
 	 */
 	public static Map<String, Integer> getFacetParams(String type, String[] facets, 
-			Map<Object, Object> parameters,
+			Map<String,String[]> parameters,
 			boolean isDefaultFacetsRequested) {
 		createFacetList();
 		Map<String, Integer> facetParams = new HashMap<String, Integer>();
@@ -81,7 +81,7 @@ public class FacetParameterUtils {
 	 * @param facetParams
 	 *   The container to save into
 	 */
-	public static void saveFacetParam(String type, String name, Map<Object, Object> parameters, 
+	public static void saveFacetParam(String type, String name, Map<String,String[]> parameters, 
 			boolean isDefault, Map<String, Integer> facetParams) {
 		NumericFacetParameter parameter = null;
 		if (type.equals("limit")) {
@@ -94,19 +94,19 @@ public class FacetParameterUtils {
 		}
 	}
 
-	public static NumericFacetParameter getFacetLimit(String facet, Map<Object, Object> parameters, boolean isDefault) {
+	public static NumericFacetParameter getFacetLimit(String facet, Map<String,String[]> parameters, boolean isDefault) {
 		String key = "f." + facet + ".facet.limit";
 		Integer defaultLimit = isDefault ? (StringUtils.equals(facet, "DATA_PROVIDER") ? LIMIT_FOR_DATA_PROVIDER : LIMIT_FOR_DEFAULT) : LIMIT_FOR_CUSTOM;
 		return extractParameter(key, DEFAULT_LIMIT_KEY, parameters, isDefault, defaultLimit);
 	}
 
-	public static NumericFacetParameter getFacetOffset(String facet, Map<Object, Object> parameters, boolean isDefault) {
+	public static NumericFacetParameter getFacetOffset(String facet, Map<String,String[]> parameters, boolean isDefault) {
 		String key = "f." + facet + ".facet.offset";
 		return extractParameter(key, DEFAULT_OFFSET_KEY, parameters, isDefault, null);
 	}
 
 	public static NumericFacetParameter extractParameter(String key, String defaultKey, 
-			Map<Object, Object> parameters, boolean isDefault, Integer defaultValue) {
+			Map<String,String[]> parameters, boolean isDefault, Integer defaultValue) {
 		if (parameters.containsKey(key)) {
 			String[] value = (String[]) parameters.get(key);
 			return new NumericFacetParameter(key, value[0]);

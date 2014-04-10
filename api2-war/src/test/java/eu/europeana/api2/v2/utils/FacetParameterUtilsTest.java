@@ -11,13 +11,13 @@ import org.junit.Test;
 public class FacetParameterUtilsTest {
 
 	private String[] facets;
-	private Map<Object, Object> parameters;
+	private Map<String, String[]> parameters;
 
 	@Before
 	public void setUp() throws Exception {
 		facets = new String[]{"proxy_dc_contributor"};
 
-		parameters = new HashMap<Object, Object>();
+		parameters = new HashMap<String, String[]>();
 		parameters.put("facet", new String[]{"proxy_dc_contributor"});
 		parameters.put("profile", new String[]{"facets"});
 		parameters.put("f.proxy_dc_contributor.facet.limit", new String[]{"30"});

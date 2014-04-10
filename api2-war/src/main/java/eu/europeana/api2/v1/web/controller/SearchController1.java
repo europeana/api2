@@ -86,7 +86,7 @@ public class SearchController1 {
 			mov = JsonUtils.toJson(new ApiError(wskey, "search.json", "Unregistered user"), callback);
 		} else {
 			log.info("opensearch.json");
-			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true).setPageSize(12)
+			Query query = new Query(SolrUtils.rewriteQueryFields(queryString)).setApiQuery(true).setPageSize(12)
 					.setStart(start - 1).setAllowSpellcheck(false).setAllowFacets(false);
 			Class<? extends IdBean> clazz = ApiBean.class;
 			try {
@@ -140,7 +140,7 @@ public class SearchController1 {
 			if (log.isInfoEnabled()) {
 				log.info(queryString + ", " + RESULT_ROWS_PER_PAGE + ", " + (Integer.parseInt(startPage) - 1));
 			}
-			Query query = new Query(SolrUtils.translateQuery(queryString)).setApiQuery(true)
+			Query query = new Query(SolrUtils.rewriteQueryFields(queryString)).setApiQuery(true)
 					.setPageSize(RESULT_ROWS_PER_PAGE).setStart(Integer.parseInt(startPage) - 1)
 					.setAllowSpellcheck(false).setAllowFacets(false);
 			Class<? extends IdBean> clazz = ApiBean.class;
