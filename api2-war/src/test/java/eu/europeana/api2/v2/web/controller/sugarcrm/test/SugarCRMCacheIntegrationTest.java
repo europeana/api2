@@ -91,9 +91,9 @@ public  abstract class SugarCRMCacheIntegrationTest extends AbstractSugarCRMCach
 			e.printStackTrace();
 		}
 		
-		caheinstance = new SugarCRMCache();
-		caheinstance.setSugarwsClient(sugarwsClient);
-		caheinstance.initLocal();
+		cacheInstance = new SugarCRMCache();
+		cacheInstance.setSugarwsClient(sugarwsClient);
+		cacheInstance.initLocal();
 	
 	}
 }

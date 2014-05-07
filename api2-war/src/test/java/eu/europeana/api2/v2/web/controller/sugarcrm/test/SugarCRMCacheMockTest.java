@@ -52,19 +52,22 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 	 * @throws JIXBQueryResultException
 	 */
 	@BeforeClass
-	public static void init() throws IOException, JiBXException, JIXBQueryResultException{
+	public static void init() throws IOException, JiBXException,
+			JIXBQueryResultException {
 
 		sugarwsClient = mock(SugarWsClient.class);
-		caheinstance = mock(SugarCRMCache.class);	
+		cacheInstance = mock(SugarCRMCache.class);
 		final ArgumentCaptor<String> providercaptor = ArgumentCaptor.forClass(String.class);
-		final SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<Provider>(null, null);
+		final SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<Provider>(
+				null, null);
 		Provider provider = new Provider();
 		provider.identifier = "mockid";
 		provider.name = "mockname";
-		provider.savedsugarcrmFields = new HashMap<String,String>();
+		provider.savedsugarcrmFields = new HashMap<String, String>();
 		providerres.items = new ArrayList<Provider>();
-		providerres.items.add(provider);		
-		final SugarCRMSearchResults<DataSet> collectionres = new SugarCRMSearchResults<DataSet>(null, null);
+		providerres.items.add(provider);
+		final SugarCRMSearchResults<DataSet> collectionres = new SugarCRMSearchResults<DataSet>(
+				null, null);
 		DataSet ds = new DataSet();
 		ds.identifier = "mockid";
 		ds.edmDatasetName = "mockname";
@@ -72,57 +75,68 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 		ds.publishedRecords = 0;
 		ds.provIdentifier = "mockprovID";
 		ds.status = "mockstatus";
-		ds.savedsugarcrmFields = new HashMap<String,String>();
+		ds.savedsugarcrmFields = new HashMap<String, String>();
 		collectionres.items = new ArrayList<DataSet>();
 		collectionres.items.add(ds);
-		
-		when(caheinstance.getProviders()).thenAnswer(new Answer<SugarCRMSearchResults<Provider>>(){
-			@Override
-			public SugarCRMSearchResults<Provider> answer(InvocationOnMock invocation) throws Throwable {
-				return providerres;
-			}
-		});
-		
-		when(caheinstance.getProviderbyID(providercaptor.capture())).thenAnswer(new Answer<SugarCRMSearchResults<Provider>>(){
-			@Override
-			public SugarCRMSearchResults<Provider> answer(InvocationOnMock invocation) throws Throwable {
-			    SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<Provider>(null, null);
-				Provider provider = new Provider();
-				provider.identifier = providercaptor.getValue();
-				provider.name = "mockname";
-				provider.savedsugarcrmFields = new HashMap<String,String>();
-				providerres.items = new ArrayList<Provider>();
-				providerres.items.add(provider);		
-				return providerres;
-			}
-		});
-		
-		when(caheinstance.getProviders(anyString(), anyInt(), anyInt())).thenAnswer(new Answer<SugarCRMSearchResults<Provider>>(){
-			@Override
-			public SugarCRMSearchResults<Provider> answer(InvocationOnMock invocation) throws Throwable {
-				return providerres;
-			}
-		});
-		
-		when(caheinstance.pollProviders()).thenReturn(providerres);
 
-		when(caheinstance.pollCollections()).thenReturn(collectionres);
+		when(cacheInstance.getProviders()).thenAnswer(
+				new Answer<SugarCRMSearchResults<Provider>>() {
+					@Override
+					public SugarCRMSearchResults<Provider> answer(
+							InvocationOnMock invocation) throws Throwable {
+						return providerres;
+					}
+				});
 
-		when(caheinstance.getCollectionByID(anyString())).thenAnswer(new Answer<SugarCRMSearchResults<DataSet>>(){
-			@Override
-			public SugarCRMSearchResults<DataSet> answer(InvocationOnMock invocation) throws Throwable {
-				return collectionres;
-			}
-		});
-		
-		when(caheinstance.getCollectionByProviderID(anyString())).thenAnswer(new Answer<SugarCRMSearchResults<DataSet>>(){
-			@Override
-			public SugarCRMSearchResults<DataSet> answer(InvocationOnMock invocation) throws Throwable {
-				return collectionres;
-			}
-		});
-		
-		caheinstance.setSugarwsClient(sugarwsClient);
-		caheinstance.initLocal();
+		when(cacheInstance.getProviderbyID(providercaptor.capture()))
+				.thenAnswer(new Answer<SugarCRMSearchResults<Provider>>() {
+					@Override
+					public SugarCRMSearchResults<Provider> answer(
+							InvocationOnMock invocation) throws Throwable {
+						SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<Provider>(
+								null, null);
+						Provider provider = new Provider();
+						provider.identifier = providercaptor.getValue();
+						provider.name = "mockname";
+						provider.savedsugarcrmFields = new HashMap<String, String>();
+						providerres.items = new ArrayList<Provider>();
+						providerres.items.add(provider);
+						return providerres;
+					}
+				});
+
+		when(cacheInstance.getProviders(anyString(), anyInt(), anyInt()))
+				.thenAnswer(new Answer<SugarCRMSearchResults<Provider>>() {
+					@Override
+					public SugarCRMSearchResults<Provider> answer(
+							InvocationOnMock invocation) throws Throwable {
+						return providerres;
+					}
+				});
+
+		when(cacheInstance.pollProviders()).thenReturn(providerres);
+
+		when(cacheInstance.pollCollections()).thenReturn(collectionres);
+
+		when(cacheInstance.getCollectionByID(anyString())).thenAnswer(
+				new Answer<SugarCRMSearchResults<DataSet>>() {
+					@Override
+					public SugarCRMSearchResults<DataSet> answer(
+							InvocationOnMock invocation) throws Throwable {
+						return collectionres;
+					}
+				});
+
+		when(cacheInstance.getCollectionByProviderID(anyString())).thenAnswer(
+				new Answer<SugarCRMSearchResults<DataSet>>() {
+					@Override
+					public SugarCRMSearchResults<DataSet> answer(
+							InvocationOnMock invocation) throws Throwable {
+						return collectionres;
+					}
+				});
+
+		cacheInstance.setSugarwsClient(sugarwsClient);
+		cacheInstance.initLocal();
 	}
 }
