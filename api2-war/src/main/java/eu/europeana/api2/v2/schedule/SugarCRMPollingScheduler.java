@@ -36,88 +36,79 @@ import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
  */
 public class SugarCRMPollingScheduler {
 
-
 	@Log
 	private Logger log;
 
 	@Resource
 	private SugarCRMCache sugarCRMCache;
-	
-    @Resource(name="sugarcrm_taskScheduler")
-    private  TaskScheduler scheduler;
 
-    @Resource(name="sugarcrm_taskExecutor")
-    private  TaskExecutor executor;
+	@Resource(name="sugarcrm_taskScheduler")
+	private TaskScheduler scheduler;
+
+	@Resource(name="sugarcrm_taskExecutor")
+	private TaskExecutor executor;
 
 	/**
 	 * Default Constructor
 	 */
-	public SugarCRMPollingScheduler(){
-	}
-	
+	public SugarCRMPollingScheduler() {}
+
 	/**
 	 * The frequently invoked task (updates everything that has been recently updated 
 	 * in CRM)
 	 */
 	private ScheduledFuture<?> frequentUpdateTask;
-	
-    /**
+
+	/**
 	 * The nightly invoked task (updates everything that has been updated in CRM for
 	 * the last 24 hours)
-     */
-    private ScheduledFuture<?> nightlyUpdateTask;
+	 */
+	private ScheduledFuture<?> nightlyUpdateTask;
 
-	
-	
-    /**
-     * Initializes the schedulers
-     */
-    @PostConstruct
-    public void scheduleFirstRun() {
-    	try {
+	/**
+	 * Initializes the schedulers
+	 */
+	@PostConstruct
+	public void scheduleFirstRun() {
+		try {
 			sugarCRMCache.populateRepositoryFromScratch();
 		} catch (JIXBQueryResultException e) {
 			e.printStackTrace();
 			log.error("Re-population of MongoDB Cache from SugarCRM failed: " + e.getMessage());
 		}
-    	frequentUpdateTask = scheduler.scheduleAtFixedRate(new FrequentUpdateTask(), 300000);
-    	//nightlyUpdateTask = scheduler.scheduleAtFixedRate(new NigthlyUpdateTask(), 50000000);
-    	
-    }
-	
-	
-	 /**
-     * The frequent task implementation
-     */
-    private class FrequentUpdateTask implements Runnable {
-            @Override
-            public void run() {
-            	try {
-					sugarCRMCache.pollProviders();
-					sugarCRMCache.pollCollections();
-				} catch (JIXBQueryResultException e) {
-					e.printStackTrace();
-					log.error("Frequently scheduled update for provider/collections failed: " + e.getMessage());
-				}
-            }
-    }
-    
+		frequentUpdateTask = scheduler.scheduleAtFixedRate(new FrequentUpdateTask(), 100000);
+		// nightlyUpdateTask = scheduler.scheduleAtFixedRate(new NigthlyUpdateTask(), 50000000);
+	}
+
 	/**
-    * The nightly task implementation
-    */
-   private class NigthlyUpdateTask implements Runnable {
-           @Override
-           public void run() {
-           	try {
-					sugarCRMCache.pollProviders();
-					sugarCRMCache.pollCollections();
-				} catch (JIXBQueryResultException e) {
-					e.printStackTrace();
-					log.error("Frequently scheduled update for provider/collections failed: " + e.getMessage());
-				}
-           }
-   }
-    
-    
-	
+	 * The frequent task implementation
+	 */
+	private class FrequentUpdateTask implements Runnable {
+		@Override
+		public void run() {
+			try {
+				sugarCRMCache.pollProviders();
+				sugarCRMCache.pollCollections();
+			} catch (JIXBQueryResultException e) {
+				e.printStackTrace();
+				log.error("Frequently scheduled update for provider/collections failed: " + e.getMessage());
+			}
+		}
+	}
+
+	/**
+	 * The nightly task implementation
+	 */
+	private class NigthlyUpdateTask implements Runnable {
+		@Override
+		public void run() {
+			try {
+				sugarCRMCache.pollProviders();
+				sugarCRMCache.pollCollections();
+			} catch (JIXBQueryResultException e) {
+				e.printStackTrace();
+				log.error("Frequently scheduled update for provider/collections failed: " + e.getMessage());
+			}
+		}
+	}
 }

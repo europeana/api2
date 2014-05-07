@@ -32,8 +32,8 @@ import eu.europeana.corelib.db.exception.LimitReachedException;
 @Controller
 public class ExceptionController {
 
-	@ExceptionHandler({ TypeMismatchException.class, MissingServletRequestParameterException.class,
-			LimitReachedException.class })
+	@ExceptionHandler({TypeMismatchException.class, MissingServletRequestParameterException.class,
+			LimitReachedException.class})
 	@ResponseBody
 	public ApiError handleMismatchException(Exception ex) {
 		ApiError error = new ApiError(null, null, "Invalid argument(s): " + ex.toString());
@@ -46,5 +46,4 @@ public class ExceptionController {
 		ApiError error = new ApiError(null, null, "API Usage Limit Reached.");
 		return error;
 	}
-
 }
