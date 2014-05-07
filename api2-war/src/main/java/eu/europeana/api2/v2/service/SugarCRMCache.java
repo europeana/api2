@@ -430,6 +430,7 @@ public class SugarCRMCache {
 		}
 		return datasetId.toString();
 	}
+
 	/**
 	 * Basic polling function for providers (sugarcrm 2 cache)
 	 * @throws JIXBQueryResultException 

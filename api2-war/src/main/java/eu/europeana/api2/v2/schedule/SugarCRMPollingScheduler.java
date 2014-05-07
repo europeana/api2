@@ -28,7 +28,7 @@ import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
 
 /**
  * The Scheduler that maintains the timely population of the MongoDB-based cache
- * from SugarCRM.  
+ * from SugarCRM.
  * 
  * @author Georgios Markakis (gwarkx@hotmail.com)
  *
