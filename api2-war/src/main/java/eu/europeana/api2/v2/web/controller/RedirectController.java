@@ -30,7 +30,7 @@ public class RedirectController {
 	/*
 	 * The page where you are redirected to the isShownAt and isShownBy links
 	 */
-	@RequestMapping(value = { "/{uid}/redirect", "/{uid}/redirect.json" }, method = RequestMethod.GET)
+	@RequestMapping(value = {"/{uid}/redirect", "/{uid}/redirect.json"}, method = RequestMethod.GET)
 	public String handleRedirect(
 			@PathVariable String uid,
 			@RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
@@ -51,7 +51,7 @@ public class RedirectController {
 		return "redirect:" + isShownAt;
 	}
 
-	@RequestMapping(value = { "/clearTokens" }, method = RequestMethod.GET)
+	@RequestMapping(value = {"/clearTokens"}, method = RequestMethod.GET)
 	public String removeAll() {
 		oAuth2TokenService.removeAll();
 		return "user/cleared";

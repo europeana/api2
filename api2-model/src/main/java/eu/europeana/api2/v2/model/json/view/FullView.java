@@ -9,7 +9,6 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
-import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.FullBean;
@@ -157,7 +156,7 @@ public class FullView implements FullBean {
 				String provider = items.get(i).getEdmProvider().values()
 						.iterator().next().get(0);
 				String isShownAtLink = europeanaUrlService.getApi2Redirect(uid,
-						LinkUtils.encode(isShownAt), LinkUtils.encode(provider), bean.getAbout(),
+						isShownAt, provider, bean.getAbout(),
 						profile).toString();
 				items.get(i).setEdmIsShownAt(isShownAtLink);
 			}
