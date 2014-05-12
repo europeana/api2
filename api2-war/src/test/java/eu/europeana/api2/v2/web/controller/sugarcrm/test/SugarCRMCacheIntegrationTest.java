@@ -31,39 +31,41 @@ import eu.europeana.uim.sugarcrmclient.internal.helpers.ClientUtils;
 import eu.europeana.uim.sugarcrmclient.ws.ClientFactory;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBLoginFailureException;
 
-
 /**
  * Integration Tests for API caching mechanism.
  * 
  * @author Georgios Markakis (gwarkx@hotmail.com)
  *
- * Nov 12, 2013
+ *         Nov 12, 2013
  */
-public  abstract class SugarCRMCacheIntegrationTest extends AbstractSugarCRMCacheTest {
+public abstract class SugarCRMCacheIntegrationTest extends
+		AbstractSugarCRMCacheTest {
 
 	/**
-     * Inititlaize the datatasources for Integration tests here
-     * 
-	 * @throws Exception 
+	 * Inititlaize the datatasources for Integration tests here
+	 * 
+	 * @throws Exception
 	 */
 	@BeforeClass
-	public static void init() throws Exception{
-		
+	public static void init() throws Exception {
+
 		int port = 10000;
 		MongodConfig conf = new MongodConfig(Version.V2_0_7, port, false);
 		MongodStarter runtime = MongodStarter.getDefaultInstance();
+
 		mongodExe = runtime.prepare(conf);
 		mongod = mongodExe.start();
-		ClientFactory clfact = new ClientFactory();
-		MessageFactory mf = null;
+
+		ClientFactory clientFactory = new ClientFactory();
+		MessageFactory messageFactory = null;
 		try {
-		   mf = MessageFactory.newInstance();
+			messageFactory = MessageFactory.newInstance();
 		} catch (SOAPException e1) {
 			e1.printStackTrace();
 		}
-		
-		ExtendedSaajSoapMessageFactory mfactory = new ExtendedSaajSoapMessageFactory(mf);
-		WebServiceTemplate webServiceTemplate = new WebServiceTemplate(mfactory);
+
+		ExtendedSaajSoapMessageFactory soapMessageFactory = new ExtendedSaajSoapMessageFactory(messageFactory);
+		WebServiceTemplate webServiceTemplate = new WebServiceTemplate(soapMessageFactory);
 		JibxMarshaller marshaller = new JibxMarshaller();
 		marshaller.setStandalone(true);
 		marshaller.setTargetClass(eu.europeana.uim.sugarcrmclient.jibxbindings.Login.class);
@@ -75,25 +77,27 @@ public  abstract class SugarCRMCacheIntegrationTest extends AbstractSugarCRMCach
 			marshaller.afterPropertiesSet();
 		} catch (JiBXException e1) {
 			e1.printStackTrace();
-		}				
-		
+		}
+
 		webServiceTemplate.setMarshaller(marshaller);
 		webServiceTemplate.setUnmarshaller(marshaller);
-		clfact.setWebServiceTemplate(webServiceTemplate);
-		sugarwsClient = clfact.createInstance("http://sip-manager.isti.cnr.it/sugarcrm/soap.php",
-				"user", "pass");
-		
-		try {
-			sugarwsClient.login(ClientUtils.createStandardLoginObject("user","pass"));
-		} catch (JIXBLoginFailureException e) {
+		clientFactory.setWebServiceTemplate(webServiceTemplate);
+		sugarwsClient = clientFactory.createInstance(
+				"http://sip-manager.isti.cnr.it/sugarcrm/soap.php", 
+				"user",
+				"pass"
+		);
 
-		} catch (Exception e){
+		try {
+			sugarwsClient.login(ClientUtils.createStandardLoginObject("user", "pass"));
+		} catch (JIXBLoginFailureException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		cacheInstance = new SugarCRMCache();
 		cacheInstance.setSugarwsClient(sugarwsClient);
 		cacheInstance.initLocal();
-	
 	}
 }

@@ -21,20 +21,11 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
-
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @XmlRootElement(name = "rss")
 public class RssResponse {
-
-	public static final String NS_ATOM = "http://www.w3.org/2005/Atom";
-	public static final String NS_OPENSEARCH = "http://a9.com/-/spec/opensearch/1.1/";
-	public static final String NS_DC = "http://purl.org/dc/elements/1.1/";
-	public static final String NS_DCTERM = "http://purl.org/dc/terms/";
-	public static final String NS_EUROPEANA = EuropeanaUrlService.URL_EUROPEANA;
-	public static final String NS_ENRICHMENT = EuropeanaUrlService.URL_EUROPEANA+"/schemas/ese/enrichment/";
 
 	@XmlAttribute
 	final String version = "2.0";

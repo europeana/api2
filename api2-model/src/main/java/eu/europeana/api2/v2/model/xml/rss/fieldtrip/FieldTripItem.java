@@ -1,10 +1,14 @@
-package eu.europeana.api2.v2.model.xml.rss;
+package eu.europeana.api2.v2.model.xml.rss.fieldtrip;
+
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import eu.europeana.api2.v2.model.xml.definitions.Namespaces;
 
-public class Item {
+@XmlRootElement(name = "item")
+public class FieldTripItem {
 
 	@XmlElement
 	public String guid;
@@ -18,8 +22,14 @@ public class Item {
 	@XmlElement
 	public String description;
 
-	@XmlElement(name = "enclosure")
-	public Enclosure enclosure;
+	@XmlElement(name = "image", namespace = Namespaces.NS_FIELDTRIP)
+	public List<FieldTripImage> images;
+
+	@XmlElement(name = "point", namespace = Namespaces.NS_GEORSS)
+	public String point;
+
+	@XmlElement
+	public String pubDate;
 
 	@XmlElement(name = "creator", namespace = Namespaces.NS_DC)
 	public String dcCreator;

@@ -16,13 +16,13 @@ import com.github.jsonldjava.utils.JSONUtils;
 import eu.europeana.corelib.logging.Logger;
 
 public class JsonUtils {
-	
+
 	private static final Logger log = Logger.getLogger(JSONUtils.class);
 
 	public static ModelAndView toJson(Object object) {
 		return toJson(object, null);
 	}
-	
+
 	public static ModelAndView toJson(String json, String callback) {
 		String resultPage = "json";
 		Map<String, Object> model = new HashMap<String, Object>();
@@ -55,5 +55,4 @@ public class JsonUtils {
 		}
 		return new ModelAndView(resultPage, model);
 	}
-	
 }

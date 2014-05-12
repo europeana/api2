@@ -15,25 +15,33 @@
  *  the Licence.
  */
 
-package eu.europeana.api2.v2.model.xml.rss.atom;
+package eu.europeana.api2.v2.model.xml.rss.fieldtrip;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlType;
+import java.util.ArrayList;
+import java.util.List;
 
-import eu.europeana.api2.v2.model.xml.definitions.Namespaces;
+import javax.xml.bind.annotation.XmlElement;
 
-/**
- * @author Willem-Jan Boogerd <www.eledge.net/contact>
- */
-@XmlType(namespace = Namespaces.NS_ATOM)
-public class AtomLink {
+public class FieldTripChannel {
 
-	@XmlAttribute
-	public String href = "";
+	@XmlElement
+	public String title = "Europeana FieldTrip";
 
-	@XmlAttribute
-	final String rel = "search";
+	@XmlElement
+	public String link;
 
-	@XmlAttribute
-	final String type = "application/rss+xml";
+	@XmlElement
+	public String description = "Europeana FieldTrip";
+
+	@XmlElement
+	public String language;
+
+	@XmlElement
+	public String url;
+
+	@XmlElement
+	public FieldTripImage image;
+
+	@XmlElement(name = "item")
+	public List<FieldTripItem> items = new ArrayList<FieldTripItem>();
 }

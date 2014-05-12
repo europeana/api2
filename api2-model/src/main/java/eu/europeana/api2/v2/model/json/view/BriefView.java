@@ -299,5 +299,4 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		}
 		return isShownAtLinks.toArray(new String[isShownAtLinks.size()]);
 	}
-
 }
