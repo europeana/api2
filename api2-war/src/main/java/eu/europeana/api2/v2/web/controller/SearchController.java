@@ -31,6 +31,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.http.MediaType;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -42,7 +43,9 @@ import com.mongodb.Mongo;
 
 import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
+import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.Suggestions;
@@ -52,6 +55,10 @@ import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.Item;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
+import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripChannel;
+import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripImage;
+import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
+import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.FacetParameterUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
@@ -66,6 +73,7 @@ import eu.europeana.corelib.definitions.solr.Facet;
 import eu.europeana.corelib.definitions.solr.beans.ApiBean;
 import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.beans.IdBean;
+import eu.europeana.corelib.definitions.solr.beans.RichBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
@@ -116,6 +124,12 @@ public class SearchController {
 
 	@Resource
 	private ControllerUtils controllerUtils;
+
+	@Resource(name = "api2_mvc_views_jaxbmarshaller")
+	private Jaxb2Marshaller marshaller;
+
+	@Resource(name = "api2_mvc_xmlUtils")
+	private XmlUtils xmlUtils;
 
 	final static public int FACET_LIMIT = 16;
 
@@ -415,9 +429,9 @@ public class SearchController {
 	}
 
 	@RequestMapping(value = "/v2/opensearch.rss", produces = MediaType.APPLICATION_XML_VALUE)
-	// , produces = "?rss?")
 	public @ResponseBody
-	RssResponse openSearchRss(@RequestParam(value = "searchTerms", required = true) String queryString,
+	RssResponse openSearchRss(
+			@RequestParam(value = "searchTerms", required = true) String queryString,
 			@RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "count", required = false, defaultValue = "12") int count) {
 		RssResponse rss = new RssResponse();
@@ -452,6 +466,50 @@ public class SearchController {
 			channel.items.add(item);
 		}
 		return rss;
+	}
+
+	@RequestMapping(value = "/v2/search.rss", produces = MediaType.APPLICATION_XML_VALUE)
+	public ModelAndView fieldTripRss(
+			@RequestParam(value = "query", required = true) String queryTerms,
+			@RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
+			@RequestParam(value = "limit", required = false, defaultValue = "12") int limit,
+			@RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
+			HttpServletRequest request,
+			HttpServletResponse response) {
+		FieldTripResponse rss = new FieldTripResponse();
+		FieldTripChannel channel = rss.channel;
+		channel.title = "The Cultural Heritage Agency of Iceland";
+		channel.description = "Historical buildings on Iceland";
+		channel.language = "is";
+		channel.link = "http://www.minjastofnun.is/";
+		channel.image = new FieldTripImage("http://www.minjastofnun.is/skin/basic9k/i/sitelogo.png");
+
+		FieldTripUtils fieldTripUtils = new FieldTripUtils(urlService);
+		try {
+			Query query = new Query(SolrUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
+					.setStart(offset - 1).setAllowFacets(false).setAllowSpellcheck(false);
+			ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
+			for (RichBean bean : resultSet.getResults()) {
+				channel.items.add(fieldTripUtils.createItem(bean));
+			}
+		} catch (SolrTypeException e) {
+			log.error("error: " + e.getLocalizedMessage());
+			FieldTripItem item = new FieldTripItem();
+			item.title = "Error";
+			item.description = e.getMessage();
+			channel.items.add(item);
+		}
+		log.info("/fieldTripRss");
+
+		String xml = fieldTripUtils.cleanRss(xmlUtils.toString(rss));
+
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("rss", xml);
+
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/xml");
+
+		return new ModelAndView("rss", model);
 	}
 
 	private String getTitle(BriefBean bean) {
@@ -505,17 +563,16 @@ public class SearchController {
 	}
 
 	private boolean isDefaultOrReusabilityFacetRequested(String profile, String[] facets) {
-		if (StringUtils.containsIgnoreCase(profile, "portal") || 
-			(StringUtils.containsIgnoreCase(profile, "facets") 
+		if (StringUtils.containsIgnoreCase(profile, "portal")
+			|| (
+				StringUtils.containsIgnoreCase(profile, "facets")
 				&& (
-								ArrayUtils.isEmpty(facets) 
-							||  ArrayUtils.contains(facets, "DEFAULT")
-							||  ArrayUtils.contains(facets, "REUSABILITY")
+						ArrayUtils.isEmpty(facets)
+					||  ArrayUtils.contains(facets, "DEFAULT")
+					||  ArrayUtils.contains(facets, "REUSABILITY")
 			))) {
 			return true;
 		}
 		return false;
 	}
-
-
 }

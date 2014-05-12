@@ -34,6 +34,7 @@
 		<property name="classesToBeBound">
 			<list>
 				<value>eu.europeana.api2.v2.model.xml.rss.RssResponse</value>
+				<value>eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse</value>
 				<value>eu.europeana.api2.v2.model.xml.kml.KmlResponse</value>
 			</list>
 		</property>
@@ -45,6 +46,10 @@
 	</bean>
 
 	<bean id="api2_mvc_views_xml" class="org.springframework.web.servlet.view.xml.MarshallingView">
+		<constructor-arg ref="api2_mvc_views_jaxbmarshaller" />
+	</bean>
+
+	<bean name="api2_mvc_xmlUtils" class="eu.europeana.api2.utils.XmlUtils">
 		<constructor-arg ref="api2_mvc_views_jaxbmarshaller" />
 	</bean>
 </beans>

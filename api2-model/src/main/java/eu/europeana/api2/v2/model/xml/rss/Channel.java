@@ -24,6 +24,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 import org.apache.commons.lang.StringUtils;
 
+import eu.europeana.api2.v2.model.xml.definitions.Namespaces;
 import eu.europeana.api2.v2.model.xml.rss.atom.AtomLink;
 import eu.europeana.api2.v2.model.xml.rss.opensearch.Query;
 import eu.europeana.api2.v2.model.xml.rss.opensearch.Statistic;
@@ -45,19 +46,19 @@ public class Channel {
 	@XmlElement
 	private String description = "Europeana Open Search results";
 
-	@XmlElement(name = "totalResults", namespace = RssResponse.NS_OPENSEARCH)
+	@XmlElement(name = "totalResults", namespace = Namespaces.NS_OPENSEARCH)
 	public Statistic totalResults = new Statistic();
 
-	@XmlElement(name = "startIndex", namespace = RssResponse.NS_OPENSEARCH)
+	@XmlElement(name = "startIndex", namespace = Namespaces.NS_OPENSEARCH)
 	public Statistic startIndex = new Statistic();
 
-	@XmlElement(name = "itemsPerPage", namespace = RssResponse.NS_OPENSEARCH)
+	@XmlElement(name = "itemsPerPage", namespace = Namespaces.NS_OPENSEARCH)
 	public Statistic itemsPerPage = new Statistic();
 
-	@XmlElement(name = "link", namespace = RssResponse.NS_ATOM)
+	@XmlElement(name = "link", namespace = Namespaces.NS_ATOM)
 	public AtomLink atomLink = new AtomLink();
 
-	@XmlElement(name = "Query", namespace = RssResponse.NS_OPENSEARCH)
+	@XmlElement(name = "Query", namespace = Namespaces.NS_OPENSEARCH)
 	public Query query = new Query();
 
 	@XmlElement(name = "image")

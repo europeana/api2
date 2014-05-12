@@ -79,6 +79,11 @@ public class SugarCRMCache {
 
 	private final static String CACHEDB = "sugarcrmCache";
 
+	private final static String DATA_AGGREGATOR_QUERY = "(accounts_cstm.agg_status_c LIKE '%D')";
+	private final static String CONTENT_PROVIDER_QUERY = "(accounts_cstm.agg_status_c LIKE '%P')";
+	private final static String ALL_PROVIDER_QUERY = String.format("(%s OR %s)",
+			DATA_AGGREGATOR_QUERY, CONTENT_PROVIDER_QUERY);
+
 	/**
 	 * Use a local instance if MongoDB version cannot be injected from Spring 
 	 * from Spring Context (useful in Unit Testing)
@@ -306,10 +311,7 @@ public class SugarCRMCache {
 				EuropeanaRetrievableField.DATE_ENTERED.getFieldId());
 			providerRequest.setMaxResults(100);
 			providerRequest.setOffset(0);
-			// D = Data Aggregator
-			// P = Content Provider
-			providerRequest.setQuery("(accounts_cstm.agg_status_c LIKE '%P' OR accounts_cstm.agg_status_c LIKE '%D')");
-			// providerRequest.setQuery("(accounts_cstm.agg_status_c LIKE '%D')");
+			providerRequest.setQuery(DATA_AGGREGATOR_QUERY);
 
 			int offset = 0;
 			while (true) {
@@ -517,7 +519,7 @@ public class SugarCRMCache {
 		request.setOffset(0);
 
 		if (query.length == 0) {
-			request.setQuery("(accounts_cstm.agg_status_c LIKE '%D')");
+			request.setQuery(DATA_AGGREGATOR_QUERY);
 		}
 		else {
 			StringWriter querywrt = new StringWriter();

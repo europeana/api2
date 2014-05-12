@@ -3,6 +3,8 @@
 		@XmlNs(namespaceURI = "http://www.w3.org/2005/Atom", prefix = "atom"),
 		@XmlNs(namespaceURI = "http://purl.org/dc/elements/1.1/", prefix = "dc"),
 		@XmlNs(namespaceURI = "http://purl.org/dc/terms/", prefix = "dcterms"),
+		@XmlNs(namespaceURI = "http://www.fieldtripper.com/fieldtrip_rss", prefix = "fieldtrip"),
+		@XmlNs(namespaceURI = "http://www.georss.org/georss", prefix = "georss"),
 		@XmlNs(namespaceURI = EuropeanaUrlService.URL_EUROPEANA, prefix = "europeana"),
 		@XmlNs(namespaceURI = EuropeanaUrlService.URL_EUROPEANA+"/schemas/ese/enrichment/", prefix = "enrichment") }, elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package eu.europeana.api2.v2.model.xml.rss;
