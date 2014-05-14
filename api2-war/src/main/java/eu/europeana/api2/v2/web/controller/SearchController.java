@@ -484,6 +484,9 @@ public class SearchController {
 		channel.link = "http://www.minjastofnun.is/";
 		channel.image = new FieldTripImage("http://www.minjastofnun.is/skin/basic9k/i/sitelogo.png");
 
+		if (StringUtils.equals(profile, "FieldTrip")) {
+			offset++;
+		}
 		FieldTripUtils fieldTripUtils = new FieldTripUtils(urlService);
 		try {
 			Query query = new Query(SolrUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
