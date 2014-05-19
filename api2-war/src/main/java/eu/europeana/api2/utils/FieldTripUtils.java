@@ -52,14 +52,14 @@ public class FieldTripUtils {
 	}
 
 	private String cleanDescriptions(String xml) {
-		return cleanElements(xml, DESCRIPTION_PATTERN.matcher(xml));
+		return cleanElements(DESCRIPTION_PATTERN.matcher(xml));
 	}
 
 	private String cleanAttributions(String xml) {
-		return cleanElements(xml, ATTRIBUTION_PATTERN.matcher(xml));
+		return cleanElements(ATTRIBUTION_PATTERN.matcher(xml));
 	}
 
-	private String cleanElements(String xml, Matcher matcher) {
+	private String cleanElements(Matcher matcher) {
 		StringBuffer result = new StringBuffer();
 		while (matcher.find()) {
 			matcher.appendReplacement(result, cleanElement(matcher));
