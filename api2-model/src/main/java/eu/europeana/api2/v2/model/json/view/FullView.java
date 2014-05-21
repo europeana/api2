@@ -211,8 +211,7 @@ public class FullView implements FullBean {
 		if (this.getAggregations().get(0).getEdmObject() != null) {
 			String url = this.getAggregations().get(0).getEdmObject();
 			if (StringUtils.isNotBlank(url)) {
-				edmPreview = europeanaUrlService
-						.getThumbnailUrl(url, getType()).toString();
+				edmPreview = europeanaUrlService.getThumbnailUrl(url, getType()).toString();
 			}
 		}
 		europeanaAggregation.setEdmPreview(edmPreview);

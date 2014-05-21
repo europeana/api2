@@ -241,9 +241,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public String[] getEdmPreview() {
-		// bean.getEdmPreview()
 		return getThumbnails();
-		// return edmPreview;
 	}
 
 	@Override
