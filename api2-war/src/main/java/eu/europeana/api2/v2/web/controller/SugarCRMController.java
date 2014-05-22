@@ -99,7 +99,7 @@ public class SugarCRMController {
 			@RequestParam(value = "pagesize", required = false) String pagesize,
 			HttpServletRequest request,
 			HttpServletResponse httpResponse) {
-		httpResponse.setCharacterEncoding("UTF-8");
+		controllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response = null;
@@ -153,7 +153,7 @@ public class SugarCRMController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse httpResponse) {
-		httpResponse.setCharacterEncoding("UTF-8");
+		controllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response = null;
@@ -206,7 +206,7 @@ public class SugarCRMController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse httpResponse) {
-		httpResponse.setCharacterEncoding("UTF-8");
+		controllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
@@ -266,7 +266,7 @@ public class SugarCRMController {
 			@RequestParam(value = "pagesize", required = false) String pagesize,
 			HttpServletRequest request,
 			HttpServletResponse httpResponse) {
-		httpResponse.setCharacterEncoding("UTF-8");
+		controllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;
@@ -322,7 +322,7 @@ public class SugarCRMController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse httpResponse) {
-		httpResponse.setCharacterEncoding("UTF-8");
+		controllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response = null;

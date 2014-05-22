@@ -120,7 +120,7 @@ public class ObjectController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse response) {
-		response.setCharacterEncoding("UTF-8");
+		controllerUtils.addResponseHeaders(response);
 
 		LimitResponse limitResponse = null;
 		try {
