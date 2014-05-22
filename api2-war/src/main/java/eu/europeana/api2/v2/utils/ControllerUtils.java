@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.utils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 
 import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.v2.model.LimitResponse;
@@ -39,5 +40,20 @@ public class ControllerUtils {
 			throw new ApiLimitException(wskey, apiCall, e.getMessage(), requestNumber, 429);
 		}
 		return new LimitResponse(apiKey, requestNumber);
+	}
+
+	public void addResponseHeaders(HttpServletResponse response) {
+		addCharacterEncoding(response);
+		addAccessControlHeaders(response);
+	}
+
+	public void addCharacterEncoding(HttpServletResponse response) {
+		response.setCharacterEncoding("UTF-8");
+	}
+
+	public void addAccessControlHeaders(HttpServletResponse response) {
+		response.addHeader("Access-Control-Allow-Origin", "*");
+		response.addHeader("Access-Control-Allow-Methods", "POST");
+		response.addHeader("Access-Control-Max-Age", "1000");
 	}
 }

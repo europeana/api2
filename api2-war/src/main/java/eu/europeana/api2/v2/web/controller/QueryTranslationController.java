@@ -44,10 +44,7 @@ public class QueryTranslationController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse response) {
-		response.setCharacterEncoding("UTF-8");
-		response.addHeader("Access-Control-Allow-Origin", "*");
-		response.addHeader("Access-Control-Allow-Methods", "POST");
-		response.addHeader("Access-Control-Max-Age", "1000");
+		controllerUtils.addResponseHeaders(response);
 
 		languageCodes = StringArrayUtils.splitWebParameter(languageCodes);
 

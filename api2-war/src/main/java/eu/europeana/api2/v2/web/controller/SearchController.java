@@ -169,7 +169,7 @@ public class SearchController {
 			facetOffsets = FacetParameterUtils.getFacetParams("offset", aFacet, parameterMap, isDefaultFacetsRequested);
 		}
 
-		response.setCharacterEncoding("UTF-8");
+		controllerUtils.addResponseHeaders(response);
 		rows = Math.min(rows, configuration.getApiRowLimit());
 
 		Map<String, String> valueReplacements = new HashMap<String, String>();
@@ -255,10 +255,6 @@ public class SearchController {
 			if (log.isInfoEnabled()) {
 				log.info("got response " + result.items.size());
 			}
-			apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH, profile);
-			response.addHeader("Access-Control-Allow-Origin", "*");
-			response.addHeader("Access-Control-Allow-Methods", "POST");
-			response.addHeader("Access-Control-Max-Age", "1000");
 			return JsonUtils.toJson(result, callback);
 		} catch (SolrTypeException e) {
 			log.error(wskey + " [search.json] ", e);
@@ -307,21 +303,24 @@ public class SearchController {
 	}
 
 	@RequestMapping(value = "/v2/suggestions.json", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView suggestionsJson(@RequestParam(value = "query", required = true) String query,
+	public ModelAndView suggestionsJson(
+			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "rows", required = false, defaultValue = "10") int count,
 			@RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases,
-			@RequestParam(value = "callback", required = false) String callback) {
+			@RequestParam(value = "callback", required = false) String callback,
+			HttpServletResponse response) {
+		controllerUtils.addResponseHeaders(response);
 		if (log.isInfoEnabled()) {
 			log.info("phrases: " + phrases);
 		}
-		Suggestions response = new Suggestions(null, "suggestions.json");
+		Suggestions apiResponse = new Suggestions(null, "suggestions.json");
 		try {
-			response.items = searchService.suggestions(query, count);
-			response.itemsCount = response.items.size();
+			apiResponse.items = searchService.suggestions(query, count);
+			apiResponse.itemsCount = apiResponse.items.size();
 		} catch (SolrTypeException e) {
 			return JsonUtils.toJson(new ApiError(null, "suggestions.json", e.getMessage()), callback);
 		}
-		return JsonUtils.toJson(response, callback);
+		return JsonUtils.toJson(apiResponse, callback);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -476,6 +475,8 @@ public class SearchController {
 			@RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
 			HttpServletRequest request,
 			HttpServletResponse response) {
+		controllerUtils.addResponseHeaders(response);
+
 		FieldTripResponse rss = new FieldTripResponse();
 		FieldTripChannel channel = rss.channel;
 		channel.title = "The Cultural Heritage Agency of Iceland";
