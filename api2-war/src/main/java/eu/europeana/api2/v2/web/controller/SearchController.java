@@ -237,6 +237,8 @@ public class SearchController {
 		Class<? extends IdBean> clazz;
 		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
 			clazz = BriefBean.class;
+		} else if (StringUtils.containsIgnoreCase(profile, "rich")) {
+			clazz = RichBean.class;
 		} else {
 			clazz = ApiBean.class;
 		}
