@@ -51,6 +51,7 @@ import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.Suggestions;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
+import eu.europeana.api2.v2.model.json.view.RichView;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.Item;
@@ -345,7 +346,12 @@ public class SearchController {
 				ApiBean bean = (ApiBean) b;
 				ApiView view = new ApiView(bean, profile, apiKey, uid, optOutService.check(bean.getId()));
 				beans.add((T) view);
-				// in case profile = 'minimal'
+			// in case profile = 'rich'
+			} else if (b instanceof RichBean) {
+				RichBean bean = (RichBean) b;
+				RichView view = new RichView(bean, profile, apiKey, uid, optOutService.check(bean.getId()));
+				beans.add((T) view);
+			// in case profile = 'minimal'
 			} else if (b instanceof BriefBean) {
 				BriefBean bean = (BriefBean) b;
 				BriefView view = new BriefView(bean, profile, apiKey, uid, optOutService.check(bean.getId()));
