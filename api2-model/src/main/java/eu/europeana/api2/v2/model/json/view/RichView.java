@@ -34,16 +34,6 @@ public class RichView extends ApiView implements RichBean {
 				continue;
 			}
 			isShownByLinks.add(item);
-			/*
-			item = item 
-				+ (item.indexOf("?") > -1 ? "&" : "?")
-				+ "bt=europeanaapi";
-			String isShownByLink = urlService.getApi2Redirect(
-					uid, item, provider, bean.getId(), profile)
-					.toString();
-
-			isShownByLinks.add(isShownByLink);
-			*/
 		}
 		return isShownByLinks.toArray(new String[isShownByLinks.size()]);
 	}
