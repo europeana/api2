@@ -235,14 +235,7 @@ public class SearchController {
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
-		Class<? extends IdBean> clazz;
-		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
-			clazz = BriefBean.class;
-		} else if (StringUtils.containsIgnoreCase(profile, "rich")) {
-			clazz = RichBean.class;
-		} else {
-			clazz = ApiBean.class;
-		}
+		Class<? extends IdBean> clazz = selectBean(profile);
 
 		try {
 			SearchResults<? extends IdBean> result = createResults(wskey, profile, 
@@ -268,6 +261,18 @@ public class SearchController {
 			response.setStatus(500);
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		}
+	}
+
+	private Class<? extends IdBean> selectBean(String profile) {
+		Class<? extends IdBean> clazz;
+		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
+			clazz = BriefBean.class;
+		} else if (StringUtils.containsIgnoreCase(profile, "rich")) {
+			clazz = RichBean.class;
+		} else {
+			clazz = ApiBean.class;
+		}
+		return clazz;
 	}
 
 	/**
@@ -342,20 +347,12 @@ public class SearchController {
 
 		List<T> beans = new ArrayList<T>();
 		for (T b : resultSet.getResults()) {
-			if (b instanceof ApiBean) {
-				ApiBean bean = (ApiBean) b;
-				ApiView view = new ApiView(bean, profile, apiKey, uid, optOutService.check(bean.getId()));
-				beans.add((T) view);
-			// in case profile = 'rich'
-			} else if (b instanceof RichBean) {
-				RichBean bean = (RichBean) b;
-				RichView view = new RichView(bean, profile, apiKey, uid, optOutService.check(bean.getId()));
-				beans.add((T) view);
-			// in case profile = 'minimal'
+			if (b instanceof RichBean) {
+				beans.add((T) new RichView((RichBean) b, profile, apiKey, uid, optOutService.check(b.getId())));
+			} else if (b instanceof ApiBean) {
+				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, uid, optOutService.check(b.getId())));
 			} else if (b instanceof BriefBean) {
-				BriefBean bean = (BriefBean) b;
-				BriefView view = new BriefView(bean, profile, apiKey, uid, optOutService.check(bean.getId()));
-				beans.add((T) view);
+				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, uid, optOutService.check(b.getId())));
 			}
 		}
 
