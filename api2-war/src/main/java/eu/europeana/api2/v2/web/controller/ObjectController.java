@@ -141,9 +141,9 @@ public class ObjectController {
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
 		try {
 			long t0 = (new Date()).getTime();
-			FullBean bean = searchService.findById(europeanaObjectId, true);
+			FullBean bean = searchService.findById(europeanaObjectId, false);
 			if (bean == null) {
-				bean = searchService.resolve(europeanaObjectId, true);
+				bean = searchService.resolve(europeanaObjectId, false);
 			}
 
 			if (bean == null) {
@@ -186,7 +186,7 @@ public class ObjectController {
 			@RequestParam(value = "sessionhash", required = true) String sessionHash) {
 		return new ApiNotImplementedYet(apiKey, "record.kml");
 	}
-	
+
 	@RequestMapping(value = { "/context.jsonld", "/context.json-ld" }, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView contextJSONLD(
 			@RequestParam(value = "callback", required = false) String callback 
@@ -220,9 +220,9 @@ public class ObjectController {
 
 		FullBeanImpl bean = null;
 		try {
-			bean = (FullBeanImpl) searchService.findById(europeanaObjectId, true);
+			bean = (FullBeanImpl) searchService.findById(europeanaObjectId, false);
 			if (bean == null) {
-				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, true);
+				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, false);
 			}
 		} catch (SolrTypeException e) {
 			log.error(ExceptionUtils.getFullStackTrace(e));
@@ -294,9 +294,9 @@ public class ObjectController {
 
 		FullBeanImpl bean = null;
 		try {
-			bean = (FullBeanImpl) searchService.findById(europeanaObjectId, true);
+			bean = (FullBeanImpl) searchService.findById(europeanaObjectId, false);
 			if (bean == null) {
-				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, true);
+				bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, false);
 			}
 		} catch (SolrTypeException e) {
 			log.error(ExceptionUtils.getFullStackTrace(e));
@@ -314,7 +314,7 @@ public class ObjectController {
 		apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT_RDF, profile);
 		return new ModelAndView("rdf", model);
 	}
-	
+
 	private Object getJsonContext() {
 		InputStream in = this.getClass().getResourceAsStream("/jsonld/context.jsonld");
 		try {
