@@ -37,60 +37,64 @@ public class DataSet{
 	/**
 	 * Default constructor used by Jackson & Morphia (do not remove)
 	 */
-	public DataSet(){
-		//Used by Jackson
+	public DataSet() {
+		// Used by Jackson
 	}
 
 	/**
-	 * 
+	 * The identifier of the dataset
 	 */
 	@Id
 	@Indexed
 	public String identifier;
 
 	/**
-	 * 
+	 * The identifier of the provider
 	 */
 	@Indexed
 	public String provIdentifier;
 
 	/**
-	 * 
+	 * The name of provider
 	 */
 	public String providerName;
 
 	/**
-	 * 
+	 * edm:datasetName (same as europeana_collectionName)
 	 */
 	@NotSaved
 	public String edmDatasetName;
 
 	/**
+	 * Status
 	 * 
+	 * Possible values: 'Ingestion complete', 'Ready for Harvesting', 'Disabled and Replaced',
+	 * 'Ongoing scheduled updates', 'OAI-PHM testing', 'Ready for Replication',
+	 * 'Mapping and Normalization'
 	 */
 	@NotSaved
 	public String status;
 
 	/**
-	 * 
+	 * The number of published records
 	 */
 	@NotSaved
 	public long publishedRecords;
 
 	/**
-	 * 
+	 * The number of deleted records
 	 */
 	@NotSaved
 	public long deletedRecords;
 
 	/**
-	 * 
+	 * Date of dataset creation
 	 */
 	@NotSaved
 	public String creationDate;
 
 	/**
-	 * 
+	 * Date of dataset publication
 	 */
 	@NotSaved
 	public String publicationDate;
@@ -99,5 +103,5 @@ public class DataSet{
 	 * 
 	 */
 	@JsonIgnore
-	public Map<String,String> savedsugarcrmFields;
+	public Map<String, String> savedsugarcrmFields;
 }
