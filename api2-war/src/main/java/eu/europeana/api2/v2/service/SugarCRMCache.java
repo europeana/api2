@@ -75,6 +75,7 @@ public class SugarCRMCache {
 	@Resource(name = "api_db_mongo_cache")
 	private Mongo mongo;
 
+	@Resource(name = "corelib_db_morphia_datastore_sugarcrmcache")
 	private Datastore datastore;
 
 	private final static String CACHEDB = "sugarcrmCache";
@@ -90,26 +91,30 @@ public class SugarCRMCache {
 	 */
 	@PostConstruct
 	public void initLocal() {
-		if (mongo == null) {
-			try {
-				mongo = new Mongo();
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
-			} catch (MongoException e) {
-				e.printStackTrace();
+		if (datastore == null) {
+			log.info("SugarCRMCache datasource is null");
+			if (mongo == null) {
+				log.info("SugarCRMCache mongo is null");
+				try {
+					mongo = new Mongo();
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+				} catch (MongoException e) {
+					e.printStackTrace();
+				}
 			}
+
+			DB db = mongo.getDB(CACHEDB);
+			Morphia morphia = new Morphia();
+			morphia.map(DataSet.class).map(Provider.class);
+			datastore = morphia.createDatastore(mongo, CACHEDB);
 		}
 
-		DB db = mongo.getDB(CACHEDB);
-		Morphia morphia = new Morphia();
-		morphia.map(DataSet.class).map(Provider.class);
-		datastore = morphia.createDatastore(mongo, CACHEDB);
-
-		mongo.getDB(CACHEDB).getCollection("DataSet").ensureIndex("identifier");
-		mongo.getDB(CACHEDB).getCollection("DataSet").ensureIndex("savedsugarcrmFields.name");
-		mongo.getDB(CACHEDB).getCollection("DataSet").ensureIndex("savedsugarcrmFields.country_c");
-		mongo.getDB(CACHEDB).getCollection("DataSet").ensureIndex("savedsugarcrmFields.sales_stage");
-		mongo.getDB(CACHEDB).getCollection("Provider").ensureIndex("identifier");
+		datastore.getDB().getCollection("DataSet").ensureIndex("identifier");
+		datastore.getDB().getCollection("DataSet").ensureIndex("savedsugarcrmFields.name");
+		datastore.getDB().getCollection("DataSet").ensureIndex("savedsugarcrmFields.country_c");
+		datastore.getDB().getCollection("DataSet").ensureIndex("savedsugarcrmFields.sales_stage");
+		datastore.getDB().getCollection("Provider").ensureIndex("identifier");
 	}
 
 	/*
