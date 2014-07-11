@@ -182,6 +182,7 @@ public class HierarchicalController {
 			objectResult.children = searchService.getChildren(nodeId, offset, limit);
 			if (objectResult.children == null) {
 				objectResult.message = "This record has no children!";
+				objectResult.success = false;
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
 			objectResult.object = searchService.getHierarchicalBean(nodeId);
@@ -194,16 +195,19 @@ public class HierarchicalController {
 			objectResult.parent = searchService.getParent(nodeId);
 			if (objectResult.parent == null) {
 				objectResult.message = "This record has no parent!";
+				objectResult.success = false;
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
 			objectResult.followingSiblings = searchService.getNextSiblings(nodeId, limit);
 			if (objectResult.followingSiblings == null) {
 				objectResult.message = "This record has no following siblings!";
+				objectResult.success = false;
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
 			objectResult.preceedingSiblings = searchService.getPreviousSiblings(nodeId, limit);
 			if (objectResult.preceedingSiblings == null) {
 				objectResult.message = "This record has no preceeding siblings!";
+				objectResult.success = false;
 			}
 		}
 

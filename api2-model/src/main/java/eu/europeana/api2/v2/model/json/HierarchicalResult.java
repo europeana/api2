@@ -19,6 +19,7 @@ package eu.europeana.api2.v2.model.json;
 
 import java.util.List;
 
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
@@ -37,8 +38,10 @@ public class HierarchicalResult extends ApiResponse {
 
 	public List<Neo4jBean> children;
 
+	@JsonProperty("preceeding-siblings")
 	public List<Neo4jBean> preceedingSiblings;
 
+	@JsonProperty("following-siblings")
 	public List<Neo4jBean> followingSiblings;
 
 	public String message;
