@@ -37,9 +37,11 @@ public class HierarchicalResult extends ApiResponse {
 
 	public List<Neo4jBean> children;
 
-	public List<Neo4jBean> previousSiblings;
+	public List<Neo4jBean> preceedingSiblings;
 
 	public List<Neo4jBean> followingSiblings;
+
+	public String message;
 
 	public HierarchicalResult(String apikey, String action) {
 		super(apikey, action);
