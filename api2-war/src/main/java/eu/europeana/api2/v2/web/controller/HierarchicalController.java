@@ -183,6 +183,8 @@ public class HierarchicalController {
 			if (objectResult.children == null) {
 				objectResult.message = "This record has no children!";
 				objectResult.success = false;
+			} else {
+				// objectResult.childrenCount = searchService.getChildrenCount(nodeId);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
 			objectResult.object = searchService.getHierarchicalBean(nodeId);
@@ -190,6 +192,9 @@ public class HierarchicalController {
 				return JsonUtils.toJson(new ApiError(wskey, getAction(recordType), 
 					String.format("Invalid record identifier: %s!", nodeId),
 					limitResponse.getRequestNumber()), callback);
+			} else {
+				// org.neo4j.graphdb.NotFoundException: 'index' on http://sandbox05.isti.cnr.it:7474/db/data/relationship/162671
+				// objectResult.childrenCount = searchService.getChildrenCount(nodeId);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PARENT)) {
 			objectResult.parent = searchService.getParent(nodeId);
@@ -198,13 +203,13 @@ public class HierarchicalController {
 				objectResult.success = false;
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
-			objectResult.followingSiblings = searchService.getNextSiblings(nodeId, limit);
+			objectResult.followingSiblings = searchService.getFollowingSiblings(nodeId, limit);
 			if (objectResult.followingSiblings == null) {
 				objectResult.message = "This record has no following siblings!";
 				objectResult.success = false;
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
-			objectResult.preceedingSiblings = searchService.getPreviousSiblings(nodeId, limit);
+			objectResult.preceedingSiblings = searchService.getPreceedingSiblings(nodeId, limit);
 			if (objectResult.preceedingSiblings == null) {
 				objectResult.message = "This record has no preceeding siblings!";
 				objectResult.success = false;
