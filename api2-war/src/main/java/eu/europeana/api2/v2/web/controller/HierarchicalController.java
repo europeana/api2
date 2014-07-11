@@ -18,7 +18,6 @@
 package eu.europeana.api2.v2.web.controller;
 
 import java.util.Date;
-import java.util.List;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -44,7 +43,6 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
-import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
@@ -78,9 +76,9 @@ public class HierarchicalController {
 	@Resource
 	private ControllerUtils controllerUtils;
 
-	@RequestMapping(value = "/{collectionId}/{recordId}/hierarchy.json", method = RequestMethod.GET, 
+	@RequestMapping(value = "/{collectionId}/{recordId}/self.json", method = RequestMethod.GET,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public ModelAndView record(
+	public ModelAndView getSelf(
 			@PathVariable String collectionId,
 			@PathVariable String recordId,
 			@RequestParam(value = "profile", required = false, defaultValue = "") String profile,
@@ -88,40 +86,11 @@ public class HierarchicalController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse response) {
-		controllerUtils.addResponseHeaders(response);
-
-		LimitResponse limitResponse = null;
-		try {
-			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"record.json", RecordType.OBJECT, profile);
-		} catch (ApiLimitException e) {
-			response.setStatus(e.getHttpStatus());
-			return JsonUtils.toJson(new ApiError(e), callback);
-		}
-
-		HierarchicalResult objectResult = new HierarchicalResult(wskey, "record.json", limitResponse.getRequestNumber());
-		if (StringUtils.containsIgnoreCase(profile, "params")) {
-			objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
-			objectResult.addParam("profile", profile);
-		}
-
-		String europeanaObjectId = "/" + collectionId + "/" + recordId;
-		long t0 = (new Date()).getTime();
-		Neo4jBean bean = searchService.getHierarchicalBean(europeanaObjectId);
-
-		if (bean == null) {
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", "Invalid record identifier: "
-					+ europeanaObjectId, limitResponse.getRequestNumber()), callback);
-		}
-
-		objectResult.object = bean;
-		long t1 = (new Date()).getTime();
-		objectResult.statsDuration = (t1 - t0);
-
-		return JsonUtils.toJson(objectResult, callback);
+		return hierarchyTemplate(RecordType.HIERARCHY_SELF, collectionId, recordId,
+				profile, wskey, -1, -1, callback, request, response);
 	}
 
-	@RequestMapping(value = "/{collectionId}/{recordId}/children.json", method = RequestMethod.GET, 
+	@RequestMapping(value = "/{collectionId}/{recordId}/children.json", method = RequestMethod.GET,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView getChildren(
 			@PathVariable String collectionId,
@@ -133,36 +102,130 @@ public class HierarchicalController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse response) {
+		return hierarchyTemplate(RecordType.HIERARCHY_CHILDREN, collectionId, recordId,
+				profile, wskey, limit, offset, callback, request, response);
+	}
+
+	@RequestMapping(value = "/{collectionId}/{recordId}/parent.json", method = RequestMethod.GET,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ModelAndView getParent(
+			@PathVariable String collectionId,
+			@PathVariable String recordId,
+			@RequestParam(value = "profile", required = false, defaultValue = "") String profile,
+			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
+			@RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
+			@RequestParam(value = "callback", required = false) String callback,
+			HttpServletRequest request,
+			HttpServletResponse response) {
+		return hierarchyTemplate(RecordType.HIERARCHY_PARENT, collectionId, recordId,
+				profile, wskey, limit, offset, callback, request, response);
+	}
+
+	@RequestMapping(value = "/{collectionId}/{recordId}/preceeding-siblings.json", method = RequestMethod.GET,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ModelAndView getPreceedingSiblings(
+			@PathVariable String collectionId,
+			@PathVariable String recordId,
+			@RequestParam(value = "profile", required = false, defaultValue = "") String profile,
+			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
+			@RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
+			@RequestParam(value = "callback", required = false) String callback,
+			HttpServletRequest request,
+			HttpServletResponse response) {
+		return hierarchyTemplate(RecordType.HIERARCHY_PRECEEDING_SIBLINGS, collectionId, recordId,
+				profile, wskey, limit, offset, callback, request, response);
+	}
+
+	@RequestMapping(value = "/{collectionId}/{recordId}/following-siblings.json", method = RequestMethod.GET,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ModelAndView getFollowingSiblings(
+			@PathVariable String collectionId,
+			@PathVariable String recordId,
+			@RequestParam(value = "profile", required = false, defaultValue = "") String profile,
+			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
+			@RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
+			@RequestParam(value = "callback", required = false) String callback,
+			HttpServletRequest request,
+			HttpServletResponse response) {
+		return hierarchyTemplate(RecordType.HIERARCHY_FOLLOWING_SIBLINGS, collectionId, recordId,
+				profile, wskey, limit, offset, callback, request, response);
+	}
+
+	private ModelAndView hierarchyTemplate(RecordType recordType,
+			String collectionId, String recordId, String profile,
+			String wskey, int limit, int offset, String callback,
+			HttpServletRequest request, HttpServletResponse response) {
 		controllerUtils.addResponseHeaders(response);
 
 		LimitResponse limitResponse = null;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"record.json", RecordType.HIERARCHY_CHILDREN, profile);
+					getAction(recordType), recordType, profile);
 		} catch (ApiLimitException e) {
 			response.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
-		HierarchicalResult objectResult = new HierarchicalResult(wskey, "children.json", limitResponse.getRequestNumber());
+		HierarchicalResult objectResult = new HierarchicalResult(wskey, getAction(recordType), limitResponse.getRequestNumber());
 		if (StringUtils.containsIgnoreCase(profile, "params")) {
 			objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
 			objectResult.addParam("profile", profile);
 		}
 
-		String europeanaObjectId = "/" + collectionId + "/" + recordId;
+		String nodeId = "/" + collectionId + "/" + recordId;
 		long t0 = (new Date()).getTime();
-		List<Neo4jBean> beans = searchService.getChildren(europeanaObjectId, offset, limit);
 
-		if (beans == null) {
-			return JsonUtils.toJson(new ApiError(wskey, "children.json", "Invalid record identifier: "
-					+ europeanaObjectId, limitResponse.getRequestNumber()), callback);
+		if (recordType.equals(RecordType.HIERARCHY_CHILDREN)) {
+			objectResult.children = searchService.getChildren(nodeId, offset, limit);
+			if (objectResult.children == null) {
+				objectResult.message = "This record has no children!";
+			}
+		} else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
+			objectResult.object = searchService.getHierarchicalBean(nodeId);
+			if (objectResult.object == null) {
+				return JsonUtils.toJson(new ApiError(wskey, getAction(recordType), 
+					String.format("Invalid record identifier: %s!", nodeId),
+					limitResponse.getRequestNumber()), callback);
+			}
+		} else if (recordType.equals(RecordType.HIERARCHY_PARENT)) {
+			objectResult.parent = searchService.getParent(nodeId);
+			if (objectResult.parent == null) {
+				objectResult.message = "This record has no parent!";
+			}
+		} else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
+			objectResult.followingSiblings = searchService.getNextSiblings(nodeId, limit);
+			if (objectResult.followingSiblings == null) {
+				objectResult.message = "This record has no following siblings!";
+			}
+		} else if (recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
+			objectResult.preceedingSiblings = searchService.getPreviousSiblings(nodeId, limit);
+			if (objectResult.preceedingSiblings == null) {
+				objectResult.message = "This record has no preceeding siblings!";
+			}
 		}
 
-		objectResult.children = beans;
 		long t1 = (new Date()).getTime();
 		objectResult.statsDuration = (t1 - t0);
 
 		return JsonUtils.toJson(objectResult, callback);
+	}
+
+	private String getAction(RecordType recordType) {
+		String action = "";
+		if (recordType.equals(RecordType.HIERARCHY_CHILDREN)) {
+			action = "children.json";
+		} else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
+			action = "self.json";
+		} else if (recordType.equals(RecordType.HIERARCHY_PARENT)) {
+			action = "parent.json";
+		} else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
+			action = "following-siblings.json";
+		} else if (recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
+			action = "preceeding-siblings.json";
+		}
+		return action;
 	}
 }
