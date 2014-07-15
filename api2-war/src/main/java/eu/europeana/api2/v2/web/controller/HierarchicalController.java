@@ -215,6 +215,9 @@ public class HierarchicalController {
 				objectResult.success = false;
 			}
 		}
+		log.error("->getChildrenCount");
+		objectResult.childrenCount = searchService.getChildrenCount(nodeId);
+		log.error("/getChildrenCount");
 
 		long t1 = (new Date()).getTime();
 		objectResult.statsDuration = (t1 - t0);
