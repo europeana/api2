@@ -216,6 +216,10 @@ public class HierarchicalController {
 			}
 		}
 		objectResult.childrenCount = searchService.getChildrenCount(nodeId);
+		if (!recordType.equals(RecordType.HIERARCHY_PARENT)) {
+			objectResult.parent = searchService.getParent(nodeId);
+		}
+		objectResult.hasParent = (objectResult.parent != null);
 
 		long t1 = (new Date()).getTime();
 		objectResult.statsDuration = (t1 - t0);
