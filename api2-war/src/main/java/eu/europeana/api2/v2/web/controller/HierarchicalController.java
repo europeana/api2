@@ -195,15 +195,16 @@ public class HierarchicalController {
 				return JsonUtils.toJson(new ApiError(wskey, getAction(recordType), 
 					String.format("Invalid record identifier: %s!", nodeId),
 					limitResponse.getRequestNumber()), callback);
-			} else {
-				// org.neo4j.graphdb.NotFoundException: 'index' on http://sandbox05.isti.cnr.it:7474/db/data/relationship/162671
-				// objectResult.childrenCount = searchService.getChildrenCount(nodeId);
+			} else if (withChildrenCount) {
+				objectResult.object.setChildrenCount(searchService.getChildrenCount(nodeId));
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PARENT)) {
 			objectResult.parent = searchService.getParent(nodeId);
 			if (objectResult.parent == null) {
 				objectResult.message = "This record has no parent!";
 				objectResult.success = false;
+			} else if (withChildrenCount) {
+				objectResult.parent.setChildrenCount(searchService.getChildrenCount(objectResult.parent.getId()));
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
 			objectResult.followingSiblings = searchService.getFollowingSiblings(nodeId, limit);
