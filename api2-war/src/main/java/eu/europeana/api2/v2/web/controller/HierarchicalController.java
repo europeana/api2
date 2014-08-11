@@ -18,6 +18,7 @@
 package eu.europeana.api2.v2.web.controller;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +44,7 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
+import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
@@ -169,6 +171,7 @@ public class HierarchicalController {
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
+		boolean withChildrenCount = isChildrenCountRequested(profile);
 		HierarchicalResult objectResult = new HierarchicalResult(wskey, getAction(recordType), limitResponse.getRequestNumber());
 		if (StringUtils.containsIgnoreCase(profile, "params")) {
 			objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -183,8 +186,8 @@ public class HierarchicalController {
 			if (objectResult.children == null) {
 				objectResult.message = "This record has no children!";
 				objectResult.success = false;
-			} else {
-				// objectResult.childrenCount = searchService.getChildrenCount(nodeId);
+			} else if (withChildrenCount) {
+				addChildrenCount(objectResult.followingSiblings);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
 			objectResult.object = searchService.getHierarchicalBean(nodeId);
@@ -207,12 +210,16 @@ public class HierarchicalController {
 			if (objectResult.followingSiblings == null) {
 				objectResult.message = "This record has no following siblings!";
 				objectResult.success = false;
+			} else if (withChildrenCount) {
+				addChildrenCount(objectResult.followingSiblings);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
 			objectResult.preceedingSiblings = searchService.getPreceedingSiblings(nodeId, limit);
 			if (objectResult.preceedingSiblings == null) {
 				objectResult.message = "This record has no preceeding siblings!";
 				objectResult.success = false;
+			} else if (withChildrenCount) {
+				addChildrenCount(objectResult.preceedingSiblings);
 			}
 		}
 		objectResult.childrenCount = searchService.getChildrenCount(nodeId);
@@ -225,6 +232,12 @@ public class HierarchicalController {
 		objectResult.statsDuration = (t1 - t0);
 
 		return JsonUtils.toJson(objectResult, callback);
+	}
+
+	private void addChildrenCount(List<Neo4jBean> beans) {
+		for (Neo4jBean bean : beans) {
+			bean.setChildrenCount(searchService.getChildrenCount(bean.getId()));
+		}
 	}
 
 	private String getAction(RecordType recordType) {
@@ -242,4 +255,12 @@ public class HierarchicalController {
 		}
 		return action;
 	}
+
+	private boolean isChildrenCountRequested(String profile) {
+		if (StringUtils.containsIgnoreCase(profile, "withChildrenCount")) {
+			return true;
+		}
+		return false;
+	}
+
 }
