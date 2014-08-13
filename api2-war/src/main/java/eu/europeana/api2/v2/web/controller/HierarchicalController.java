@@ -171,7 +171,7 @@ public class HierarchicalController {
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
-		boolean withChildrenCount = isChildrenCountRequested(profile);
+		// boolean withChildrenCount = isChildrenCountRequested(profile);
 		HierarchicalResult objectResult = new HierarchicalResult(wskey, getAction(recordType), limitResponse.getRequestNumber());
 		if (StringUtils.containsIgnoreCase(profile, "params")) {
 			objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -190,13 +190,14 @@ public class HierarchicalController {
 				addChildrenCount(objectResult.children);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
-			objectResult.object = searchService.getHierarchicalBean(nodeId);
-			if (objectResult.object == null) {
+			objectResult.self = searchService.getHierarchicalBean(nodeId);
+			if (objectResult.self == null) {
 				return JsonUtils.toJson(new ApiError(wskey, getAction(recordType), 
 					String.format("Invalid record identifier: %s!", nodeId),
 					limitResponse.getRequestNumber()), callback);
 			} else {
-				objectResult.object.setChildrenCount(searchService.getChildrenCount(nodeId));
+				objectResult.self.setChildrenCount(
+					searchService.getChildrenCount(nodeId));
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PARENT)) {
 			objectResult.parent = searchService.getParent(nodeId);
@@ -204,7 +205,8 @@ public class HierarchicalController {
 				objectResult.message = "This record has no parent!";
 				objectResult.success = false;
 			} else {
-				objectResult.parent.setChildrenCount(searchService.getChildrenCount(objectResult.parent.getId()));
+				objectResult.parent.setChildrenCount(
+					searchService.getChildrenCount(objectResult.parent.getId()));
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
 			objectResult.followingSiblings = searchService.getFollowingSiblings(nodeId, limit);
@@ -232,6 +234,15 @@ public class HierarchicalController {
 			}
 		}
 		objectResult.hasParent = (objectResult.parent != null);
+		/*
+		if (!recordType.equals(RecordType.HIERARCHY_SELF)) {
+			objectResult.self = searchService.getHierarchicalBean(nodeId);
+			if (objectResult.self != null) {
+				objectResult.self.setChildrenCount(
+					searchService.getChildrenCount(objectResult.self.getId()));
+			}
+		}
+		*/
 
 		long t1 = (new Date()).getTime();
 		objectResult.statsDuration = (t1 - t0);
