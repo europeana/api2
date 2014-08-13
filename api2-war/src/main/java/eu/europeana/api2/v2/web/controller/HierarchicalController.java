@@ -186,8 +186,8 @@ public class HierarchicalController {
 			if (objectResult.children == null) {
 				objectResult.message = "This record has no children!";
 				objectResult.success = false;
-			} else if (withChildrenCount) {
-				addChildrenCount(objectResult.followingSiblings);
+			} else {
+				addChildrenCount(objectResult.children);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
 			objectResult.object = searchService.getHierarchicalBean(nodeId);
@@ -195,7 +195,7 @@ public class HierarchicalController {
 				return JsonUtils.toJson(new ApiError(wskey, getAction(recordType), 
 					String.format("Invalid record identifier: %s!", nodeId),
 					limitResponse.getRequestNumber()), callback);
-			} else if (withChildrenCount) {
+			} else {
 				objectResult.object.setChildrenCount(searchService.getChildrenCount(nodeId));
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PARENT)) {
@@ -203,7 +203,7 @@ public class HierarchicalController {
 			if (objectResult.parent == null) {
 				objectResult.message = "This record has no parent!";
 				objectResult.success = false;
-			} else if (withChildrenCount) {
+			} else {
 				objectResult.parent.setChildrenCount(searchService.getChildrenCount(objectResult.parent.getId()));
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
@@ -211,7 +211,7 @@ public class HierarchicalController {
 			if (objectResult.followingSiblings == null) {
 				objectResult.message = "This record has no following siblings!";
 				objectResult.success = false;
-			} else if (withChildrenCount) {
+			} else {
 				addChildrenCount(objectResult.followingSiblings);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
@@ -219,7 +219,7 @@ public class HierarchicalController {
 			if (objectResult.preceedingSiblings == null) {
 				objectResult.message = "This record has no preceeding siblings!";
 				objectResult.success = false;
-			} else if (withChildrenCount) {
+			} else {
 				addChildrenCount(objectResult.preceedingSiblings);
 			}
 		}
