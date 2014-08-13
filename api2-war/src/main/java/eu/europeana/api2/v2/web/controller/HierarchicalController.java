@@ -226,7 +226,10 @@ public class HierarchicalController {
 		// objectResult.childrenCount = searchService.getChildrenCount(nodeId);
 		if (!recordType.equals(RecordType.HIERARCHY_PARENT)) {
 			objectResult.parent = searchService.getParent(nodeId);
-			objectResult.parent.setChildrenCount(searchService.getChildrenCount(objectResult.parent.getId()));
+			if (objectResult.parent != null) {
+				objectResult.parent.setChildrenCount(
+					searchService.getChildrenCount(objectResult.parent.getId()));
+			}
 		}
 		objectResult.hasParent = (objectResult.parent != null);
 
