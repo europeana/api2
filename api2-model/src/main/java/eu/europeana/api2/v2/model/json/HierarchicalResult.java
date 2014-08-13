@@ -32,7 +32,7 @@ import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class HierarchicalResult extends ApiResponse {
 
-	public Neo4jBean object;
+	public Neo4jBean self;
 
 	public Neo4jBean parent;
 
