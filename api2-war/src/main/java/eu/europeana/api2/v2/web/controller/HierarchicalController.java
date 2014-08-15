@@ -225,7 +225,10 @@ public class HierarchicalController {
 				addChildrenCount(objectResult.preceedingSiblings);
 			}
 		}
-		// objectResult.childrenCount = searchService.getChildrenCount(nodeId);
+		if (   recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)
+			|| recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
+			objectResult.childrenCount = searchService.getChildrenCount(nodeId);
+		}
 		if (!recordType.equals(RecordType.HIERARCHY_PARENT)) {
 			objectResult.parent = searchService.getParent(nodeId);
 			if (objectResult.parent != null) {
