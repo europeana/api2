@@ -231,30 +231,23 @@ public class HierarchicalController {
 			}
 		}
 
-		// additional infos
-		if (   recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)
-			|| recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
-			objectResult.childrenCount = searchService.getChildrenCount(nodeId);
-		}
 		if (!recordType.equals(RecordType.HIERARCHY_PARENT)) {
 			objectResult.parent = searchService.getParent(nodeId);
-			/*
 			if (objectResult.parent != null) {
 				objectResult.parent.setChildrenCount(
 					searchService.getChildrenCount(objectResult.parent.getId()));
 			}
-			*/
+			setHasParent(objectResult.parent, false);
 		}
-		// objectResult.hasParent = (objectResult.parent != null);
-		/*
+
 		if (!recordType.equals(RecordType.HIERARCHY_SELF)) {
 			objectResult.self = searchService.getHierarchicalBean(nodeId);
 			if (objectResult.self != null) {
 				objectResult.self.setChildrenCount(
 					searchService.getChildrenCount(objectResult.self.getId()));
+				setHasParent(objectResult.self, false);
 			}
 		}
-		*/
 
 		long t1 = (new Date()).getTime();
 		objectResult.statsDuration = (t1 - t0);
@@ -263,10 +256,12 @@ public class HierarchicalController {
 	}
 
 	private void setHasParent(Neo4jBean bean, boolean automaticTrue) {
-		if (automaticTrue) {
-			bean.setHasParent(true);
-		} else {
-			bean.setHasParent(searchService.getParent(bean.getId()) != null);
+		if (bean != null) {
+			if (automaticTrue) {
+				bean.setHasParent(true);
+			} else {
+				bean.setHasParent(searchService.getParent(bean.getId()) != null);
+			}
 		}
 	}
 
