@@ -188,6 +188,7 @@ public class HierarchicalController {
 				objectResult.success = false;
 			} else {
 				addChildrenCount(objectResult.children);
+				addHasParent(objectResult.children, true);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
 			objectResult.self = searchService.getHierarchicalBean(nodeId);
@@ -198,6 +199,7 @@ public class HierarchicalController {
 			} else {
 				objectResult.self.setChildrenCount(
 					searchService.getChildrenCount(nodeId));
+				setHasParent(objectResult.self, false);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PARENT)) {
 			objectResult.parent = searchService.getParent(nodeId);
@@ -207,6 +209,7 @@ public class HierarchicalController {
 			} else {
 				objectResult.parent.setChildrenCount(
 					searchService.getChildrenCount(objectResult.parent.getId()));
+				setHasParent(objectResult.parent, false);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
 			objectResult.followingSiblings = searchService.getFollowingSiblings(nodeId, limit);
@@ -215,6 +218,7 @@ public class HierarchicalController {
 				objectResult.success = false;
 			} else {
 				addChildrenCount(objectResult.followingSiblings);
+				addHasParent(objectResult.followingSiblings, true);
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
 			objectResult.preceedingSiblings = searchService.getPreceedingSiblings(nodeId, limit);
@@ -223,20 +227,25 @@ public class HierarchicalController {
 				objectResult.success = false;
 			} else {
 				addChildrenCount(objectResult.preceedingSiblings);
+				addHasParent(objectResult.preceedingSiblings, true);
 			}
 		}
+
+		// additional infos
 		if (   recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)
 			|| recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
 			objectResult.childrenCount = searchService.getChildrenCount(nodeId);
 		}
 		if (!recordType.equals(RecordType.HIERARCHY_PARENT)) {
 			objectResult.parent = searchService.getParent(nodeId);
+			/*
 			if (objectResult.parent != null) {
 				objectResult.parent.setChildrenCount(
 					searchService.getChildrenCount(objectResult.parent.getId()));
 			}
+			*/
 		}
-		objectResult.hasParent = (objectResult.parent != null);
+		// objectResult.hasParent = (objectResult.parent != null);
 		/*
 		if (!recordType.equals(RecordType.HIERARCHY_SELF)) {
 			objectResult.self = searchService.getHierarchicalBean(nodeId);
@@ -251,6 +260,26 @@ public class HierarchicalController {
 		objectResult.statsDuration = (t1 - t0);
 
 		return JsonUtils.toJson(objectResult, callback);
+	}
+
+	private void setHasParent(Neo4jBean bean, boolean automaticTrue) {
+		if (automaticTrue) {
+			bean.setHasParent(true);
+		} else {
+			bean.setHasParent(searchService.getParent(bean.getId()) != null);
+		}
+	}
+
+	private void addHasParent(List<Neo4jBean> beans, boolean automaticTrue) {
+		if (beans != null && beans.size() > 0) {
+			for (Neo4jBean bean : beans) {
+				if (automaticTrue) {
+					bean.setHasParent(true);
+				} else {
+					setHasParent(bean, false);
+				}
+			}
+		}
 	}
 
 	private void addChildrenCount(List<Neo4jBean> beans) {
