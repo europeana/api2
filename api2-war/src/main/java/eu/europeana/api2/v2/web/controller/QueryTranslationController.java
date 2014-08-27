@@ -21,7 +21,7 @@ import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.QueryTranslationResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.definitions.solr.model.Query;
+import eu.europeana.corelib.definitions.solr.model.QueryTranslation;
 import eu.europeana.corelib.solr.utils.SolrUtils;
 import eu.europeana.corelib.utils.StringArrayUtils;
 
@@ -66,8 +66,9 @@ public class QueryTranslationController {
 		QueryTranslationResult queryTranslationResult = 
 				new QueryTranslationResult(wskey, "translateQuery.json", limitResponse.getRequestNumber());
 
-		queryTranslationResult.translations = SolrUtils.translateQuery(term, Arrays.asList(languageCodes));
-		queryTranslationResult.translatedQuery = Query.concatenateQueryTranslations(queryTranslationResult.translations);
+		QueryTranslation queryTranslation = SolrUtils.translateQuery(term, Arrays.asList(languageCodes));
+		queryTranslationResult.translations = queryTranslation.getLanguageVersions();
+		queryTranslationResult.translatedQuery = queryTranslation.getModifiedQuery();
 
 		if (StringUtils.isNotBlank(profile) && StringUtils.containsIgnoreCase(profile, "param")) {
 			queryTranslationResult.addParam("wskey", wskey);
