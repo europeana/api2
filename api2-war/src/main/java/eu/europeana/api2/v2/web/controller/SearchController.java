@@ -508,7 +508,6 @@ public class SearchController {
 			item.description = e.getMessage();
 			channel.items.add(item);
 		}
-		log.info("/fieldTripRss");
 
 		String xml = fieldTripUtils.cleanRss(xmlUtils.toString(rss));
 
