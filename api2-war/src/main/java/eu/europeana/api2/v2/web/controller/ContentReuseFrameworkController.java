@@ -63,6 +63,7 @@ public class ContentReuseFrameworkController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse response) {
+		long t0 = System.currentTimeMillis();
 		controllerUtils.addResponseHeaders(response);
 		LimitResponse limitResponse = null;
 		try {
@@ -78,6 +79,7 @@ public class ContentReuseFrameworkController {
 		if (info != null) {
 			result.imageMetaInfo = info.getImageMetaInfo();
 		}
+		result.statsDuration = (System.currentTimeMillis() - t0);
 		return JsonUtils.toJson(result, callback);
 	}
 }
