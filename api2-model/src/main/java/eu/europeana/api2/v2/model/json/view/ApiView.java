@@ -36,6 +36,9 @@ public class ApiView extends BriefView implements ApiBean {
 	private String[] dctermsIsPartOf;
 	private Date timestampCreated;
 	private Date timestampUpdate;
+	private Map<String, List<String>> edmConceptPrefLabelLangAware;
+	private Map<String, List<String>> edmConceptBroaderLabelLangAware;
+	private Map<String, List<String>> edmPlaceAltLabelLangAware;
 
 	public ApiView(ApiBean bean, String profile, String wskey, long uid, boolean optOut) {
 		super((BriefBean) bean, profile, wskey, uid, optOut);
@@ -60,6 +63,9 @@ public class ApiView extends BriefView implements ApiBean {
 		dctermsIsPartOf = bean.getDctermsIsPartOf();
 		timestampCreated = bean.getTimestampCreated();
 		timestampUpdate = bean.getTimestampUpdate();
+		edmConceptPrefLabelLangAware = bean.getEdmConceptPrefLabelLangAware();
+		edmConceptBroaderLabelLangAware = bean.getEdmConceptBroaderLabelLangAware();
+		edmPlaceAltLabelLangAware = bean.getEdmPlaceAltLabelLangAware();
 	}
 
 	@Override
@@ -255,5 +261,20 @@ public class ApiView extends BriefView implements ApiBean {
 	@JsonProperty("timestamp_update_epoch")
 	public Date getTimestampUpdate() {
 		return timestampUpdate;
+	}
+
+	@Override
+	public Map<String, List<String>> getEdmConceptPrefLabelLangAware() {
+		return edmConceptPrefLabelLangAware;
+	}
+
+	@Override
+	public Map<String, List<String>> getEdmConceptBroaderLabelLangAware() {
+		return edmConceptBroaderLabelLangAware;
+	}
+
+	@Override
+	public Map<String, List<String>> getEdmPlaceAltLabelLangAware() {
+		return edmPlaceAltLabelLangAware;
 	}
 }
