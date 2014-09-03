@@ -297,4 +297,19 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		}
 		return isShownAtLinks.toArray(new String[isShownAtLinks.size()]);
 	}
+
+	@Override
+	public Map<String, List<String>> getEdmPlaceLabelLangAware() {
+		return bean.getEdmPlaceLabelLangAware();
+	}
+
+	@Override
+	public Map<String, List<String>> getEdmTimespanLabelLangAware() {
+		return bean.getEdmTimespanLabelLangAware();
+	}
+
+	@Override
+	public Map<String, List<String>> getEdmAgentLabelLangAware() {
+		return bean.getEdmAgentLabelLangAware();
+	}
 }
