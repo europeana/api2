@@ -3,8 +3,6 @@ package eu.europeana.api2.v2.utils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.util.log.Log;
-
 import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.corelib.db.entity.enums.RecordType;
