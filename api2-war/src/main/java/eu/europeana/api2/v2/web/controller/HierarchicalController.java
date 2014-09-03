@@ -57,6 +57,8 @@ import eu.europeana.corelib.web.utils.RequestUtils;
 @RequestMapping(value = "/v2/record")
 public class HierarchicalController {
 
+	private static final int MAX_LIMIT = 100;
+
 	@Log
 	private Logger log;
 
@@ -161,6 +163,8 @@ public class HierarchicalController {
 			String wskey, int limit, int offset, String callback,
 			HttpServletRequest request, HttpServletResponse response) {
 		controllerUtils.addResponseHeaders(response);
+
+		limit = Math.min(limit, MAX_LIMIT);
 
 		LimitResponse limitResponse = null;
 		try {
