@@ -439,6 +439,7 @@ public class SugarCRMCache {
 	 * @throws JIXBQueryResultException 
 	 */
 	public SugarCRMSearchResults<Provider> pollProviders() throws JIXBQueryResultException {
+		log.info("pollProviders()");
 		String q1 = "accounts.date_modified > DATE_SUB(NOW(),INTERVAL 66 MINUTE)";
 		String q2 = "accounts_cstm.agg_status_c LIKE '%D'";
 		SugarCRMSearchResults<Provider> retrievedProviders = retrieveProviders(q1, q2);
@@ -454,7 +455,9 @@ public class SugarCRMCache {
 	 * @throws JIXBQueryResultException
 	 */
 	public SugarCRMSearchResults<DataSet> pollCollections() throws JIXBQueryResultException {
-		SugarCRMSearchResults<DataSet> retrievedDatasets = retrieveDataset("opportunities.date_modified > DATE_SUB(NOW(),INTERVAL 66 MINUTE)", null);
+		log.info("pollCollections()");
+		SugarCRMSearchResults<DataSet> retrievedDatasets = retrieveDataset(
+			"opportunities.date_modified > DATE_SUB(NOW(),INTERVAL 66 MINUTE)", null);
 		for (DataSet dataset : retrievedDatasets.items) {
 			log.info(String.format("Dataset: %s was updated by the scheduler...", dataset.identifier));
 			saveupdateCollection2Cache(dataset);
@@ -491,6 +494,7 @@ public class SugarCRMCache {
 			xmlElements = new ArrayList<Element>();
 		}
 
+		log.info(String.format("Query %s retrieved %d datasets", request.getQuery(), xmlElements.size()));
 		for (Element xmlElement : xmlElements) {
 			DataSet dataSet = new DataSet();
 			populateDatasetFromDOMElement(dataSet, xmlElement, providerID);
@@ -555,7 +559,7 @@ public class SugarCRMCache {
 			xmlElements = new ArrayList<Element>();
 		}
 
-		log.info(String.format("Retrieved %d providers", xmlElements.size()));
+		log.info(String.format("Query %s retrieved %d providers", request.getQuery(), xmlElements.size()));
 		for (Element xmlElement : xmlElements) {
 			Provider provider = new Provider();
 			// Insert values in Provider Object
