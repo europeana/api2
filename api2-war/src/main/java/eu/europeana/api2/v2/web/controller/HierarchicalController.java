@@ -246,7 +246,9 @@ public class HierarchicalController {
 	private void addChildrenCount(List<Neo4jBean> beans) {
 		if (beans != null && beans.size() > 0) {
 			for (Neo4jBean bean : beans) {
-				bean.setChildrenCount(searchService.getChildrenCount(bean.getId()));
+				if (bean.hasChildren()) {
+					bean.setChildrenCount(searchService.getChildrenCount(bean.getId()));
+				}
 			}
 		}
 	}
