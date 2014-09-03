@@ -216,12 +216,16 @@ public class HierarchicalController {
 				}
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
+			long tgetsiblings = System.currentTimeMillis();
 			objectResult.followingSiblings = searchService.getFollowingSiblings(nodeId, limit);
+			log.info("Get siblings: " + (System.currentTimeMillis() - tgetsiblings));
 			if (objectResult.followingSiblings == null) {
 				objectResult.message = "This record has no following siblings!";
 				objectResult.success = false;
 			} else {
+				long tgetsiblingsCount = System.currentTimeMillis();
 				addChildrenCount(objectResult.followingSiblings);
+				log.info("Get siblingsCount: " + (System.currentTimeMillis() - tgetsiblingsCount));
 			}
 		} else if (recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
 			objectResult.preceedingSiblings = searchService.getPreceedingSiblings(nodeId, limit);
