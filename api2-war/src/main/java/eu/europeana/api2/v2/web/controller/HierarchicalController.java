@@ -17,7 +17,6 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -162,10 +161,12 @@ public class HierarchicalController {
 			String collectionId, String recordId, String profile,
 			String wskey, int limit, int offset, String callback,
 			HttpServletRequest request, HttpServletResponse response) {
+		long t0 = System.currentTimeMillis();
 		controllerUtils.addResponseHeaders(response);
 
 		limit = Math.min(limit, MAX_LIMIT);
 
+		long t1 = System.currentTimeMillis();
 		LimitResponse limitResponse = null;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
@@ -174,17 +175,20 @@ public class HierarchicalController {
 			response.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
+		log.info("Limit: " + (System.currentTimeMillis() - t1));
 
-		// boolean withChildrenCount = isChildrenCountRequested(profile);
+		t1 = System.currentTimeMillis();
 		HierarchicalResult objectResult = new HierarchicalResult(wskey, getAction(recordType), limitResponse.getRequestNumber());
+		log.info("Init object: " + (System.currentTimeMillis() - t1));
+
 		if (StringUtils.containsIgnoreCase(profile, "params")) {
 			objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
 			objectResult.addParam("profile", profile);
 		}
 
 		String nodeId = "/" + collectionId + "/" + recordId;
-		long t0 = (new Date()).getTime();
 
+		t1 = System.currentTimeMillis();
 		if (recordType.equals(RecordType.HIERARCHY_CHILDREN)) {
 			objectResult.children = searchService.getChildren(nodeId, offset, limit);
 			if (objectResult.children == null) {
@@ -236,7 +240,9 @@ public class HierarchicalController {
 				addChildrenCount(objectResult.preceedingSiblings);
 			}
 		}
+		log.info("get main: " + (System.currentTimeMillis() - t1));
 
+		t1 = System.currentTimeMillis();
 		if (!recordType.equals(RecordType.HIERARCHY_SELF)) {
 			objectResult.self = searchService.getHierarchicalBean(nodeId);
 			if (objectResult.self != null) {
@@ -244,11 +250,15 @@ public class HierarchicalController {
 					searchService.getChildrenCount(objectResult.self.getId()));
 			}
 		}
+		log.info("get self: " + (System.currentTimeMillis() - t1));
 
-		long t1 = (new Date()).getTime();
-		objectResult.statsDuration = (t1 - t0);
+		objectResult.statsDuration = (System.currentTimeMillis() - t0);
 
-		return JsonUtils.toJson(objectResult, callback);
+		t1 = System.currentTimeMillis();
+		ModelAndView json = JsonUtils.toJson(objectResult, callback);
+		log.info("toJson: " + (System.currentTimeMillis() - t1));
+
+		return json;
 	}
 
 	private void addChildrenCount(List<Neo4jBean> beans) {
