@@ -11,8 +11,11 @@ import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
+import eu.europeana.corelib.logging.Logger;
 
 public class ControllerUtils {
+
+	private Logger log = Logger.getLogger(ControllerUtils.class.getCanonicalName());
 
 	@Resource
 	private ApiKeyService apiService;
@@ -24,14 +27,21 @@ public class ControllerUtils {
 			throws ApiLimitException {
 		ApiKey apiKey = null;
 		long requestNumber = 0;
+		long t;
 		try {
+			t = System.currentTimeMillis();
 			apiKey = apiService.findByID(wskey);
 			if (apiKey == null) {
 				throw new ApiLimitException(wskey, apiCall, "Unregistered user", 0, 401);
 			}
-			apiKey.getUsageLimit();
+			// apiKey.getUsageLimit();
+			log.info("get apiKey: " + (System.currentTimeMillis() - t));
+			t = System.currentTimeMillis();
 			requestNumber = apiService.checkReachedLimit(apiKey);
+			log.info("checkReachedLimit: " + (System.currentTimeMillis() - t));
+			t = System.currentTimeMillis();
 			apiLogService.logApiRequest(wskey, url, recordType, profile);
+			log.info("logApiRequest: " + (System.currentTimeMillis() - t));
 		} catch (DatabaseException e) {
 			apiLogService.logApiRequest(wskey, url, recordType, profile);
 			throw new ApiLimitException(wskey, apiCall, e.getMessage(), requestNumber, 401);
