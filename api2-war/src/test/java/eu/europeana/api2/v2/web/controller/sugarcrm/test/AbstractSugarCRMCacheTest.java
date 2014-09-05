@@ -17,13 +17,16 @@
 package eu.europeana.api2.v2.web.controller.sugarcrm.test;
 
 import static org.junit.Assert.*;
+
 import org.junit.Test;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
 import eu.europeana.api2.v2.service.SugarCRMCache;
+import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.uim.sugarcrmclient.ws.SugarWsClient;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
 
@@ -40,6 +43,7 @@ public abstract class AbstractSugarCRMCacheTest {
 	protected static MongodExecutable mongodExe;
 	protected static MongodProcess mongod;
 	protected static SugarCRMCache cacheInstance;
+	protected static SugarCRMImporter importerInstance;
 	protected static SugarWsClient sugarwsClient;
 
 	/**
@@ -47,7 +51,7 @@ public abstract class AbstractSugarCRMCacheTest {
 	 */
 	@Test
 	public void populationTest() throws JIXBQueryResultException {
-		cacheInstance.populateRepositoryFromScratch();
+		importerInstance.populateRepositoryFromScratch();
 	}
 
 	/**
@@ -137,7 +141,7 @@ public abstract class AbstractSugarCRMCacheTest {
 	 */
 	@Test
 	public void collectionPollingTest() throws JIXBQueryResultException {
-		cacheInstance.pollCollections();
+		importerInstance.pollCollections();
 	}
 
 	/**
@@ -147,6 +151,6 @@ public abstract class AbstractSugarCRMCacheTest {
 	 */
 	@Test
 	public void providerPollingTest() throws JIXBQueryResultException {
-		cacheInstance.pollProviders();
+		importerInstance.pollProviders();
 	}
 }
