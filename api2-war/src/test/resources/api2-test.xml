@@ -6,9 +6,9 @@
         http://www.springframework.org/schema/beans 
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
     ">
-    
-    <!-- CORE LIBRARY -->
-    <import resource="api2-context.xml"/>
+
+	<!-- CORE LIBRARY -->
+	<import resource="api2-context.xml"/>
 
 	<!-- OVERRIDE FOR LOCAL DEVELOPMENT -->
 	<bean name="corelib_solr_searchService" class="eu.europeana.corelib.solr.service.impl.SearchServiceImpl"
