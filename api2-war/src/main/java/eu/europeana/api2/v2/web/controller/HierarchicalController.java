@@ -44,6 +44,7 @@ import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
+import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
@@ -90,6 +91,20 @@ public class HierarchicalController {
 			HttpServletRequest request,
 			HttpServletResponse response) {
 		return hierarchyTemplate(RecordType.HIERARCHY_SELF, collectionId, recordId,
+				profile, wskey, -1, -1, callback, request, response);
+	}
+
+	@RequestMapping(value = "/{collectionId}/{recordId}/ancestor-self-siblings.json", method = RequestMethod.GET,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public ModelAndView getAncestorSelfSiblings(
+			@PathVariable String collectionId,
+			@PathVariable String recordId,
+			@RequestParam(value = "profile", required = false, defaultValue = "") String profile,
+			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "callback", required = false) String callback,
+			HttpServletRequest request,
+			HttpServletResponse response) {
+		return hierarchyTemplate(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS, collectionId, recordId,
 				profile, wskey, -1, -1, callback, request, response);
 	}
 
@@ -239,6 +254,25 @@ public class HierarchicalController {
 			} else {
 				addChildrenCount(objectResult.preceedingSiblings);
 			}
+		} else if (recordType.equals(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS)) {
+			Neo4jStructBean struct = searchService.getInitialStruct(nodeId);
+			if (struct == null) {
+				objectResult.message = "This record has no hierarchical structure!";
+				objectResult.success = false;
+			} else {
+				if (struct.getSelf() != null) {
+					objectResult.self = struct.getSelf();
+				}
+				if (struct.getParents() != null) {
+					objectResult.ancestors = struct.getParents();
+				}
+				if (struct.getFollowingSiblings() != null) {
+					objectResult.followingSiblings = struct.getFollowingSiblings();
+				}
+				if (struct.getPreceedingSiblings() != null) {
+					objectResult.preceedingSiblings = struct.getPreceedingSiblings();
+				}
+			}
 		}
 		log.info("get main: " + (System.currentTimeMillis() - t1));
 
@@ -283,6 +317,8 @@ public class HierarchicalController {
 			action = "following-siblings.json";
 		} else if (recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
 			action = "preceeding-siblings.json";
+		} else if (recordType.equals(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS)) {
+			action = "ancestor-self-siblings.json";
 		}
 		return action;
 	}
