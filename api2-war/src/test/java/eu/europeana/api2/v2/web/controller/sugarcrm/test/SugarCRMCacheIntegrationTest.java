@@ -18,14 +18,17 @@ package eu.europeana.api2.v2.web.controller.sugarcrm.test;
 
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPException;
+
 import org.jibx.runtime.JiBXException;
 import org.junit.BeforeClass;
 import org.springframework.oxm.jibx.JibxMarshaller;
 import org.springframework.ws.client.core.WebServiceTemplate;
+
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.MongodConfig;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import eu.europeana.api2.v2.service.SugarCRMCache;
+import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.uim.sugarcrmclient.internal.ExtendedSaajSoapMessageFactory;
 import eu.europeana.uim.sugarcrmclient.internal.helpers.ClientUtils;
 import eu.europeana.uim.sugarcrmclient.ws.ClientFactory;
@@ -96,8 +99,8 @@ public abstract class SugarCRMCacheIntegrationTest extends
 			e.printStackTrace();
 		}
 
-		cacheInstance = new SugarCRMCache();
-		cacheInstance.setSugarwsClient(sugarwsClient);
-		cacheInstance.initLocal();
+		importerInstance = new SugarCRMImporter();
+		importerInstance.setSugarwsClient(sugarwsClient);
+		importerInstance.initLocal();
 	}
 }

@@ -17,11 +17,14 @@
 package eu.europeana.api2.v2.schedule;
 
 import java.util.concurrent.ScheduledFuture;
+
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import eu.europeana.api2.v2.service.SugarCRMCache;
+
+import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
@@ -40,7 +43,7 @@ public class SugarCRMPollingScheduler {
 	private Logger log;
 
 	@Resource
-	private SugarCRMCache sugarCRMCache;
+	private SugarCRMImporter sugarCRMImporter;
 
 	@Resource(name="sugarcrm_taskScheduler")
 	private TaskScheduler scheduler;
@@ -71,7 +74,7 @@ public class SugarCRMPollingScheduler {
 	@PostConstruct
 	public void scheduleFirstRun() {
 		try {
-			sugarCRMCache.populateRepositoryFromScratch();
+			sugarCRMImporter.populateRepositoryFromScratch();
 		} catch (JIXBQueryResultException e) {
 			e.printStackTrace();
 			log.error("Re-population of MongoDB Cache from SugarCRM failed: " + e.getMessage());
@@ -87,8 +90,8 @@ public class SugarCRMPollingScheduler {
 		@Override
 		public void run() {
 			try {
-				sugarCRMCache.pollProviders();
-				sugarCRMCache.pollCollections();
+				sugarCRMImporter.pollProviders();
+				sugarCRMImporter.pollCollections();
 			} catch (JIXBQueryResultException e) {
 				e.printStackTrace();
 				log.error("Frequently scheduled update for provider/collections failed: " + e.getMessage());
@@ -103,8 +106,8 @@ public class SugarCRMPollingScheduler {
 		@Override
 		public void run() {
 			try {
-				sugarCRMCache.pollProviders();
-				sugarCRMCache.pollCollections();
+				sugarCRMImporter.pollProviders();
+				sugarCRMImporter.pollCollections();
 			} catch (JIXBQueryResultException e) {
 				e.printStackTrace();
 				log.error("Frequently scheduled update for provider/collections failed: " + e.getMessage());
