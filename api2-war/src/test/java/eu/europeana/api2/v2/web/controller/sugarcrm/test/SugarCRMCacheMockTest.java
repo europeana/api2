@@ -114,9 +114,9 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 					}
 				});
 
-		when(cacheInstance.pollProviders()).thenReturn(providerres);
+		when(importerInstance.pollProviders()).thenReturn(providerres);
 
-		when(cacheInstance.pollCollections()).thenReturn(collectionres);
+		when(importerInstance.pollCollections()).thenReturn(collectionres);
 
 		when(cacheInstance.getCollectionByID(anyString())).thenAnswer(
 				new Answer<SugarCRMSearchResults<DataSet>>() {
@@ -136,7 +136,7 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 					}
 				});
 
-		cacheInstance.setSugarwsClient(sugarwsClient);
-		cacheInstance.initLocal();
+		importerInstance.setSugarwsClient(sugarwsClient);
+		importerInstance.initLocal();
 	}
 }
