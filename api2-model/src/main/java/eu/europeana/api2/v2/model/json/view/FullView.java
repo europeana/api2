@@ -16,6 +16,7 @@ import eu.europeana.corelib.definitions.solr.entity.Agent;
 import eu.europeana.corelib.definitions.solr.entity.Aggregation;
 import eu.europeana.corelib.definitions.solr.entity.Concept;
 import eu.europeana.corelib.definitions.solr.entity.EuropeanaAggregation;
+import eu.europeana.corelib.definitions.solr.entity.License;
 import eu.europeana.corelib.definitions.solr.entity.Place;
 import eu.europeana.corelib.definitions.solr.entity.ProvidedCHO;
 import eu.europeana.corelib.definitions.solr.entity.Proxy;
@@ -363,4 +364,14 @@ public class FullView implements FullBean {
 
 	@Override
 	public void setTimestampUpdated(Date timestampUpdated) {}
+
+	@Override
+	public List<? extends License> getLicenses() {
+		return bean.getLicenses();
+	}
+
+	@Override
+	public void setLicenses(List<? extends License> licenses) {
+		
+	}
 }
