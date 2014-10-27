@@ -9,7 +9,7 @@
         http://www.springframework.org/schema/util/spring-util.xsd
 	">
     <!-- CORELIB -->
-    <!--	<import resource="corelib-logging-context.xml" />-->
+    	<import resource="corelib-logging-context.xml" />
     <import resource="corelib-db-context.xml" />
     <import resource="corelib-solr-context.xml" />
     <import resource="corelib-utils-context.xml" />
@@ -20,7 +20,7 @@
     <import resource="internal/api2-security.xml" />
     <import resource="internal/api2-sugarcrmcaching.xml" />
     <import resource="internal/api2-limits.xml" />
-    <util:properties id="europeanaProperties" location="classpath:europeana.properties" />
+<!--     <util:properties id="europeanaProperties" location="classpath:europeana.properties" /> -->
     <!-- DEVELOPMENT -->
     <!-- import resource="internal/api2-development.xml" / -->
 </beans>
