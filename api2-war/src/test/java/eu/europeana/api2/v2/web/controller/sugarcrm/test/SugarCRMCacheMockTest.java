@@ -20,18 +20,22 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import org.jibx.runtime.JiBXException;
 import org.junit.BeforeClass;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
 import eu.europeana.api2.v2.service.SugarCRMCache;
+import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.uim.sugarcrmclient.ws.SugarWsClient;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
 
@@ -57,6 +61,7 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 
 		sugarwsClient = mock(SugarWsClient.class);
 		cacheInstance = mock(SugarCRMCache.class);
+		importerInstance = mock(SugarCRMImporter.class);
 		final ArgumentCaptor<String> providercaptor = ArgumentCaptor.forClass(String.class);
 		final SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<Provider>(
 				null, null);
