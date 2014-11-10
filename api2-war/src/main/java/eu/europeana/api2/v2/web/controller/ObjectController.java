@@ -147,7 +147,9 @@ public class ObjectController {
                                 europeanaObjectId= searchService.resolveId(europeanaObjectId);
 				bean = searchService.findById(europeanaObjectId, false);
 			}
-
+			if(bean!=null && bean.isOptedOut()){
+				bean.getAggregations().get(0).setEdmObject("");
+			}
 			if (bean == null) {
 				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Invalid record identifier: "
 						+ europeanaObjectId, limitResponse.getRequestNumber()), callback);
