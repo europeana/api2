@@ -76,6 +76,7 @@ import eu.europeana.corelib.solr.exceptions.MongoDBException;
 import eu.europeana.corelib.solr.exceptions.SolrTypeException;
 import eu.europeana.corelib.solr.service.SearchService;
 import eu.europeana.corelib.solr.utils.EdmUtils;
+import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
@@ -138,12 +139,13 @@ public class ObjectController {
 			objectResult.addParam("profile", profile);
 		}
 
-		String europeanaObjectId = "/" + collectionId + "/" + recordId;
+		String europeanaObjectId = EuropeanaUriUtils.createResolveEuropeanaId(collectionId, recordId);
 		try {
 			long t0 = (new Date()).getTime();
 			FullBean bean = searchService.findById(europeanaObjectId, false);
 			if (bean == null) {
-				bean = searchService.resolve(europeanaObjectId, false);
+                                europeanaObjectId= searchService.resolveId(europeanaObjectId);
+				bean = searchService.findById(europeanaObjectId, false);
 			}
 
 			if (bean == null) {
@@ -169,8 +171,8 @@ public class ObjectController {
 					.getId()));
 			long t1 = (new Date()).getTime();
 			objectResult.statsDuration = (t1 - t0);
-		} catch (SolrTypeException e) {
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), limitResponse.getRequestNumber()), callback);
+//		} catch (SolrTypeException e) {
+//			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), limitResponse.getRequestNumber()), callback);
 		} catch (MongoDBException e) {
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
