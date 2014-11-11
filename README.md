@@ -2,20 +2,20 @@
 
 # Europeana: catalyst for change in the world of cultural heritage
 
+## What does it do?
+
+Europeana is an internet portal that acts as an interface to millions of books, paintings, films, museum objects and archival records that have been digitised throughout Europe. The API provides the machine interface for accessing these digital objects.
+
 ## Full Documentation
 
 See the [Wiki](https://github.com/europeana/api2/wiki) for full documentation, examples, operational details and other information.
 
-The is JavaDoc will be generated once the upcoming code overhaul is complete.
+The JavaDoc will be generated once the upcoming code overhaul is complete.
 
 ## Communication
 
 - Google Group: [Europeana API forum](https://groups.google.com/d/forum/europeanaapi)
 - [GitHub Issues](https://github.com/europeana/api2/issues)
-
-## What does it do?
-
-Europeana is an internet portal that acts as an interface to millions of books, paintings, films, museum objects and archival records that have been digitised throughout Europe. The API provides the machine interface for accessing these digital objects.
 
 ## Build
 
