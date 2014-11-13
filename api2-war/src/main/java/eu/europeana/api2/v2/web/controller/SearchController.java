@@ -482,13 +482,22 @@ public class SearchController {
 			HttpServletResponse response) {
 		controllerUtils.addResponseHeaders(response);
 
+                Map<String, String> gftChannelAttributes = configuration.getGftChannelAttributes("swedish_buildings");
+                
 		FieldTripResponse rss = new FieldTripResponse();
 		FieldTripChannel channel = rss.channel;
-		channel.title = "The Cultural Heritage Agency of Iceland";
-		channel.description = "Historical buildings on Iceland";
-		channel.language = "is";
-		channel.link = "http://www.minjastofnun.is/";
-		channel.image = new FieldTripImage("http://www.minjastofnun.is/skin/basic9k/i/sitelogo.png");
+		
+                channel.title = gftChannelAttributes.get("title");
+		channel.description = gftChannelAttributes.get("description");
+		channel.language = gftChannelAttributes.get("language");
+		channel.link = gftChannelAttributes.get("link");
+		channel.image = new FieldTripImage(gftChannelAttributes.get("image"));
+                
+//              channel.title = "The Cultural Heritage Agency of Iceland";
+//		channel.description = "Historical buildings on Iceland";
+//		channel.language = "is";
+//		channel.link = "http://www.minjastofnun.is/";
+//		channel.image = new FieldTripImage("http://www.minjastofnun.is/skin/basic9k/i/sitelogo.png");
 
 		if (StringUtils.equals(profile, "FieldTrip")) {
 			offset++;
