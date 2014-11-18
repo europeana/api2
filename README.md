@@ -1,90 +1,41 @@
-# Europeana API
+![](https://github.com/europeana/portal/blob/master/portal2/src/main/webapp/themes/default/images/europeana-logo-retina-1.png)
 
-## Installation
+# Europeana: catalyst for change in the world of cultural heritage
 
-*The api2-war.war should be renamed api2.war in order to work.*
+## What does it do?
 
-### Important database tables
+Europeana is an internet portal that acts as an interface to millions of books, paintings, films, museum objects and archival records that have been digitised throughout Europe. The API provides the machine interface for accessing these digital objects.
 
-1) apikey
-Columns: 
-- apikey (string): the public API key
-  privatekey (string): a secret second API key (the two key should be used in login form as name/password pair)
-  usagelimit (int): how many times a user can access the API (I am not sure whether it is working or just an intention)
-  userid (int): reference to an existing user identifier (see user table). One user might have multiple apikey.
+## Full Documentation
 
-2) users
-- id: user identifier
-- apikey: API key, but it is not in use as far as I know it
-- email: email
-- enabled (boolean): the user is enabled to use API
-- firstname: first name
-- languages: 
-- lastlogin: last time the user logged in for personal page
-- lastname: user's last name
-- newsletter:
-- password: user's password (in encripted form)
-- projectid: 
-- providerid: 
-- registrationdate: when he registrated
-- role: 
-- username: username when login
+See the [Wiki](https://github.com/europeana/api2/wiki) for full documentation, examples, operational details and other information.
 
+The JavaDoc will be generated once the upcoming code overhaul is complete.
 
-### Usage of API2 form command line
+## Communication
 
-To improve the understandability of the API documentation here is a short example of how to use it with cURL tool.
-It helps to create a similar implementation with your own favorite tool.
+- Google Group: [Europeana API forum](https://groups.google.com/d/forum/europeanaapi)
+- [GitHub Issues](https://github.com/europeana/api2/issues)
 
-1) Request the session identifier:
+## Build
 
-First you have to POST the api2key and secret parameters to the /login page
+To build (requires the [CoreLib](https://github.com/europeana/corelib) dependency):
 
-request:
-$ curl -i -d "api2key=[your api key]&secret=[your secret key]" "http://localhost:8080/api2/login"
+```bash
+$ git clone https://github.com/europeana/api2.git
+$ cd api2/
+$ mvn clean install -DskipTests
+```
 
-response:
-1: HTTP/1.1 302 Moved Temporarily
-2: Server: Apache-Coyote/1.1
-3: Set-Cookie: JSESSIONID=54B3FED3649FD8D205C297A52363825B; Path=/api2; HttpOnly
-4: Location: http://localhost:8080/api2/
-5: Content-Length: 0
-6: Date: Fri, 13 Jul 2012 10:41:40 GMT
+Futher details on building can be found on the [Deploy](https://github.com/europeana/api2/wiki/Deploy) page of the wiki (but check the [Setup](https://github.com/europeana/api2/wiki/Setup) first!.
 
-In line 3 you can find the session ID in the form of a key=value pair. This is
+## LICENSE
 
-  JSESSIONID=54B3FED3649FD8D205C297A52363825B
+Copyright 2007-2012 The Europeana Foundation
 
-You have to extract it, and use it in later requests.
+Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved by the European Commission;
+You may not use this work except in compliance with the Licence.
 
-2) Use the session identifier:
+You may obtain a copy of the Licence at: [http://joinup.ec.europa.eu/software/page/eupl](http://joinup.ec.europa.eu/software/page/eupl)
 
-Now use this session identifier as cookie.
-
-$ curl -i -b "JSESSIONID=54B3FED3649FD8D205C297A52363825B" "http://localhost:8080/api2/search.json?query=john"
-HTTP/1.1 200 OK
-Server: Apache-Coyote/1.1
-Content-Type: application/json
-Transfer-Encoding: chunked
-Date: Fri, 13 Jul 2012 10:42:09 GMT
-
-{
-	"apikey": "[your api key]",
-	"action": "search.json",
-	"success": true,
-	"statsDuration": 0,
-	"itemsCount": 12,
-	"totalResults": 880,
-	"items": [{...},{...}...]
-}
-
-As you can see the application now returns good response, the content type is JSON, and you actually get
-the JSON result. For the sake of readibility I formatted the contect, in reallity it is condensed into one
-long line, and without unnecessary whitespace characters.
-
-cURL parameters used in this short tutorial:
-
- -i          Include protocol headers in the output. With applying this you can see the HTTP headers.
- -d DATA     HTTP POST data. The format of the data is URL encoded.
- -b STRING   String to read cookies from.
- 
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, without warranties or conditions of any kind, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
