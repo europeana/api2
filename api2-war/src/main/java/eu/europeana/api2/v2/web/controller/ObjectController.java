@@ -280,13 +280,15 @@ public class ObjectController {
 			apiKey.getUsageLimit();
 			apiService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT_RDF, profile);
+          // Disabled while awaiting better implementation (ticket #1742)
+		  // apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT_RDF, profile);
 			model.put("error", e.getMessage());
 			response.setStatus(401);
 			return new ModelAndView("rdf", model);
 			// return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber));
 		} catch (LimitReachedException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+	       // Disabled while awaiting better implementation (ticket #1742)
+    	   // apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
 			log.error(e.getMessage());
 			model.put("error", e.getMessage());
 			response.setStatus(429);
@@ -313,7 +315,8 @@ public class ObjectController {
 			model.put("error", "Non-existing record identifier");
 		}
 
-		apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT_RDF, profile);
+        // Disabled while awaiting better implementation (ticket #1742)
+		// apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT_RDF, profile);
 		return new ModelAndView("rdf", model);
 	}
 
