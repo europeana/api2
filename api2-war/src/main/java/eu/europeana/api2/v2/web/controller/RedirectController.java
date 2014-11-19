@@ -46,7 +46,8 @@ public class RedirectController {
 		if (user != null) {
 			wskey = user.getApiKeys().iterator().next().getId();
 		}
-		apiLogService.logApiRequest(wskey, id, RecordType.REDIRECT, profile);
+        // Disabled while awaiting better implementation (ticket #1742)
+		// apiLogService.logApiRequest(wskey, id, RecordType.REDIRECT, profile);
 
 		return "redirect:" + isShownAt;
 	}
