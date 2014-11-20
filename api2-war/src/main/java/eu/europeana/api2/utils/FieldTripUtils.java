@@ -29,15 +29,29 @@ public class FieldTripUtils {
 	private final static Pattern DESCRIPTION_PATTERN = Pattern.compile("(<description>)(.*?)(</description>)", Pattern.DOTALL);
 	private final static Pattern ATTRIBUTION_PATTERN = Pattern.compile("(<attribution>)(.*?)(</attribution>)", Pattern.DOTALL);
 
+        
 	public FieldTripUtils(EuropeanaUrlService urlService) {
 		this.urlService = urlService;
 	}
-
-	public FieldTripItem createItem(RichBean bean) {
+        
+        /**
+	 * returns a populated FieldTripItem
+         * <p> The FieldTripItem contains the guid, title, description, translated
+         * EdmIsShownAt label text, thumbnail image, geographical location (point),
+         * publication date and link retrieved from the provided Bean instance and
+         * the translatedEdmIsShownAtLabel parameter
+	 * @param bean containing the Solr query data
+	 * @param translatedEdmIsShownAtLabel containing the EdmIsShownAt label 
+         * text, translated in the appropriate language
+	 * @return FieldTripItem instance
+	 *   
+	 */
+	public FieldTripItem createItem(RichBean bean, String translatedEdmIsShownAtLabel) {
 		FieldTripItem item = new FieldTripItem();
 		item.guid = urlService.getPortalRecord(false, bean.getId()).toString();
 		item.title = getTitle(bean);
 		item.description = extractDescription(bean.getDcDescription());
+                item.description = addShownAt(item.description, translatedEdmIsShownAtLabel, bean.getEdmIsShownAt());
 		item.images = getThumbnail(bean);
 		item.point = getPoint(bean);
 		item.pubDate = getPublicationDate(bean.getTimestampCreated());
@@ -107,6 +121,32 @@ public class FieldTripUtils {
 		}
 		return FIELDTRIP_DATE_FORMATTER.format(timestampCreated);
 	}
+        
+        /**
+	 * returns the itemDescription postfixed with the HTML formatted 'EDM is 
+         * shown at' data provided in the other parameters
+	 * @param itemDescription String containing the description
+	 * @param translatedEdmIsShownAtLabel translated label text
+         * @param edmIsShownAt containing the URL to be linked to
+	 * @return String with added 'EDM is shown at' HTML code
+	 *   
+	 */
+	private String addShownAt(String itemDescription, String translatedEdmIsShownAtLabel, String[] edmIsShownAt) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(itemDescription);
+            if (edmIsShownAt != null && edmIsShownAt.length > 0
+				&& StringUtils.isNotBlank(edmIsShownAt[0])) {
+                sb.append("<p>");
+                sb.append(translatedEdmIsShownAtLabel);
+                sb.append(": <a href=\"");
+                sb.append(edmIsShownAt[0]);
+                sb.append("\">");
+                sb.append(edmIsShownAt[0]);
+                sb.append("</a>");
+                sb.append("<p>");
+            } 
+            return sb.toString();
+        }
 
 	private String extractDescription(String[] dcDescription) {
 		List<String> descriptions = new ArrayList<String>();
