@@ -73,11 +73,13 @@ public class BasicObjectController {
 			apiKey.getUsageLimit();
 			requestNumber = apiKeyService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
+		  // Disabled while awaiting better implementation (ticket #1742)
+		  //			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
 					requestNumber), callback);
 		} catch (LimitReachedException e) {
-			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+          // Disabled while awaiting better implementation (ticket #1742)
+		  //			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()), callback);
 		}
 		
@@ -94,7 +96,8 @@ public class BasicObjectController {
 			}
 
 			if (bean == null) {
-				apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+	          // Disabled while awaiting better implementation (ticket #1742)
+			  // apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
 				return JsonUtils.toJson(new ApiError(wskey, "record.json",
 						"Invalid record identifier: " + europeanaObjectId,
 						requestNumber), callback);
