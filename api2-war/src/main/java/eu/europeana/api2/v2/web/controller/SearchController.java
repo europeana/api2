@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.context.support.AbstractMessageSource;
 
 import com.mongodb.Mongo;
 
@@ -131,6 +133,9 @@ public class SearchController {
 
 	@Resource(name = "api2_mvc_xmlUtils")
 	private XmlUtils xmlUtils;
+        
+        @Resource
+        private AbstractMessageSource messageSource;
 
 	final static public int FACET_LIMIT = 16;
 
@@ -471,7 +476,19 @@ public class SearchController {
 		}
 		return rss;
 	}
-
+        
+	/**
+	 * returns ModelAndView containing RSS data to populate the Google Field 
+         * Trip app for some selected collections
+	 * @param queryTerms the collection ID, e.g. "europeana_collectionName:91697*"
+	 * @param offset     list items from this index on
+	 * @param limit      max number of items to list
+	 * @param profile    should be "FieldTrip"
+	 * @param request    servlet request object
+	 * @param response   servlet response object
+	 * @return ModelAndView instance
+	 *   
+	 */
 	@RequestMapping(value = "/v2/search.rss", produces = MediaType.APPLICATION_XML_VALUE)
 	public ModelAndView fieldTripRss(
 			@RequestParam(value = "query", required = true) String queryTerms,
@@ -482,23 +499,32 @@ public class SearchController {
 			HttpServletResponse response) {
 		controllerUtils.addResponseHeaders(response);
 
-                Map<String, String> gftChannelAttributes = configuration.getGftChannelAttributes("swedish_buildings");
+                String collectionID = getIdFromQueryTerms(queryTerms);
+                Map<String, String> gftChannelAttributes = configuration.getGftChannelAttributes(collectionID);
                 
 		FieldTripResponse rss = new FieldTripResponse();
 		FieldTripChannel channel = rss.channel;
 		
-                channel.title = gftChannelAttributes.get("title");
-		channel.description = gftChannelAttributes.get("description");
-		channel.language = gftChannelAttributes.get("language");
-		channel.link = gftChannelAttributes.get("link");
-		channel.image = new FieldTripImage(gftChannelAttributes.get("image"));
-                
-//              channel.title = "The Cultural Heritage Agency of Iceland";
-//		channel.description = "Historical buildings on Iceland";
-//		channel.language = "is";
-//		channel.link = "http://www.minjastofnun.is/";
-//		channel.image = new FieldTripImage("http://www.minjastofnun.is/skin/basic9k/i/sitelogo.png");
-
+                if (gftChannelAttributes.isEmpty() || gftChannelAttributes.size() < 5) {
+                    log.error("error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
+                    channel.title = "error retrieving attributes";
+                    channel.description = "error retrieving attributes";
+                    channel.language = "--";
+                    channel.link = "error retrieving attributes";
+                    channel.image = null;
+                } else {
+                    channel.title = gftChannelAttributes.get("title") == null 
+                            || gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title");
+                    channel.description = gftChannelAttributes.get("description") == null 
+                            || gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description");
+                    channel.language = gftChannelAttributes.get("language") == null 
+                            || gftChannelAttributes.get("language").equalsIgnoreCase("") ? "--" : gftChannelAttributes.get("language");
+                    channel.link = gftChannelAttributes.get("link") == null 
+                            || gftChannelAttributes.get("link").equalsIgnoreCase("") ? "no link defined" : gftChannelAttributes.get("link");
+                    channel.image = gftChannelAttributes.get("image") == null 
+                            || gftChannelAttributes.get("image").equalsIgnoreCase("") ? null : new FieldTripImage(gftChannelAttributes.get("image"));  
+                }
+                    
 		if (StringUtils.equals(profile, "FieldTrip")) {
 			offset++;
 		}
@@ -508,7 +534,7 @@ public class SearchController {
 					.setStart(offset - 1).setAllowFacets(false).setAllowSpellcheck(false);
 			ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
 			for (RichBean bean : resultSet.getResults()) {
-				channel.items.add(fieldTripUtils.createItem(bean));
+				channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, channel.language)));
 			}
 		} catch (SolrTypeException e) {
 			log.error("error: " + e.getLocalizedMessage());
@@ -529,6 +555,15 @@ public class SearchController {
 		return new ModelAndView("rss", model);
 	}
 
+	/**
+	 * Retrieves the title from the bean if not null; otherwise, returns
+         * a concatenation of the Data Provier and ID fields. 
+         * <p>! FIX ME ! Note that this method will yield unwanted results when 
+         * there is more than one Title field!
+	 * @param  bean mapped pojo bean
+	 * @return String containing the concatenated fields
+	 *   
+	 */
 	private String getTitle(BriefBean bean) {
 		if (!ArrayUtils.isEmpty(bean.getTitle())) {
 			for (String title : bean.getTitle()) {
@@ -539,7 +574,14 @@ public class SearchController {
 		}
 		return bean.getDataProvider()[0] + " " + bean.getId();
 	}
-
+        
+	/**
+	 * retrieves a concatenation of the bean's DC Creator, Year and Provider 
+         * fields (if available)
+	 * @param  bean mapped pojo bean
+	 * @return String containing the fields, separated by semicolons
+	 *   
+	 */
 	private String getDescription(BriefBean bean) {
 		StringBuilder sb = new StringBuilder();
 		if (bean.getDcCreator() != null && bean.getDcCreator().length > 0
@@ -592,4 +634,102 @@ public class SearchController {
 		}
 		return false;
 	}
+        
+        /**
+	 * Gives a translation of the 'EdmIsShownAt' label in the appropriate 
+         * language. 
+         * <p>The 'appropriate language' is arrived at as follows: first it tries 
+         * to retrieve the language code from the bean and look up the translation
+         * in this language. 
+         * <p>If this doesn't yield a string (either because the bean contains 
+         * no language settings or there is no translation provided for that
+         * language), it tries to retrieve the translation based on the language
+         * code provided in the 'channelLanguage' parameter.
+         * <p>If that fails as well, it looks up the English translation of the
+         * label. And if that fails too, it returns a hardcoded error message.
+	 * @param bean containing language code
+         * @param channelLanguage String containing the channel's language code 
+	 * @return String containing the label translation
+	 *   
+	 */    
+        private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String channelLanguage){
+            String translatedEdmIsShownAtLabel = "";
+            // first try with the bean language
+            translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getBeanLocale(bean.getLanguage()));
+            // check bean translation
+            if (StringUtils.isBlank(translatedEdmIsShownAtLabel)){
+                log.error("error: 'edmIsShownAtLabel translation for language code '" + getBeanLocale(bean.getLanguage()) + "' unavailable");
+                log.error("falling back on channel language ('" + channelLanguage + "')");
+                // if empty, try with channel language instead
+                translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(channelLanguage);
+                // check channel translation
+                if (StringUtils.isBlank(translatedEdmIsShownAtLabel)){
+                    log.error("error: 'fallback edmIsShownAtLabel translation for channel language code '" + channelLanguage + "' unavailable");
+                    log.error("falling back on default English translation ..."); 
+                    // if empty, try with english instead
+                    translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation("en");
+                    // check english translation
+                    if (StringUtils.isBlank(translatedEdmIsShownAtLabel)){
+                        log.error("Default English translation unavailable."); 
+                        // if empty, return hardcoded message
+                        return "error: 'edmIsShownAtLabel' english fallback translation unavailable";
+                    }
+                }
+            }
+            return translatedEdmIsShownAtLabel;
+        }
+         
+        /**
+	 * Gives the translation of the 'EdmIsShownAt' label in the language that
+         * the provided String specifies
+	 * @param  language containing language code
+	 * @return String containing the label translation
+	 *   
+	 */    
+        private String getEdmIsShownAtLabelTranslation(String language){
+            return messageSource.getMessage("edm_isShownAtLabel_t", null, new Locale(language));
+        }
+
+        /**
+	 * Gives the translation of the 'EdmIsShownAt' label in the language of
+         * the provided Locale
+	 * @param  locale Locale instance initiated with the desired language
+	 * @return String containing the label translation
+	 *   
+	 */
+        private String getEdmIsShownAtLabelTranslation(Locale locale){
+            return messageSource.getMessage("edm_isShownAtLabel_t", null, locale);
+        }
+        
+        /**
+	 * Initiates and returns a Locale instance for the language specified by 
+         * the language code found in the input. 
+         * <p>Checks for NULL values, and whether or not the found code is two 
+         * characters long; if not, it returns a locale initiated to English
+	 * @param  beanLanguage String Array containing language code
+	 * @return Locale instance
+	 *   
+	 */
+	private Locale getBeanLocale(String[] beanLanguage) {
+            if (!ArrayUtils.isEmpty(beanLanguage)
+             && !StringUtils.isBlank(beanLanguage[0])
+             && beanLanguage[0].length() == 2){
+                return new Locale(beanLanguage[0]);
+            } else {
+		log.error("error: language code unavailable or malformed (e.g. not two characters long)");
+                return new Locale("en");
+            }
+	}
+        
+	/**
+	 * retrieves the numerical part of the substring between the ':' and '*' 
+         * characters. 
+         * <p>e.g. "europeana_collectionName:91697*" will result in "91697"
+	 * @param  queryTerms provided String
+	 * @return String containing the Europeana collection ID only
+	 *   
+	 */
+        private String getIdFromQueryTerms(String queryTerms){
+            return queryTerms.substring(queryTerms.indexOf(":"), queryTerms.indexOf("*")).replaceAll("\\D+","");
+        }
 }

@@ -26,4 +26,12 @@
 
 	<import resource="api2-mvc-views.xml"/>
 	<import resource="../api2-context.xml"/>
+        
+	<bean id="messageSource" class="eu.europeana.corelib.web.support.ReportingReloadableMessageSource">
+		<property name="basename" value="#{europeanaProperties['message.resource']}" />
+		<property name="cacheSeconds" value="#{europeanaProperties['message.cache.seconds']}" />
+		<property name="fileEncodings" value="UTF-8"/>
+		<property name="defaultEncoding" value="UTF-8"/>
+		<property name="useCodeAsDefaultMessage" value="true"/>
+	</bean>
 </beans>
