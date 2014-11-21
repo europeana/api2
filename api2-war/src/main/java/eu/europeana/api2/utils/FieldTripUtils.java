@@ -51,7 +51,7 @@ public class FieldTripUtils {
 		item.guid = urlService.getPortalRecord(false, bean.getId()).toString();
 		item.title = getTitle(bean);
 		item.description = extractDescription(bean.getDcDescription());
-                item.description = addShownAt(item.description, translatedEdmIsShownAtLabel, bean.getEdmIsShownAt());
+        //        item.description = addShownAt(item.description, translatedEdmIsShownAtLabel, bean.getEdmIsShownAt());
 		item.images = getThumbnail(bean);
 		item.point = getPoint(bean);
 		item.pubDate = getPublicationDate(bean.getTimestampCreated());
