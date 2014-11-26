@@ -15,7 +15,7 @@
  *  the Licence.
  */
 
-package eu.europeana.api2.v1.model.json.view;
+package eu.europeana.api2.v2.model.json.view;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
