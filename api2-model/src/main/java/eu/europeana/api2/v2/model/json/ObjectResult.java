@@ -23,8 +23,8 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
-import eu.europeana.corelib.definitions.solr.beans.BriefBean;
-import eu.europeana.corelib.definitions.solr.beans.FullBean;
+import eu.europeana.corelib.definitions.edm.beans.BriefBean;
+import eu.europeana.corelib.definitions.edm.beans.FullBean;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>

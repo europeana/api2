@@ -100,10 +100,14 @@
 
 		<dependency>
 			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-solr</artifactId>
+			<artifactId>corelib-storage</artifactId>
 			<version>${version.europeanaCorelib}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>eu.europeana.corelib</groupId>
+			<artifactId>corelib-common-storage</artifactId>
+			<version>${version.europeanaCorelib}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>

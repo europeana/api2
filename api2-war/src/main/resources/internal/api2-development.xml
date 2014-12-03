@@ -29,7 +29,7 @@
 	">
 
 	<!-- OVERRIDE FOR TESTING -->
-	<bean name="corelib_solr_searchService" class="eu.europeana.corelib.solr.service.impl.SearchServiceImpl"
+	<bean name="corelib_solr_searchService" class="eu.europeana.corelib.edm.service.impl.SearchServiceImpl"
 		p:solrServer-ref="corelib_solr_solrEmbedded"
 	/>
 
