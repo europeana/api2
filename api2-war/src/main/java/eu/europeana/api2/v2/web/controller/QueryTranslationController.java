@@ -22,7 +22,7 @@ import eu.europeana.api2.v2.model.json.QueryTranslationResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.solr.model.QueryTranslation;
-import eu.europeana.corelib.solr.utils.SolrUtils;
+import eu.europeana.corelib.edm.utils.SolrUtils;
 import eu.europeana.corelib.utils.StringArrayUtils;
 
 @Controller

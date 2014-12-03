@@ -35,10 +35,10 @@ import eu.europeana.api2.v2.model.enums.DefaultImage;
 import eu.europeana.corelib.db.entity.nosql.ImageCache;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ThumbnailService;
+import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.model.ThumbSize;
-import eu.europeana.corelib.definitions.solr.beans.FullBean;
-import eu.europeana.corelib.solr.exceptions.MongoDBException;
-import eu.europeana.corelib.solr.service.SearchService;
+import eu.europeana.corelib.edm.exceptions.MongoDBException;
+import eu.europeana.corelib.edm.service.SearchService;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>

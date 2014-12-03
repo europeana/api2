@@ -13,9 +13,9 @@ import org.apache.log4j.Logger;
 
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripImage;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
-import eu.europeana.corelib.definitions.solr.beans.ApiBean;
-import eu.europeana.corelib.definitions.solr.beans.BriefBean;
-import eu.europeana.corelib.definitions.solr.beans.RichBean;
+import eu.europeana.corelib.definitions.edm.beans.ApiBean;
+import eu.europeana.corelib.definitions.edm.beans.BriefBean;
+import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.utils.StringArrayUtils;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 
