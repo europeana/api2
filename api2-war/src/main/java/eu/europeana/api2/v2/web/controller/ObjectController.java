@@ -346,7 +346,7 @@ public class ObjectController {
 		return null;
 	}
 	
-	@RequestMapping(value = "/{collectionId}/{recordId}.srw")
+	@RequestMapping(value = "/{collectionId}/{recordId}.srw", produces = MediaType.TEXT_XML_VALUE)
 	public @ResponseBody
 	SrwResponse recordSrw(@PathVariable String collectionId, @PathVariable String recordId,
 			@RequestParam(value = "wskey", required = false) String wskey, HttpServletResponse response)
