@@ -26,9 +26,9 @@ import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
-import eu.europeana.corelib.edm.service.SearchService;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
+import eu.europeana.corelib.search.SearchService;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>

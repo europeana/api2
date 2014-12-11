@@ -19,6 +19,7 @@ package eu.europeana.api2.v2.web.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,6 +29,9 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -57,10 +61,10 @@ import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.model.xml.srw.SrwResponse;
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.BriefView;
+import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
 import eu.europeana.api2.v2.utils.ControllerUtils;
@@ -77,19 +81,15 @@ import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.edm.exceptions.EuropeanaQueryException;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
-import eu.europeana.corelib.edm.service.SearchService;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
+import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import java.io.StringWriter;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
