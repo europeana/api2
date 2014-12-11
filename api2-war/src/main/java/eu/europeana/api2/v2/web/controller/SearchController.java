@@ -353,12 +353,17 @@ public class SearchController {
 
 		List<T> beans = new ArrayList<T>();
 		for (T b : resultSet.getResults()) {
+			
 			if (b instanceof RichBean) {
-				beans.add((T) new RichView((RichBean) b, profile, apiKey, uid, optOutService.check(b.getId())));
+				Boolean optOut = ((RichBean)b).getPreviewNoDistribute();
+			
+				beans.add((T) new RichView((RichBean) b, profile, apiKey, uid, optOut));
 			} else if (b instanceof ApiBean) {
-				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, uid, optOutService.check(b.getId())));
+				Boolean optOut = ((ApiBean)b).getPreviewNoDistribute();
+				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, uid, optOut));
 			} else if (b instanceof BriefBean) {
-				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, uid, optOutService.check(b.getId())));
+				Boolean optOut = ((BriefBean)b).getPreviewNoDistribute();
+				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, uid, optOut));
 			}
 		}
 

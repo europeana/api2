@@ -172,7 +172,8 @@ public class ObjectController {
 				try {
 					similarItems = searchService.findMoreLikeThis(europeanaObjectId);
 					for (BriefBean b : similarItems) {
-						BriefView view = new BriefView(b, similarItemsProfile, wskey, limitResponse.getApiKey().getUser().getId(), optOutService.check(b.getId()));
+						Boolean optOut = b.getPreviewNoDistribute();
+						BriefView view = new BriefView(b, similarItemsProfile, wskey, limitResponse.getApiKey().getUser().getId(), optOut==null?false:optOut);
 						beans.add(view);
 					}
 				} catch (SolrServerException e) {
@@ -180,8 +181,8 @@ public class ObjectController {
 				}
 				objectResult.similarItems = beans;
 			}
-			objectResult.object = new FullView(bean, profile, limitResponse.getApiKey().getUser().getId(), optOutService.check(bean
-					.getId()));
+			Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
+			objectResult.object = new FullView(bean, profile, limitResponse.getApiKey().getUser().getId(), optOut==null?false:optOut);
 			long t1 = (new Date()).getTime();
 			objectResult.statsDuration = (t1 - t0);
 //		} catch (SolrTypeException e) {
@@ -244,8 +245,13 @@ public class ObjectController {
 		} catch (MongoDBException e) {
 			log.error(ExceptionUtils.getFullStackTrace(e));
 		}
-
+		
 		if (bean != null) {
+			Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
+			if(optOut!=null&&optOut==true){
+				bean.getAggregations().get(0).setEdmObject("");
+				
+			}
 			String rdf = EdmUtils.toEDM(bean,false);
 			try {
 				Model modelResult = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(rdf), "", "RDF/XML");
@@ -322,6 +328,11 @@ public class ObjectController {
 		}
 
 		if (bean != null) {
+			Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
+			if(optOut!=null&&optOut==true){
+				bean.getAggregations().get(0).setEdmObject("");
+				
+			}
 			model.put("record", EdmUtils.toEDM(bean, false));
 		} else {
 			response.setStatus(404);
@@ -375,6 +386,11 @@ public class ObjectController {
 			SrwResponse srwResponse = new SrwResponse();
 			FullDoc doc = null;
 			if (bean != null) {
+				Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
+				if(optOut!=null&&optOut==true){
+					bean.getAggregations().get(0).setEdmObject("");
+					
+				}
 				doc = new FullDoc(bean);
 				Record record = new Record();
 				record.recordData.dc = doc;
