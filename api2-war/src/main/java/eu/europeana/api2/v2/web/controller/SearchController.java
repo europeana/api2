@@ -79,11 +79,12 @@ import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.definitions.solr.Facet;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
-import eu.europeana.corelib.edm.service.SearchService;
 import eu.europeana.corelib.edm.utils.SolrUtils;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
-import eu.europeana.corelib.solr.model.ResultSet;
+import eu.europeana.corelib.search.SearchService;
+import eu.europeana.corelib.search.model.ResultSet;
+import eu.europeana.corelib.search.utils.SearchUtils;
 import eu.europeana.corelib.utils.StringArrayUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
@@ -188,7 +189,7 @@ public class SearchController {
 			);
 		}
 
-		Query query = new Query(SolrUtils.rewriteQueryFields(queryString))
+		Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
 				.setApiQuery(true)
 				.setRefinements(refinements)
 				.setPageSize(rows)
@@ -363,7 +364,7 @@ public class SearchController {
 
 		List<FacetField> facetFields = resultSet.getFacetFields();
 		if (resultSet.getQueryFacets() != null) {
-			List<FacetField> allQueryFacetsMap = SolrUtils.extractQueryFacets(resultSet.getQueryFacets());
+			List<FacetField> allQueryFacetsMap = SearchUtils.extractQueryFacets(resultSet.getQueryFacets());
 			if (allQueryFacetsMap != null && !allQueryFacetsMap.isEmpty()) {
 				facetFields.addAll(allQueryFacetsMap);
 			}
@@ -418,7 +419,7 @@ public class SearchController {
 			throw new Exception(e);
 		}
 		KmlResponse kmlResponse = new KmlResponse();
-		Query query = new Query(SolrUtils.rewriteQueryFields(queryString))
+		Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
 				.setRefinements(refinements)
 				.setApiQuery(true)
 				.setAllowSpellcheck(false)
@@ -452,7 +453,7 @@ public class SearchController {
 		channel.query.startPage = start;
 
 		try {
-			Query query = new Query(SolrUtils.rewriteQueryFields(queryString)).setApiQuery(true).setPageSize(count)
+			Query query = new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true).setPageSize(count)
 					.setStart(start - 1).setAllowFacets(false).setAllowSpellcheck(false);
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
 			channel.totalResults.value = resultSet.getResultSize();
@@ -531,7 +532,7 @@ public class SearchController {
 		}
 		FieldTripUtils fieldTripUtils = new FieldTripUtils(urlService);
 		try {
-			Query query = new Query(SolrUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
+			Query query = new Query(SearchUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
 					.setStart(offset - 1).setAllowFacets(false).setAllowSpellcheck(false);
 			ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
 			for (RichBean bean : resultSet.getResults()) {
