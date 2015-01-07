@@ -1,0 +1,12 @@
+---
+applications:
+- name: api-test
+  memory: 2048M
+  instances: 1
+  host: api-test
+  domain: de.a9sapp.eu
+  path: api2-war/target/api.war
+  buildpack: https://github.com/europeana/java-buildpack.git
+  services:
+    - postgresql
+    - europeana-object-db

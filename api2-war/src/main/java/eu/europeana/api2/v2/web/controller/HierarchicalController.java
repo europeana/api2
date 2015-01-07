@@ -71,8 +71,8 @@ public class HierarchicalController {
 	@Resource
 	private ApiKeyService apiService;
 
-	@Resource
-	private OptOutService optOutService;
+	//@Resource
+	//private OptOutService optOutService;
 	
 	@Resource
 	private EuropeanaUrlService urlService;

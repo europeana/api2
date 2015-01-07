@@ -117,8 +117,8 @@ public class SearchController {
 	@Resource
 	private ApiLogService apiLogService;
 
-	@Resource
-	private OptOutService optOutService;
+//	@Resource
+//	private OptOutService optOutService;
 
 	@Resource
 	private Configuration configuration;
