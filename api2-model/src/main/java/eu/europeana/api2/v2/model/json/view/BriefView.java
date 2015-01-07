@@ -201,8 +201,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public Date getTimestamp() {
-		// bean.getTimestamp()
-		return null;
+		return bean.getTimestamp();
 	}
 
 	@Override
@@ -212,8 +211,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public Boolean isOptedOut() {
-		// bean.isOptedOut()
-		return null;
+		return bean.isOptedOut();
 	}
 
 	private String[] getThumbnails() {
@@ -311,5 +309,10 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	@Override
 	public Map<String, List<String>> getEdmAgentLabelLangAware() {
 		return bean.getEdmAgentLabelLangAware();
+	}
+
+	@Override
+	public Boolean getPreviewNoDistribute() {
+		return bean.getPreviewNoDistribute()!=null? bean.getPreviewNoDistribute():false;
 	}
 }

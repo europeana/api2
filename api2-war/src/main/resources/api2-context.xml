@@ -1,25 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:util="http://www.springframework.org/schema/util"
-       xsi:schemaLocation="
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:cloud="http://www.springframework.org/schema/cloud"
+	xsi:schemaLocation="
         http://www.springframework.org/schema/beans 
         http://www.springframework.org/schema/beans/spring-beans.xsd
-         http://www.springframework.org/schema/util
+        http://www.springframework.org/schema/util
         http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/cloud
+        http://www.springframework.org/schema/cloud/spring-cloud.xsd
 	">
-    <!-- CORELIB -->
-  	<import resource="corelib-logging-context.xml" />
-    <import resource="corelib-db-context.xml" />
-    <import resource="corelib-solr-context.xml" />
-    <import resource="corelib-utils-context.xml" />
-    <import resource="corelib-web-context.xml" />
-    <import resource="spring-sugarcrmclient.xml" />
+<!-- 		<context:property-placeholder -->
+<!-- 			properties-ref="cloudProperties" /> -->
+		<!-- CORELIB -->
+		<import resource="corelib-logging-context.xml" />
+		<import resource="corelib-db-context.xml" />
+		<import resource="corelib-solr-context.xml" />
+		<import resource="corelib-utils-context.xml" />
+		<import resource="corelib-web-context.xml" />
+		<import resource="spring-sugarcrmclient.xml" />
 
-    <!-- INTERNAL -->
-    <import resource="internal/api2-security.xml" />
-    <import resource="internal/api2-sugarcrmcaching.xml" />
-    <import resource="internal/api2-limits.xml" />
-    <!-- DEVELOPMENT -->
-    <!-- import resource="internal/api2-development.xml" / -->
+		<!-- INTERNAL -->
+		<import resource="internal/api2-security.xml" />
+		<import resource="internal/api2-sugarcrmcaching.xml" />
+		<import resource="internal/api2-limits.xml" />
+
+		<util:properties id="europeanaProperties" location="classpath:europeana.properties" />
+	<!-- DEVELOPMENT -->
+	<!-- import resource="internal/api2-development.xml" / -->
 </beans>

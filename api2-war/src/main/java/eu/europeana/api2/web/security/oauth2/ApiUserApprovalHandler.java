@@ -5,9 +5,9 @@ import java.util.HashSet;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
-import org.springframework.security.oauth2.provider.approval.TokenServicesUserApprovalHandler;
+import org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler;
 
-public class ApiUserApprovalHandler extends TokenServicesUserApprovalHandler {
+public class ApiUserApprovalHandler extends TokenStoreUserApprovalHandler {
 
 	private Collection<String> autoApproveClients = new HashSet<String>();
 
