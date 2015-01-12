@@ -481,12 +481,13 @@ public class SearchController {
 	/**
 	 * returns ModelAndView containing RSS data to populate the Google Field 
          * Trip app for some selected collections
-	 * @param queryTerms the collection ID, e.g. "europeana_collectionName:91697*"
-	 * @param offset     list items from this index on
-	 * @param limit      max number of items to list
-	 * @param profile    should be "FieldTrip"
-	 * @param request    servlet request object
-	 * @param response   servlet response object
+	 * @param queryTerms  the collection ID, e.g. "europeana_collectionName:91697*"
+	 * @param offset      list items from this index on
+	 * @param limit       max number of items to list
+	 * @param profile     should be "FieldTrip"
+	 * @param reqLanguage if supplied, the API returns only those items having a dc:language that match this language
+	 * @param request     servlet request object
+	 * @param response    servlet response object
 	 * @return ModelAndView instance
 	 *   
 	 */
@@ -496,6 +497,7 @@ public class SearchController {
 			@RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
 			@RequestParam(value = "limit", required = false, defaultValue = "12") int limit,
 			@RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
+			@RequestParam(value = "language", required = false) String reqLanguage,
 			HttpServletRequest request,
 			HttpServletResponse response) {
 		controllerUtils.addResponseHeaders(response);
@@ -535,7 +537,10 @@ public class SearchController {
 					.setStart(offset - 1).setAllowFacets(false).setAllowSpellcheck(false);
 			ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
 			for (RichBean bean : resultSet.getResults()) {
-				channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, channel.language)));
+                                if (reqLanguage == null || getLanguage(bean).equalsIgnoreCase(reqLanguage)) {
+                                        channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, reqLanguage == null ? channel.language : reqLanguage )));
+//                                        channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, channel.language)));
+                                }
 			}
 		} catch (SolrTypeException e) {
 			log.error("error: " + e.getLocalizedMessage());
@@ -603,6 +608,15 @@ public class SearchController {
 		}
 		return sb.toString();
 	}
+        
+        private String getLanguage(BriefBean bean){
+            if (bean.getLanguage() != null && bean.getLanguage().length > 0
+                        && StringUtils.isNotBlank(bean.getLanguage()[0])) {
+                return bean.getLanguage()[0];
+            } else {
+                return "";
+            }
+        }
 
 	private boolean isFacetsRequested(String profile) {
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets")) {
@@ -645,7 +659,8 @@ public class SearchController {
          * <p>If this doesn't yield a string (either because the bean contains 
          * no language settings or there is no translation provided for that
          * language), it tries to retrieve the translation based on the language
-         * code provided in the 'channelLanguage' parameter.
+         * code provided in the 'language' parameter - which has the value of the
+         * 'language' GET parameter if provided, or else the channel language code.
          * <p>If that fails as well, it looks up the English translation of the
          * label. And if that fails too, it returns a hardcoded error message.
 	 * @param bean containing language code
@@ -653,19 +668,19 @@ public class SearchController {
 	 * @return String containing the label translation
 	 *   
 	 */    
-        private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String channelLanguage){
+        private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String language){
             String translatedEdmIsShownAtLabel = "";
             // first try with the bean language
             translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getBeanLocale(bean.getLanguage()));
             // check bean translation
             if (StringUtils.isBlank(translatedEdmIsShownAtLabel)){
                 log.error("error: 'edmIsShownAtLabel translation for language code '" + getBeanLocale(bean.getLanguage()) + "' unavailable");
-                log.error("falling back on channel language ('" + channelLanguage + "')");
+                log.error("falling back on channel language ('" + language + "')");
                 // if empty, try with channel language instead
-                translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(channelLanguage);
+                translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(language);
                 // check channel translation
                 if (StringUtils.isBlank(translatedEdmIsShownAtLabel)){
-                    log.error("error: 'fallback edmIsShownAtLabel translation for channel language code '" + channelLanguage + "' unavailable");
+                    log.error("error: 'fallback edmIsShownAtLabel translation for channel language code '" + language + "' unavailable");
                     log.error("falling back on default English translation ..."); 
                     // if empty, try with english instead
                     translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation("en");
