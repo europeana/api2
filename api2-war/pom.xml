@@ -69,6 +69,12 @@
 
 		<dependency>
 			<groupId>eu.europeana.corelib</groupId>
+			<artifactId>corelib-definitions</artifactId>
+			<version>${version.europeanaCorelib}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>eu.europeana.corelib</groupId>
 			<artifactId>corelib-sugarcrm-bindings</artifactId>
 			<version>${version.europeanaCorelib}</version>
 		</dependency>

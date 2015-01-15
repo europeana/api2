@@ -537,9 +537,8 @@ public class SearchController {
 					.setStart(offset - 1).setAllowFacets(false).setAllowSpellcheck(false);
 			ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
 			for (RichBean bean : resultSet.getResults()) {
-                                if (reqLanguage == null || getLanguage(bean).equalsIgnoreCase(reqLanguage)) {
+                                if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
                                         channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, reqLanguage == null ? channel.language : reqLanguage )));
-//                                        channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, channel.language)));
                                 }
 			}
 		} catch (SolrTypeException e) {
@@ -609,10 +608,10 @@ public class SearchController {
 		return sb.toString();
 	}
         
-        private String getLanguage(BriefBean bean){
-            if (bean.getLanguage() != null && bean.getLanguage().length > 0
-                        && StringUtils.isNotBlank(bean.getLanguage()[0])) {
-                return bean.getLanguage()[0];
+        private String getDcLanguage(BriefBean bean){
+            if (bean.getDcLanguage() != null && bean.getDcLanguage().length > 0
+                        && StringUtils.isNotBlank(bean.getDcLanguage()[0])) {
+                return bean.getDcLanguage()[0];
             } else {
                 return "";
             }
