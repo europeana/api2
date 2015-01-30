@@ -100,6 +100,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		}
 		return bean.getDctermsSpatial();
 	}
+        
+        @Override
+        public String[] getDcLanguage() {
+                return bean.getDcLanguage();
+        }
 
 	@Override
 	public int getEuropeanaCompleteness() {
