@@ -24,9 +24,9 @@
 	</bean>
 
 	<!-- the json view -->
-	<bean id="api2_mvc_views_jaxbAnnotationBinder" class="com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector" />
-	<bean id="api2_mvc_views_jsonObjectMapper" class="com.fasterxml.jackson.databind.ObjectMapper" />
-	<bean id="api2_mvc_views_json" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"
+	<bean id="api2_mvc_views_jaxbAnnotationBinder" class="org.codehaus.jackson.xc.JaxbAnnotationIntrospector" />
+	<bean id="api2_mvc_views_jsonObjectMapper" class="org.codehaus.jackson.map.ObjectMapper" />
+	<bean id="api2_mvc_views_json" class="org.springframework.web.servlet.view.json.MappingJacksonJsonView"
 		p:objectMapper="#{api2_mvc_views_jsonObjectMapper.setAnnotationIntrospector(api2_mvc_views_jaxbAnnotationBinder)}" 
 	/>
 
