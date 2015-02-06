@@ -24,6 +24,15 @@ To build (requires the [CoreLib](https://github.com/europeana/corelib) dependenc
 ```bash
 $ git clone https://github.com/europeana/api2.git
 $ cd api2/
+```
+
+If your instance will be deployed, you need to copy the file
+properties/test/template-europeana.properties
+into 
+properties/test/europeana.properties
+And make necessary changes
+
+```bash
 $ mvn clean install -DskipTests
 ```
 
