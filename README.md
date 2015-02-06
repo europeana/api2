@@ -27,9 +27,13 @@ $ cd api2/
 ```
 
 If your instance will be deployed, you need to copy the file
-properties/test/template-europeana.properties
-into 
-properties/test/europeana.properties
+
+properties/test/template-europeana.properties -> properties/test/europeana.properties
+
+and
+
+template-manifest.yml -> manifest.yml
+
 And make necessary changes
 
 ```bash
