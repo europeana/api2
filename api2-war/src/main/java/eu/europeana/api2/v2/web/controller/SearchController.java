@@ -394,7 +394,7 @@ public class SearchController {
 		return response;
 	}
 
-	@RequestMapping(value = "/v2/search.kml", produces = MediaType.APPLICATION_XML_VALUE)
+	@RequestMapping(value = "/v2/search.kml", produces = {"application/vnd.google-earth.kml+xml",MediaType.ALL_VALUE})
 	// @RequestMapping(value = "/v2/search.kml", produces =
 	// "application/vnd.google-earth.kml+xml")
 	public @ResponseBody
@@ -444,7 +444,7 @@ public class SearchController {
 		return kmlResponse;
 	}
 
-	@RequestMapping(value = "/v2/opensearch.rss", produces = MediaType.APPLICATION_XML_VALUE)
+	@RequestMapping(value = "/v2/opensearch.rss", produces = {MediaType.APPLICATION_XML_VALUE,MediaType.ALL_VALUE})
 	public @ResponseBody
 	RssResponse openSearchRss(
 			@RequestParam(value = "searchTerms", required = true) String queryString,
@@ -497,7 +497,8 @@ public class SearchController {
 	 * @return ModelAndView instance
 	 *   
 	 */
-	@RequestMapping(value = "/v2/search.rss", produces = MediaType.APPLICATION_XML_VALUE)
+        @RequestMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE,MediaType.ALL_VALUE})
+//	@RequestMapping(value = "/v2/search.rss", produces = MediaType.APPLICATION_XML_VALUE)
 	public ModelAndView fieldTripRss(
 			@RequestParam(value = "query", required = true) String queryTerms,
 			@RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
