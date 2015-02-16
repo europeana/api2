@@ -523,11 +523,15 @@ public class SearchController {
                     channel.link = "error retrieving attributes";
                     channel.image = null;
                 } else {
-                    channel.title = gftChannelAttributes.get("title") == null 
-                            || gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title");
-                    channel.description = gftChannelAttributes.get("description") == null 
-                            || gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description");
-                    channel.language = gftChannelAttributes.get("language") == null 
+                    channel.title = gftChannelAttributes.get(reqLanguage + "_title") == null || gftChannelAttributes.get(reqLanguage + "_title").equalsIgnoreCase("")
+                            ? ( gftChannelAttributes.get("title") == null 
+                            || gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title")) :
+                            gftChannelAttributes.get(reqLanguage + "_title");
+                    channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
+                            ? ( gftChannelAttributes.get("description") == null 
+                            || gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description")) :
+                            gftChannelAttributes.get(reqLanguage + "_description");
+		    channel.language = gftChannelAttributes.get("language") == null 
                             || gftChannelAttributes.get("language").equalsIgnoreCase("") ? "--" : gftChannelAttributes.get("language");
                     channel.link = gftChannelAttributes.get("link") == null 
                             || gftChannelAttributes.get("link").equalsIgnoreCase("") ? "no link defined" : gftChannelAttributes.get("link");
