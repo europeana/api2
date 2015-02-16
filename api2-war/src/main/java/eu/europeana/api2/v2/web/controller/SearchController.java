@@ -150,8 +150,67 @@ public class SearchController {
 			@RequestParam(value = "facet", required = false) String[] aFacet,
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
+
+            @RequestParam(value = "media_type", required = false) Integer mediaType,
+            @RequestParam(value = "mime_type", required = false) String mimeType,
+            @RequestParam(value = "image_size", required = false) String imageSize,
+            @RequestParam(value = "image_color", required = false) Boolean imageColor,
+            @RequestParam(value = "image_grayscale", required = false) Boolean imageGrayScale,
+            @RequestParam(value = "image_aspectratio", required = false) String imageAspectRatio,
+            @RequestParam(value = "image_colourpalette", required = false) String imageColorPalette,
+            @RequestParam(value = "sound_hq", required = false) Boolean soundHQ,
+            @RequestParam(value = "sound_duration", required = false) String soundDuration,
+            @RequestParam(value = "video_hd", required = false) Boolean videoHD,
+            @RequestParam(value = "video_duration", required = false) String videoDuration,
+
+            @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
+            @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
+            @RequestParam(value = "media", required = false) Boolean media,
 			HttpServletRequest request,
 			HttpServletResponse response) {
+
+        // FilterTagGeneration
+        if(mediaType != null) {
+            final Integer filterTag = searchService.search(mediaType, mimeType, imageSize, imageColor, imageGrayScale,
+                    imageAspectRatio, imageColorPalette, soundHQ, soundDuration, videoHD, videoDuration);
+
+            if(filterTag % 33554432 != 0) {
+                final String filterQuery = "filter_tags:" + filterTag;
+
+                if (queryString.equals("")) {
+                    queryString = filterQuery;
+                } else {
+                    queryString = queryString + " AND " + filterQuery;
+                }
+            }
+        }
+
+        if(isFulltext != null) {
+            final String filterQuery = "is_fulltext:"+isFulltext;
+            if (queryString.equals("")) {
+                queryString = filterQuery;
+            } else {
+                queryString = queryString + " AND " + filterQuery;
+            }
+        }
+
+        if(thumbnail != null) {
+            final String filterQuery = "has_thumbnails:"+thumbnail;
+            if (queryString.equals("")) {
+                queryString = filterQuery;
+            } else {
+                queryString = queryString + " AND " + filterQuery;
+            }
+        }
+
+        if(media != null) {
+            final String filterQuery = "has_media:"+media;
+            if (queryString.equals("")) {
+                queryString = filterQuery;
+            } else {
+                queryString = queryString + " AND " + filterQuery;
+            }
+        }
 
 		// workaround of a Spring issue
 		// (https://jira.springsource.org/browse/SPR-7963)
@@ -188,6 +247,7 @@ public class SearchController {
 			);
 		}
 
+        log.info("Query: " + queryString);
 		Query query = new Query(SolrUtils.rewriteQueryFields(queryString))
 				.setApiQuery(true)
 				.setRefinements(refinements)
