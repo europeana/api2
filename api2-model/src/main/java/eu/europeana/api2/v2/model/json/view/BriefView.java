@@ -280,7 +280,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		if (ArrayUtils.isEmpty(bean.getEdmIsShownAt())) {
 			return bean.getEdmIsShownAt();
 		}
-		String provider = getProvider()[0];
+        String temp[] = getProvider();
+        String provider = "";
+        if(temp != null) {
+            provider = temp[0];
+        }
 		List<String>isShownAtLinks = new ArrayList<String>();
 		for (String isShownAt : bean.getEdmIsShownAt()) {
 			if (StringUtils.isBlank(bean.getEdmIsShownAt()[0])) {
