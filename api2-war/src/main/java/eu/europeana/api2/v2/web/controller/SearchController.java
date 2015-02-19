@@ -142,7 +142,7 @@ public class SearchController {
 	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
 			@RequestParam(value = "query", required = true) String queryString,
-			@RequestParam(value = "qf", required = false) String[] refinements,
+            @RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "reusability", required = false) String[] aReusability,
 			@RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
