@@ -29,10 +29,16 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.mongodb.util.JSON;
+import eu.europeana.corelib.solr.model.metainfo.WebResourceMetaInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.json.JSONObject;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -158,7 +164,8 @@ public class ObjectController {
 				List<BriefView> beans = new ArrayList<BriefView>();
 				try {
 					similarItems = searchService.findMoreLikeThis(europeanaObjectId);
-					for (BriefBean b : similarItems) {
+
+                    for (BriefBean b : similarItems) {
 						BriefView view = new BriefView(b, similarItemsProfile, wskey, limitResponse.getApiKey().getUser().getId(), optOutService.check(b.getId()));
 						beans.add(view);
 					}
@@ -177,7 +184,33 @@ public class ObjectController {
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
-		return JsonUtils.toJson(objectResult, callback);
+        // BUSYMACHINES
+        final WebResourceMetaInfo webResourceMetaInfo = searchService.getMetaInfo(europeanaObjectId);
+
+        final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        final ObjectWriter ow = objectMapper.writer().withDefaultPrettyPrinter();
+
+        String metaInfoString = "";
+        try {
+            metaInfoString = ow.writeValueAsString(webResourceMetaInfo);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        final JSONObject metInfoJSON = new JSONObject(metaInfoString);
+
+
+        final ModelAndView modelAndView = JsonUtils.toJson(objectResult, callback);
+
+        final Map<String, Object> model = modelAndView.getModel();
+        String oldString = (String) model.get("json");
+        final JSONObject oldJSON = new JSONObject(oldString);
+
+        final JSONObject contentJSON = oldJSON.getJSONObject("object").append("metaInfo", metInfoJSON);
+
+        final JSONObject finalJSON = oldJSON.put("object", contentJSON);
+
+        return JsonUtils.toJson(finalJSON.toString(), callback);
 	}
 
 	@SuppressWarnings("unused")
