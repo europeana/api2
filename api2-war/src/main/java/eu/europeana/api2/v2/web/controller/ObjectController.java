@@ -187,6 +187,10 @@ public class ObjectController {
         // BUSYMACHINES
         final WebResourceMetaInfo webResourceMetaInfo = searchService.getMetaInfo(europeanaObjectId);
 
+        if(webResourceMetaInfo == null) {
+            return JsonUtils.toJson(objectResult, callback);
+        }
+
         final ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
         final ObjectWriter ow = objectMapper.writer().withDefaultPrettyPrinter();
