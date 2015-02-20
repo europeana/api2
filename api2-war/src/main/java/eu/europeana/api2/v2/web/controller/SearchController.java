@@ -151,18 +151,6 @@ public class SearchController {
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
 
-            @RequestParam(value = "media_type", required = false) Integer mediaType,
-            @RequestParam(value = "mime_type", required = false) String mimeType,
-            @RequestParam(value = "image_size", required = false) String imageSize,
-            @RequestParam(value = "image_color", required = false) Boolean imageColor,
-            @RequestParam(value = "image_grayscale", required = false) Boolean imageGrayScale,
-            @RequestParam(value = "image_aspectratio", required = false) String imageAspectRatio,
-            @RequestParam(value = "image_colourpalette", required = false) String imageColorPalette,
-            @RequestParam(value = "sound_hq", required = false) Boolean soundHQ,
-            @RequestParam(value = "sound_duration", required = false) String soundDuration,
-            @RequestParam(value = "video_hd", required = false) Boolean videoHD,
-            @RequestParam(value = "video_duration", required = false) String videoDuration,
-
             @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
             @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
             @RequestParam(value = "media", required = false) Boolean media,
@@ -170,20 +158,6 @@ public class SearchController {
 			HttpServletResponse response) {
 
         // FilterTagGeneration
-        if(mediaType != null) {
-            final Integer filterTag = searchService.search(mediaType, mimeType, imageSize, imageColor, imageGrayScale,
-                    imageAspectRatio, imageColorPalette, soundHQ, soundDuration, videoHD, videoDuration);
-
-            if(filterTag % 33554432 != 0) {
-                final String filterQuery = "filter_tags:" + filterTag;
-
-                if (queryString.equals("")) {
-                    queryString = filterQuery;
-                } else {
-                    queryString = queryString + " AND " + filterQuery;
-                }
-            }
-        }
 
         if(isFulltext != null) {
             final String filterQuery = "is_fulltext:"+isFulltext;
@@ -212,6 +186,129 @@ public class SearchController {
             }
         }
 
+        final List<String> mediaTypes = new ArrayList<>();
+        final List<String> mimeTypes = new ArrayList<>();
+
+        final List<String> imageSizes = new ArrayList<>();
+        final List<Boolean> imageColors = new ArrayList<>();
+        final List<Boolean> imageGrayScales = new ArrayList<>();
+        final List<String> imageAspectRatios = new ArrayList<>();
+        final List<String> imageColorPalletes = new ArrayList<>();
+
+        final List<Boolean> soundHQs = new ArrayList<>();
+        final List<String> soundDurations = new ArrayList<>();
+
+        final List<Boolean> videoHQs = new ArrayList<>();
+        final List<String> videoDurations = new ArrayList<>();
+
+        final List<String> extra = new ArrayList<>();
+        if(refinements != null) {
+            for (String qf : refinements) {
+                log.info("QF: " + qf);
+                final Integer colonIndex = qf.indexOf(":");
+                if (colonIndex == null || colonIndex == -1) {
+                    continue;
+                }
+                final String prefix = qf.substring(0, colonIndex).toLowerCase();
+                final String suffix = qf.substring(colonIndex + 1).toLowerCase();
+
+                log.info("prefix: " + prefix);
+                log.info("suffix: " + suffix);
+
+                if (prefix.equals("type")) {
+                    mediaTypes.add(suffix);
+                    // TODO: ??? remove in prod
+                    extra.add(qf);
+                }
+                if (prefix.equals("mime_type")) {
+                    mimeTypes.add(suffix);
+                    extra.add(qf);
+                }
+
+                if (prefix.equals("image_size")) {
+                    imageSizes.add(suffix);
+                    extra.add(qf);
+                }
+                if (prefix.equals("image_colour")) {
+                    imageColors.add(Boolean.valueOf(suffix));
+                    extra.add(qf);
+                }
+                if (prefix.equals("image_grayscale")) {
+                    imageGrayScales.add(Boolean.valueOf(suffix));
+                    extra.add(qf);
+                }
+                if (prefix.equals("image_aspectratio")) {
+                    imageAspectRatios.add(suffix);
+                    extra.add(qf);
+                }
+                if (prefix.equals("image_colourpalette")) {
+                    imageColorPalletes.add(suffix);
+                    extra.add(qf);
+                }
+
+                if (prefix.equals("sound_hq")) {
+                    soundHQs.add(Boolean.valueOf(suffix));
+                    extra.add(qf);
+                }
+                if (prefix.equals("sound_duration")) {
+                    soundDurations.add(suffix);
+                    extra.add(qf);
+                }
+
+                if (prefix.equals("video_hd")) {
+                    videoHQs.add(Boolean.valueOf(suffix));
+                    extra.add(qf);
+                }
+                if (prefix.equals("video_duration")) {
+                    videoDurations.add(suffix);
+                    extra.add(qf);
+                }
+            }
+
+            final List<Integer> filterTags = new ArrayList<>();
+            for (final String type : mediaTypes) {
+                if (type.equals("image")) {
+                    filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios, imageColorPalletes));
+                }
+                if (type.equals("sound")) {
+                    filterTags.addAll(soundFilterTags(mimeTypes, soundHQs, soundDurations));
+                }
+                if (type.equals("video")) {
+                    filterTags.addAll(videoFilterTags(mimeTypes, videoHQs, videoDurations));
+                }
+                if (type.equals("text")) {
+                    // NOTHING TO DO WITH TEXT
+                }
+            }
+
+            String filterTagQuery = "";
+            for (final Integer filterTag : filterTags) {
+                log.info("filterTag: " + filterTag);
+                if (filterTag % 33554432 != 0) {
+                    filterTagQuery = filterTagQuery + "filter_tags:" + filterTag + " OR ";
+                }
+            }
+
+            log.info("filtertagquery: " + filterTagQuery);
+
+            if (filterTagQuery.contains("OR")) {
+                filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("OR"));
+                filterTagQuery = filterTagQuery.trim();
+
+                if (queryString.equals("")) {
+                    queryString = filterTagQuery;
+                } else {
+                    filterTagQuery = "(" + filterTagQuery + ")";
+                    queryString = queryString + " AND " + filterTagQuery;
+                }
+            }
+
+            queryString = queryString.trim();
+            log.info("QUERY: |" + queryString + "|");
+        }
+
+        // =================================================================================================
+
 		// workaround of a Spring issue
 		// (https://jira.springsource.org/browse/SPR-7963)
 		String[] _qf = (String[]) request.getParameterMap().get("qf");
@@ -219,7 +316,19 @@ public class SearchController {
 			refinements = _qf;
 		}
 
-		boolean isFacetsRequested = isFacetsRequested(profile);
+        final List<String> newRefinements = new ArrayList<>();
+        newRefinements.addAll(Arrays.asList(refinements));
+        for (String extraQF : extra) {
+            newRefinements.remove(extraQF);
+        }
+        refinements = new String[newRefinements.size()];
+        refinements = newRefinements.toArray(refinements);
+
+        for(String qf : refinements) {
+            log.info("ref: " + qf);
+        }
+
+        boolean isFacetsRequested = isFacetsRequested(profile);
 		String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
 		String[] facets = StringArrayUtils.splitWebParameter(aFacet);
 		boolean isDefaultFacetsRequested = isDefaultFacetsRequested(profile, facets);
@@ -327,6 +436,162 @@ public class SearchController {
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		}
 	}
+
+    private List<Integer> imageFilterTags(List<String> mimeTypes, List<String> imageSizes, List<Boolean> imageColors, List<Boolean> imageGrayScales, List<String> imageAspectRatios, List<String> imageColorPalletes) {
+        final List<Integer> filterTags = new ArrayList<>();
+        Integer i = 0, j, k, l, m, n;
+
+        log.info("Size: " + mimeTypes.size());
+        log.info("Size: " + imageSizes.size());
+        log.info("Size: " + imageColors.size());
+        log.info("Size: " + imageGrayScales.size());
+        log.info("Size: " + imageAspectRatios.size());
+        log.info("Size: " + imageColorPalletes.size());
+
+        do {
+            String mimeType = null;
+            if(mimeTypes.size() != 0) {
+                mimeType = mimeTypes.get(i);
+            }
+            j = 0;
+            log.info("mimetype: " + mimeType);
+            do {
+                String imageSize = null;
+                if(imageSizes.size() != 0) {
+                    imageSize = imageSizes.get(j);
+                }
+                k = 0;
+                log.info("imageSize: " + imageSize);
+                do {
+                    Boolean imageColor = null;
+                    if(imageColors.size() != 0) {
+                        imageColor = imageColors.get(k);
+                    }
+                    l = 0;
+                    log.info("imageColor: " + imageColor);
+                    do {
+                        Boolean imageGrayScale = null;
+                        if(imageGrayScales.size() != 0) {
+                            imageGrayScale = imageGrayScales.get(l);
+                        }
+                        m = 0;
+                        log.info("imageGrayScale: " + imageGrayScale);
+                        do {
+                            String imageAspectRatio = null;
+                            if(imageAspectRatios.size() != 0) {
+                                imageAspectRatio = imageAspectRatios.get(m);
+                            }
+                            n = 0;
+                            log.info("imageAspectRatio: " + imageAspectRatio);
+                            do {
+                                String imageColorPalette = null;
+                                if(imageColorPalletes.size() != 0) {
+                                    imageColorPalette = imageColorPalletes.get(n);
+                                }
+                                log.info("imageColorPalette: " + imageColorPalette);
+
+                                final Integer filterTag = searchService.search(1, mimeType, imageSize, imageColor, imageGrayScale, imageAspectRatio, imageColorPalette, null, null, null, null);
+                                log.info("image filtertag: " + filterTag);
+                                filterTags.add(filterTag);
+
+                                n += 1;
+                            } while (n < imageColorPalletes.size());
+
+                            m += 1;
+                        } while (m < imageAspectRatios.size());
+
+                        l += 1;
+                    } while (l < imageGrayScales.size());
+
+                    k += 1;
+                } while (k < imageColors.size());
+
+                j += 1;
+            } while (j < imageSizes.size());
+
+            i += 1;
+        } while (i < mimeTypes.size());
+
+        return filterTags;
+    }
+
+    private List<Integer> soundFilterTags(List<String> mimeTypes, List<Boolean> soundHQs, List<String> soundDurations) {
+        final List<Integer> filterTags = new ArrayList<>();
+
+        Integer i = 0, j, k;
+
+        do {
+            String mimeType = null;
+            if(mimeTypes.size() != 0) {
+                mimeType = mimeTypes.get(i);
+            }
+            j = 0;
+            do {
+                Boolean soundHQ = null;
+                if(soundHQs.size() != 0) {
+                    soundHQ = soundHQs.get(j);
+                }
+                k = 0;
+                do {
+                    String soundDuration = null;
+                    if(soundDurations.size() != 0) {
+                        soundDuration = soundDurations.get(k);
+                    }
+
+                    final Integer filterTag = searchService.search(2, mimeType, null, null, null, null, null, soundHQ, soundDuration, null, null);
+                    log.info("sound filtertag: " + filterTag);
+                    filterTags.add(filterTag);
+
+                    k += 1;
+                } while (k < soundDurations.size());
+
+                j += 1;
+            } while (j < soundHQs.size());
+
+            i += 1;
+        } while (i < mimeTypes.size());
+
+        return filterTags;
+    }
+
+    private List<Integer> videoFilterTags(List<String> mimeTypes, List<Boolean> videoHQs, List<String> videoDurations) {
+        final List<Integer> filterTags = new ArrayList<>();
+
+        Integer i = 0, j, k;
+
+        do {
+            String mimeType = null;
+            if(mimeTypes.size() != 0) {
+                mimeType = mimeTypes.get(i);
+            }
+            j = 0;
+            do {
+                Boolean videoHQ = null;
+                if(videoHQs.size() != 0) {
+                    videoHQ = videoHQs.get(j);
+                }
+                k = 0;
+                do {
+                    String videoDuration = null;
+                    if(videoDurations.size() != 0) {
+                        videoDuration = videoDurations.get(k);
+                    }
+
+                    final Integer filterTag = searchService.search(3, mimeType, null, null, null, null, null, null, null, videoHQ, videoDuration);
+                    log.info("video filtertag: " + filterTag);
+                    filterTags.add(filterTag);
+
+                    k += 1;
+                } while (k < videoDurations.size());
+
+                j += 1;
+            } while (j < videoHQs.size());
+
+            i += 1;
+        } while (i < mimeTypes.size());
+
+        return filterTags;
+    }
 
 	private Class<? extends IdBean> selectBean(String profile) {
 		Class<? extends IdBean> clazz;
