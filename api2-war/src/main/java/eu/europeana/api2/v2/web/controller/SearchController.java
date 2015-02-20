@@ -150,7 +150,7 @@ public class SearchController {
 			@RequestParam(value = "facet", required = false) String[] aFacet,
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
-			@RequestParam(value = "image_colourpalette", required = false) String[] imageColorPalette,
+			@RequestParam(value = "colourpalette", required = false) String[] imageColorPalette,
 
             @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
             @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
