@@ -221,6 +221,10 @@ public class SearchController {
         final List<Boolean> videoHQs = new ArrayList<>();
         final List<String> videoDurations = new ArrayList<>();
 
+        final Integer imageFilterTag = imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios).get(0);
+        final Integer soundFilterTag = soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
+        final Integer videoFilterTag = videoFilterTags(mimeTypes, videoHQs, videoDurations).get(0);
+
         final List<String> extra = new ArrayList<>();
         if(refinements != null) {
             for (String qf : refinements) {
@@ -237,10 +241,8 @@ public class SearchController {
 
                 if (prefix.equals("type")) {
                     mediaTypes.add(suffix);
-                    // TODO: ??? remove in prod
-                    extra.add(qf);
                 }
-                if (prefix.equals("mime_type")) {
+                if (prefix.equals("image_mimetype")) {
                     mimeTypes.add(suffix);
                     extra.add(qf);
                 }
@@ -282,19 +284,30 @@ public class SearchController {
             }
 
             final List<Integer> filterTags = new ArrayList<>();
+            filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios));
+            filterTags.addAll(soundFilterTags(mimeTypes, soundHQs, soundDurations));
+            filterTags.addAll(videoFilterTags(mimeTypes, videoHQs, videoDurations));
+
+            Boolean image = false, sound = false, video = false;
             for (final String type : mediaTypes) {
                 if (type.equals("image")) {
-                    filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios));
+                    image = true;
                 }
                 if (type.equals("sound")) {
-                    filterTags.addAll(soundFilterTags(mimeTypes, soundHQs, soundDurations));
+                    sound = true;
                 }
                 if (type.equals("video")) {
-                    filterTags.addAll(videoFilterTags(mimeTypes, videoHQs, videoDurations));
+                    video = true;
                 }
-                if (type.equals("text")) {
-                    // NOTHING TO DO WITH TEXT
-                }
+            }
+            if(!image) {
+                filterTags.remove(imageFilterTag);
+            }
+            if(!sound) {
+                filterTags.remove(soundFilterTag);
+            }
+            if(!video) {
+                filterTags.remove(videoFilterTag);
             }
 
             String filterTagQuery = "";
