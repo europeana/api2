@@ -193,12 +193,11 @@ public class SearchController {
                 log.info("Color palette: " + color);
                 final Integer filterTag = searchService.search(1, null, null, null, null, null, color, null, null, null, null);
                 log.info("Color palette: " + filterTag);
-                filterQuery += "filter_tags:" + filterTag + " OR ";
+                filterQuery += "filter_tags:" + filterTag + " AND ";
             }
             if(!filterQuery.equals("")) {
-                filterQuery = filterQuery.substring(0, filterQuery.lastIndexOf("OR"));
+                filterQuery = filterQuery.substring(0, filterQuery.lastIndexOf("AND"));
                 filterQuery = filterQuery.trim();
-                filterQuery = "(" + filterQuery + ")";
 
                 if (queryString.equals("")) {
                     queryString = filterQuery;
