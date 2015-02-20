@@ -317,15 +317,17 @@ public class SearchController {
 		}
 
         final List<String> newRefinements = new ArrayList<>();
-        newRefinements.addAll(Arrays.asList(refinements));
-        for (String extraQF : extra) {
-            newRefinements.remove(extraQF);
-        }
-        refinements = new String[newRefinements.size()];
-        refinements = newRefinements.toArray(refinements);
+        if(refinements != null) {
+            newRefinements.addAll(Arrays.asList(refinements));
+            for (String extraQF : extra) {
+                newRefinements.remove(extraQF);
+            }
+            refinements = new String[newRefinements.size()];
+            refinements = newRefinements.toArray(refinements);
 
-        for(String qf : refinements) {
-            log.info("ref: " + qf);
+            for (String qf : refinements) {
+                log.info("ref: " + qf);
+            }
         }
 
         boolean isFacetsRequested = isFacetsRequested(profile);
