@@ -242,7 +242,7 @@ public class SearchController {
                 if (prefix.equals("type")) {
                     mediaTypes.add(suffix);
                 }
-                if (prefix.equals("image_mimetype")) {
+                if (prefix.equals("mime_type")) {
                     mimeTypes.add(suffix);
                     extra.add(qf);
                 }
