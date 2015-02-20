@@ -253,7 +253,7 @@ public class SearchController {
                     imageColors.add(Boolean.valueOf(suffix));
                     extra.add(qf);
                 }
-                if (prefix.equals("image_grayscale")) {
+                if (prefix.equals("image_greyscale")) {
                     imageGrayScales.add(Boolean.valueOf(suffix));
                     extra.add(qf);
                 }
