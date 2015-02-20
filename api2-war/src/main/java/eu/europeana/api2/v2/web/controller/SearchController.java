@@ -198,6 +198,7 @@ public class SearchController {
             if(!filterQuery.equals("")) {
                 filterQuery = filterQuery.substring(0, filterQuery.lastIndexOf("OR"));
                 filterQuery = filterQuery.trim();
+                filterQuery = "(" + filterQuery + ")";
 
                 if (queryString.equals("")) {
                     queryString = filterQuery;
