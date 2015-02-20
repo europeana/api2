@@ -150,6 +150,7 @@ public class SearchController {
 			@RequestParam(value = "facet", required = false) String[] aFacet,
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
+			@RequestParam(value = "image_colourpalette", required = false) String[] imageColorPalette,
 
             @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
             @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
@@ -186,6 +187,26 @@ public class SearchController {
             }
         }
 
+        if(imageColorPalette != null) {
+            String filterQuery = "";
+            for(String color : imageColorPalette) {
+                log.info("Color palette: " + color);
+                final Integer filterTag = searchService.search(1, null, null, null, null, null, color, null, null, null, null);
+                log.info("Color palette: " + filterTag);
+                filterQuery += "filter_tags:" + filterTag + " OR ";
+            }
+            if(!filterQuery.equals("")) {
+                filterQuery = filterQuery.substring(0, filterQuery.lastIndexOf("OR"));
+                filterQuery = filterQuery.trim();
+
+                if (queryString.equals("")) {
+                    queryString = filterQuery;
+                } else {
+                    queryString = queryString + " AND " + filterQuery;
+                }
+            }
+        }
+
         final List<String> mediaTypes = new ArrayList<>();
         final List<String> mimeTypes = new ArrayList<>();
 
@@ -193,7 +214,6 @@ public class SearchController {
         final List<Boolean> imageColors = new ArrayList<>();
         final List<Boolean> imageGrayScales = new ArrayList<>();
         final List<String> imageAspectRatios = new ArrayList<>();
-        final List<String> imageColorPalletes = new ArrayList<>();
 
         final List<Boolean> soundHQs = new ArrayList<>();
         final List<String> soundDurations = new ArrayList<>();
@@ -241,10 +261,6 @@ public class SearchController {
                     imageAspectRatios.add(suffix);
                     extra.add(qf);
                 }
-                if (prefix.equals("image_colourpalette")) {
-                    imageColorPalletes.add(suffix);
-                    extra.add(qf);
-                }
 
                 if (prefix.equals("sound_hq")) {
                     soundHQs.add(Boolean.valueOf(suffix));
@@ -268,7 +284,7 @@ public class SearchController {
             final List<Integer> filterTags = new ArrayList<>();
             for (final String type : mediaTypes) {
                 if (type.equals("image")) {
-                    filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios, imageColorPalletes));
+                    filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios));
                 }
                 if (type.equals("sound")) {
                     filterTags.addAll(soundFilterTags(mimeTypes, soundHQs, soundDurations));
@@ -439,16 +455,15 @@ public class SearchController {
 		}
 	}
 
-    private List<Integer> imageFilterTags(List<String> mimeTypes, List<String> imageSizes, List<Boolean> imageColors, List<Boolean> imageGrayScales, List<String> imageAspectRatios, List<String> imageColorPalletes) {
+    private List<Integer> imageFilterTags(List<String> mimeTypes, List<String> imageSizes, List<Boolean> imageColors, List<Boolean> imageGrayScales, List<String> imageAspectRatios) {
         final List<Integer> filterTags = new ArrayList<>();
-        Integer i = 0, j, k, l, m, n;
+        Integer i = 0, j, k, l, m;
 
         log.info("Size: " + mimeTypes.size());
         log.info("Size: " + imageSizes.size());
         log.info("Size: " + imageColors.size());
         log.info("Size: " + imageGrayScales.size());
         log.info("Size: " + imageAspectRatios.size());
-        log.info("Size: " + imageColorPalletes.size());
 
         do {
             String mimeType = null;
@@ -483,21 +498,11 @@ public class SearchController {
                             if(imageAspectRatios.size() != 0) {
                                 imageAspectRatio = imageAspectRatios.get(m);
                             }
-                            n = 0;
                             log.info("imageAspectRatio: " + imageAspectRatio);
-                            do {
-                                String imageColorPalette = null;
-                                if(imageColorPalletes.size() != 0) {
-                                    imageColorPalette = imageColorPalletes.get(n);
-                                }
-                                log.info("imageColorPalette: " + imageColorPalette);
 
-                                final Integer filterTag = searchService.search(1, mimeType, imageSize, imageColor, imageGrayScale, imageAspectRatio, imageColorPalette, null, null, null, null);
-                                log.info("image filtertag: " + filterTag);
-                                filterTags.add(filterTag);
-
-                                n += 1;
-                            } while (n < imageColorPalletes.size());
+                            final Integer filterTag = searchService.search(1, mimeType, imageSize, imageColor, imageGrayScale, imageAspectRatio, null, null, null, null, null);
+                            log.info("image filtertag: " + filterTag);
+                            filterTags.add(filterTag);
 
                             m += 1;
                         } while (m < imageAspectRatios.size());
