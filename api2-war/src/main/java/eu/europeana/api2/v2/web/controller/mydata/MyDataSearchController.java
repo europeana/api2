@@ -21,6 +21,7 @@ import java.security.Principal;
 import java.util.ArrayList;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,6 +59,7 @@ public class MyDataSearchController extends AbstractUserController {
 			Principal principal) {
 		UserResults<Search> response = new UserResults<Search>(principal.getName(), "/v2/mydata/search.json");
 		try {
+			Logger.getLogger(this.getClass()).info("Principal: " +principal.toString());
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {
 				User user = apiKey.getUser();
