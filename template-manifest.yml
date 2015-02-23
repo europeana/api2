@@ -8,5 +8,6 @@ applications:
   path: api2-war/target/api.war
   buildpack: https://github.com/europeana/java-buildpack.git
   services:
+    - syslog
     - postgresql
     - europeana-object-db
