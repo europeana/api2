@@ -251,11 +251,11 @@ public class SearchController {
                     imageSizes.add(suffix);
                     extra.add(qf);
                 }
-                if (prefix.equals("image_colour")) {
+                if (prefix.equals("image_colour") || prefix.equals("image_color")) {
                     imageColors.add(Boolean.valueOf(suffix));
                     extra.add(qf);
                 }
-                if (prefix.equals("image_greyscale")) {
+                if (prefix.equals("image_greyscale") || prefix.equals("image_grayscale")) {
                     imageGrayScales.add(Boolean.valueOf(suffix));
                     extra.add(qf);
                 }
