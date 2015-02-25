@@ -4,8 +4,12 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import eu.europeana.api2.v2.model.enums.DefaultImage;
+import eu.europeana.corelib.definitions.model.ThumbSize;
+import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.domain.MediaFile;
 import eu.europeana.corelib.service.impl.MediaStorageClientImpl;
+import eu.europeana.corelib.utils.ImageUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,6 +37,7 @@ import eu.europeana.corelib.web.service.ContentReuseFrameworkService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.harvester.domain.SourceDocumentReferenceMetaInfo;
 
+import java.awt.image.BufferedImage;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -97,25 +102,104 @@ public class ContentReuseFrameworkController {
     @RequestMapping(value = "/v2/thumbnail-by-url.json", method = RequestMethod.GET)
     public ResponseEntity<byte[]> thumbnailByUrl(
             @RequestParam(value = "url", required = true) String url,
-            @RequestParam(value = "height", required = true) Integer height,
-            @RequestParam(value = "wskey", required = true) String wskey,
+            @RequestParam(value = "size", required = true) String size,
+            @RequestParam(value = "type", required = true) String type,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
             HttpServletResponse response) {
         controllerUtils.addResponseHeaders(response);
 
-        final String ID = getMD5(url + "" + height);
-        final MediaFile mediaFile = mediaStorageClient.retrieve(ID, true);
+        String sufix = "";
+        if(size.equalsIgnoreCase("BRIEF_DOC") || size.equalsIgnoreCase("h180")) {
+            sufix = "180";
+        }
+        if(size.equalsIgnoreCase("FULL-DOC") || size.equalsIgnoreCase("w200")) {
+            sufix = "200";
+        }
 
         final HttpHeaders headers = new HttpHeaders();
-        if(mediaFile.getContentType().equals("image/jpeg")) {
-            headers.setContentType(MediaType.IMAGE_JPEG);
+        byte[] imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.IMAGE);
+        if(type.equalsIgnoreCase("IMAGE")) {
+            final String ID = getMD5(url + "" + sufix);
+            final MediaFile mediaFile = mediaStorageClient.retrieve(ID, true);
+
+            if (mediaFile != null) {
+                if (mediaFile.getContentType().equals("image/jpeg")) {
+                    headers.setContentType(MediaType.IMAGE_JPEG);
+                }
+                if (mediaFile.getContentType().equals("image/png")) {
+                    headers.setContentType(MediaType.IMAGE_PNG);
+                }
+
+                imageResponse = mediaFile.getContent();
+            } else {
+                imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.IMAGE);
+
+                if (sufix.equals("180")) {
+                    try {
+                        final BufferedImage oldImage = ImageUtils.toBufferedImage(imageResponse);
+                        final BufferedImage newImage = ImageUtils.scale(oldImage, 130, 180);
+                        imageResponse = ImageUtils.toByteArray(newImage);
+                    } catch (Exception e) {
+                        log.error(e.getMessage());
+                    }
+                }
+            }
         }
-        if(mediaFile.getContentType().equals("image/png")) {
-            headers.setContentType(MediaType.IMAGE_PNG);
+        if(type.equalsIgnoreCase("SOUND")) {
+            imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.SOUND);
+
+            if (sufix.equals("180")) {
+                try {
+                    final BufferedImage oldImage = ImageUtils.toBufferedImage(imageResponse);
+                    final BufferedImage newImage = ImageUtils.scale(oldImage, 130, 180);
+                    imageResponse = ImageUtils.toByteArray(newImage);
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
+            }
+        }
+        if(type.equalsIgnoreCase("VIDEO")) {
+            imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.VIDEO);
+
+            if (sufix.equals("180")) {
+                try {
+                    final BufferedImage oldImage = ImageUtils.toBufferedImage(imageResponse);
+                    final BufferedImage newImage = ImageUtils.scale(oldImage, 130, 180);
+                    imageResponse = ImageUtils.toByteArray(newImage);
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
+            }
+        }
+        if(type.equalsIgnoreCase("TEXT")) {
+            imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.TEXT);
+
+            if (sufix.equals("180")) {
+                try {
+                    final BufferedImage oldImage = ImageUtils.toBufferedImage(imageResponse);
+                    final BufferedImage newImage = ImageUtils.scale(oldImage, 130, 180);
+                    imageResponse = ImageUtils.toByteArray(newImage);
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
+            }
+        }
+        if(type.equalsIgnoreCase("3D")) {
+            imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType._3D);
+
+            if (sufix.equals("180")) {
+                try {
+                    final BufferedImage oldImage = ImageUtils.toBufferedImage(imageResponse);
+                    final BufferedImage newImage = ImageUtils.scale(oldImage, 130, 180);
+                    imageResponse = ImageUtils.toByteArray(newImage);
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
+            }
         }
 
-        return new ResponseEntity<byte[]>(mediaFile.getContent(), headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(imageResponse, headers, HttpStatus.CREATED);
     }
 
     private String getMD5(String input) {
