@@ -20,6 +20,7 @@ package eu.europeana.api2.v2.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.europeana.corelib.solr.service.impl.FacetLabelExtractor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
@@ -49,8 +50,17 @@ public class ModelUtils {
 						if (StringUtils.isNotEmpty(count.getName())
 								&& (count.getCount() > 0)) {
 							LabelFrequency value = new LabelFrequency();
-							value.label = count.getName();
-							value.count = count.getCount();
+							if(count.getFacetField().getName().equalsIgnoreCase("facet_tags")) {
+                                final String label = FacetLabelExtractor.getFacetLabel(Integer.valueOf(count.getName()));
+                                if(label.equals("")) {
+                                    value.label = count.getName();
+                                } else {
+                                    value.label = label;
+                                }
+                            } else {
+                                value.label = count.getName();
+                            }
+                            value.count = count.getCount();
 							facet.fields.add(value);
 						}
 					}
