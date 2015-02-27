@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import eu.europeana.corelib.solr.service.impl.FacetLabelExtractor;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -107,6 +108,7 @@ public class FacetParameterUtils {
 
 	public static NumericFacetParameter extractParameter(String key, String defaultKey, 
 			Map<String,String[]> parameters, boolean isDefault, Integer defaultValue) {
+
 		if (parameters.containsKey(key)) {
 			String[] value = (String[]) parameters.get(key);
 			return new NumericFacetParameter(key, value[0]);

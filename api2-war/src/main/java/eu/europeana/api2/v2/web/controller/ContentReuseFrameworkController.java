@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.web.controller;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -37,9 +38,14 @@ import eu.europeana.corelib.web.service.ContentReuseFrameworkService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.harvester.domain.SourceDocumentReferenceMetaInfo;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 @Controller
 public class ContentReuseFrameworkController {
@@ -101,7 +107,7 @@ public class ContentReuseFrameworkController {
 
     @RequestMapping(value = "/v2/thumbnail-by-url.json", method = RequestMethod.GET)
     public ResponseEntity<byte[]> thumbnailByUrl(
-            @RequestParam(value = "url", required = true) String url,
+            @RequestParam(value = "uri", required = true) String url,
             @RequestParam(value = "size", required = true) String size,
             @RequestParam(value = "type", required = true) String type,
             @RequestParam(value = "callback", required = false) String callback,
@@ -109,8 +115,13 @@ public class ContentReuseFrameworkController {
             HttpServletResponse response) {
         controllerUtils.addResponseHeaders(response);
 
+        log.info("Thumbnail");
+
         String sufix = "";
-        if(size.equalsIgnoreCase("BRIEF_DOC") || size.equalsIgnoreCase("h180")) {
+        log.info("Size: " + size);
+        log.info("Type: " + type);
+
+        if(size.equalsIgnoreCase("BRIEF-DOC") || size.equalsIgnoreCase("h180")) {
             sufix = "180";
         }
         if(size.equalsIgnoreCase("FULL-DOC") || size.equalsIgnoreCase("w200")) {
@@ -118,9 +129,11 @@ public class ContentReuseFrameworkController {
         }
 
         final HttpHeaders headers = new HttpHeaders();
+
         byte[] imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.IMAGE);
         if(type.equalsIgnoreCase("IMAGE")) {
-            final String ID = getMD5(url + "" + sufix);
+            final String ID = getMD5(url + sufix);
+            log.info("Image: " + ID + " sufix: " + sufix);
             final MediaFile mediaFile = mediaStorageClient.retrieve(ID, true);
 
             if (mediaFile != null) {
@@ -133,73 +146,74 @@ public class ContentReuseFrameworkController {
 
                 imageResponse = mediaFile.getContent();
             } else {
-                imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.IMAGE);
-
-                if (sufix.equals("180")) {
-                    try {
-                        final BufferedImage oldImage = ImageUtils.toBufferedImage(imageResponse);
-                        final BufferedImage newImage = ImageUtils.scale(oldImage, 130, 180);
-                        imageResponse = ImageUtils.toByteArray(newImage);
-                    } catch (Exception e) {
-                        log.error(e.getMessage());
-                    }
-                }
+                imageResponse = getImage("/images/item-image-large.gif", sufix);
+                headers.setContentType(MediaType.IMAGE_GIF);
             }
         }
         if(type.equalsIgnoreCase("SOUND")) {
-            imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.SOUND);
-
-            if (sufix.equals("180")) {
-                try {
-                    final BufferedImage oldImage = ImageUtils.toBufferedImage(imageResponse);
-                    final BufferedImage newImage = ImageUtils.scale(oldImage, 130, 180);
-                    imageResponse = ImageUtils.toByteArray(newImage);
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                }
-            }
+            imageResponse = getImage("/images/item-sound-large.gif", sufix);
+            headers.setContentType(MediaType.IMAGE_GIF);
         }
         if(type.equalsIgnoreCase("VIDEO")) {
-            imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.VIDEO);
-
-            if (sufix.equals("180")) {
-                try {
-                    final BufferedImage oldImage = ImageUtils.toBufferedImage(imageResponse);
-                    final BufferedImage newImage = ImageUtils.scale(oldImage, 130, 180);
-                    imageResponse = ImageUtils.toByteArray(newImage);
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                }
-            }
+            imageResponse = getImage("/images/item-video-large.gif", sufix);
+            headers.setContentType(MediaType.IMAGE_GIF);
         }
         if(type.equalsIgnoreCase("TEXT")) {
-            imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.TEXT);
-
-            if (sufix.equals("180")) {
-                try {
-                    final BufferedImage oldImage = ImageUtils.toBufferedImage(imageResponse);
-                    final BufferedImage newImage = ImageUtils.scale(oldImage, 130, 180);
-                    imageResponse = ImageUtils.toByteArray(newImage);
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                }
-            }
+            imageResponse = getImage("/images/item-text-large.gif", sufix);
+            headers.setContentType(MediaType.IMAGE_GIF);
         }
         if(type.equalsIgnoreCase("3D")) {
-            imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType._3D);
-
-            if (sufix.equals("180")) {
-                try {
-                    final BufferedImage oldImage = ImageUtils.toBufferedImage(imageResponse);
-                    final BufferedImage newImage = ImageUtils.scale(oldImage, 130, 180);
-                    imageResponse = ImageUtils.toByteArray(newImage);
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                }
-            }
+            imageResponse = getImage("/images/item-3d-large.gif", sufix);
+            headers.setContentType(MediaType.IMAGE_GIF);
         }
 
         return new ResponseEntity<>(imageResponse, headers, HttpStatus.CREATED);
+    }
+
+    private byte[] getImage(String path, String size) {
+        byte[] response = null;
+
+        BufferedImage img = null;
+        try {
+            img = ImageIO.read(getClass().getResourceAsStream(path));
+            response = getByteArray(img);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int imgType = img.getType() == 0? BufferedImage.TYPE_INT_ARGB : img.getType();
+
+        if (size.equals("180")) {
+            try {
+                final BufferedImage newImage = resizeImage(img, imgType, 130, 180);
+                response = getByteArray(newImage);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+        }
+
+        return response;
+    }
+
+    private byte[] getByteArray(final BufferedImage bufferedImage) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        try {
+            ImageIO.write(bufferedImage, "gif", baos );
+            baos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return baos.toByteArray();
+    }
+
+    private BufferedImage resizeImage(BufferedImage originalImage, int type, int width, int height){
+        BufferedImage resizedImage = new BufferedImage(width, height, type);
+        Graphics2D g = resizedImage.createGraphics();
+        g.drawImage(originalImage, 0, 0, width, height, null);
+        g.dispose();
+
+        return resizedImage;
     }
 
     private String getMD5(String input) {
