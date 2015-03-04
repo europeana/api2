@@ -38,7 +38,7 @@ import eu.europeana.corelib.db.service.ThumbnailService;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.model.ThumbSize;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
-import eu.europeana.corelib.edm.service.SearchService;
+import eu.europeana.corelib.search.SearchService;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>

@@ -37,7 +37,11 @@
 			<artifactId>corelib-definitions</artifactId>
 			<version>${version.europeanaCorelib}</version>
 		</dependency>
-
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-hierarchies</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
 		<dependency>
 			<groupId>eu.europeana.corelib</groupId>
 			<artifactId>corelib-web</artifactId>

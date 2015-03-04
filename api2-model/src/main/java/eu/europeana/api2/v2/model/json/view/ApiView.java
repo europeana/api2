@@ -34,6 +34,7 @@ public class ApiView extends BriefView implements ApiBean {
 	private String[] edmPlaceBroaderTerm;
 	private List<Map<String, String>> edmPlaceAltLabel;
 	private String[] dctermsIsPartOf;
+        private String[] dcLanguage;
 	private Date timestampCreated;
 	private Date timestampUpdate;
 	private Map<String, List<String>> edmConceptPrefLabelLangAware;
@@ -61,6 +62,7 @@ public class ApiView extends BriefView implements ApiBean {
 		edmPlaceBroaderTerm = bean.getEdmPlaceBroaderTerm();
 		edmPlaceAltLabel = bean.getEdmPlaceAltLabel();
 		dctermsIsPartOf = bean.getDctermsIsPartOf();
+                dcLanguage = bean.getDcLanguage();
 		timestampCreated = bean.getTimestampCreated();
 		timestampUpdate = bean.getTimestampUpdate();
 		edmConceptPrefLabelLangAware = bean.getEdmConceptPrefLabelLangAware();
@@ -229,6 +231,11 @@ public class ApiView extends BriefView implements ApiBean {
 	public String[] getDctermsIsPartOf() {
 		return dctermsIsPartOf;
 	}
+        
+        @Override
+        public String[] getDcLanguage() {
+                return (this.dcLanguage != null ? this.dcLanguage.clone() : null);
+        }
 
 	@Override
 	public void setDctermsIsPartOf(String[] dctermsIsPartOf) {

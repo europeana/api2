@@ -19,6 +19,7 @@ package eu.europeana.api2.v2.web.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,6 +29,9 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -55,26 +59,32 @@ import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
+import eu.europeana.api2.model.xml.srw.SrwResponse;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.BriefView;
+import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
+import eu.europeana.api2.v2.model.xml.srw.Record;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
+import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.definitions.exception.ProblemType;
+import eu.europeana.corelib.edm.exceptions.EuropeanaQueryException;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
-import eu.europeana.corelib.edm.service.SearchService;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
+import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
@@ -100,11 +110,14 @@ public class ObjectController {
 	@Resource
 	private ApiKeyService apiService;
 
-	@Resource
-	private OptOutService optOutService;
+//	@Resource
+//	private OptOutService optOutService;
 	
 	@Resource
 	private EuropeanaUrlService urlService;
+	
+	@Resource(name = "corelib_db_userService")
+	private UserService userService;
 
 	@Resource
 	private ControllerUtils controllerUtils;
@@ -147,7 +160,9 @@ public class ObjectController {
                                 europeanaObjectId= searchService.resolveId(europeanaObjectId);
 				bean = searchService.findById(europeanaObjectId, false);
 			}
-
+			if(bean!=null && bean.isOptedOut()){
+				bean.getAggregations().get(0).setEdmObject("");
+			}
 			if (bean == null) {
 				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Invalid record identifier: "
 						+ europeanaObjectId, limitResponse.getRequestNumber()), callback);
@@ -159,7 +174,8 @@ public class ObjectController {
 				try {
 					similarItems = searchService.findMoreLikeThis(europeanaObjectId);
 					for (BriefBean b : similarItems) {
-						BriefView view = new BriefView(b, similarItemsProfile, wskey, limitResponse.getApiKey().getUser().getId(), optOutService.check(b.getId()));
+						Boolean optOut = b.getPreviewNoDistribute();
+						BriefView view = new BriefView(b, similarItemsProfile, wskey, limitResponse.getApiKey().getUser().getId(), optOut==null?false:optOut);
 						beans.add(view);
 					}
 				} catch (SolrServerException e) {
@@ -167,8 +183,8 @@ public class ObjectController {
 				}
 				objectResult.similarItems = beans;
 			}
-			objectResult.object = new FullView(bean, profile, limitResponse.getApiKey().getUser().getId(), optOutService.check(bean
-					.getId()));
+			Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
+			objectResult.object = new FullView(bean, profile, limitResponse.getApiKey().getUser().getId(), optOut==null?false:optOut);
 			long t1 = (new Date()).getTime();
 			objectResult.statsDuration = (t1 - t0);
 //		} catch (SolrTypeException e) {
@@ -231,8 +247,13 @@ public class ObjectController {
 		} catch (MongoDBException e) {
 			log.error(ExceptionUtils.getFullStackTrace(e));
 		}
-
+		
 		if (bean != null) {
+			Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
+			if(optOut!=null&&optOut==true){
+				bean.getAggregations().get(0).setEdmObject("");
+				
+			}
 			String rdf = EdmUtils.toEDM(bean,false);
 			try {
 				Model modelResult = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(rdf), "", "RDF/XML");
@@ -309,6 +330,11 @@ public class ObjectController {
 		}
 
 		if (bean != null) {
+			Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
+			if(optOut!=null&&optOut==true){
+				bean.getAggregations().get(0).setEdmObject("");
+				
+			}
 			model.put("record", EdmUtils.toEDM(bean, false));
 		} else {
 			response.setStatus(404);
@@ -331,5 +357,73 @@ public class ObjectController {
 			IOUtils.closeQuietly(in);
 		}
 		return null;
+	}
+	
+	@RequestMapping(value = "/{collectionId}/{recordId}.srw", produces = MediaType.TEXT_XML_VALUE)
+	public @ResponseBody
+	SrwResponse recordSrw(@PathVariable String collectionId, @PathVariable String recordId,
+			@RequestParam(value = "wskey", required = false) String wskey, HttpServletResponse response)
+			throws Exception {
+		log.info("====== /v2/record/{collectionId}/{recordId}.srw ======");
+
+		boolean hasResult = false;
+		if (!hasResult && StringUtils.isBlank(wskey)) {
+			// model.put("json", utils.toJson(new ApiError(wskey, "search.json", "No API authorisation key.")));
+			throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
+		}
+
+		if (!hasResult && (userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null)) {
+			// model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Unregistered user")));
+			throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
+			// hasResult = true;
+		}
+
+		if (!hasResult) {
+			String europeanaObjectId = "/" + collectionId + "/" + recordId;
+			FullBean bean = searchService.findById(europeanaObjectId, true);
+			if (bean == null) {
+				bean = searchService.resolve(europeanaObjectId, true);
+			}
+
+			SrwResponse srwResponse = new SrwResponse();
+			FullDoc doc = null;
+			if (bean != null) {
+				Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
+				if(optOut!=null&&optOut==true){
+					bean.getAggregations().get(0).setEdmObject("");
+					
+				}
+				doc = new FullDoc(bean);
+				Record record = new Record();
+				record.recordData.dc = doc;
+				srwResponse.records.record.add(record);
+				log.info("record added");
+			} else {
+				String url = urlService.getPortalRecord(true, collectionId, recordId).toString();
+				response.setStatus(302);
+				response.setHeader("Location", url);
+				return null;
+			}
+			createXml(srwResponse);
+			log.info("xml created");
+			return srwResponse;
+		}
+		return null;
+	}
+
+	private void createXml(SrwResponse response) {
+		try {
+			final JAXBContext context = JAXBContext.newInstance(SrwResponse.class);
+			final Marshaller marshaller = context.createMarshaller();
+			final StringWriter stringWriter = new StringWriter();
+			marshaller.marshal(response, stringWriter);
+			if (log.isInfoEnabled()) {
+				log.info("result: " + stringWriter.toString());
+			}
+		} catch (JAXBException e) {
+			if (log.isErrorEnabled()) {
+				log.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
+			}
+		}
 	}
 }
