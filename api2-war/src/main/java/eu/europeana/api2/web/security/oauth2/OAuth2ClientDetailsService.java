@@ -2,6 +2,7 @@ package eu.europeana.api2.web.security.oauth2;
 
 import javax.annotation.Resource;
 
+import org.apache.log4j.Logger;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.ClientDetails;
 
@@ -32,6 +33,9 @@ public class OAuth2ClientDetailsService implements
 						apiKey.getPrivateKey());
 			}
 		} catch (DatabaseException e) {
+			Logger.getLogger(this.getClass()).error(e.getMessage());
+			e.printStackTrace();
+			
 		}
 		throw new OAuth2Exception("OAuth2 ClientId unknown");
 	}

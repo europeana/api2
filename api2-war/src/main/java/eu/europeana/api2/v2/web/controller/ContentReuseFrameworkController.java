@@ -22,8 +22,7 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
-import eu.europeana.corelib.solr.service.SearchService;
-import eu.europeana.corelib.utils.service.OptOutService;
+import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.service.ContentReuseFrameworkService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.harvester.domain.SourceDocumentReferenceMetaInfo;
@@ -46,9 +45,6 @@ public class ContentReuseFrameworkController {
 	@Resource
 	private ApiKeyService apiService;
 
-	@Resource
-	private OptOutService optOutService;
-	
 	@Resource
 	private EuropeanaUrlService urlService;
 

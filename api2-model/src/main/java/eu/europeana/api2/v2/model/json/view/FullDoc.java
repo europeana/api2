@@ -15,7 +15,7 @@
  *  the Licence.
  */
 
-package eu.europeana.api2.v1.model.json.view;
+package eu.europeana.api2.v2.model.json.view;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,14 +30,14 @@ import javax.xml.bind.annotation.XmlElement;
 import org.apache.commons.lang.ArrayUtils;
 
 import eu.europeana.api2.model.xml.srw.SrwResponse;
-import eu.europeana.corelib.definitions.solr.beans.FullBean;
-import eu.europeana.corelib.definitions.solr.entity.Agent;
-import eu.europeana.corelib.definitions.solr.entity.Aggregation;
-import eu.europeana.corelib.definitions.solr.entity.Concept;
-import eu.europeana.corelib.definitions.solr.entity.EuropeanaAggregation;
-import eu.europeana.corelib.definitions.solr.entity.Place;
-import eu.europeana.corelib.definitions.solr.entity.Proxy;
-import eu.europeana.corelib.definitions.solr.entity.Timespan;
+import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.definitions.edm.entity.Agent;
+import eu.europeana.corelib.definitions.edm.entity.Aggregation;
+import eu.europeana.corelib.definitions.edm.entity.Concept;
+import eu.europeana.corelib.definitions.edm.entity.EuropeanaAggregation;
+import eu.europeana.corelib.definitions.edm.entity.Place;
+import eu.europeana.corelib.definitions.edm.entity.Proxy;
+import eu.europeana.corelib.definitions.edm.entity.Timespan;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 
 public class FullDoc {
@@ -410,7 +410,9 @@ public class FullDoc {
 		}
 		List<String> values = new ArrayList<String>();
 		for (List<String> entry : map.values()) {
-			values.addAll(entry);
+			if (entry != null){
+                            values.addAll(entry);
+                        }
 		}
 		return values.toArray(new String[values.size()]);
 	}
