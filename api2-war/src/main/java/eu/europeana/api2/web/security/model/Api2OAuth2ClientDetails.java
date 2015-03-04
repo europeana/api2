@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.oauth2.provider.BaseClientDetails;
+import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 
 import eu.europeana.corelib.utils.StringArrayUtils;
 

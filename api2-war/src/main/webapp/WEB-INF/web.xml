@@ -22,8 +22,11 @@
 
 	<display-name>Europeana API2</display-name>
 
-	<!-- SPRING SECURITY (OAUTH2) -->
 	
+	<listener>
+	   <listener-class>eu.europeana.corelib.web.context.VcapPropertyLoaderListener</listener-class>
+	</listener>
+	<!-- SPRING SECURITY (OAUTH2) -->
 	<filter>
 		<filter-name>api2_oauth2_clientCredentialsTokenEndpointFilter</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
