@@ -410,7 +410,9 @@ public class FullDoc {
 		}
 		List<String> values = new ArrayList<String>();
 		for (List<String> entry : map.values()) {
-			values.addAll(entry);
+			if (entry != null){
+                            values.addAll(entry);
+                        }
 		}
 		return values.toArray(new String[values.size()]);
 	}
