@@ -13,8 +13,8 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.api2.model.utils.LinkUtils;
+import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.DocType;
-import eu.europeana.corelib.definitions.solr.beans.BriefBean;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
@@ -100,6 +100,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		}
 		return bean.getDctermsSpatial();
 	}
+        
+        @Override
+        public String[] getDcLanguage() {
+                return bean.getDcLanguage();
+        }
 
 	@Override
 	public int getEuropeanaCompleteness() {
@@ -201,8 +206,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public Date getTimestamp() {
-		// bean.getTimestamp()
-		return null;
+		return bean.getTimestamp();
 	}
 
 	@Override
@@ -212,8 +216,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
 	@Override
 	public Boolean isOptedOut() {
-		// bean.isOptedOut()
-		return null;
+		return bean.isOptedOut();
 	}
 
 	private String[] getThumbnails() {
@@ -311,5 +314,10 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	@Override
 	public Map<String, List<String>> getEdmAgentLabelLangAware() {
 		return bean.getEdmAgentLabelLangAware();
+	}
+
+	@Override
+	public Boolean getPreviewNoDistribute() {
+		return bean.getPreviewNoDistribute()!=null? bean.getPreviewNoDistribute():false;
 	}
 }

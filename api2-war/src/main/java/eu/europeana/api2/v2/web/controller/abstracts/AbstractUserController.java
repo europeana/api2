@@ -27,7 +27,7 @@ public abstract class AbstractUserController {
 	protected String getApiId(Principal principal) {
 		if (principal instanceof OAuth2Authentication) {
 			OAuth2Authentication authentication = (OAuth2Authentication) principal;
-			return authentication.getAuthorizationRequest().getClientId();
+			return authentication.getOAuth2Request().getClientId();
 		}
 		return "invalid";
 	}

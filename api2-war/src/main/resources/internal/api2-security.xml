@@ -28,7 +28,7 @@
 			create-session="stateless"
 			authentication-manager-ref="api2_oauth2_clientAuthenticationManager"
 			entry-point-ref="api2_oauth2_authenticationEntryPoint"
-			realm="Euroepana API2 OAuth">
+			realm="Europeana API2 OAuth">
 		<security:intercept-url pattern="/oauth/token" access="IS_AUTHENTICATED_FULLY" />
 		<security:anonymous enabled="false" />
 		<security:http-basic entry-point-ref="api2_oauth2_authenticationEntryPoint" />
@@ -140,6 +140,9 @@
 		<property name="passwordParameter" value="secret"/>
 	</bean>
 
+    <bean id = "api2_requestFactory" class = "org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory">
+    <constructor-arg ref="api2_oauth2_clientDetailsService" />
+    </bean>
 	<!-- TOKEN STORE -->
 	<bean id="api2_oauth2_tokenStore" class="eu.europeana.api2.web.security.oauth2.ApiTokenStore" />
 
@@ -160,7 +163,9 @@
 				<value>my-less-trusted-autoapprove-client</value>
 			</set>
 		</property>
-		<property name="tokenServices" ref="api2_oauth2_tokenServices" />
+		<property name="clientDetailsService" ref="api2_oauth2_clientDetailsService" />
+		<property name="tokenStore" ref="api2_oauth2_tokenStore" />
+		<property name="requestFactory" ref="api2_requestFactory" />
 	</bean>
 
 	<oauth2:expression-handler id="oauthExpressionHandler" />

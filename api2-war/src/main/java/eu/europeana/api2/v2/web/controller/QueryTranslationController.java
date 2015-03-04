@@ -22,7 +22,7 @@ import eu.europeana.api2.v2.model.json.QueryTranslationResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.solr.model.QueryTranslation;
-import eu.europeana.corelib.solr.utils.SolrUtils;
+import eu.europeana.corelib.search.utils.SearchUtils;
 import eu.europeana.corelib.utils.StringArrayUtils;
 
 @Controller
@@ -66,7 +66,7 @@ public class QueryTranslationController {
 		QueryTranslationResult queryTranslationResult = 
 				new QueryTranslationResult(wskey, "translateQuery.json", limitResponse.getRequestNumber());
 
-		QueryTranslation queryTranslation = SolrUtils.translateQuery(term, Arrays.asList(languageCodes));
+		QueryTranslation queryTranslation = SearchUtils.translateQuery(term, Arrays.asList(languageCodes));
 		queryTranslationResult.translations = queryTranslation.getLanguageVersions();
 		queryTranslationResult.translatedQuery = queryTranslation.getModifiedQuery();
 
