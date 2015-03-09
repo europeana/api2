@@ -108,8 +108,8 @@ public class ContentReuseFrameworkController {
     @RequestMapping(value = "/v2/thumbnail-by-url.json", method = RequestMethod.GET)
     public ResponseEntity<byte[]> thumbnailByUrl(
             @RequestParam(value = "uri", required = true) String url,
-            @RequestParam(value = "size", required = true) String size,
-            @RequestParam(value = "type", required = true) String type,
+            @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
+            @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
             HttpServletResponse response) {
