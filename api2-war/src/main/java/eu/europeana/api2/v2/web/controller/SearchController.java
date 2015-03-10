@@ -150,61 +150,18 @@ public class SearchController {
 			@RequestParam(value = "facet", required = false) String[] aFacet,
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
-			@RequestParam(value = "colourpalette", required = false) String[] imageColorPalette,
+			@RequestParam(value = "colourpalette", required = false) String[] colorPalette,
 
             @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
             @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
             @RequestParam(value = "media", required = false) Boolean media,
 			HttpServletRequest request,
 			HttpServletResponse response) {
-
-        // FilterTagGeneration
-
-        if(isFulltext != null) {
-            final String filterQuery = "is_fulltext:"+isFulltext;
-            if (queryString.equals("")) {
-                queryString = filterQuery;
-            } else {
-                queryString = queryString + " AND " + filterQuery;
-            }
-        }
-
-        if(thumbnail != null) {
-            final String filterQuery = "has_thumbnails:"+thumbnail;
-            if (queryString.equals("")) {
-                queryString = filterQuery;
-            } else {
-                queryString = queryString + " AND " + filterQuery;
-            }
-        }
-
-        if(media != null) {
-            final String filterQuery = "has_media:"+media;
-            if (queryString.equals("")) {
-                queryString = filterQuery;
-            } else {
-                queryString = queryString + " AND " + filterQuery;
-            }
-        }
-
-        if(imageColorPalette != null) {
-            String filterQuery = "";
-            for(String color : imageColorPalette) {
-                log.info("Color palette: " + color);
-                final Integer filterTag = searchService.search(1, null, null, null, null, null, color, null, null, null, null);
-                log.info("Color palette: " + filterTag);
-                filterQuery += "filter_tags:" + filterTag + " AND ";
-            }
-            if(!filterQuery.equals("")) {
-                filterQuery = filterQuery.substring(0, filterQuery.lastIndexOf("AND"));
-                filterQuery = filterQuery.trim();
-
-                if (queryString.equals("")) {
-                    queryString = filterQuery;
-                } else {
-                    queryString = queryString + " AND " + filterQuery;
-                }
-            }
+        // workaround of a Spring issue
+        // (https://jira.springsource.org/browse/SPR-7963)
+        String[] _qf = (String[]) request.getParameterMap().get("qf");
+        if (_qf != null && _qf.length != refinements.length) {
+            refinements = _qf;
         }
 
         final List<String> mediaTypes = new ArrayList<>();
@@ -214,6 +171,7 @@ public class SearchController {
         final List<Boolean> imageColors = new ArrayList<>();
         final List<Boolean> imageGrayScales = new ArrayList<>();
         final List<String> imageAspectRatios = new ArrayList<>();
+        final List<String> imageColorsPalette = new ArrayList<>();
 
         final List<Boolean> soundHQs = new ArrayList<>();
         final List<String> soundDurations = new ArrayList<>();
@@ -224,6 +182,10 @@ public class SearchController {
         final Integer imageFilterTag = imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios).get(0);
         final Integer soundFilterTag = soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
         final Integer videoFilterTag = videoFilterTags(mimeTypes, videoHQs, videoDurations).get(0);
+
+        if (null != colorPalette) {
+            imageColorsPalette.addAll(Arrays.asList(colorPalette));
+        }
 
         final List<String> extra = new ArrayList<>();
         if(refinements != null) {
@@ -238,6 +200,26 @@ public class SearchController {
 
                 log.info("prefix: " + prefix);
                 log.info("suffix: " + suffix);
+
+                if (prefix.equals("text_fulltext")) {
+                    isFulltext = (null == isFulltext ? false: isFulltext) || Boolean.parseBoolean(suffix);
+                    extra.add(qf);
+                }
+
+                if (prefix.equals("has_thumbnail")) {
+                    thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
+                    extra.add(qf);
+                }
+
+                if (prefix.equals("has_media")) {
+                    media = (null == media ? false: media) || Boolean.parseBoolean(suffix);
+                    extra.add(qf);
+                }
+
+                if (prefix.equals("onetagpercolour")) {
+                    imageColorsPalette.add(suffix);
+                    extra.add(qf);
+                }
 
                 if (prefix.equals("type")) {
                     mediaTypes.add(suffix);
@@ -280,6 +262,54 @@ public class SearchController {
                 if (prefix.equals("video_duration")) {
                     videoDurations.add(suffix);
                     extra.add(qf);
+                }
+            }
+
+            if(isFulltext != null) {
+                final String filterQuery = "is_fulltext:"+isFulltext;
+                if (queryString.equals("")) {
+                    queryString = filterQuery;
+                } else {
+                    queryString = queryString + " AND " + filterQuery;
+                }
+            }
+
+            // FilterTagGeneration
+            if(thumbnail != null) {
+                final String filterQuery = "has_thumbnails:"+thumbnail;
+                if (queryString.equals("")) {
+                    queryString = filterQuery;
+                } else {
+                    queryString = queryString + " AND " + filterQuery;
+                }
+            }
+
+            if(media != null) {
+                final String filterQuery = "has_media:"+media;
+                if (queryString.equals("")) {
+                    queryString = filterQuery;
+                } else {
+                    queryString = queryString + " AND " + filterQuery;
+                }
+            }
+
+            if(!imageColorsPalette.isEmpty()) {
+                String filterQuery = "";
+                for(String color : imageColorsPalette) {
+                    log.info("Color palette: " + color);
+                    final Integer filterTag = searchService.search(1, null, null, null, null, null, color, null, null, null, null);
+                    log.info("Color palette: " + filterTag);
+                    filterQuery += "filter_tags:" + filterTag + " AND ";
+                }
+                if(!filterQuery.equals("")) {
+                    filterQuery = filterQuery.substring(0, filterQuery.lastIndexOf("AND"));
+                    filterQuery = filterQuery.trim();
+
+                    if (queryString.equals("")) {
+                        queryString = filterQuery;
+                    } else {
+                        queryString = queryString + " AND " + filterQuery;
+                    }
                 }
             }
 
@@ -337,20 +367,13 @@ public class SearchController {
         }
 
         // =================================================================================================
-
-		// workaround of a Spring issue
-		// (https://jira.springsource.org/browse/SPR-7963)
-		String[] _qf = (String[]) request.getParameterMap().get("qf");
-		if (_qf != null && _qf.length != refinements.length) {
-			refinements = _qf;
-		}
-
         final List<String> newRefinements = new ArrayList<>();
         if(refinements != null) {
             newRefinements.addAll(Arrays.asList(refinements));
             for (String extraQF : extra) {
                 newRefinements.remove(extraQF);
             }
+
             refinements = new String[newRefinements.size()];
             refinements = newRefinements.toArray(refinements);
 
