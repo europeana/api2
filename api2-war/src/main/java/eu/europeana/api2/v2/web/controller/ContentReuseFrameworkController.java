@@ -121,10 +121,10 @@ public class ContentReuseFrameworkController {
         log.info("Size: " + size);
         log.info("Type: " + type);
 
-        if(size.equalsIgnoreCase("BRIEF-DOC") || size.equalsIgnoreCase("h180")) {
+        if(size.equalsIgnoreCase("BRIEF_DOC") || size.equalsIgnoreCase("h180")) {
             sufix = "180";
         }
-        if(size.equalsIgnoreCase("FULL-DOC") || size.equalsIgnoreCase("w200")) {
+        if(size.equalsIgnoreCase("FULL_DOC") || size.equalsIgnoreCase("w200")) {
             sufix = "200";
         }
 
