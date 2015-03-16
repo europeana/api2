@@ -28,9 +28,8 @@ import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+@JsonSerialize(include = Inclusion.NON_EMPTY, using = FacetSerializer.class)
 public class Facet {
-
 	public String name;
 
 	public List<LabelFrequency> fields = new ArrayList<LabelFrequency>();
