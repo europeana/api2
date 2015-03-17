@@ -107,6 +107,7 @@ public class FacetParameterUtils {
 
 	public static NumericFacetParameter extractParameter(String key, String defaultKey, 
 			Map<String,String[]> parameters, boolean isDefault, Integer defaultValue) {
+
 		if (parameters.containsKey(key)) {
 			String[] value = (String[]) parameters.get(key);
 			return new NumericFacetParameter(key, value[0]);
