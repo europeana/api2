@@ -116,6 +116,13 @@
 			<artifactId>corelib-common-storage</artifactId>
 			<version>${version.europeanaCorelib}</version>
 		</dependency>
+		
+		<dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-media-storage</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
+		
 		<dependency>
 			<groupId>eu.europeana.corelib</groupId>
 			<artifactId>corelib-search</artifactId>
@@ -274,6 +281,11 @@
 			<type>jar</type>
 		</dependency>
 
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20140107</version>
+        </dependency>
 	
 	</dependencies>
 
