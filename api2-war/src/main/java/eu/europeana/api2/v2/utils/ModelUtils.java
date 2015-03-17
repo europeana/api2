@@ -20,7 +20,7 @@ package eu.europeana.api2.v2.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-import eu.europeana.corelib.solr.service.impl.FacetLabelExtractor;
+import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
