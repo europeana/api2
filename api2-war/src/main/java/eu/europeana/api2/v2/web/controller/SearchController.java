@@ -447,7 +447,7 @@ public class SearchController {
 			query.setAllowSpellcheck(true);
 		}
 
-		if (isFacetsRequested) {
+		if (true) {
 			query.setAllowFacets(true);
 			if (!query.hasParameter("f.DATA_PROVIDER.facet.limit")
 					&& (ArrayUtils.contains(facets, "DATA_PROVIDER") || ArrayUtils.contains(facets, "DEFAULT"))) {
@@ -742,8 +742,9 @@ public class SearchController {
 			log.info("beans: " + beans.size());
 		}
 		response.items = beans;
-		if (StringUtils.containsIgnoreCase(profile, "facets") || StringUtils.containsIgnoreCase(profile, "portal")) {
-			response.facets = ModelUtils.conventFacetList(resultSet.getFacetFields());
+		//if (StringUtils.containsIgnoreCase(profile, "facets") || StringUtils.containsIgnoreCase(profile, "portal")) {
+		if(true) {
+            response.facets = ModelUtils.conventFacetList(resultSet.getFacetFields());
 		}
 		if (StringUtils.containsIgnoreCase(profile, "breadcrumb") || StringUtils.containsIgnoreCase(profile, "portal")) {
 			response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
