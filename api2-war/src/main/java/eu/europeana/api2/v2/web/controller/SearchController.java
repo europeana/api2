@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.context.support.AbstractMessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.stereotype.Controller;
@@ -39,7 +40,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.context.support.AbstractMessageSource;
 
 import com.mongodb.Mongo;
 
@@ -72,18 +72,19 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
+import eu.europeana.corelib.definitions.edm.beans.ApiBean;
+import eu.europeana.corelib.definitions.edm.beans.BriefBean;
+import eu.europeana.corelib.definitions.edm.beans.IdBean;
+import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.definitions.solr.Facet;
-import eu.europeana.corelib.definitions.solr.beans.ApiBean;
-import eu.europeana.corelib.definitions.solr.beans.BriefBean;
-import eu.europeana.corelib.definitions.solr.beans.IdBean;
-import eu.europeana.corelib.definitions.solr.beans.RichBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
+import eu.europeana.corelib.edm.exceptions.SolrTypeException;
+import eu.europeana.corelib.edm.utils.SolrUtils;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
-import eu.europeana.corelib.solr.exceptions.SolrTypeException;
-import eu.europeana.corelib.solr.model.ResultSet;
-import eu.europeana.corelib.solr.service.SearchService;
-import eu.europeana.corelib.solr.utils.SolrUtils;
+import eu.europeana.corelib.search.SearchService;
+import eu.europeana.corelib.search.model.ResultSet;
+import eu.europeana.corelib.search.utils.SearchUtils;
 import eu.europeana.corelib.utils.StringArrayUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
@@ -116,8 +117,8 @@ public class SearchController {
 	@Resource
 	private ApiLogService apiLogService;
 
-	@Resource
-	private OptOutService optOutService;
+//	@Resource
+//	private OptOutService optOutService;
 
 	@Resource
 	private Configuration configuration;
@@ -412,7 +413,7 @@ public class SearchController {
 		}
 
         log.info("Query: " + queryString);
-		Query query = new Query(SolrUtils.rewriteQueryFields(queryString))
+		Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
 				.setApiQuery(true)
 				.setRefinements(refinements)
 				.setPageSize(rows)
@@ -721,18 +722,23 @@ public class SearchController {
 
 		List<T> beans = new ArrayList<T>();
 		for (T b : resultSet.getResults()) {
+			
 			if (b instanceof RichBean) {
-				beans.add((T) new RichView((RichBean) b, profile, apiKey, uid, optOutService.check(b.getId())));
+				Boolean optOut = ((RichBean)b).getPreviewNoDistribute();
+			
+				beans.add((T) new RichView((RichBean) b, profile, apiKey, uid, optOut));
 			} else if (b instanceof ApiBean) {
-				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, uid, optOutService.check(b.getId())));
+				Boolean optOut = ((ApiBean)b).getPreviewNoDistribute();
+				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, uid, optOut));
 			} else if (b instanceof BriefBean) {
-				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, uid, optOutService.check(b.getId())));
+				Boolean optOut = ((BriefBean)b).getPreviewNoDistribute();
+				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, uid, optOut));
 			}
 		}
 
 		List<FacetField> facetFields = resultSet.getFacetFields();
 		if (resultSet.getQueryFacets() != null) {
-			List<FacetField> allQueryFacetsMap = SolrUtils.extractQueryFacets(resultSet.getQueryFacets());
+			List<FacetField> allQueryFacetsMap = SearchUtils.extractQueryFacets(resultSet.getQueryFacets());
 			if (allQueryFacetsMap != null && !allQueryFacetsMap.isEmpty()) {
 				facetFields.addAll(allQueryFacetsMap);
 			}
@@ -758,7 +764,7 @@ public class SearchController {
 		return response;
 	}
 
-	@RequestMapping(value = "/v2/search.kml", produces = MediaType.APPLICATION_XML_VALUE)
+	@RequestMapping(value = "/v2/search.kml", produces = {"application/vnd.google-earth.kml+xml",MediaType.ALL_VALUE})
 	// @RequestMapping(value = "/v2/search.kml", produces =
 	// "application/vnd.google-earth.kml+xml")
 	public @ResponseBody
@@ -788,7 +794,7 @@ public class SearchController {
 			throw new Exception(e);
 		}
 		KmlResponse kmlResponse = new KmlResponse();
-		Query query = new Query(SolrUtils.rewriteQueryFields(queryString))
+		Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
 				.setRefinements(refinements)
 				.setApiQuery(true)
 				.setAllowSpellcheck(false)
@@ -808,7 +814,7 @@ public class SearchController {
 		return kmlResponse;
 	}
 
-	@RequestMapping(value = "/v2/opensearch.rss", produces = MediaType.APPLICATION_XML_VALUE)
+	@RequestMapping(value = "/v2/opensearch.rss", produces = {MediaType.APPLICATION_XML_VALUE,MediaType.ALL_VALUE})
 	public @ResponseBody
 	RssResponse openSearchRss(
 			@RequestParam(value = "searchTerms", required = true) String queryString,
@@ -822,7 +828,7 @@ public class SearchController {
 		channel.query.startPage = start;
 
 		try {
-			Query query = new Query(SolrUtils.rewriteQueryFields(queryString)).setApiQuery(true).setPageSize(count)
+			Query query = new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true).setPageSize(count)
 					.setStart(start - 1).setAllowFacets(false).setAllowSpellcheck(false);
 			ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
 			channel.totalResults.value = resultSet.getResultSize();
@@ -851,21 +857,24 @@ public class SearchController {
 	/**
 	 * returns ModelAndView containing RSS data to populate the Google Field 
          * Trip app for some selected collections
-	 * @param queryTerms the collection ID, e.g. "europeana_collectionName:91697*"
-	 * @param offset     list items from this index on
-	 * @param limit      max number of items to list
-	 * @param profile    should be "FieldTrip"
-	 * @param request    servlet request object
-	 * @param response   servlet response object
+	 * @param queryTerms  the collection ID, e.g. "europeana_collectionName:91697*"
+	 * @param offset      list items from this index on
+	 * @param limit       max number of items to list
+	 * @param profile     should be "FieldTrip"
+	 * @param reqLanguage if supplied, the API returns only those items having a dc:language that match this language
+	 * @param request     servlet request object
+	 * @param response    servlet response object
 	 * @return ModelAndView instance
 	 *   
 	 */
-	@RequestMapping(value = "/v2/search.rss", produces = MediaType.APPLICATION_XML_VALUE)
+        @RequestMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE,MediaType.ALL_VALUE})
+//	@RequestMapping(value = "/v2/search.rss", produces = MediaType.APPLICATION_XML_VALUE)
 	public ModelAndView fieldTripRss(
 			@RequestParam(value = "query", required = true) String queryTerms,
 			@RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
 			@RequestParam(value = "limit", required = false, defaultValue = "12") int limit,
 			@RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
+			@RequestParam(value = "language", required = false) String reqLanguage,
 			HttpServletRequest request,
 			HttpServletResponse response) {
 		controllerUtils.addResponseHeaders(response);
@@ -884,11 +893,15 @@ public class SearchController {
                     channel.link = "error retrieving attributes";
                     channel.image = null;
                 } else {
-                    channel.title = gftChannelAttributes.get("title") == null 
-                            || gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title");
-                    channel.description = gftChannelAttributes.get("description") == null 
-                            || gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description");
-                    channel.language = gftChannelAttributes.get("language") == null 
+                    channel.title = gftChannelAttributes.get(reqLanguage + "_title") == null || gftChannelAttributes.get(reqLanguage + "_title").equalsIgnoreCase("")
+                            ? ( gftChannelAttributes.get("title") == null 
+                            || gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title")) :
+                            gftChannelAttributes.get(reqLanguage + "_title");
+                    channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
+                            ? ( gftChannelAttributes.get("description") == null 
+                            || gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description")) :
+                            gftChannelAttributes.get(reqLanguage + "_description");
+		    channel.language = gftChannelAttributes.get("language") == null 
                             || gftChannelAttributes.get("language").equalsIgnoreCase("") ? "--" : gftChannelAttributes.get("language");
                     channel.link = gftChannelAttributes.get("link") == null 
                             || gftChannelAttributes.get("link").equalsIgnoreCase("") ? "no link defined" : gftChannelAttributes.get("link");
@@ -901,11 +914,13 @@ public class SearchController {
 		}
 		FieldTripUtils fieldTripUtils = new FieldTripUtils(urlService);
 		try {
-			Query query = new Query(SolrUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
+			Query query = new Query(SearchUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
 					.setStart(offset - 1).setAllowFacets(false).setAllowSpellcheck(false);
 			ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
 			for (RichBean bean : resultSet.getResults()) {
-				channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, channel.language)));
+                                if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
+                                        channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, reqLanguage == null ? channel.language : reqLanguage )));
+                                }
 			}
 		} catch (SolrTypeException e) {
 			log.error("error: " + e.getLocalizedMessage());
@@ -973,6 +988,15 @@ public class SearchController {
 		}
 		return sb.toString();
 	}
+        
+        private String getDcLanguage(BriefBean bean){
+            if (bean.getDcLanguage() != null && bean.getDcLanguage().length > 0
+                        && StringUtils.isNotBlank(bean.getDcLanguage()[0])) {
+                return bean.getDcLanguage()[0];
+            } else {
+                return "";
+            }
+        }
 
 	private boolean isFacetsRequested(String profile) {
 		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets")) {
@@ -1015,7 +1039,8 @@ public class SearchController {
          * <p>If this doesn't yield a string (either because the bean contains 
          * no language settings or there is no translation provided for that
          * language), it tries to retrieve the translation based on the language
-         * code provided in the 'channelLanguage' parameter.
+         * code provided in the 'language' parameter - which has the value of the
+         * 'language' GET parameter if provided, or else the channel language code.
          * <p>If that fails as well, it looks up the English translation of the
          * label. And if that fails too, it returns a hardcoded error message.
 	 * @param bean containing language code
@@ -1023,19 +1048,19 @@ public class SearchController {
 	 * @return String containing the label translation
 	 *   
 	 */    
-        private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String channelLanguage){
+        private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String language){
             String translatedEdmIsShownAtLabel = "";
             // first try with the bean language
             translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getBeanLocale(bean.getLanguage()));
             // check bean translation
             if (StringUtils.isBlank(translatedEdmIsShownAtLabel)){
                 log.error("error: 'edmIsShownAtLabel translation for language code '" + getBeanLocale(bean.getLanguage()) + "' unavailable");
-                log.error("falling back on channel language ('" + channelLanguage + "')");
+                log.error("falling back on channel language ('" + language + "')");
                 // if empty, try with channel language instead
-                translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(channelLanguage);
+                translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(language);
                 // check channel translation
                 if (StringUtils.isBlank(translatedEdmIsShownAtLabel)){
-                    log.error("error: 'fallback edmIsShownAtLabel translation for channel language code '" + channelLanguage + "' unavailable");
+                    log.error("error: 'fallback edmIsShownAtLabel translation for channel language code '" + language + "' unavailable");
                     log.error("falling back on default English translation ..."); 
                     // if empty, try with english instead
                     translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation("en");

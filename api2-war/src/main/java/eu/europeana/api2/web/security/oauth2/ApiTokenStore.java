@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.provider.token.DefaultAuthenticationK
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
 
+
 import eu.europeana.corelib.db.entity.nosql.AccessToken;
 import eu.europeana.corelib.db.entity.nosql.RefreshToken;
 import eu.europeana.corelib.db.service.OAuth2TokenService;
@@ -29,7 +30,6 @@ import eu.europeana.corelib.db.service.OAuth2TokenService;
  * Implemetation of oAuth TokenStore. Manages the persistency of access tokens
  */
 public class ApiTokenStore implements TokenStore {
-
 	@Resource
 	private OAuth2TokenService oAuth2TokenService;
 
@@ -67,7 +67,7 @@ public class ApiTokenStore implements TokenStore {
 		entity.setToken(serializeAccessToken(token));
 		entity.setAuthenticationId(authenticationKeyGenerator.extractKey(authentication));
 		entity.setUserName(authentication.isClientOnly() ? null : authentication.getName());
-		entity.setClientId(authentication.getAuthorizationRequest().getClientId());
+		entity.setClientId(authentication.getOAuth2Request().getClientId());
 		entity.setAuthentication(serializeAuthentication(authentication));
 		entity.setRefreshToken(extractTokenKey(refreshToken));
 		oAuth2TokenService.store(entity);
@@ -169,18 +169,6 @@ public class ApiTokenStore implements TokenStore {
 		return accessToken;
 	}
 
-	@Override
-	public Collection<OAuth2AccessToken> findTokensByUserName(String userName) {
-		// "select token_id, token from oauth_access_token where user_name = ?";
-		List<OAuth2AccessToken> accessTokens = new ArrayList<OAuth2AccessToken>();
-		List<AccessToken> entities = oAuth2TokenService.findByUserName(userName);
-		if (entities != null) {
-			for (RefreshToken entity : entities) {
-				accessTokens.add(deserializeAccessToken(entity.getToken()));
-			}
-		}
-		return removeNulls(accessTokens);
-	}
 
 	@Override
 	public Collection<OAuth2AccessToken> findTokensByClientId(String clientId) {
@@ -246,6 +234,19 @@ public class ApiTokenStore implements TokenStore {
 		} catch (UnsupportedEncodingException e) {
 			throw new IllegalStateException("UTF-8 encoding not available.  Fatal (should be in the JDK).");
 		}
+	}
+
+	@Override
+	public Collection<OAuth2AccessToken> findTokensByClientIdAndUserName(
+			String arg0, String userName) {
+		List<OAuth2AccessToken> accessTokens = new ArrayList<OAuth2AccessToken>();
+		List<AccessToken> entities = oAuth2TokenService.findByUserName(userName);
+		if (entities != null) {
+			for (RefreshToken entity : entities) {
+				accessTokens.add(deserializeAccessToken(entity.getToken()));
+			}
+		}
+		return removeNulls(accessTokens);
 	}
 
 }

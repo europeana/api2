@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
-import eu.europeana.corelib.definitions.solr.beans.RichBean;
+import eu.europeana.corelib.definitions.edm.beans.RichBean;
 
 public class RichView extends ApiView implements RichBean {
 

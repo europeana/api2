@@ -1,16 +1,17 @@
 package eu.europeana.api2.v2.web.controller;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import eu.europeana.api2.v2.model.enums.DefaultImage;
-import eu.europeana.corelib.definitions.model.ThumbSize;
-import eu.europeana.corelib.definitions.solr.DocType;
-import eu.europeana.corelib.domain.MediaFile;
-import eu.europeana.corelib.service.impl.MediaStorageClientImpl;
-import eu.europeana.corelib.utils.ImageUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,27 +26,22 @@ import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
+import eu.europeana.api2.v2.model.enums.DefaultImage;
 import eu.europeana.api2.v2.model.json.CrfMetadataResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
+import eu.europeana.corelib.definitions.model.ThumbSize;
+import eu.europeana.corelib.definitions.solr.DocType;
+import eu.europeana.corelib.domain.MediaFile;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
-import eu.europeana.corelib.solr.service.SearchService;
-import eu.europeana.corelib.utils.service.OptOutService;
+import eu.europeana.corelib.search.SearchService;
+import eu.europeana.corelib.service.impl.MediaStorageClientImpl;
 import eu.europeana.corelib.web.service.ContentReuseFrameworkService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.harvester.domain.SourceDocumentReferenceMetaInfo;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 
 @Controller
 public class ContentReuseFrameworkController {
@@ -67,9 +63,6 @@ public class ContentReuseFrameworkController {
 
     @Resource
     private ApiKeyService apiService;
-
-    @Resource
-    private OptOutService optOutService;
 
     @Resource
     private EuropeanaUrlService urlService;
