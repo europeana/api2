@@ -40,18 +40,26 @@ public class ModelUtils {
 	}
 
 	public static List<Facet> conventFacetList(List<FacetField> facetFields) {
+        System.out.println("........................ conventFacetList ...........................");
 		if ((facetFields != null) && !facetFields.isEmpty()) {
 			List<Facet> facets = new ArrayList<Facet>();
 			for (FacetField facetField : facetFields) {
 				if (facetField.getValues() != null) {
 					Facet facet = new Facet();
 					facet.name = facetField.getName();
+                    System.out.println("Facet name is: " + facet.name);
 					for (FacetField.Count count : facetField.getValues()) {
 						if (StringUtils.isNotEmpty(count.getName())
 								&& (count.getCount() > 0)) {
 							LabelFrequency value = new LabelFrequency();
+                            System.out.println("\t Count Name: " + count.getName());
+                            System.out.println("\t Count Value: " + count.getCount());
+                            System.out.println("\t Count facets: " + count.getFacetField());
+                            System.out.println();
 							if(count.getFacetField().getName().equalsIgnoreCase("facet_tags")) {
                                 final String label = FacetLabelExtractor.getFacetLabel(Integer.valueOf(count.getName()));
+                                System.out.println("\t\tLabel generated");
+                                System.out.println("\t\tLabel name: " + label);
                                 if(label.equals("")) {
                                     value.label = count.getName();
                                 } else {
@@ -60,6 +68,7 @@ public class ModelUtils {
                             } else {
                                 value.label = count.getName();
                             }
+                            System.out.println("\n");
                             value.count = count.getCount();
 							facet.fields.add(value);
 						}
@@ -69,6 +78,7 @@ public class ModelUtils {
 					}
 				}
 			}
+            System.out.println(".......................... finished ....................................");
 			return facets;
 		}
 		return null;
