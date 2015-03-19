@@ -37,7 +37,11 @@
 			<artifactId>corelib-definitions</artifactId>
 			<version>${version.europeanaCorelib}</version>
 		</dependency>
-
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-hierarchies</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
 		<dependency>
 			<groupId>eu.europeana.corelib</groupId>
 			<artifactId>corelib-web</artifactId>
@@ -46,10 +50,14 @@
 
 		<dependency>
 			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-solr</artifactId>
+			<artifactId>corelib-storage</artifactId>
 			<version>${version.europeanaCorelib}</version>
 		</dependency>
-
+	<dependency>
+			<groupId>eu.europeana.corelib</groupId>
+			<artifactId>corelib-common-storage</artifactId>
+			<version>${version.europeanaCorelib}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-xc</artifactId>
