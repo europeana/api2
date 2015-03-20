@@ -141,6 +141,9 @@ public class ModelUtils {
                                     f.name = facetName;
                                     mediaTypeFacets.put(facetName, f);
                                 }
+                                if (facetName.equals("VIDEO_HD") || facetName.equals("SOUND_HQ") || facetName.equals("IMAGE_GREYSCALE")) {
+                                    value.label = "true";
+                                }
                                 mediaTypeFacets.get(facetName).fields.add(value);
                             }
                         } else {
@@ -149,7 +152,7 @@ public class ModelUtils {
                     }
                 }
 
-                if (!facet.fields.isEmpty()) {
+                if (!facet.name.equalsIgnoreCase("facet_tags") && !facet.fields.isEmpty()) {
                     facets.add(facet);
                 }
             }
