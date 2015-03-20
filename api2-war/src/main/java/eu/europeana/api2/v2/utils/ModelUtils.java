@@ -17,10 +17,17 @@
 
 package eu.europeana.api2.v2.utils;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
+import eu.europeana.corelib.search.service.inverseLogic.CommonPropertyExtractor;
+import eu.europeana.corelib.search.service.inverseLogic.ImagePropertyExtractor;
+import eu.europeana.corelib.search.service.inverseLogic.SoundPropertyExtractor;
+import eu.europeana.corelib.search.service.inverseLogic.VideoPropertyExtractor;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
@@ -39,50 +46,113 @@ public class ModelUtils {
 		// Constructor must be private
 	}
 
+    public static String getFacetName(Integer tag) {
+        final Integer mediaType = CommonPropertyExtractor.getType(tag);
+
+        String label;
+        switch (mediaType) {
+            case 1:
+                label = ImagePropertyExtractor.getAspectRatio(tag);
+                if(!label.equals("")) {
+                    return "IMAGE_ASPECTRATIO";
+                }
+                label = ImagePropertyExtractor.getColor(tag);
+                if(!label.equals("")) {
+                    return "COLOURPALETTE";
+                }
+                label = ImagePropertyExtractor.getColorSpace(tag);
+                if(!label.equals("")) {
+                    return "grayscale".equals(label) ? "IMAGE_GREYSCALE": "IMAGE_COLOUR" ;
+                }
+                label = ImagePropertyExtractor.getSize(tag);
+                if (!label.equals("")) {
+                    return "IMAGE_SIZE";
+                }
+                return label;
+            case 2:
+                label = SoundPropertyExtractor.getDuration(tag);
+                if(!label.equals("")) {
+                    return "SOUND_DURATION";
+                }
+                label = SoundPropertyExtractor.getQuality(tag);
+                if (!label.equals("")) {
+                    return "SOUND_HQ";
+                }
+                return "";
+            case 3:
+                label = VideoPropertyExtractor.getDuration(tag);
+                if(!label.equals("")) {
+                    return "VIDEO_DURATION";
+                }
+                label = VideoPropertyExtractor.getQuality(tag);
+                if (!label.equals("")) {
+                    return "VIDEO_HD";
+                }
+                return "";
+
+            default: return "";
+        }
+    }
+
 	public static List<Facet> conventFacetList(List<FacetField> facetFields) {
         System.out.println("........................ conventFacetList ...........................");
-		if ((facetFields != null) && !facetFields.isEmpty()) {
-			List<Facet> facets = new ArrayList<Facet>();
-			for (FacetField facetField : facetFields) {
-				if (facetField.getValues() != null) {
-					Facet facet = new Facet();
-					facet.name = facetField.getName();
-                    System.out.println("Facet name is: " + facet.name);
-					for (FacetField.Count count : facetField.getValues()) {
-						if (StringUtils.isNotEmpty(count.getName())
-								&& (count.getCount() > 0)) {
-							LabelFrequency value = new LabelFrequency();
-                            System.out.println("\t Count Name: " + count.getName());
-                            System.out.println("\t Count Value: " + count.getCount());
-                            System.out.println("\t Count facets: " + count.getFacetField());
-                            System.out.println();
-							if(count.getFacetField().getName().equalsIgnoreCase("facet_tags")) {
-                                final String label = FacetLabelExtractor.getFacetLabel(Integer.valueOf(count.getName()));
-                                System.out.println("\t\tLabel generated");
-                                System.out.println("\t\tLabel name: " + label);
-                                if(label.equals("")) {
-                                    value.label = count.getName();
-                                } else {
-                                    value.label = label;
-                                }
-                            } else {
-                                value.label = count.getName();
+        if (null == facetFields || facetFields.isEmpty()) {
+            return null;
+        }
+        List<Facet> facets = new ArrayList<Facet>();
+        Map<String, Facet> mediaTypeFacets = new HashMap<>();
+
+
+        for (FacetField facetField : facetFields) {
+            if (facetField.getValues() != null) {
+                Facet facet = new Facet();
+                facet.name = facetField.getName();
+
+                for (FacetField.Count count : facetField.getValues()) {
+                    if (StringUtils.isNotEmpty(count.getName()) && count.getCount() > 0) {
+                        LabelFrequency value = new LabelFrequency();
+
+                        value.count = count.getCount();
+                        value.label = count.getName();
+                        if (count.getFacetField().getName().equalsIgnoreCase("facet_tags")) {
+                            final String label = FacetLabelExtractor.getFacetLabel(Integer.valueOf(count.getName()));
+
+                            if (!label.equals("")) {
+                                value.label = label;
                             }
-                            System.out.println("\n");
-                            value.count = count.getCount();
-							facet.fields.add(value);
-						}
-					}
-					if (!facet.fields.isEmpty()) {
-						facets.add(facet);
-					}
-				}
-			}
-            System.out.println(".......................... finished ....................................");
-			return facets;
-		}
-		return null;
-	}
+
+                            final String facetName = getFacetName(Integer.valueOf(count.getName()));
+
+                            if (facetName.equals("")) {
+                                facet.fields.add(value);
+                            } else {
+                                if (!mediaTypeFacets.containsKey(facetName)) {
+                                    Facet f = new Facet();
+                                    f.name = facetName;
+                                    mediaTypeFacets.put(facetName, f);
+                                }
+                                mediaTypeFacets.get(facetName).fields.add(value);
+                            }
+                        } else {
+                            facet.fields.add(value);
+                        }
+                    }
+                }
+
+                if (!facet.fields.isEmpty()) {
+                    facets.add(facet);
+                }
+            }
+        }
+
+        for(Map.Entry<String, Facet> f: mediaTypeFacets.entrySet()) {
+            if (!f.getValue().fields.isEmpty()) {
+                facets.add(f.getValue());
+            }
+        }
+
+        return facets;
+    }
 
 	public static SpellCheck convertSpellCheck(SpellCheckResponse response) {
 		if (response != null) {
