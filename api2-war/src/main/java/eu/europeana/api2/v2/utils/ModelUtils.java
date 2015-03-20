@@ -101,6 +101,7 @@ public class ModelUtils {
         }
         List<Facet> facets = new ArrayList<Facet>();
         Map<String, Facet> mediaTypeFacets = new HashMap<>();
+        Map<String, Integer> mimeTypeFacets = new HashMap<>();
 
 
         for (FacetField facetField : facetFields) {
@@ -122,9 +123,19 @@ public class ModelUtils {
                             }
 
                             final String facetName = getFacetName(Integer.valueOf(count.getName()));
+                            String mimeType = CommonPropertyExtractor.getMimeType(Integer.valueOf(count.getName()));
+
+                            Integer y = Integer.valueOf(count.getName());
+
+                            if (!mimeTypeFacets.containsKey(mimeType)) {
+                                mimeTypeFacets.put(mimeType, 0);
+                            }
+
+
+                            mimeTypeFacets.put(mimeType, mimeTypeFacets.get(mimeType).intValue() + 1);
 
                             if (facetName.equals("")) {
-                                facet.fields.add(value);
+                                 facet.fields.add(value);
                             } else {
                                 if (!mediaTypeFacets.containsKey(facetName)) {
                                     Facet f = new Facet();
@@ -149,6 +160,24 @@ public class ModelUtils {
             if (!f.getValue().fields.isEmpty()) {
                 facets.add(f.getValue());
             }
+        }
+
+        Facet f = new Facet();
+        f.name = "MIME_TYPE";
+        for (Map.Entry<String, Integer> mimeType: mimeTypeFacets.entrySet()) {
+            LabelFrequency x = new LabelFrequency();
+            x.label = mimeType.getKey();
+            x.count = mimeType.getValue();
+
+            if (null == x.label || x.label.trim().isEmpty())
+            {
+                continue;
+            }
+            f.fields.add(x);
+        }
+
+        if (!f.fields.isEmpty()) {
+            facets.add(f);
         }
 
         return facets;
