@@ -135,8 +135,8 @@ public class SearchController {
 	@Resource(name = "api2_mvc_xmlUtils")
 	private XmlUtils xmlUtils;
         
-        @Resource
-        private AbstractMessageSource messageSource;
+    @Resource
+    private AbstractMessageSource messageSource;
 
 	final static public int FACET_LIMIT = 16;
 
