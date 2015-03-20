@@ -95,7 +95,6 @@ public class ModelUtils {
     }
 
 	public static List<Facet> conventFacetList(List<FacetField> facetFields) {
-        System.out.println("........................ conventFacetList ...........................");
         if (null == facetFields || facetFields.isEmpty()) {
             return null;
         }
@@ -108,7 +107,7 @@ public class ModelUtils {
             if (facetField.getValues() != null) {
                 Facet facet = new Facet();
                 facet.name = facetField.getName();
-
+                System.out.println(facet.name);
                 for (FacetField.Count count : facetField.getValues()) {
                     if (StringUtils.isNotEmpty(count.getName()) && count.getCount() > 0) {
                         LabelFrequency value = new LabelFrequency();
