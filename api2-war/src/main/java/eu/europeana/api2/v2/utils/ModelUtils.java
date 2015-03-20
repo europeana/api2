@@ -144,7 +144,18 @@ public class ModelUtils {
                                 if (facetName.equals("VIDEO_HD") || facetName.equals("SOUND_HQ") || facetName.equals("IMAGE_GREYSCALE")) {
                                     value.label = "true";
                                 }
-                                mediaTypeFacets.get(facetName).fields.add(value);
+                                if (facetName.equals("IMAGE_COLOUR") || facetName.equals("IMAGE_COLOR")) {
+                                    value.label = "true";
+                                    if (mediaTypeFacets.get(facetName).fields.isEmpty()) {
+                                        mediaTypeFacets.get(facetName).fields.add(value);
+                                    }
+                                    else {
+                                        mediaTypeFacets.get(facetName).fields.get(0).count += value.count;
+                                    }
+                                }
+                                else {
+                                    mediaTypeFacets.get(facetName).fields.add(value);
+                                }
                             }
                         } else {
                             facet.fields.add(value);

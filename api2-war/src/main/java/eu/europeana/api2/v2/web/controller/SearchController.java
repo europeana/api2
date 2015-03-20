@@ -1043,7 +1043,7 @@ public class SearchController {
          * <p>If that fails as well, it looks up the English translation of the
          * label. And if that fails too, it returns a hardcoded error message.
 	 * @param bean containing language code
-         * @param channelLanguage String containing the channel's language code 
+         * @param language String containing the channel's language code
 	 * @return String containing the label translation
 	 *   
 	 */    
