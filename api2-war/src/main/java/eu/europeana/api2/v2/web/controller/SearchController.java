@@ -748,6 +748,8 @@ public class SearchController {
 			log.info("beans: " + beans.size());
 		}
 		response.items = beans;
+        //System.out.println(query.getQuery());
+        //System.out.println();
 		if (StringUtils.containsIgnoreCase(profile, "facets") || StringUtils.containsIgnoreCase(profile, "portal")) {
             response.facets = ModelUtils.conventFacetList(resultSet.getFacetFields());
 		}
