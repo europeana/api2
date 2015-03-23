@@ -48,6 +48,11 @@ public class ModelUtils {
 
     public static String getFacetName(Integer tag) {
         final Integer mediaType = CommonPropertyExtractor.getType(tag);
+        final String  mimeType  = CommonPropertyExtractor.getMimeType(tag);
+
+        if (null != mimeType && !mimeType.trim().isEmpty()) {
+            return "MIME_TYPE";
+        }
 
         String label;
         switch (mediaType) {
@@ -98,99 +103,103 @@ public class ModelUtils {
         if (null == facetFields || facetFields.isEmpty()) {
             return null;
         }
-        List<Facet> facets = new ArrayList<Facet>();
-        Map<String, Facet> mediaTypeFacets = new HashMap<>();
-        Map<String, Integer> mimeTypeFacets = new HashMap<>();
+        final List<Facet> facets = new ArrayList<Facet>();
+        final Map<String, Facet> mediaTypeFacets = new HashMap<>();
+        final Map<String, Long> mimeTypeFacets = new HashMap<>();
 
 
         for (FacetField facetField : facetFields) {
             if (facetField.getValues() != null) {
-                Facet facet = new Facet();
+                final Facet facet = new Facet();
                 facet.name = facetField.getName();
-                System.out.println(facet.name);
+
                 for (FacetField.Count count : facetField.getValues()) {
                     if (StringUtils.isNotEmpty(count.getName()) && count.getCount() > 0) {
-                        LabelFrequency value = new LabelFrequency();
+                        final LabelFrequency value = new LabelFrequency();
 
                         value.count = count.getCount();
                         value.label = count.getName();
-                        if (count.getFacetField().getName().equalsIgnoreCase("facet_tags")) {
-                            final String label = FacetLabelExtractor.getFacetLabel(Integer.valueOf(count.getName()));
 
-                            if (!label.equals("")) {
-                                value.label = label;
-                            }
-
-                            final String facetName = getFacetName(Integer.valueOf(count.getName()));
-                            String mimeType = CommonPropertyExtractor.getMimeType(Integer.valueOf(count.getName()));
-
-                            Integer y = Integer.valueOf(count.getName());
-
-                            if (!mimeTypeFacets.containsKey(mimeType)) {
-                                mimeTypeFacets.put(mimeType, 0);
-                            }
-
-
-                            mimeTypeFacets.put(mimeType, mimeTypeFacets.get(mimeType).intValue() + 1);
-
-                            if (facetName.equals("")) {
-                                 facet.fields.add(value);
-                            } else {
-                                if (!mediaTypeFacets.containsKey(facetName)) {
-                                    Facet f = new Facet();
-                                    f.name = facetName;
-                                    mediaTypeFacets.put(facetName, f);
-                                }
-                                if (facetName.equals("VIDEO_HD") || facetName.equals("SOUND_HQ") || facetName.equals("IMAGE_GREYSCALE")) {
-                                    value.label = "true";
-                                }
-                                if (facetName.equals("IMAGE_COLOUR") || facetName.equals("IMAGE_COLOR")) {
-                                    value.label = "true";
-                                    if (mediaTypeFacets.get(facetName).fields.isEmpty()) {
-                                        mediaTypeFacets.get(facetName).fields.add(value);
-                                    }
-                                    else {
-                                        mediaTypeFacets.get(facetName).fields.get(0).count += value.count;
-                                    }
-                                }
-                                else {
-                                    mediaTypeFacets.get(facetName).fields.add(value);
-                                }
-                            }
-                        } else {
+                        if (!count.getFacetField().getName().equalsIgnoreCase("facet_tags")) {
                             facet.fields.add(value);
+                            continue;
+                        }
+
+                        final Integer tag = Integer.valueOf(count.getName());
+                        final String label = FacetLabelExtractor.getFacetLabel(tag).trim();
+                        final String facetName = getFacetName(tag).trim();
+
+                        if (label.isEmpty() || facetName.isEmpty()) {
+                            facet.fields.add(value);
+                        } else if (facetName.equalsIgnoreCase("MIME_TYPE")) {
+                            Long newVal = 0L;
+                            if (mimeTypeFacets.containsKey(label)) {
+                                newVal = mimeTypeFacets.get(label);
+                            }
+                            newVal += count.getCount();
+                            mimeTypeFacets.put(label, newVal);
+                        } else {
+                            if (!mediaTypeFacets.containsKey(facetName)) {
+                                final Facet f = new Facet();
+                                f.name = facetName;
+                                mediaTypeFacets.put(facetName, f);
+                            }
+
+                            mediaTypeFacets.get(facetName).fields.add(value);
                         }
                     }
                 }
 
-                if (!facet.name.equalsIgnoreCase("facet_tags") && !facet.fields.isEmpty()) {
-                    facets.add(facet);
+                if (facet.name.equalsIgnoreCase("facet_tags")) continue;
+
+                if (facet.fields.isEmpty()) {
+                    final LabelFrequency freq = new LabelFrequency();
+                    freq.label = "true";
+                    freq.count = 0;
+                    facet.fields.add(freq);
                 }
+                facets.add(facet);
             }
         }
 
-        for(Map.Entry<String, Facet> f: mediaTypeFacets.entrySet()) {
-            if (!f.getValue().fields.isEmpty()) {
-                facets.add(f.getValue());
+        if (!mimeTypeFacets.isEmpty()) {
+            Facet f = new Facet();
+            f.name = "MIME_TYPE";
+
+            for (Map.Entry<String, Long> mimeType: mimeTypeFacets.entrySet()) {
+               LabelFrequency freq = new LabelFrequency();
+                freq.label = mimeType.getKey();
+                freq.count = mimeType.getValue();
+
+                f.fields.add(freq);
             }
-        }
-
-        Facet f = new Facet();
-        f.name = "MIME_TYPE";
-        for (Map.Entry<String, Integer> mimeType: mimeTypeFacets.entrySet()) {
-            LabelFrequency x = new LabelFrequency();
-            x.label = mimeType.getKey();
-            x.count = mimeType.getValue();
-
-            if (null == x.label || x.label.trim().isEmpty())
-            {
-                continue;
-            }
-            f.fields.add(x);
-        }
-
-        if (!f.fields.isEmpty()) {
             facets.add(f);
+        }
+
+        for (Map.Entry<String, Facet> facet: mediaTypeFacets.entrySet()) {
+            final String name = facet.getKey();
+            switch(name) {
+                case "VIDEO_HD":
+                case "SOUND_HQ":
+                case "IMAGE_GREYSCALE":
+                case "IMAGE_COLOUR":
+                case "IMAGE_COLOR":
+                    LabelFrequency freq = new LabelFrequency();
+                    freq.label = "true";
+                    freq.count = 0;
+
+                    for (LabelFrequency field: facet.getValue().fields) {
+                        freq.count += field.count;
+                    }
+                    facet.getValue().fields.clear();
+                    facet.getValue().fields.add(freq);
+                    facets.add(facet.getValue());
+
+                    break;
+
+                default:
+                    facets.add(facet.getValue());
+            }
         }
 
         return facets;
