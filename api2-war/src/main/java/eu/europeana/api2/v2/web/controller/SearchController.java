@@ -153,9 +153,9 @@ public class SearchController {
 			@RequestParam(value = "callback", required = false) String callback,
 			@RequestParam(value = "colourpalette", required = false) String[] colorPalette,
 
-            @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
-            @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
-            @RequestParam(value = "media", required = false) Boolean media,
+            @RequestParam(value = "is_fulltext", required = false) Boolean isFulltext,
+            @RequestParam(value = "has_thumbnails", required = false) Boolean thumbnail,
+            @RequestParam(value = "has_media", required = false) Boolean media,
 			HttpServletRequest request,
 			HttpServletResponse response) {
         // workaround of a Spring issue
@@ -316,6 +316,9 @@ public class SearchController {
             }
         }
 
+        //TODO remove
+        //extra.clear();
+
         final List<Integer> filterTags = new ArrayList<>();
         filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios));
         filterTags.addAll(soundFilterTags(mimeTypes, soundHQs, soundDurations));
@@ -352,6 +355,8 @@ public class SearchController {
         }
 
         log.info("filtertagquery: " + filterTagQuery);
+
+        System.out.println("filtertagquery");
 
         if (filterTagQuery.contains("OR")) {
             filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("OR"));
@@ -413,6 +418,8 @@ public class SearchController {
 		}
 
         log.info("Query: " + queryString);
+        System.out.println("Query is: " + queryString);
+        System.out.println("Refinements: " + refinements);
 		Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
 				.setApiQuery(true)
 				.setRefinements(refinements)
@@ -441,6 +448,7 @@ public class SearchController {
 
 		// reusability facet settings
 		if (isDefaultOrReusabilityFacetRequested) {
+            //System
 			query.setFacetQueries(RightReusabilityCategorizer.getQueryFacets());
 		}
 
@@ -714,11 +722,23 @@ public class SearchController {
 			Class<T> clazz,
 			long uid)
 					throws SolrTypeException {
+        System.out.println("Facet refinements (before): ");
+        if (null == query.getFilteredFacets()) {
+            System.out.println("facet requirements!!!");
+        }
+        else {
+            System.out.println(Arrays.deepToString(query.getFilteredFacets().toArray()));
+        }
+
 		SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, query);
 		response.totalResults = resultSet.getResultSize();
 		response.itemsCount = resultSet.getResults().size();
 		response.items = resultSet.getResults();
+
+
+        System.out.println("Facet refinements (after): ");
+        System.out.println(Arrays.deepToString(query.getFilteredFacets().toArray()));
 
 		List<T> beans = new ArrayList<T>();
 		for (T b : resultSet.getResults()) {
@@ -748,8 +768,6 @@ public class SearchController {
 			log.info("beans: " + beans.size());
 		}
 		response.items = beans;
-        //System.out.println(query.getQuery());
-        //System.out.println();
 		if (StringUtils.containsIgnoreCase(profile, "facets") || StringUtils.containsIgnoreCase(profile, "portal")) {
             response.facets = ModelUtils.conventFacetList(resultSet.getFacetFields());
 		}
