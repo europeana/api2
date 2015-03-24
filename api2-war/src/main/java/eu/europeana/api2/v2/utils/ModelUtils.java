@@ -113,6 +113,16 @@ public class ModelUtils {
                 final Facet facet = new Facet();
                 facet.name = facetField.getName();
 
+                if (facet.name.equalsIgnoreCase("is_fulltext")) {
+                    facet.name = "TEXT_FULLTEXT";
+                }
+                else if (facet.name.equalsIgnoreCase("has_media")) {
+                    facet.name = "MEDIA";
+                }
+                else if (facet.name.equalsIgnoreCase("has_thumbnails")) {
+                    facet.name = "THUMBNAIL";
+                }
+
                 for (FacetField.Count count : facetField.getValues()) {
                     if (StringUtils.isNotEmpty(count.getName()) && count.getCount() > 0) {
                         final LabelFrequency value = new LabelFrequency();
@@ -144,6 +154,7 @@ public class ModelUtils {
                                 f.name = facetName;
                                 mediaTypeFacets.put(facetName, f);
                             }
+                            value.label = label;
 
                             mediaTypeFacets.get(facetName).fields.add(value);
                         }
