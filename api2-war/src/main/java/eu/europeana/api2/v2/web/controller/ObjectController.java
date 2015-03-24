@@ -92,7 +92,6 @@ import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.corelib.edm.model.metainfo.WebResourceMetaInfo;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
@@ -201,37 +200,11 @@ public class ObjectController {
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
-        // BUSYMACHINES
-        final WebResourceMetaInfo webResourceMetaInfo = searchService.getMetaInfo(europeanaObjectId);
-
-        if(webResourceMetaInfo == null) {
-            return JsonUtils.toJson(objectResult, callback);
-        }
-
         final ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
         final ObjectWriter ow = objectMapper.writer().withDefaultPrettyPrinter();
 
-        String metaInfoString = "";
-        try {
-            metaInfoString = ow.writeValueAsString(webResourceMetaInfo);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        final JSONObject metInfoJSON = new JSONObject(metaInfoString);
-
-
-        final ModelAndView modelAndView = JsonUtils.toJson(objectResult, callback);
-
-        final Map<String, Object> model = modelAndView.getModel();
-        String oldString = (String) model.get("json");
-        final JSONObject oldJSON = new JSONObject(oldString);
-
-        final JSONObject contentJSON = oldJSON.getJSONObject("object").append("metaInfo", metInfoJSON);
-
-        final JSONObject finalJSON = oldJSON.put("object", contentJSON);
-
-        return JsonUtils.toJson(finalJSON.toString(), callback);
+        return JsonUtils.toJson(objectResult, callback);
 	}
 
 	@SuppressWarnings("unused")
