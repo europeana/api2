@@ -18,10 +18,8 @@
 package eu.europeana.api2.v2.utils;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
 import eu.europeana.corelib.search.service.inverseLogic.CommonPropertyExtractor;
@@ -211,6 +209,15 @@ public class ModelUtils {
                 default:
                     facets.add(facet.getValue());
             }
+        }
+
+        for (Facet f: facets) {
+            Collections.sort(f.fields, new Comparator<LabelFrequency>() {
+                @Override
+                public int compare(LabelFrequency o1, LabelFrequency o2) {
+                    return o1.label.trim().compareTo(o2.label.trim());
+                }
+            });
         }
 
         return facets;
