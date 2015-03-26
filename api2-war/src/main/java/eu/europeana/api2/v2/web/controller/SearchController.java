@@ -207,61 +207,54 @@ public class SearchController {
                     isFulltext = (null == isFulltext ? false : isFulltext) || Boolean.parseBoolean(suffix);
                     extra.add(qf);
                 }
-
-                if (prefix.equals("has_thumbnail")) {
+                else if (prefix.equals("has_thumbnail")) {
                     thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
                     extra.add(qf);
                 }
-
-                if (prefix.equals("has_media")) {
+                else if (prefix.equals("has_media")) {
                     media = (null == media ? false : media) || Boolean.parseBoolean(suffix);
                     extra.add(qf);
                 }
-
-                if (prefix.equals("onetagpercolour")) {
+                else if (prefix.equals("onetagpercolour")) {
                     imageColorsPalette.add(suffix);
                     extra.add(qf);
                 }
-
-                if (prefix.equals("type")) {
+                else if (prefix.equals("type")) {
                     mediaTypes.add(suffix);
                 }
-                if (prefix.equals("mime_type")) {
+                else if (prefix.equals("mime_type")) {
                     mimeTypes.add(suffix);
                     extra.add(qf);
                 }
-
-                if (prefix.equals("image_size")) {
+                else if (prefix.equals("image_size")) {
                     imageSizes.add(suffix);
                     extra.add(qf);
                 }
-                if (prefix.equals("image_colour") || prefix.equals("image_color")) {
+                else if (prefix.equals("image_colour") || prefix.equals("image_color")) {
                     imageColors.add(Boolean.valueOf(suffix));
                     extra.add(qf);
                 }
-                if (prefix.equals("image_greyscale") || prefix.equals("image_grayscale")) {
+                else if (prefix.equals("image_greyscale") || prefix.equals("image_grayscale")) {
                     imageGrayScales.add(Boolean.valueOf(suffix));
                     extra.add(qf);
                 }
-                if (prefix.equals("image_aspectratio")) {
+                else if (prefix.equals("image_aspectratio")) {
                     imageAspectRatios.add(suffix);
                     extra.add(qf);
                 }
-
-                if (prefix.equals("sound_hq")) {
+                else if (prefix.equals("sound_hq")) {
                     soundHQs.add(Boolean.valueOf(suffix));
                     extra.add(qf);
                 }
-                if (prefix.equals("sound_duration")) {
+                else if (prefix.equals("sound_duration")) {
                     soundDurations.add(suffix);
                     extra.add(qf);
                 }
-
-                if (prefix.equals("video_hd")) {
+                else if (prefix.equals("video_hd")) {
                     videoHQs.add(Boolean.valueOf(suffix));
                     extra.add(qf);
                 }
-                if (prefix.equals("video_duration")) {
+                else if (prefix.equals("video_duration")) {
                     videoDurations.add(suffix);
                     extra.add(qf);
                 }
@@ -315,9 +308,6 @@ public class SearchController {
                 }
             }
         }
-
-        //TODO remove
-        //extra.clear();
 
         final List<Integer> filterTags = new ArrayList<>();
         filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios));
