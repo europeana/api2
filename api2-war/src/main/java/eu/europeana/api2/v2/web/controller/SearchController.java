@@ -28,6 +28,11 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import eu.europeana.corelib.search.service.domain.ImageOrientation;
+import eu.europeana.corelib.search.service.logic.CommonTagExtractor;
+import eu.europeana.corelib.search.service.logic.ImageTagExtractor;
+import eu.europeana.corelib.search.service.logic.SoundTagExtractor;
+import eu.europeana.corelib.search.service.logic.VideoTagExtractor;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -266,6 +271,7 @@ public class SearchController {
             newRefinements.add("has_media:" + media);
         }
 
+        /*
         if (!imageColorsPalette.isEmpty()) {
             String filterQuery = "";
             for (String color : imageColorsPalette) {
@@ -285,11 +291,50 @@ public class SearchController {
                 }
             }
         }
+        */
 
         final List<Integer> filterTags = new ArrayList<>();
+
+        final String imageFacetTagQuery = imageFacetTagQueryGen(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios, imageColorsPalette);
+        final String soundFacetTagQuery = soundFacetTagQueryGen(mimeTypes, soundHQs, soundDurations);
+        final String videoFacetTagQuery = videoFacetTagQueryGen(mimeTypes, videoHQs, videoDurations);
+
+        String facet_query = imageFacetTagQuery;
+
+        if (!soundFacetTagQuery.isEmpty()) {
+            if (facet_query.isEmpty()) {
+                facet_query = soundFacetTagQuery;
+            } else {
+                facet_query = "(" + facet_query + ") AND (" + soundFacetTagQuery + ")";
+            }
+        }
+
+        if (!videoFacetTagQuery.isEmpty()) {
+
+            if (facet_query.isEmpty()) {
+                facet_query = videoFacetTagQuery;
+            } else {
+                if (facet_query.contains("(")) {
+                    facet_query = facet_query + " AND (" + videoFacetTagQuery + ")";
+                } else {
+                    facet_query = "(" + facet_query + ") AND (" + videoFacetTagQuery + ")";
+                }
+            }
+        }
+
+        if (!facet_query.isEmpty()) {
+           facet_query = "facet_tags:(" + facet_query + ")";
+            newRefinements.add(facet_query);
+        }
+
+        /*
+
+
         filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios));
         filterTags.addAll(soundFilterTags(mimeTypes, soundHQs, soundDurations));
         filterTags.addAll(videoFilterTags(mimeTypes, videoHQs, videoDurations));
+
+
 
         Boolean image = false, sound = false, video = false;
         for (final String type : mediaTypes) {
@@ -336,6 +381,7 @@ public class SearchController {
                 queryString = queryString + " AND " + filterTagQuery;
             }
         }
+        */
 
         queryString = queryString.trim();
         log.info("QUERY: |" + queryString + "|");
@@ -456,6 +502,74 @@ public class SearchController {
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		}
 	}
+
+    private String soundFacetTagQueryGen(List<String> mimeTypes, List<Boolean> soundHQs, List<String> soundDurations) {
+        final List<Integer> facetTags = new ArrayList();
+        final Integer mediaCode = 2 << 25;
+
+        for (final String mimeType: mimeTypes) {
+            facetTags.add(mediaCode | CommonTagExtractor.getMimeTypeCode(mimeType) << 15);
+        }
+
+        for (final Boolean soundHQ: soundHQs) {
+            facetTags.add(mediaCode | SoundTagExtractor.getQualityCode(soundHQ) << 13);
+        }
+
+        for (final String duration: soundDurations) {
+            facetTags.add(mediaCode | SoundTagExtractor.getDurationCode(duration) << 10);
+        }
+
+        return StringUtils.join(facetTags, " OR ");
+    }
+
+    private String videoFacetTagQueryGen(List<String> mimeTypes, List<Boolean> soundHQs, List<String> soundDurations) {
+        final List<Integer> facetTags = new ArrayList();
+        final Integer mediaCode = 2 << 25;
+
+        for (final String mimeType: mimeTypes) {
+            facetTags.add(mediaCode | CommonTagExtractor.getMimeTypeCode(mimeType) << 15);
+        }
+
+        for (final Boolean soundHQ: soundHQs) {
+            facetTags.add(mediaCode | VideoTagExtractor.getQualityCode(soundHQ) << 13);
+        }
+
+        for (final String duration: soundDurations) {
+            facetTags.add(mediaCode | VideoTagExtractor.getDurationCode(duration) << 10);
+        }
+
+        return StringUtils.join(facetTags, " OR ");
+    }
+
+    private String imageFacetTagQueryGen(List<String> mimeTypes, List<String> imageSizes, List<Boolean> imageColors, List<Boolean> imageGrayScales, List<String> imageAspectRatios,
+                                         List<String> imageColorsPallette) {
+        final List<Integer> facetTags = new ArrayList<>();
+        final Integer mediaCode = 1 << 25;
+
+        for (final String mimeType: mimeTypes) {
+            facetTags.add(mediaCode | CommonTagExtractor.getMimeTypeCode(mimeType) << 15);
+        }
+
+        for (final String imageSize: imageSizes) {
+            facetTags.add(mediaCode | ImageTagExtractor.getSizeCode(imageSize) << 12);
+        }
+
+        for (final String aspectRationCode: imageAspectRatios) {
+            facetTags.add(mediaCode | ImageTagExtractor.getAspectRatioCode(ImageOrientation.valueOf(aspectRationCode)) << 8);
+        }
+
+        for (final Boolean imageColor: imageColors) {
+            for (final Boolean imageGrayScale: imageGrayScales) {
+                facetTags.add(mediaCode | ImageTagExtractor.getColorSpaceCode(imageColor, imageGrayScale));
+            }
+        }
+
+        for (final String imageColorPallette: imageColorsPallette) {
+            facetTags.add(mediaCode | ImageTagExtractor.getColorCode(imageColorPallette));
+        }
+
+        return StringUtils.join(facetTags, " OR ");
+    }
 
     private List<Integer> imageFilterTags(List<String> mimeTypes, List<String> imageSizes, List<Boolean> imageColors, List<Boolean> imageGrayScales, List<String> imageAspectRatios) {
         final List<Integer> filterTags = new ArrayList<>();
