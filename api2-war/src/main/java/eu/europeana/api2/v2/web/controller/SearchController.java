@@ -17,37 +17,7 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import eu.europeana.corelib.search.service.domain.ImageOrientation;
-import eu.europeana.corelib.search.service.logic.CommonTagExtractor;
-import eu.europeana.corelib.search.service.logic.ImageTagExtractor;
-import eu.europeana.corelib.search.service.logic.SoundTagExtractor;
-import eu.europeana.corelib.search.service.logic.VideoTagExtractor;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.response.FacetField;
-import org.springframework.context.support.AbstractMessageSource;
-import org.springframework.http.MediaType;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
-
 import com.mongodb.Mongo;
-
 import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.FieldTripUtils;
@@ -81,22 +51,42 @@ import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
+import eu.europeana.corelib.definitions.edm.model.metainfo.ImageOrientation;
 import eu.europeana.corelib.definitions.solr.Facet;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
-import eu.europeana.corelib.edm.utils.SolrUtils;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
+import eu.europeana.corelib.search.service.logic.CommonTagExtractor;
+import eu.europeana.corelib.search.service.logic.ImageTagExtractor;
+import eu.europeana.corelib.search.service.logic.SoundTagExtractor;
+import eu.europeana.corelib.search.service.logic.VideoTagExtractor;
 import eu.europeana.corelib.search.utils.SearchUtils;
 import eu.europeana.corelib.utils.StringArrayUtils;
-import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.context.support.AbstractMessageSource;
+import org.springframework.http.MediaType;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -305,7 +295,7 @@ public class SearchController {
             if (facet_query.isEmpty()) {
                 facet_query = soundFacetTagQuery;
             } else {
-                facet_query = "(" + facet_query + ") AND (" + soundFacetTagQuery + ")";
+                facet_query = "(" + facet_query + ") OR (" + soundFacetTagQuery + ")";
             }
         }
 
@@ -315,9 +305,9 @@ public class SearchController {
                 facet_query = videoFacetTagQuery;
             } else {
                 if (facet_query.contains("(")) {
-                    facet_query = facet_query + " AND (" + videoFacetTagQuery + ")";
+                    facet_query = facet_query + " OR (" + videoFacetTagQuery + ")";
                 } else {
-                    facet_query = "(" + facet_query + ") AND (" + videoFacetTagQuery + ")";
+                    facet_query = "(" + facet_query + ") OR (" + videoFacetTagQuery + ")";
                 }
             }
         }
@@ -555,7 +545,7 @@ public class SearchController {
         }
 
         for (final String aspectRationCode: imageAspectRatios) {
-            facetTags.add(mediaCode | ImageTagExtractor.getAspectRatioCode(ImageOrientation.valueOf(aspectRationCode)) << 8);
+            facetTags.add(mediaCode | ImageTagExtractor.getAspectRatioCode(ImageOrientation.valueOf(aspectRationCode.trim().toUpperCase())) << 8);
         }
 
         for (final Boolean imageColor: imageColors) {
