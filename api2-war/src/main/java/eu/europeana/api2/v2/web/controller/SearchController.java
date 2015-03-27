@@ -51,7 +51,8 @@ import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
-import eu.europeana.corelib.definitions.edm.model.metainfo.ImageOrientation;
+import eu.europeana.corelib.search.service.domain.ImageOrientation;
+//import eu.europeana.corelib.definitions.edm.model.metainfo.ImageOrientation;
 import eu.europeana.corelib.definitions.solr.Facet;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
@@ -545,13 +546,16 @@ public class SearchController {
         }
 
         for (final String aspectRationCode: imageAspectRatios) {
-            facetTags.add(mediaCode | ImageTagExtractor.getAspectRatioCode(ImageOrientation.valueOf(aspectRationCode.trim().toUpperCase())) << 8);
+	    final ImageOrientation orientation = ImageOrientation.valueOf(aspectRationCode.trim().toUpperCase());
+	    final Integer x = ImageTagExtractor.getAspectRatioCode(orientation);
+            facetTags.add(mediaCode | x << 8);
         }
 
         for (final Boolean imageColor: imageColors) {
-            for (final Boolean imageGrayScale: imageGrayScales) {
-                facetTags.add(mediaCode | ImageTagExtractor.getColorSpaceCode(imageColor, imageGrayScale));
-            }
+	    facetTags.add(mediaCode | ImageTagExtractor.getColorSpaceCode(imageColor, true));
+	}
+        for (final Boolean imageGrayScale: imageGrayScales) {
+            facetTags.add(mediaCode | ImageTagExtractor.getColorSpaceCode(false, imageGrayScale));
         }
 
         for (final String imageColorPallette: imageColorsPallette) {
