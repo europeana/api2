@@ -376,6 +376,14 @@
 		</profile>
 		<profile>
 			<id>
+                    production
+                </id>
+			<properties>
+				<europeana.properties>${project.parent.basedir}/properties/production</europeana.properties>
+			</properties>
+		</profile>
+		<profile>
+			<id>
                     personal
                 </id>
 			<properties>
