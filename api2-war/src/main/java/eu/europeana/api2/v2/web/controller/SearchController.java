@@ -161,8 +161,6 @@ public class SearchController {
             refinements = _qf;
         }
 
-        final List<String> newRefinements = new ArrayList<>();
-
 
         final List<String> mediaTypes = new ArrayList<>();
         final List<String> mimeTypes = new ArrayList<>();
@@ -187,6 +185,7 @@ public class SearchController {
             imageColorsPalette.addAll(Arrays.asList(colorPalette));
         }
 
+        final List<String> extra = new ArrayList<>();
         if(refinements != null) {
             for (String qf : refinements) {
                 log.info("QF: " + qf);
@@ -200,66 +199,90 @@ public class SearchController {
                 log.info("prefix: " + prefix);
                 log.info("suffix: " + suffix);
 
-                if (prefix.equalsIgnoreCase("text_fulltext")) {
+                if (prefix.equals("text_fulltext")) {
                     isFulltext = (null == isFulltext ? false : isFulltext) || Boolean.parseBoolean(suffix);
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("has_thumbnail")) {
+                else if (prefix.equals("has_thumbnail")) {
                     thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
+                    extra.add(qf);
                 }
                 else if (prefix.equals("has_media")) {
                     media = (null == media ? false : media) || Boolean.parseBoolean(suffix);
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("onetagpercolour")) {
+                else if (prefix.equals("onetagpercolour")) {
                     imageColorsPalette.add(suffix);
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("type")) {
+                else if (prefix.equals("type")) {
                     mediaTypes.add(suffix);
-                    newRefinements.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("mime_type")) {
+                else if (prefix.equals("mime_type")) {
                     mimeTypes.add(suffix);
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("image_size")) {
+                else if (prefix.equals("image_size")) {
                     imageSizes.add(suffix);
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("image_colour") || prefix.equals("image_color")) {
+                else if (prefix.equals("image_colour") || prefix.equals("image_color")) {
                     imageColors.add(Boolean.valueOf(suffix));
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("image_greyscale") || prefix.equals("image_grayscale")) {
+                else if (prefix.equals("image_greyscale") || prefix.equals("image_grayscale")) {
                     imageGrayScales.add(Boolean.valueOf(suffix));
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("image_aspectratio")) {
+                else if (prefix.equals("image_aspectratio")) {
                     imageAspectRatios.add(suffix);
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("sound_hq")) {
+                else if (prefix.equals("sound_hq")) {
                     soundHQs.add(Boolean.valueOf(suffix));
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("sound_duration")) {
+                else if (prefix.equals("sound_duration")) {
                     soundDurations.add(suffix);
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("video_hd")) {
+                else if (prefix.equals("video_hd")) {
                     videoHQs.add(Boolean.valueOf(suffix));
+                    extra.add(qf);
                 }
-                else if (prefix.equalsIgnoreCase("video_duration")) {
+                else if (prefix.equals("video_duration")) {
                     videoDurations.add(suffix);
-                }
-                else {
-                    newRefinements.add(qf);
+                    extra.add(qf);
                 }
             }
         }
 
         if (isFulltext != null) {
-            newRefinements.add("is_fulltext:" + isFulltext);
+            final String filterQuery = "is_fulltext:" + isFulltext;
+            if (queryString.equals("")) {
+                queryString = filterQuery;
+            } else {
+                queryString = queryString + " AND " + filterQuery;
+            }
         }
 
         // FilterTagGeneration
         if (thumbnail != null) {
-            newRefinements.add("has_thumbnails:" + thumbnail);
+            final String filterQuery = "has_thumbnails:" + thumbnail;
+            if (queryString.equals("")) {
+                queryString = filterQuery;
+            } else {
+                queryString = queryString + " AND " + filterQuery;
+            }
         }
 
         if (media != null) {
-            newRefinements.add("has_media:" + media);
+            final String filterQuery = "has_media:" + media;
+            if (queryString.equals("")) {
+                queryString = filterQuery;
+            } else {
+                queryString = queryString + " AND " + filterQuery;
+            }
         }
 
         /*
@@ -378,9 +401,20 @@ public class SearchController {
         log.info("QUERY: |" + queryString + "|");
 
         // =================================================================================================
-        refinements = newRefinements.toArray(new String[newRefinements.size()]);
-        log.info("New Refinements: " + Arrays.toString(refinements));
+        final List<String> newRefinements = new ArrayList<>();
+        if(refinements != null) {
+            newRefinements.addAll(Arrays.asList(refinements));
+            for (String extraQF : extra) {
+                newRefinements.remove(extraQF);
+            }
 
+            refinements = new String[newRefinements.size()];
+            refinements = newRefinements.toArray(refinements);
+
+            for (String qf : refinements) {
+                log.info("ref: " + qf);
+            }
+        }
 
         boolean isFacetsRequested = isFacetsRequested(profile);
 		String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
