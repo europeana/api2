@@ -153,9 +153,9 @@ public class SearchController {
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "colourpalette", required = false) String[] colorPalette,
 
-            @RequestParam(value = "is_fulltext", required = false) Boolean isFulltext,
-            @RequestParam(value = "has_thumbnails", required = false) Boolean thumbnail,
-            @RequestParam(value = "has_media", required = false) Boolean media,
+            @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
+            @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
+            @RequestParam(value = "media", required = false) Boolean media,
             HttpServletRequest request,
             HttpServletResponse response) {
         // workaround of a Spring issue
@@ -207,10 +207,10 @@ public class SearchController {
                 if (prefix.equalsIgnoreCase("text_fulltext")) {
                     isFulltext = (null == isFulltext ? false : isFulltext) || Boolean.parseBoolean(suffix);
                 }
-                else if (prefix.equalsIgnoreCase("has_thumbnail")) {
+                else if (prefix.equalsIgnoreCase("has_thumbnail") || prefix.equalsIgnoreCase("has_thumbnails") || prefix.equalsIgnoreCase("thumbnail")) {
                     thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
                 }
-                else if (prefix.equals("has_media")) {
+                else if (prefix.equalsIgnoreCase("has_media") || prefix.equalsIgnoreCase("media")) {
                     media = (null == media ? false : media) || Boolean.parseBoolean(suffix);
                 }
                 else if (prefix.equalsIgnoreCase("onetagpercolour")) {
@@ -226,10 +226,10 @@ public class SearchController {
                 else if (prefix.equalsIgnoreCase("image_size")) {
                     imageSizes.add(suffix);
                 }
-                else if (prefix.equalsIgnoreCase("image_colour") || prefix.equals("image_color")) {
+                else if (prefix.equalsIgnoreCase("image_colour") || prefix.equalsIgnoreCase("image_color")) {
                     imageColors.add(Boolean.valueOf(suffix));
                 }
-                else if (prefix.equalsIgnoreCase("image_greyscale") || prefix.equals("image_grayscale")) {
+                else if (prefix.equalsIgnoreCase("image_greyscale") || prefix.equalsIgnoreCase("image_grayscale")) {
                     imageGrayScales.add(Boolean.valueOf(suffix));
                 }
                 else if (prefix.equalsIgnoreCase("image_aspectratio")) {
