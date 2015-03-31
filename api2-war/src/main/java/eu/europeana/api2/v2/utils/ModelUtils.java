@@ -18,10 +18,8 @@
 package eu.europeana.api2.v2.utils;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
 import eu.europeana.corelib.search.service.inverseLogic.CommonPropertyExtractor;
@@ -67,7 +65,7 @@ public class ModelUtils {
                 }
                 label = ImagePropertyExtractor.getColorSpace(tag);
                 if(!label.equals("")) {
-                    return "grayscale".equals(label) ? "IMAGE_GREYSCALE": "IMAGE_COLOUR" ;
+                    return "false".equals(label) ? "IMAGE_GREYSCALE": "IMAGE_COLOUR" ;
                 }
                 label = ImagePropertyExtractor.getSize(tag);
                 if (!label.equals("")) {
@@ -104,113 +102,98 @@ public class ModelUtils {
             return null;
         }
         final List<Facet> facets = new ArrayList<Facet>();
-        final Map<String, Facet> mediaTypeFacets = new HashMap<>();
-        final Map<String, Long> mimeTypeFacets = new HashMap<>();
+        final Map<FacetNames, Map<String, Long>> mediaTypeFacets = new HashMap<>();
 
+        /*
+         * init to make thing easier :)
+         */
+        for (final FacetNames facetName : FacetNames.values()) {
+            mediaTypeFacets.put(facetName, new HashMap<String, Long>());
+        }
 
         for (FacetField facetField : facetFields) {
             if (facetField.getValues() != null) {
                 final Facet facet = new Facet();
                 facet.name = facetField.getName();
 
-                if (facet.name.equalsIgnoreCase("is_fulltext")) {
-                    facet.name = "TEXT_FULLTEXT";
-                }
-                else if (facet.name.equalsIgnoreCase("has_media")) {
-                    facet.name = "MEDIA";
-                }
-                else if (facet.name.equalsIgnoreCase("has_thumbnails")) {
-                    facet.name = "THUMBNAIL";
+                if (FacetNames.IS_FULLTEXT.name().equalsIgnoreCase(facet.name)) {
+                    facet.name = FacetNames.IS_FULLTEXT.getRealName();
+                } else if (FacetNames.HAS_MEDIA.name().equalsIgnoreCase(facet.name)) {
+                    facet.name = FacetNames.HAS_MEDIA.getRealName();
+                } else if (FacetNames.HAS_THUMBNAILS.name().equalsIgnoreCase(facet.name)) {
+                    facet.name = FacetNames.HAS_THUMBNAILS.getRealName();
                 }
 
+                /*
+                 * demultiplex the face_tags into proper facets (see FacetNames)
+                 */
                 for (FacetField.Count count : facetField.getValues()) {
                     if (StringUtils.isNotEmpty(count.getName()) && count.getCount() > 0) {
-                        final LabelFrequency value = new LabelFrequency();
-
-                        value.count = count.getCount();
-                        value.label = count.getName();
-
-                        if (!count.getFacetField().getName().equalsIgnoreCase("facet_tags")) {
+                        if (!facetField.getName().equalsIgnoreCase("facet_tags")) {
+                            final LabelFrequency value = new LabelFrequency();
+                            value.count = count.getCount();
+                            value.label = count.getName();
                             facet.fields.add(value);
                             continue;
                         }
 
                         final Integer tag = Integer.valueOf(count.getName());
                         final String label = FacetLabelExtractor.getFacetLabel(tag).trim();
-                        final String facetName = getFacetName(tag).trim();
 
-                        if (label.isEmpty() || facetName.isEmpty()) {
-                            facet.fields.add(value);
-                        } else if (facetName.equalsIgnoreCase("MIME_TYPE")) {
-                            Long newVal = 0L;
-                            if (mimeTypeFacets.containsKey(label)) {
-                                newVal = mimeTypeFacets.get(label);
-                            }
-                            newVal += count.getCount();
-                            mimeTypeFacets.put(label, newVal);
-                        } else {
-                            if (!mediaTypeFacets.containsKey(facetName)) {
-                                final Facet f = new Facet();
-                                f.name = facetName;
-                                mediaTypeFacets.put(facetName, f);
-                            }
-                            value.label = label;
-
-                            mediaTypeFacets.get(facetName).fields.add(value);
+                        if (label.isEmpty()) {
+                            System.out.println("Bad facet_tag encoding: " + tag + " Got empty label!");
+                            continue;
                         }
+
+                        final FacetNames facetName = FacetNames.valueOf(getFacetName(tag).trim().toUpperCase());
+
+                        Long value = mediaTypeFacets.get(facetName).get(label);
+
+                        if (null == value) {
+                            value = 0L;
+                        }
+                        mediaTypeFacets.get(facetName).put(label, value + count.getCount());
                     }
                 }
 
-                if (facet.name.equalsIgnoreCase("facet_tags")) continue;
-
-                if (facet.fields.isEmpty()) {
-                    final LabelFrequency freq = new LabelFrequency();
-                    freq.label = "true";
-                    freq.count = 0;
-                    facet.fields.add(freq);
+                /*
+                 * note that only facets that have values are returned
+                 *  facet_tags shouldn't contain any values after the processing done above
+                 */
+                if (!facet.fields.isEmpty()) {
+                    facets.add(facet);
                 }
-                facets.add(facet);
             }
         }
 
-        if (!mimeTypeFacets.isEmpty()) {
-            Facet f = new Facet();
-            f.name = "MIME_TYPE";
-
-            for (Map.Entry<String, Long> mimeType: mimeTypeFacets.entrySet()) {
-               LabelFrequency freq = new LabelFrequency();
-                freq.label = mimeType.getKey();
-                freq.count = mimeType.getValue();
-
-                f.fields.add(freq);
+        for (Map.Entry<FacetNames, Map<String, Long>> facetNameValues : mediaTypeFacets.entrySet()) {
+            if (facetNameValues.getValue().isEmpty()) {
+                continue;
             }
-            facets.add(f);
+            final Facet facet = new Facet();
+            facet.name = facetNameValues.getKey().getRealName();
+
+            for (final Map.Entry<String, Long> value : facetNameValues.getValue().entrySet()) {
+                final LabelFrequency freq = new LabelFrequency();
+                freq.label = value.getKey();
+                freq.count = value.getValue();
+
+                facet.fields.add(freq);
+            }
+            facets.add(facet);
         }
 
-        for (Map.Entry<String, Facet> facet: mediaTypeFacets.entrySet()) {
-            final String name = facet.getKey();
-            switch(name) {
-                case "VIDEO_HD":
-                case "SOUND_HQ":
-                case "IMAGE_GREYSCALE":
-                case "IMAGE_COLOUR":
-                case "IMAGE_COLOR":
-                    LabelFrequency freq = new LabelFrequency();
-                    freq.label = "true";
-                    freq.count = 0;
 
-                    for (LabelFrequency field: facet.getValue().fields) {
-                        freq.count += field.count;
-                    }
-                    facet.getValue().fields.clear();
-                    facet.getValue().fields.add(freq);
-                    facets.add(facet.getValue());
-
-                    break;
-
-                default:
-                    facets.add(facet.getValue());
-            }
+        /*
+         * sort the label of each facet
+         */
+        for (final Facet facet: facets) {
+            Collections.sort(facet.fields, new Comparator<LabelFrequency>() {
+                @Override
+                public int compare(LabelFrequency o1, LabelFrequency o2) {
+                    return o1.label.trim().compareTo(o2.label.trim());
+                }
+            });
         }
 
         return facets;
