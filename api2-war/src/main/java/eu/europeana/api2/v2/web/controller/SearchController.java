@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.mongodb.Mongo;
+import com.wordnik.swagger.annotations.Api;
 
 import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
@@ -97,6 +98,7 @@ import eu.europeana.corelib.web.utils.RequestUtils;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@Api(value = "searchcontroller", description = "Annotation JSON Rest Service")
 public class SearchController {
 
 	@Log
