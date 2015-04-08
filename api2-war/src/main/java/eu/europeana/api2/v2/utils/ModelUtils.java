@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.List;
 
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
+import eu.europeana.corelib.search.service.inverseLogic.MediaTypeEncoding;
 import eu.europeana.corelib.search.service.inverseLogic.CommonPropertyExtractor;
 import eu.europeana.corelib.search.service.inverseLogic.ImagePropertyExtractor;
 import eu.europeana.corelib.search.service.inverseLogic.SoundPropertyExtractor;
@@ -45,7 +46,7 @@ public class ModelUtils {
 	}
 
     public static String getFacetName(Integer tag) {
-        final Integer mediaType = CommonPropertyExtractor.getType(tag);
+        final MediaTypeEncoding mediaType = CommonPropertyExtractor.getType(tag);
         final String  mimeType  = CommonPropertyExtractor.getMimeType(tag);
 
         if (null != mimeType && !mimeType.trim().isEmpty()) {
@@ -54,7 +55,7 @@ public class ModelUtils {
 
         String label;
         switch (mediaType) {
-            case 1:
+            case IMAGE:
                 label = ImagePropertyExtractor.getAspectRatio(tag);
                 if(!label.equals("")) {
                     return "IMAGE_ASPECTRATIO";
@@ -65,14 +66,14 @@ public class ModelUtils {
                 }
                 label = ImagePropertyExtractor.getColorSpace(tag);
                 if(!label.equals("")) {
-                    return "false".equals(label) ? "IMAGE_GREYSCALE": "IMAGE_COLOUR" ;
+                    return "greyscale".equalsIgnoreCase(label) ? "IMAGE_GREYSCALE": "IMAGE_COLOUR" ;
                 }
                 label = ImagePropertyExtractor.getSize(tag);
                 if (!label.equals("")) {
                     return "IMAGE_SIZE";
                 }
                 return label;
-            case 2:
+            case SOUND:
                 label = SoundPropertyExtractor.getDuration(tag);
                 if(!label.equals("")) {
                     return "SOUND_DURATION";
@@ -82,7 +83,7 @@ public class ModelUtils {
                     return "SOUND_HQ";
                 }
                 return "";
-            case 3:
+            case VIDEO:
                 label = VideoPropertyExtractor.getDuration(tag);
                 if(!label.equals("")) {
                     return "VIDEO_DURATION";

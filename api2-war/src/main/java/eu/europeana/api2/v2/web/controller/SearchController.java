@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.context.support.AbstractMessageSource;
 import org.springframework.http.MediaType;
@@ -265,24 +266,17 @@ public class SearchController {
             newRefinements.add("has_media:" + media);
         }
 
+        String filterTagQuery = "";
+
         if (!imageColorsPalette.isEmpty()) {
-            String filterQuery = "";
             for (String color : imageColorsPalette) {
                 log.info("Color palette: " + color);
                 final Integer filterTag = searchService.search(1, null, null, null, null, null, color, null, null, null, null);
                 log.info("Color palette: " + filterTag);
-                filterQuery += "filter_tags:" + filterTag + " AND ";
+                filterTagQuery += filterTag + " AND ";
             }
-            if (!filterQuery.equals("")) {
-                filterQuery = filterQuery.substring(0, filterQuery.lastIndexOf("AND"));
-                filterQuery = filterQuery.trim();
-
-                if (queryString.equals("")) {
-                    queryString = filterQuery;
-                } else {
-                    queryString = queryString + " AND " + filterQuery;
-                }
-            }
+            //remove last and
+            filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("AND"));
         }
 
         final List<Integer> filterTags = new ArrayList<>();
@@ -312,7 +306,27 @@ public class SearchController {
             filterTags.remove(videoFilterTag);
         }
 
-        String filterTagQuery = "";
+        for (final Integer x: filterTags) {
+
+        }
+
+        if (!filterTags.isEmpty()) {
+            if (imageColorsPalette.isEmpty()) {
+                filterTagQuery = StringUtils.join(filterTags, " OR ");
+            }
+            else {
+                filterTagQuery = "(" + filterTagQuery + ") AND (" + StringUtils.join(filterTags, " OR ") + ")";
+            }
+        }
+
+        if (!filterTagQuery.trim().isEmpty()) {
+            filterTagQuery = "filter_tags:(" + filterTagQuery + ") ";
+            newRefinements.add(filterTagQuery);
+        }
+
+
+
+        /*
         for (final Integer filterTag : filterTags) {
             log.info("filterTag: " + filterTag);
             if (filterTag % 33554432 != 0) {
@@ -333,6 +347,7 @@ public class SearchController {
                 queryString = queryString + " AND " + filterTagQuery;
             }
         }
+        */
 
         queryString = queryString.trim();
         log.info("QUERY: |" + queryString + "|");
