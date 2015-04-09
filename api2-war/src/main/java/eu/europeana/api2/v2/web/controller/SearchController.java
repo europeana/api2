@@ -141,10 +141,10 @@ public class SearchController {
             @RequestParam(value = "facet", required = false) String[] aFacet,
             @RequestParam(value = "wskey", required = false) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
-           // @RequestParam(value = "colourpalette", required = false) String[] colorPalette,
+            @RequestParam(value = "colourpalette", required = false) String[] colorPalette,
 
             @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
-         //   @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
+            @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
             @RequestParam(value = "media", required = false) Boolean media,
             HttpServletRequest request,
             HttpServletResponse response) {
@@ -167,8 +167,7 @@ public class SearchController {
         final List<Boolean> imageGrayScales = new ArrayList<>();
         final List<String> imageAspectRatios = new ArrayList<>();
 
-        //not actually used
-        //final List<String> imageColorsPalette = new ArrayList<>();
+        final List<String> imageColorsPalette = new ArrayList<>();
 
         final List<Boolean> soundHQs = new ArrayList<>();
         final List<String> soundDurations = new ArrayList<>();
@@ -182,12 +181,10 @@ public class SearchController {
 
        // System.out.println("Colorpaletter is " + Arrays.toString(colorPalette));
 
-        /*
         if (null != colorPalette) {
             imageColorsPalette.addAll(Arrays.asList(colorPalette));
             System.out.println("Image colors is : " + Arrays.toString(imageColorsPalette.toArray()));
         }
-        */
 
         if(refinements != null) {
             for (String qf : refinements) {
@@ -206,7 +203,7 @@ public class SearchController {
                     isFulltext = (null == isFulltext ? false : isFulltext) || Boolean.parseBoolean(suffix);
                 }
                 else if (prefix.equalsIgnoreCase("has_thumbnail")) {
-                    //thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
+                    thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
                 }
                 else if (prefix.equalsIgnoreCase("has_media")) {
                     media = (null == media ? false : media) || Boolean.parseBoolean(suffix);
@@ -261,15 +258,14 @@ public class SearchController {
         }
 
         // FilterTagGeneration
-        //if (thumbnail != null) {
-        //    newRefinements.add("has_thumbnails:" + thumbnail);
-       // }
+        if (thumbnail != null) {
+            newRefinements.add("has_thumbnails:" + thumbnail);
+        }
 
         if (media != null) {
             newRefinements.add("has_media:" + media);
         }
 
-        /*
         if (!imageColorsPalette.isEmpty()) {
             String filterQuery = "";
             for (String color : imageColorsPalette) {
@@ -289,7 +285,6 @@ public class SearchController {
                 }
             }
         }
-        */
 
         final List<Integer> filterTags = new ArrayList<>();
         filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios));

@@ -17,24 +17,17 @@
 
 package eu.europeana.api2.v2.utils;
 
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-
+import eu.europeana.api2.v2.model.json.common.LabelFrequency;
+import eu.europeana.api2.v2.model.json.view.submodel.Facet;
+import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
-import eu.europeana.corelib.search.service.inverseLogic.MediaTypeEncoding;
-import eu.europeana.corelib.search.service.inverseLogic.CommonPropertyExtractor;
-import eu.europeana.corelib.search.service.inverseLogic.ImagePropertyExtractor;
-import eu.europeana.corelib.search.service.inverseLogic.SoundPropertyExtractor;
-import eu.europeana.corelib.search.service.inverseLogic.VideoPropertyExtractor;
+import eu.europeana.corelib.search.service.inverseLogic.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
 
-import eu.europeana.api2.v2.model.json.common.LabelFrequency;
-import eu.europeana.api2.v2.model.json.view.submodel.Facet;
-import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
+import java.util.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -168,7 +161,9 @@ public class ModelUtils {
         }
 
         for (Map.Entry<FacetNames, Map<String, Long>> facetNameValues : mediaTypeFacets.entrySet()) {
-            if (facetNameValues.getValue().isEmpty()) {
+            if (facetNameValues.getValue().isEmpty() ||
+                FacetNames.COLOURPALETTE.equals(facetNameValues.getKey()) ||
+                FacetNames.HAS_THUMBNAILS.equals(facetNameValues.getKey())) {
                 continue;
             }
             final Facet facet = new Facet();
