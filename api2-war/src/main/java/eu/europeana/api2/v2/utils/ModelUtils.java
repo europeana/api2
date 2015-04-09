@@ -162,8 +162,7 @@ public class ModelUtils {
 
         for (Map.Entry<FacetNames, Map<String, Long>> facetNameValues : mediaTypeFacets.entrySet()) {
             if (facetNameValues.getValue().isEmpty() ||
-                FacetNames.COLOURPALETTE.equals(facetNameValues.getKey()) ||
-                FacetNames.HAS_THUMBNAILS.equals(facetNameValues.getKey())) {
+                FacetNames.COLOURPALETTE.equals(facetNameValues.getKey())) {
                 continue;
             }
             final Facet facet = new Facet();
