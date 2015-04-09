@@ -234,7 +234,7 @@ public class SearchController {
                        imageColors.add(true);
                    }
                     else {
-                       imageGrayScales.add(false);
+                       imageGrayScales.add(true);
                    }
                 }
                 else if (prefix.equalsIgnoreCase("image_greyscale") || prefix.equalsIgnoreCase("image_grayscale")) {
