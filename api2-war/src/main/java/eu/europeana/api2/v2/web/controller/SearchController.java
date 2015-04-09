@@ -684,14 +684,6 @@ public class SearchController {
             Class<T> clazz,
             long uid)
             throws SolrTypeException {
-        System.out.println("Facet refinements (before): ");
-        if (null == query.getFilteredFacets()) {
-            System.out.println("facet requirements!!!");
-        }
-        else {
-            System.out.println(Arrays.deepToString(query.getFilteredFacets().toArray()));
-        }
-
         SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
         ResultSet<T> resultSet = searchService.search(clazz, query);
         response.totalResults = resultSet.getResultSize();
