@@ -168,7 +168,6 @@ public class SearchController {
 
         final List<String> newRefinements = new ArrayList<>();
 
-
         final List<String> mediaTypes = new ArrayList<>();
         final List<String> mimeTypes = new ArrayList<>();
 
@@ -188,8 +187,11 @@ public class SearchController {
         final Integer soundFilterTag = soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
         final Integer videoFilterTag = videoFilterTags(mimeTypes, videoHQs, videoDurations).get(0);
 
+        System.out.println("Colorpaletter is " + Arrays.toString(colorPalette));
+
         if (null != colorPalette) {
             imageColorsPalette.addAll(Arrays.asList(colorPalette));
+            System.out.println("Image colors is : " + Arrays.toString(imageColorsPalette.toArray()));
         }
 
         if(refinements != null) {
@@ -208,10 +210,10 @@ public class SearchController {
                 if (prefix.equalsIgnoreCase("text_fulltext")) {
                     isFulltext = (null == isFulltext ? false : isFulltext) || Boolean.parseBoolean(suffix);
                 }
-                else if (prefix.equalsIgnoreCase("has_thumbnail") || prefix.equalsIgnoreCase("has_thumbnails") || prefix.equalsIgnoreCase("thumbnail")) {
+                else if (prefix.equalsIgnoreCase("has_thumbnail")) {
                     thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
                 }
-                else if (prefix.equalsIgnoreCase("has_media") || prefix.equalsIgnoreCase("media")) {
+                else if (prefix.equalsIgnoreCase("has_media")) {
                     media = (null == media ? false : media) || Boolean.parseBoolean(suffix);
                 }
                 else if (prefix.equalsIgnoreCase("onetagpercolour")) {
@@ -228,7 +230,12 @@ public class SearchController {
                     imageSizes.add(suffix);
                 }
                 else if (prefix.equalsIgnoreCase("image_colour") || prefix.equalsIgnoreCase("image_color")) {
-                    imageColors.add(Boolean.valueOf(suffix));
+                   if (Boolean.valueOf(suffix)) {
+                       imageColors.add(true);
+                   }
+                    else {
+                       imageGrayScales.add(false);
+                   }
                 }
                 else if (prefix.equalsIgnoreCase("image_greyscale") || prefix.equalsIgnoreCase("image_grayscale")) {
                     imageGrayScales.add(Boolean.valueOf(suffix));
@@ -254,29 +261,37 @@ public class SearchController {
             }
         }
 
-        if (null != isFulltext) {
+        if (isFulltext != null) {
             newRefinements.add("is_fulltext:" + isFulltext);
         }
 
-        if (null != thumbnail) {
+        // FilterTagGeneration
+        if (thumbnail != null) {
             newRefinements.add("has_thumbnails:" + thumbnail);
         }
 
-        if (null != media) {
+        if (media != null) {
             newRefinements.add("has_media:" + media);
         }
 
-        String filterTagQuery = "";
-
         if (!imageColorsPalette.isEmpty()) {
+            String filterQuery = "";
             for (String color : imageColorsPalette) {
                 log.info("Color palette: " + color);
                 final Integer filterTag = searchService.search(1, null, null, null, null, null, color, null, null, null, null);
                 log.info("Color palette: " + filterTag);
-                filterTagQuery += filterTag + " AND ";
+                filterQuery += "filter_tags:" + filterTag + " AND ";
             }
-            //remove last and
-            filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("AND"));
+            if (!filterQuery.equals("")) {
+                filterQuery = filterQuery.substring(0, filterQuery.lastIndexOf("AND"));
+                filterQuery = filterQuery.trim();
+
+                if (queryString.equals("")) {
+                    queryString = filterQuery;
+                } else {
+                    queryString = queryString + " AND " + filterQuery;
+                }
+            }
         }
 
         final List<Integer> filterTags = new ArrayList<>();
@@ -286,13 +301,13 @@ public class SearchController {
 
         Boolean image = false, sound = false, video = false;
         for (final String type : mediaTypes) {
-            if (type.equals("image")) {
+            if (type.equalsIgnoreCase("image")) {
                 image = true;
             }
-            if (type.equals("sound")) {
+            if (type.equalsIgnoreCase("sound")) {
                 sound = true;
             }
-            if (type.equals("video")) {
+            if (type.equalsIgnoreCase("video")) {
                 video = true;
             }
         }
@@ -306,27 +321,7 @@ public class SearchController {
             filterTags.remove(videoFilterTag);
         }
 
-        for (final Integer x: filterTags) {
-
-        }
-
-        if (!filterTags.isEmpty()) {
-            if (imageColorsPalette.isEmpty()) {
-                filterTagQuery = StringUtils.join(filterTags, " OR ");
-            }
-            else {
-                filterTagQuery = "(" + filterTagQuery + ") AND (" + StringUtils.join(filterTags, " OR ") + ")";
-            }
-        }
-
-        if (!filterTagQuery.trim().isEmpty()) {
-            filterTagQuery = "filter_tags:(" + filterTagQuery + ") ";
-            newRefinements.add(filterTagQuery);
-        }
-
-
-
-        /*
+        String filterTagQuery = "";
         for (final Integer filterTag : filterTags) {
             log.info("filterTag: " + filterTag);
             if (filterTag % 33554432 != 0) {
@@ -335,6 +330,8 @@ public class SearchController {
         }
 
         log.info("filtertagquery: " + filterTagQuery);
+
+        System.out.println("filtertagquery: " + filterTagQuery);
 
         if (filterTagQuery.contains("OR")) {
             filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("OR"));
@@ -347,10 +344,10 @@ public class SearchController {
                 queryString = queryString + " AND " + filterTagQuery;
             }
         }
-        */
 
         queryString = queryString.trim();
         log.info("QUERY: |" + queryString + "|");
+
 
         // =================================================================================================
         refinements = newRefinements.toArray(new String[newRefinements.size()]);
