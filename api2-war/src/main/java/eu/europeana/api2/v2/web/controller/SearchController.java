@@ -207,12 +207,16 @@ public class SearchController {
             imageAspectRatios.addAll(Arrays.asList(image_aspectratio));
         }
 
-        if (true == image_colour) {
-            imageColors.add(image_colour);
+        if (null != image_colour) {
+            if (true == image_colour) {
+                imageColors.add(image_colour);
+            }
+            else if (false == image_colour) {
+                imageGrayScales.add(!image_colour);
+            }
         }
-        else if (false == image_colour) {
-            imageGrayScales.add(!image_colour);
-        }
+
+
 
         if (null != image_size) {
             imageSizes.addAll(Arrays.asList(image_size));
