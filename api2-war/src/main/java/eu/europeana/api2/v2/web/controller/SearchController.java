@@ -141,11 +141,18 @@ public class SearchController {
             @RequestParam(value = "facet", required = false) String[] aFacet,
             @RequestParam(value = "wskey", required = false) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "colourpalette", required = false) String[] colorPalette,
 
+            @RequestParam(value = "colourpalette", required = false) String[] colorPalette,
             @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
             @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
             @RequestParam(value = "media", required = false) Boolean media,
+            @RequestParam(value = "sound_duration", required = false) String[] sound_duration,
+            @RequestParam(value = "sound_hq", required = false) Boolean sound_hq,
+            @RequestParam(value = "video_duration", required = false) String[] video_duration,
+            @RequestParam(value = "video_hd", required = false) Boolean video_hd,
+            @RequestParam(value = "image_colour", required = false) Boolean image_colour,
+            @RequestParam(value = "image_aspectratio", required = false) String[] image_aspectratio,
+            @RequestParam(value = "image_size", required = false) String[] image_size,
             HttpServletRequest request,
             HttpServletResponse response) {
         // workaround of a Spring issue
@@ -172,14 +179,44 @@ public class SearchController {
         final List<Boolean> soundHQs = new ArrayList<>();
         final List<String> soundDurations = new ArrayList<>();
 
-        final List<Boolean> videoHQs = new ArrayList<>();
+        final List<Boolean> videoHDs = new ArrayList<>();
         final List<String> videoDurations = new ArrayList<>();
 
         final Integer imageFilterTag = imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios).get(0);
         final Integer soundFilterTag = soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
-        final Integer videoFilterTag = videoFilterTags(mimeTypes, videoHQs, videoDurations).get(0);
+        final Integer videoFilterTag = videoFilterTags(mimeTypes, videoHDs, videoDurations).get(0);
 
-       // System.out.println("Colorpaletter is " + Arrays.toString(colorPalette));
+
+        if (null != sound_duration) {
+            soundDurations.addAll(Arrays.asList(sound_duration));
+        }
+
+        if (null != sound_hq) {
+            soundHQs.add(sound_hq);
+        }
+
+        if (null != video_duration) {
+            videoDurations.addAll(Arrays.asList(video_duration));
+        }
+
+        if (null != video_hd) {
+            videoHDs.add(video_hd);
+        }
+
+        if (null != image_aspectratio) {
+            imageAspectRatios.addAll(Arrays.asList(image_aspectratio));
+        }
+
+        if (true == image_colour) {
+            imageColors.add(image_colour);
+        }
+        else if (false == image_colour) {
+            imageGrayScales.add(!image_colour);
+        }
+
+        if (null != image_size) {
+            imageSizes.addAll(Arrays.asList(image_size));
+        }
 
         if (null != colorPalette) {
             imageColorsPalette.addAll(Arrays.asList(colorPalette));
@@ -242,7 +279,7 @@ public class SearchController {
                     soundDurations.add(suffix);
                 }
                 else if (prefix.equalsIgnoreCase("video_hd")) {
-                    videoHQs.add(Boolean.valueOf(suffix));
+                    videoHDs.add(Boolean.valueOf(suffix));
                 }
                 else if (prefix.equalsIgnoreCase("video_duration")) {
                     videoDurations.add(suffix);
@@ -289,7 +326,7 @@ public class SearchController {
         final List<Integer> filterTags = new ArrayList<>();
         filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios));
         filterTags.addAll(soundFilterTags(mimeTypes, soundHQs, soundDurations));
-        filterTags.addAll(videoFilterTags(mimeTypes, videoHQs, videoDurations));
+        filterTags.addAll(videoFilterTags(mimeTypes, videoHDs, videoDurations));
 
         Boolean image = false, sound = false, video = false;
         for (final String type : mediaTypes) {
