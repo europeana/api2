@@ -3,6 +3,7 @@
 .project
 .settings/
 .externalToolBuilders/
+.idea/*
 
 # Maven
 */target/**
@@ -13,3 +14,5 @@
 
 # Avoid pushing the copy of the property file in api-war
 api2-war/src/main/resources/europeana.properties
+
+*.iml
