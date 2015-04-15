@@ -17,18 +17,17 @@
 
 package eu.europeana.api2.v2.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import eu.europeana.api2.v2.model.json.common.LabelFrequency;
+import eu.europeana.api2.v2.model.json.view.submodel.Facet;
+import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
+import eu.europeana.corelib.search.service.inverseLogic.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
 
-import eu.europeana.api2.v2.model.json.common.LabelFrequency;
-import eu.europeana.api2.v2.model.json.view.submodel.Facet;
-import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
+import java.util.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -39,40 +38,161 @@ public class ModelUtils {
 		// Constructor must be private
 	}
 
+    public static String getFacetName(Integer tag) {
+        final MediaTypeEncoding mediaType = CommonPropertyExtractor.getType(tag);
+        final String  mimeType  = CommonPropertyExtractor.getMimeType(tag);
+
+        if (null != mimeType && !mimeType.trim().isEmpty()) {
+            return "MIME_TYPE";
+        }
+
+        String label;
+        switch (mediaType) {
+            case IMAGE:
+                label = ImagePropertyExtractor.getAspectRatio(tag);
+                if(!label.equals("")) {
+                    return "IMAGE_ASPECTRATIO";
+                }
+                label = ImagePropertyExtractor.getColor(tag);
+                if(!label.equals("")) {
+                    return "COLOURPALETTE";
+                }
+                label = ImagePropertyExtractor.getColorSpace(tag);
+                if(!label.equals("")) {
+                    return "greyscale".equalsIgnoreCase(label) ? "IMAGE_GREYSCALE": "IMAGE_COLOUR" ;
+                }
+                label = ImagePropertyExtractor.getSize(tag);
+                if (!label.equals("")) {
+                    return "IMAGE_SIZE";
+                }
+                return label;
+            case SOUND:
+                label = SoundPropertyExtractor.getDuration(tag);
+                if(!label.equals("")) {
+                    return "SOUND_DURATION";
+                }
+                label = SoundPropertyExtractor.getQuality(tag);
+                if (!label.equals("")) {
+                    return "SOUND_HQ";
+                }
+                return "";
+            case VIDEO:
+                label = VideoPropertyExtractor.getDuration(tag);
+                if(!label.equals("")) {
+                    return "VIDEO_DURATION";
+                }
+                label = VideoPropertyExtractor.getQuality(tag);
+                if (!label.equals("")) {
+                    return "VIDEO_HD";
+                }
+                return "";
+
+            default: return "";
+        }
+    }
+
 	public static List<Facet> conventFacetList(List<FacetField> facetFields) {
-		if ((facetFields != null) && !facetFields.isEmpty()) {
-			List<Facet> facets = new ArrayList<Facet>();
-			for (FacetField facetField : facetFields) {
-				if (facetField.getValues() != null) {
-					Facet facet = new Facet();
-					facet.name = facetField.getName();
-					for (FacetField.Count count : facetField.getValues()) {
-						if (StringUtils.isNotEmpty(count.getName())
-								&& (count.getCount() > 0)) {
-							LabelFrequency value = new LabelFrequency();
-							if(count.getFacetField().getName().equalsIgnoreCase("facet_tags")) {
-                                final String label = FacetLabelExtractor.getFacetLabel(Integer.valueOf(count.getName()));
-                                if(label.equals("")) {
-                                    value.label = count.getName();
-                                } else {
-                                    value.label = label;
-                                }
-                            } else {
-                                value.label = count.getName();
-                            }
+        if (null == facetFields || facetFields.isEmpty()) {
+            return null;
+        }
+        final List<Facet> facets = new ArrayList<Facet>();
+        final Map<FacetNames, Map<String, Long>> mediaTypeFacets = new HashMap<>();
+
+        /*
+         * init to make thing easier :)
+         */
+        for (final FacetNames facetName : FacetNames.values()) {
+            mediaTypeFacets.put(facetName, new HashMap<String, Long>());
+        }
+
+        for (FacetField facetField : facetFields) {
+            if (facetField.getValues() != null) {
+                final Facet facet = new Facet();
+                facet.name = facetField.getName();
+
+                if (FacetNames.IS_FULLTEXT.name().equalsIgnoreCase(facet.name)) {
+                    facet.name = FacetNames.IS_FULLTEXT.getRealName();
+                } else if (FacetNames.HAS_MEDIA.name().equalsIgnoreCase(facet.name)) {
+                    facet.name = FacetNames.HAS_MEDIA.getRealName();
+                } else if (FacetNames.HAS_THUMBNAILS.name().equalsIgnoreCase(facet.name)) {
+                    facet.name = FacetNames.HAS_THUMBNAILS.getRealName();
+                }
+
+                /*
+                 * demultiplex the face_tags into proper facets (see FacetNames)
+                 */
+                for (FacetField.Count count : facetField.getValues()) {
+                    if (StringUtils.isNotEmpty(count.getName()) && count.getCount() > 0) {
+                        if (!facetField.getName().equalsIgnoreCase("facet_tags")) {
+                            final LabelFrequency value = new LabelFrequency();
                             value.count = count.getCount();
-							facet.fields.add(value);
-						}
-					}
-					if (!facet.fields.isEmpty()) {
-						facets.add(facet);
-					}
-				}
-			}
-			return facets;
-		}
-		return null;
-	}
+                            value.label = count.getName();
+                            facet.fields.add(value);
+                            continue;
+                        }
+
+                        final Integer tag = Integer.valueOf(count.getName());
+                        final String label = FacetLabelExtractor.getFacetLabel(tag).trim();
+
+                        if (label.isEmpty()) {
+                            System.out.println("Bad facet_tag encoding: " + tag + " Got empty label!");
+                            continue;
+                        }
+
+                        final FacetNames facetName = FacetNames.valueOf(getFacetName(tag).trim().toUpperCase());
+
+                        Long value = mediaTypeFacets.get(facetName).get(label);
+
+                        if (null == value) {
+                            value = 0L;
+                        }
+                        mediaTypeFacets.get(facetName).put(label, value + count.getCount());
+                    }
+                }
+
+                /*
+                 * note that only facets that have values are returned
+                 *  facet_tags shouldn't contain any values after the processing done above
+                 */
+                if (!facet.fields.isEmpty()) {
+                    facets.add(facet);
+                }
+            }
+        }
+
+        for (Map.Entry<FacetNames, Map<String, Long>> facetNameValues : mediaTypeFacets.entrySet()) {
+            if (facetNameValues.getValue().isEmpty() ||
+                FacetNames.COLOURPALETTE.equals(facetNameValues.getKey())) {
+                continue;
+            }
+            final Facet facet = new Facet();
+            facet.name = facetNameValues.getKey().getRealName();
+
+            for (final Map.Entry<String, Long> value : facetNameValues.getValue().entrySet()) {
+                final LabelFrequency freq = new LabelFrequency();
+                freq.label = value.getKey();
+                freq.count = value.getValue();
+
+                facet.fields.add(freq);
+            }
+            facets.add(facet);
+        }
+
+
+        /*
+         * sort the label of each facet
+         */
+        for (final Facet facet: facets) {
+            Collections.sort(facet.fields, new Comparator<LabelFrequency>() {
+                @Override
+                public int compare(LabelFrequency o1, LabelFrequency o2) {
+                    return o1.label.trim().compareTo(o2.label.trim());
+                }
+            });
+        }
+
+        return facets;
+    }
 
 	public static SpellCheck convertSpellCheck(SpellCheckResponse response) {
 		if (response != null) {
