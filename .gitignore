@@ -15,4 +15,8 @@
 # Avoid pushing the copy of the property file in api-war
 api2-war/src/main/resources/europeana.properties
 
+# Also avoid pushing the production property file
+properties/production
+
+# Prevent commit IDEA files
 *.iml
