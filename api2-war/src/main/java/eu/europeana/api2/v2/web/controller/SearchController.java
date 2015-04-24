@@ -17,7 +17,6 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import com.mongodb.Mongo;
 import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.FieldTripUtils;
@@ -91,9 +90,6 @@ public class SearchController {
 
     @Log
     private Logger log;
-
-    @Resource(name = "corelib_db_mongo")
-    private Mongo mongo;
 
     @Resource
     private SearchService searchService;
