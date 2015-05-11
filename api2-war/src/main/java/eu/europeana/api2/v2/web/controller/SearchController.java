@@ -66,6 +66,7 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.FacetParameterUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.exception.LimitReachedException;
@@ -99,6 +100,7 @@ import eu.europeana.corelib.web.utils.RequestUtils;
  */
 @Controller
 @Api(value = "searchcontroller", description = "Annotation JSON Rest Service")
+@SwaggerSelect
 public class SearchController {
 
 	@Log
