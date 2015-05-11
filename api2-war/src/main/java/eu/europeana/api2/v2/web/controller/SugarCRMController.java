@@ -44,6 +44,7 @@ import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
 import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
@@ -59,6 +60,7 @@ import eu.europeana.corelib.logging.Logger;
  * @since Sep 24, 2013
  */
 @Controller
+@SwaggerSelect
 public class SugarCRMController {
 
 	@Log

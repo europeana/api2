@@ -34,6 +34,7 @@ import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Search;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.SavedSearch;
@@ -44,6 +45,7 @@ import eu.europeana.corelib.web.utils.UrlBuilder;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@SwaggerSelect
 public class MyDataSearchController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/mydata/savedsearch.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)

@@ -35,6 +35,7 @@ import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.SavedItem;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 
@@ -42,6 +43,7 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@SwaggerSelect
 public class UserItemController extends AbstractUserController {
 
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)

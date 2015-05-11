@@ -68,6 +68,7 @@ import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
 import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.exception.LimitReachedException;
@@ -96,6 +97,7 @@ import eu.europeana.corelib.web.utils.RequestUtils;
  */
 @Controller
 @RequestMapping(value = "/v2/record")
+@SwaggerSelect
 public class ObjectController {
 
 	@Log

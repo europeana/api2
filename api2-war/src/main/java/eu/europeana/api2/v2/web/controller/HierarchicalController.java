@@ -38,6 +38,7 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.ApiLogService;
@@ -55,6 +56,7 @@ import eu.europeana.corelib.web.utils.RequestUtils;
  */
 @Controller
 @RequestMapping(value = "/v2/record")
+@SwaggerSelect
 public class HierarchicalController {
 
 	private static final int MAX_LIMIT = 100;

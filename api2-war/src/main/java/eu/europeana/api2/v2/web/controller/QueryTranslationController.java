@@ -20,12 +20,14 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.QueryTranslationResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.solr.model.QueryTranslation;
 import eu.europeana.corelib.search.utils.SearchUtils;
 import eu.europeana.corelib.utils.StringArrayUtils;
 
 @Controller
+@SwaggerSelect
 public class QueryTranslationController {
 
 	@Resource
