@@ -54,7 +54,7 @@ public class SwaggerConfig {
         "Contact Email",
         "development-core@europeanalabs.eu",
         "TBD Licence Type",
-        "TBD License URL" );
+        "http://www.europeana.eu/portal/rights/api-terms-of-use.html" );
         return apiInfo;
     }
 
