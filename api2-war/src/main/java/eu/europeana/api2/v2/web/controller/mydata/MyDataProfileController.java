@@ -19,11 +19,16 @@ import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 @SwaggerSelect
 public class MyDataProfileController extends AbstractUserController {
 
+	/**
+	 * @param callback
+	 * @return the JSON response
+	 */
+    
 	@RequestMapping(value = "/v2/mydata/profile.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		Profile response = new Profile(principal.getName(), "/v2/user/profile.json");
+		Profile response = new Profile(principal.getName(), "/v2/mydata/profile.json");
 		try {
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {

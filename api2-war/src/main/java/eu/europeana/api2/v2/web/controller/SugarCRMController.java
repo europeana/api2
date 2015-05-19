@@ -87,7 +87,6 @@ public class SugarCRMController {
 	 * @param countryCode
 	 * @param offset
 	 * @param pagesize
-	 * @param principal
 	 * 
 	 * @return the JSON response
 	 */
@@ -144,7 +143,6 @@ public class SugarCRMController {
 	 * 
 	 * @param query
 	 * @param callback
-	 * @param principal
 	 * @return the JSON response
 	 */
 	@RequestMapping(value = "/v2/provider/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, 
@@ -195,9 +193,9 @@ public class SugarCRMController {
 	 * Array of JSON objects, each one containing the identifier, the name, and
 	 * the full id (composed of the identifier and the name) of a dataset.
 	 * 
+	 * @param id
 	 * @param query
 	 * @param callback
-	 * @param principal
 	 * @return the JSON response
 	 */
 	@RequestMapping(value = "/v2/provider/{id}/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
@@ -250,9 +248,11 @@ public class SugarCRMController {
 	 * 
 	 * @param wskey
 	 * @param callback
+         * @param name
+         * @param country
+         * @param status
 	 * @param offset
 	 * @param pagesize
-	 * @param principal
 	 * 
 	 * @return the JSON response
 	 */
@@ -310,10 +310,9 @@ public class SugarCRMController {
 	 * response contains the following fields: identifier, name, description,
 	 * status,
 	 * 
-	 * @param wskey
 	 * @param id
+	 * @param wskey
 	 * @param callback
-	 * @param principal
 	 * @return the JSON response
 	 */
 	@RequestMapping(value = "/v2/dataset/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
