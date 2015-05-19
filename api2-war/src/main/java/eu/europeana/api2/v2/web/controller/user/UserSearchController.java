@@ -46,6 +46,11 @@ import eu.europeana.corelib.web.utils.UrlBuilder;
 @SwaggerSelect
 public class UserSearchController extends AbstractUserController {
 
+	/**
+	 * @param callback
+	 * @param principal
+	 * @return the JSON response
+	 */
 	@RequestMapping(value = "/v2/user/savedsearch.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "callback", required = false) String callback,
@@ -53,6 +58,11 @@ public class UserSearchController extends AbstractUserController {
 		return list(callback, principal);
 	}
 
+	/**
+	 * @param callback
+	 * @param principal
+	 * @return the JSON response
+	 */
 	@RequestMapping(value = "/v2/user/savedsearch.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView list(
 			@RequestParam(value = "callback", required = false) String callback, 
@@ -78,22 +88,40 @@ public class UserSearchController extends AbstractUserController {
 		return JsonUtils.toJson(response, callback);
 	}
 
+	/**
+	 * @param query
+	 * @param refinements
+	 * @param start
+	 * @param callback
+	 * @param principal
+	 * @return the JSON response
+	 */
 	@RequestMapping(value = "/v2/user/savedsearch.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
 	public ModelAndView createRest(
 			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") String start,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback, 
+                        Principal principal) {
 		return create(query, refinements, start, callback, principal);
 	}
 
+	/**
+	 * @param query
+	 * @param refinements
+	 * @param start
+	 * @param callback
+	 * @param principal
+	 * @return the JSON response
+	 */
 	@RequestMapping(value = "/v2/user/savedsearch.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView create(
 			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") String start,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback, 
+                        Principal principal) {
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.search?action=CREATE");
 		try {
 			User user = userService.findByEmail(principal.getName());
@@ -115,17 +143,31 @@ public class UserSearchController extends AbstractUserController {
 		return JsonUtils.toJson(response, callback);
 	}
 
+	/**
+	 * @param objectId
+	 * @param callback
+	 * @param principal
+	 * @return the JSON response
+	 */
 	@RequestMapping(value = "/v2/user/savedsearch.json", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(
 			@RequestParam(value = "searchid", required = false) Long objectId,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback, 
+                        Principal principal) {
 		return delete(objectId, callback, principal);
 	}
 
+	/**
+	 * @param searchId
+	 * @param callback
+	 * @param principal
+	 * @return the JSON response
+	 */
 	@RequestMapping(value = "/v2/user/savedsearch.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView delete(
 			@RequestParam(value = "searchid", required = true) Long searchId,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback, 
+                        Principal principal) {
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/search.json?action=DELETE");
 		try {
 			User user = userService.findByEmail(principal.getName());

@@ -143,7 +143,23 @@ public class SearchController {
         private AbstractMessageSource messageSource;
 
 	final static public int FACET_LIMIT = 16;
-
+        
+        /**
+	 * Returns the list of Europeana datasets. The response is an Array of JSON
+	 * objects, each one containing the identifier and the name of a dataset.
+	 * 
+	 * @param queryString
+	 * @param refinements
+	 * @param aReusability
+	 * @param profile
+	 * @param start
+	 * @param rows
+	 * @param aFacet
+         * @param wskey
+         * @param callback
+	 * 
+	 * @return the JSON response
+	 */
 	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
 			@RequestParam(value = "query", required = true) String queryString,
@@ -319,7 +335,15 @@ public class SearchController {
 
 		return allowedFacets.toArray(new String[allowedFacets.size()]);
 	}
-
+        
+        /**
+	 * @param query
+	 * @param count
+         * @param phrases
+         * @param callback
+	 * 
+	 * @return the JSON response
+	 */
 	@RequestMapping(value = "/v2/suggestions.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView suggestionsJson(
 			@RequestParam(value = "query", required = true) String query,
@@ -398,6 +422,15 @@ public class SearchController {
 		return response;
 	}
 
+        
+        /**
+	 * @param queryString
+	 * @param refinements
+         * @param start
+         * @param wskey
+	 * 
+	 * @return the JSON response
+	 */
 	@RequestMapping(value = "/v2/search.kml", produces = {"application/vnd.google-earth.kml+xml",MediaType.ALL_VALUE})
 	// @RequestMapping(value = "/v2/search.kml", produces =
 	// "application/vnd.google-earth.kml+xml")
@@ -448,6 +481,13 @@ public class SearchController {
 		return kmlResponse;
 	}
 
+        /**
+	 * @param queryString
+         * @param start
+         * @param count
+	 * 
+	 * @return the JSON response
+	 */
 	@RequestMapping(value = "/v2/opensearch.rss", produces = {MediaType.APPLICATION_XML_VALUE,MediaType.ALL_VALUE})
 	public @ResponseBody
 	RssResponse openSearchRss(

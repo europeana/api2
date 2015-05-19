@@ -18,6 +18,12 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
 @SwaggerSelect
 public class UserProfileController extends AbstractUserController {
 
+	/**
+	 * @param callback
+	 * @param principal
+	 * @return the JSON response
+	 */
+    
 	@RequestMapping(value = "/v2/user/profile.json", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "callback", required = false) String callback, 
