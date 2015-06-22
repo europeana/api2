@@ -137,18 +137,6 @@ public class SearchController {
             @RequestParam(value = "facet", required = false) String[] aFacet,
             @RequestParam(value = "wskey", required = false) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
-
-            @RequestParam(value = "colourpalette", required = false) String[] colorPalette,
-            @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
-            @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
-            @RequestParam(value = "media", required = false) Boolean media,
-            @RequestParam(value = "sound_duration", required = false) String[] sound_duration,
-            @RequestParam(value = "sound_hq", required = false) Boolean sound_hq,
-            @RequestParam(value = "video_duration", required = false) String[] video_duration,
-            @RequestParam(value = "video_hd", required = false) Boolean video_hd,
-            @RequestParam(value = "image_colour", required = false) Boolean image_colour,
-            @RequestParam(value = "image_aspectratio", required = false) String[] image_aspectratio,
-            @RequestParam(value = "image_size", required = false) String[] image_size,
             HttpServletRequest request,
             HttpServletResponse response) {
         // workaround of a Spring issue
