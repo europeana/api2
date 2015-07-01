@@ -109,11 +109,11 @@ public class FacetParameterUtils {
 			Map<String,String[]> parameters, boolean isDefault, Integer defaultValue) {
 
 		if (parameters.containsKey(key)) {
-			String[] value = (String[]) parameters.get(key);
+			String[] value = parameters.get(key);
 			return new NumericFacetParameter(key, value[0]);
 		}
 		if (isDefault && parameters.containsKey(defaultKey)) {
-			String[] value = (String[]) parameters.get(defaultKey);
+			String[] value = parameters.get(defaultKey);
 			return new NumericFacetParameter(key, value[0]);
 		}
 		if (defaultValue != null) {

@@ -36,7 +36,7 @@ public class RichView extends ApiView implements RichBean {
 			return isShownBy;
 		}
 		// String provider = getProvider()[0];
-		List<String>isShownByLinks = new ArrayList<String>();
+		List<String>isShownByLinks = new ArrayList<>();
 		for (String item : isShownBy) {
 			if (StringUtils.isBlank(item)) {
 				continue;
