@@ -17,7 +17,7 @@ public class FacetParameterUtilsTest {
 	public void setUp() throws Exception {
 		facets = new String[]{"proxy_dc_contributor"};
 
-		parameters = new HashMap<String, String[]>();
+		parameters = new HashMap<>();
 		parameters.put("facet", new String[]{"proxy_dc_contributor"});
 		parameters.put("profile", new String[]{"facets"});
 		parameters.put("f.proxy_dc_contributor.facet.limit", new String[]{"30"});

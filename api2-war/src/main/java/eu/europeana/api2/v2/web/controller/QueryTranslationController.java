@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import eu.europeana.api2.model.enums.ApiLimitException;
+import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
@@ -48,7 +48,7 @@ public class QueryTranslationController {
 
 		languageCodes = StringArrayUtils.splitWebParameter(languageCodes);
 
-		LimitResponse limitResponse = null;
+		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"translateQuery.json", RecordType.TRANSLATE_QUERY, null);
