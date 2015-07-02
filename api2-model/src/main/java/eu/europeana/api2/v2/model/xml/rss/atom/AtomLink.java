@@ -25,6 +25,7 @@ import eu.europeana.api2.v2.model.xml.definitions.Namespaces;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
+@SuppressWarnings("unused")
 @XmlType(namespace = Namespaces.NS_ATOM)
 public class AtomLink {
 

@@ -1,4 +1,4 @@
-package eu.europeana.api2.model.enums;
+package eu.europeana.api2;
 
 public class ApiLimitException extends Exception {
 

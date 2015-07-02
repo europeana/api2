@@ -4,6 +4,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 
+@SuppressWarnings("unused")
 public class ChannelImage {
 
 	@XmlElement(name = "title")
