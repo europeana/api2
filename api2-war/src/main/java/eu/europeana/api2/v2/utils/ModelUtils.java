@@ -40,7 +40,7 @@ public class ModelUtils {
 
 	public static List<Facet> conventFacetList(List<FacetField> facetFields) {
 		if ((facetFields != null) && !facetFields.isEmpty()) {
-			List<Facet> facets = new ArrayList<Facet>();
+			List<Facet> facets = new ArrayList<>();
 			for (FacetField facetField : facetFields) {
 				if (facetField.getValues() != null) {
 					Facet facet = new Facet();

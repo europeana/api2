@@ -17,7 +17,7 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api2.model.enums.ApiLimitException;
+import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
@@ -43,8 +43,6 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
-import eu.europeana.corelib.db.service.ApiLogService;
-import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -69,7 +67,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.context.support.AbstractMessageSource;
 import org.springframework.http.MediaType;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -88,43 +85,58 @@ import java.util.*;
 @Controller
 public class SearchController {
 
+    final static public int FACET_LIMIT = 16;
+
     @Log
     private Logger log;
 
     @Resource
     private SearchService searchService;
-
     @Resource
     private ApiKeyService apiService;
-
-    @Resource
-    private UserService userService;
-
-    @Resource
-    private ApiLogService apiLogService;
-
-//	@Resource
-//	private OptOutService optOutService;
-
     @Resource
     private Configuration configuration;
-
     @Resource
     private EuropeanaUrlService urlService;
-
     @Resource
     private ControllerUtils controllerUtils;
-
-    @Resource(name = "api2_mvc_views_jaxbmarshaller")
-    private Jaxb2Marshaller marshaller;
-
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
-
     @Resource
     private AbstractMessageSource messageSource;
 
-    final static public int FACET_LIMIT = 16;
+    /**
+     * Limits the number of facets
+     *
+     * @param facets                   The user entered facet names list
+     * @param isDefaultFacetsRequested Flag if default facets should be returned
+     * @return The limited set of facet names
+     */
+    public static String[] limitFacets(String[] facets, boolean isDefaultFacetsRequested) {
+        List<String> requestedFacets = Arrays.asList(facets);
+        List<String> allowedFacets = new ArrayList<>();
+
+        int count = 0;
+        if (isDefaultFacetsRequested && !requestedFacets.contains("DEFAULT")) {
+            count = Facet.values().length;
+        }
+
+        int increment;
+        for (String facet : requestedFacets) {
+            increment = 1;
+            if (StringUtils.equals(facet, "DEFAULT")) {
+                increment = Facet.values().length;
+            }
+            if (count + increment <= FACET_LIMIT) {
+                allowedFacets.add(facet);
+                count += increment;
+            } else {
+                break;
+            }
+        }
+
+        return allowedFacets.toArray(new String[allowedFacets.size()]);
+    }
 
     @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
@@ -141,7 +153,7 @@ public class SearchController {
             HttpServletResponse response) {
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
-        String[] _qf = (String[]) request.getParameterMap().get("qf");
+        String[] _qf = request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinements.length) {
             refinements = _qf;
         }
@@ -149,9 +161,6 @@ public class SearchController {
 
         queryString = queryString.trim();
         log.info("QUERY: |" + queryString + "|");
-
-
-        
 
 
         boolean isFacetsRequested = isFacetsRequested(profile);
@@ -164,7 +173,7 @@ public class SearchController {
         Map<String, Integer> facetLimits = null;
         Map<String, Integer> facetOffsets = null;
         if (isFacetsRequested) {
-            Map<String,String[]> parameterMap = request.getParameterMap();
+            Map<String, String[]> parameterMap = request.getParameterMap();
             facetLimits = FacetParameterUtils.getFacetParams("limit", aFacet, parameterMap, isDefaultFacetsRequested);
             facetOffsets = FacetParameterUtils.getFacetParams("offset", aFacet, parameterMap, isDefaultFacetsRequested);
         }
@@ -172,7 +181,7 @@ public class SearchController {
         controllerUtils.addResponseHeaders(response);
         rows = Math.min(rows, configuration.getApiRowLimit());
 
-        Map<String, String> valueReplacements = new HashMap<String, String>();
+        Map<String, String> valueReplacements = new HashMap<>();
         if (ArrayUtils.isNotEmpty(reusability)) {
             valueReplacements = RightReusabilityCategorizer.mapValueReplacements(reusability, true);
 
@@ -184,7 +193,7 @@ public class SearchController {
 
         log.info("Query: " + queryString);
         System.out.println("Query is: " + queryString);
-        System.out.println("Refinements: " + refinements);
+        System.out.println("Refinements: " + Arrays.toString(refinements));
         Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
                 .setApiQuery(true)
                 .setRefinements(refinements)
@@ -229,7 +238,7 @@ public class SearchController {
             }
         }
 
-        LimitResponse limitResponse = null;
+        LimitResponse limitResponse;
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
                     "search.json", RecordType.SEARCH, profile);
@@ -266,8 +275,6 @@ public class SearchController {
         }
     }
 
-    
-
     private Class<? extends IdBean> selectBean(String profile) {
         Class<? extends IdBean> clazz;
         if (StringUtils.containsIgnoreCase(profile, "minimal")) {
@@ -278,41 +285,6 @@ public class SearchController {
             clazz = ApiBean.class;
         }
         return clazz;
-    }
-
-    /**
-     * Limits the number of facets
-     * @param facets
-     *   The user entered facet names list
-     * @param isDefaultFacetsRequested
-     *   Flag if default facets should be returned
-     * @return
-     *   The limited set of facet names
-     */
-    public static String[] limitFacets(String[] facets, boolean isDefaultFacetsRequested) {
-        List<String> requestedFacets = Arrays.asList(facets);
-        List<String> allowedFacets = new ArrayList<String>();
-
-        int count = 0;
-        if (isDefaultFacetsRequested && !requestedFacets.contains("DEFAULT")) {
-            count = Facet.values().length;
-        }
-
-        int increment;
-        for (String facet : requestedFacets) {
-            increment = 1;
-            if (StringUtils.equals(facet, "DEFAULT")) {
-                increment = Facet.values().length;
-            }
-            if (count + increment <= FACET_LIMIT) {
-                allowedFacets.add(facet);
-                count += increment;
-            } else {
-                break;
-            }
-        }
-
-        return allowedFacets.toArray(new String[allowedFacets.size()]);
     }
 
     @RequestMapping(value = "/v2/suggestions.json", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -344,7 +316,7 @@ public class SearchController {
             Class<T> clazz,
             long uid)
             throws SolrTypeException {
-        SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
+        SearchResults<T> response = new SearchResults<>(apiKey, "search.json");
         ResultSet<T> resultSet = searchService.search(clazz, query);
         response.totalResults = resultSet.getResultSize();
         response.itemsCount = resultSet.getResults().size();
@@ -354,18 +326,18 @@ public class SearchController {
         System.out.println("Facet refinements (after): ");
         System.out.println(Arrays.deepToString(query.getFilteredFacets().toArray()));
 
-        List<T> beans = new ArrayList<T>();
+        List<T> beans = new ArrayList<>();
         for (T b : resultSet.getResults()) {
 
             if (b instanceof RichBean) {
-                Boolean optOut = ((RichBean)b).getPreviewNoDistribute();
+                Boolean optOut = ((RichBean) b).getPreviewNoDistribute();
 
                 beans.add((T) new RichView((RichBean) b, profile, apiKey, uid, optOut));
             } else if (b instanceof ApiBean) {
-                Boolean optOut = ((ApiBean)b).getPreviewNoDistribute();
+                Boolean optOut = ((ApiBean) b).getPreviewNoDistribute();
                 beans.add((T) new ApiView((ApiBean) b, profile, apiKey, uid, optOut));
             } else if (b instanceof BriefBean) {
-                Boolean optOut = ((BriefBean)b).getPreviewNoDistribute();
+                Boolean optOut = ((BriefBean) b).getPreviewNoDistribute();
                 beans.add((T) new BriefView((BriefBean) b, profile, apiKey, uid, optOut));
             }
         }
@@ -373,7 +345,7 @@ public class SearchController {
         List<FacetField> facetFields = resultSet.getFacetFields();
         if (resultSet.getQueryFacets() != null) {
             List<FacetField> allQueryFacetsMap = SearchUtils.extractQueryFacets(resultSet.getQueryFacets());
-            if (allQueryFacetsMap != null && !allQueryFacetsMap.isEmpty()) {
+            if (!allQueryFacetsMap.isEmpty()) {
                 facetFields.addAll(allQueryFacetsMap);
             }
         }
@@ -397,10 +369,11 @@ public class SearchController {
         return response;
     }
 
-    @RequestMapping(value = "/v2/search.kml", produces = {"application/vnd.google-earth.kml+xml",MediaType.ALL_VALUE})
+    @RequestMapping(value = "/v2/search.kml", produces = {"application/vnd.google-earth.kml+xml", MediaType.ALL_VALUE})
     // @RequestMapping(value = "/v2/search.kml", produces =
     // "application/vnd.google-earth.kml+xml")
-    public @ResponseBody
+    public
+    @ResponseBody
     KmlResponse searchKml(
             @RequestParam(value = "query", required = true) String queryString,
             @RequestParam(value = "qf", required = false) String[] refinements,
@@ -411,7 +384,7 @@ public class SearchController {
 
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
-        String[] _qf = (String[]) request.getParameterMap().get("qf");
+        String[] _qf = request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinements.length) {
             refinements = _qf;
         }
@@ -447,8 +420,9 @@ public class SearchController {
         return kmlResponse;
     }
 
-    @RequestMapping(value = "/v2/opensearch.rss", produces = {MediaType.APPLICATION_XML_VALUE,MediaType.ALL_VALUE})
-    public @ResponseBody
+    @RequestMapping(value = "/v2/opensearch.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
+    public
+    @ResponseBody
     RssResponse openSearchRss(
             @RequestParam(value = "searchTerms", required = true) String queryString,
             @RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
@@ -470,7 +444,7 @@ public class SearchController {
                 item.guid = urlService.getPortalRecord(false, bean.getId()).toString();
                 item.title = getTitle(bean);
                 item.description = getDescription(bean);
-				/*
+                /*
 				 * String enclosure = getThumbnail(bean); if (enclosure != null) { item.enclosure = new
 				 * Enclosure(enclosure); }
 				 */
@@ -490,17 +464,16 @@ public class SearchController {
     /**
      * returns ModelAndView containing RSS data to populate the Google Field
      * Trip app for some selected collections
+     *
      * @param queryTerms  the collection ID, e.g. "europeana_collectionName:91697*"
      * @param offset      list items from this index on
      * @param limit       max number of items to list
      * @param profile     should be "FieldTrip"
      * @param reqLanguage if supplied, the API returns only those items having a dc:language that match this language
-     * @param request     servlet request object
      * @param response    servlet response object
      * @return ModelAndView instance
-     *
      */
-    @RequestMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE,MediaType.ALL_VALUE})
+    @RequestMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
 //	@RequestMapping(value = "/v2/search.rss", produces = MediaType.APPLICATION_XML_VALUE)
     public ModelAndView fieldTripRss(
             @RequestParam(value = "query", required = true) String queryTerms,
@@ -508,7 +481,6 @@ public class SearchController {
             @RequestParam(value = "limit", required = false, defaultValue = "12") int limit,
             @RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
             @RequestParam(value = "language", required = false) String reqLanguage,
-            HttpServletRequest request,
             HttpServletResponse response) {
         controllerUtils.addResponseHeaders(response);
 
@@ -527,11 +499,11 @@ public class SearchController {
             channel.image = null;
         } else {
             channel.title = gftChannelAttributes.get(reqLanguage + "_title") == null || gftChannelAttributes.get(reqLanguage + "_title").equalsIgnoreCase("")
-                    ? ( gftChannelAttributes.get("title") == null
+                    ? (gftChannelAttributes.get("title") == null
                     || gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title")) :
                     gftChannelAttributes.get(reqLanguage + "_title");
             channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
-                    ? ( gftChannelAttributes.get("description") == null
+                    ? (gftChannelAttributes.get("description") == null
                     || gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description")) :
                     gftChannelAttributes.get(reqLanguage + "_description");
             channel.language = gftChannelAttributes.get("language") == null
@@ -552,7 +524,7 @@ public class SearchController {
             ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
             for (RichBean bean : resultSet.getResults()) {
                 if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
-                    channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, reqLanguage == null ? channel.language : reqLanguage )));
+                    channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, reqLanguage == null ? channel.language : reqLanguage)));
                 }
             }
         } catch (SolrTypeException e) {
@@ -565,7 +537,7 @@ public class SearchController {
 
         String xml = fieldTripUtils.cleanRss(xmlUtils.toString(rss));
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("rss", xml);
 
         response.setCharacterEncoding("UTF-8");
@@ -579,9 +551,9 @@ public class SearchController {
      * a concatenation of the Data Provier and ID fields.
      * <p>! FIX ME ! Note that this method will yield unwanted results when
      * there is more than one Title field!
-     * @param  bean mapped pojo bean
-     * @return String containing the concatenated fields
      *
+     * @param bean mapped pojo bean
+     * @return String containing the concatenated fields
      */
     private String getTitle(BriefBean bean) {
         if (!ArrayUtils.isEmpty(bean.getTitle())) {
@@ -597,9 +569,9 @@ public class SearchController {
     /**
      * retrieves a concatenation of the bean's DC Creator, Year and Provider
      * fields (if available)
-     * @param  bean mapped pojo bean
-     * @return String containing the fields, separated by semicolons
      *
+     * @param bean mapped pojo bean
+     * @return String containing the fields, separated by semicolons
      */
     private String getDescription(BriefBean bean) {
         StringBuilder sb = new StringBuilder();
@@ -622,7 +594,7 @@ public class SearchController {
         return sb.toString();
     }
 
-    private String getDcLanguage(BriefBean bean){
+    private String getDcLanguage(BriefBean bean) {
         if (bean.getDcLanguage() != null && bean.getDcLanguage().length > 0
                 && StringUtils.isNotBlank(bean.getDcLanguage()[0])) {
             return bean.getDcLanguage()[0];
@@ -632,35 +604,26 @@ public class SearchController {
     }
 
     private boolean isFacetsRequested(String profile) {
-        if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets")) {
-            return true;
-        }
-        return false;
+        return StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets");
     }
 
     private boolean isDefaultFacetsRequested(String profile, String[] facets) {
-        if (StringUtils.containsIgnoreCase(profile, "portal") ||
+        return StringUtils.containsIgnoreCase(profile, "portal") ||
                 (StringUtils.containsIgnoreCase(profile, "facets")
-                        && (    ArrayUtils.isEmpty(facets)
-                        ||  ArrayUtils.contains(facets, "DEFAULT")
-                ))) {
-            return true;
-        }
-        return false;
+                        && (ArrayUtils.isEmpty(facets)
+                        || ArrayUtils.contains(facets, "DEFAULT")
+                ));
     }
 
     private boolean isDefaultOrReusabilityFacetRequested(String profile, String[] facets) {
-        if (StringUtils.containsIgnoreCase(profile, "portal")
+        return StringUtils.containsIgnoreCase(profile, "portal")
                 || (
                 StringUtils.containsIgnoreCase(profile, "facets")
                         && (
                         ArrayUtils.isEmpty(facets)
-                                ||  ArrayUtils.contains(facets, "DEFAULT")
-                                ||  ArrayUtils.contains(facets, "REUSABILITY")
-                ))) {
-            return true;
-        }
-        return false;
+                                || ArrayUtils.contains(facets, "DEFAULT")
+                                || ArrayUtils.contains(facets, "REUSABILITY")
+                ));
     }
 
     /**
@@ -676,29 +639,29 @@ public class SearchController {
      * 'language' GET parameter if provided, or else the channel language code.
      * <p>If that fails as well, it looks up the English translation of the
      * label. And if that fails too, it returns a hardcoded error message.
-     * @param bean containing language code
+     *
+     * @param bean     containing language code
      * @param language String containing the channel's language code
      * @return String containing the label translation
-     *
      */
-    private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String language){
-        String translatedEdmIsShownAtLabel = "";
+    private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String language) {
+        String translatedEdmIsShownAtLabel;
         // first try with the bean language
         translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getBeanLocale(bean.getLanguage()));
         // check bean translation
-        if (StringUtils.isBlank(translatedEdmIsShownAtLabel)){
+        if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
             log.error("error: 'edmIsShownAtLabel translation for language code '" + getBeanLocale(bean.getLanguage()) + "' unavailable");
             log.error("falling back on channel language ('" + language + "')");
             // if empty, try with channel language instead
             translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(language);
             // check channel translation
-            if (StringUtils.isBlank(translatedEdmIsShownAtLabel)){
+            if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
                 log.error("error: 'fallback edmIsShownAtLabel translation for channel language code '" + language + "' unavailable");
                 log.error("falling back on default English translation ...");
                 // if empty, try with english instead
                 translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation("en");
                 // check english translation
-                if (StringUtils.isBlank(translatedEdmIsShownAtLabel)){
+                if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
                     log.error("Default English translation unavailable.");
                     // if empty, return hardcoded message
                     return "error: 'edmIsShownAtLabel' english fallback translation unavailable";
@@ -711,22 +674,22 @@ public class SearchController {
     /**
      * Gives the translation of the 'EdmIsShownAt' label in the language that
      * the provided String specifies
-     * @param  language containing language code
-     * @return String containing the label translation
      *
+     * @param language containing language code
+     * @return String containing the label translation
      */
-    private String getEdmIsShownAtLabelTranslation(String language){
+    private String getEdmIsShownAtLabelTranslation(String language) {
         return messageSource.getMessage("edm_isShownAtLabel_t", null, new Locale(language));
     }
 
     /**
      * Gives the translation of the 'EdmIsShownAt' label in the language of
      * the provided Locale
-     * @param  locale Locale instance initiated with the desired language
-     * @return String containing the label translation
      *
+     * @param locale Locale instance initiated with the desired language
+     * @return String containing the label translation
      */
-    private String getEdmIsShownAtLabelTranslation(Locale locale){
+    private String getEdmIsShownAtLabelTranslation(Locale locale) {
         return messageSource.getMessage("edm_isShownAtLabel_t", null, locale);
     }
 
@@ -735,14 +698,14 @@ public class SearchController {
      * the language code found in the input.
      * <p>Checks for NULL values, and whether or not the found code is two
      * characters long; if not, it returns a locale initiated to English
-     * @param  beanLanguage String Array containing language code
-     * @return Locale instance
      *
+     * @param beanLanguage String Array containing language code
+     * @return Locale instance
      */
     private Locale getBeanLocale(String[] beanLanguage) {
         if (!ArrayUtils.isEmpty(beanLanguage)
                 && !StringUtils.isBlank(beanLanguage[0])
-                && beanLanguage[0].length() == 2){
+                && beanLanguage[0].length() == 2) {
             return new Locale(beanLanguage[0]);
         } else {
             log.error("error: language code unavailable or malformed (e.g. not two characters long)");
@@ -754,11 +717,11 @@ public class SearchController {
      * retrieves the numerical part of the substring between the ':' and '*'
      * characters.
      * <p>e.g. "europeana_collectionName:91697*" will result in "91697"
-     * @param  queryTerms provided String
-     * @return String containing the Europeana collection ID only
      *
+     * @param queryTerms provided String
+     * @return String containing the Europeana collection ID only
      */
-    private String getIdFromQueryTerms(String queryTerms){
-        return queryTerms.substring(queryTerms.indexOf(":"), queryTerms.indexOf("*")).replaceAll("\\D+","");
+    private String getIdFromQueryTerms(String queryTerms) {
+        return queryTerms.substring(queryTerms.indexOf(":"), queryTerms.indexOf("*")).replaceAll("\\D+", "");
     }
 }

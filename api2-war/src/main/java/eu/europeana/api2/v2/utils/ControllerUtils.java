@@ -3,13 +3,11 @@ package eu.europeana.api2.v2.utils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
-import eu.europeana.api2.model.enums.ApiLimitException;
+import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
-import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
-import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.logging.Logger;
 
@@ -23,9 +21,6 @@ public class ControllerUtils {
 
   @Resource
   private ApiKeyService apiService;
-
-  @Resource
-  private ApiLogService apiLogService;
 
   /**
    * Check the number requests made to the API in the last (rolling) 24 hours. This is a per-user

@@ -22,7 +22,7 @@ public enum FacetNames {
 
     private final String realName_;
 
-    private FacetNames(String realName) {
+    FacetNames(String realName) {
         realName_ = realName;
     }
 

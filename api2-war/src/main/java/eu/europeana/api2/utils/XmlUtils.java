@@ -21,7 +21,7 @@ public class XmlUtils {
 	}
 
 	public ModelAndView buildModelAndView(Object rss) {
-		Map<String, Object> model = new HashMap<String, Object>();
+		Map<String, Object> model = new HashMap<>();
 		model.put("rss", toString(rss));
 		return new ModelAndView("rss", model);
 	}
@@ -32,9 +32,7 @@ public class XmlUtils {
 			OutputStream baos = new ByteArrayOutputStream();
 			marshaller.marshal(rss, new StreamResult(baos));
 			xml = new String(((ByteArrayOutputStream) baos).toByteArray(), "UTF-8");
-		} catch (XmlMappingException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
+		} catch (XmlMappingException | UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
 		return xml;
