@@ -17,35 +17,6 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
-
 import com.github.jsonldjava.core.JSONLD;
 import com.github.jsonldjava.core.JSONLDProcessingError;
 import com.github.jsonldjava.core.Options;
@@ -53,7 +24,6 @@ import com.github.jsonldjava.impl.JenaRDFParser;
 import com.github.jsonldjava.utils.JSONUtils;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
-
 import eu.europeana.api2.model.enums.ApiLimitException;
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.api2.model.json.ApiError;
@@ -88,9 +58,30 @@ import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
-import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -159,7 +150,7 @@ public class ObjectController {
 			long t0 = (new Date()).getTime();
 			FullBean bean = searchService.findById(europeanaObjectId, false);
 			if (bean == null) {
-                                europeanaObjectId= searchService.resolveId(europeanaObjectId);
+                europeanaObjectId= searchService.resolveId(europeanaObjectId);
 				bean = searchService.findById(europeanaObjectId, false);
 			}
 			if(bean!=null && bean.isOptedOut()){
@@ -178,6 +169,7 @@ public class ObjectController {
 					for (BriefBean b : similarItems) {
 						Boolean optOut = b.getPreviewNoDistribute();
 						BriefView view = new BriefView(b, similarItemsProfile, wskey, limitResponse.getApiKey().getUser().getId(), optOut==null?false:optOut);
+
 						beans.add(view);
 					}
 				} catch (SolrServerException e) {
@@ -195,7 +187,11 @@ public class ObjectController {
 			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
-		return JsonUtils.toJson(objectResult, callback);
+        final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        final ObjectWriter ow = objectMapper.writer().withDefaultPrettyPrinter();
+
+        return JsonUtils.toJson(objectResult, callback);
 	}
 
 	@SuppressWarnings("unused")

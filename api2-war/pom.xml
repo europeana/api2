@@ -109,13 +109,24 @@ the specific language governing permissions and limitations under the Licence. -
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-storage</artifactId>
             <version>${version.europeanaCorelib}</version>
-			
+
         </dependency>
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-common-storage</artifactId>
             <version>${version.europeanaCorelib}</version>
         </dependency>
+
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-media-storage</artifactId>
+            <version>${version.europeanaCorelib}</version>
+            <!--
+              <scope> system </scope>
+              <systemPath> /home/norbert/Projects/BusyMachines/Git/corelib/corelib-media-storage/target/corelib-media-storage-2.1-SNAPSHOT.jar </systemPath>
+                  -->
+        </dependency>
+
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-search</artifactId>
@@ -274,47 +285,52 @@ the specific language governing permissions and limitations under the Licence. -
             <type>jar</type>
         </dependency>
 
-<!--	<dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>17.0</version>
-	</dependency>-->
-             
-<!--         Swagger 1.2          -->
-<!--        <dependency>
-            <groupId>com.mangofactory</groupId>
-            <artifactId>swagger-springmvc</artifactId>
-            <version>1.0.1</version>
-        </dependency>-->
-        
-<!--         Swagger 2.0          -->        
         <dependency>
-           <groupId>io.springfox</groupId>
-           <artifactId>springfox-core</artifactId>
-           <version>2.0.0-SNAPSHOT</version>
-       </dependency>
-       <dependency>
-           <groupId>io.springfox</groupId>
-           <artifactId>springfox-spi</artifactId>
-           <version>2.0.0-SNAPSHOT</version>
-       </dependency>
-       <dependency>
-           <groupId>io.springfox</groupId>
-           <artifactId>springfox-spring-web</artifactId>
-           <version>2.0.0-SNAPSHOT</version>
-       </dependency>
-       <dependency>
-           <groupId>io.springfox</groupId>
-           <artifactId>springfox-swagger2</artifactId>
-           <version>2.0.0-SNAPSHOT</version>
-       </dependency>
-       <!-- for swagger 1.2 optionally -->
-<!--       <dependency>
-           <groupId>io.springfox</groupId>
-           <artifactId>springfox-swagger1</artifactId>
-           <version>2.0.0-SNAPSHOT</version>
-       </dependency>-->
-	
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20140107</version>
+        </dependency>
+
+
+
+
+
+
+        <!--	Swagger 1.2		  -->
+        <!--	<dependency>
+                    <groupId>com.mangofactory</groupId>
+                    <artifactId>swagger-springmvc</artifactId>
+                    <version>1.0.1</version>
+                </dependency>-->
+
+        <!--		 Swagger 2.0		  -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-core</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-spi</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-spring-web</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <!-- for swagger 1.2 optionally -->
+        <!--	   <dependency>
+                   <groupId>io.springfox</groupId>
+                   <artifactId>springfox-swagger1</artifactId>
+                   <version>2.0.0-SNAPSHOT</version>
+               </dependency>-->
+
     </dependencies>
 
     <scm>
@@ -362,7 +378,7 @@ the specific language governing permissions and limitations under the Licence. -
                 </configuration>
             </plugin>
 
-            <!-- For more information on how to use the maven tomcat plugin see: http://tomcat.apache.org/maven-plugin.html 
+            <!-- For more information on how to use the maven tomcat plugin see: http://tomcat.apache.org/maven-plugin.html
             On how to enable the Tomcat manager application: http://tomcat.apache.org/tomcat-6.0-doc/manager-howto.html -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -416,6 +432,14 @@ the specific language governing permissions and limitations under the Licence. -
         </profile>
         <profile>
             <id>
+                production
+            </id>
+            <properties>
+                <europeana.properties>${project.parent.basedir}/properties/production</europeana.properties>
+            </properties>
+        </profile>
+        <profile>
+            <id>
                 personal
             </id>
             <properties>
@@ -423,4 +447,5 @@ the specific language governing permissions and limitations under the Licence. -
             </properties>
         </profile>
     </profiles>
+
 </project>
