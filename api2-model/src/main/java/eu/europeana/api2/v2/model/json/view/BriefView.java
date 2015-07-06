@@ -283,7 +283,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 		if (ArrayUtils.isEmpty(bean.getEdmIsShownAt())) {
 			return bean.getEdmIsShownAt();
 		}
-		String provider = getProvider()[0];
+        String temp[] = getProvider();
+        String provider = "";
+        if(temp != null) {
+            provider = temp[0];
+        }
 		List<String>isShownAtLinks = new ArrayList<String>();
 		for (String isShownAt : bean.getEdmIsShownAt()) {
 			if (StringUtils.isBlank(bean.getEdmIsShownAt()[0])) {
@@ -320,4 +324,24 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 	public Boolean getPreviewNoDistribute() {
 		return bean.getPreviewNoDistribute()!=null? bean.getPreviewNoDistribute():false;
 	}
+        
+        @Override
+        public Map<String,List<String>>getDcTitleLangAware(){
+            return bean.getDcTitleLangAware();
+        }
+        
+        @Override
+        public Map<String,List<String>> getDcCreatorLangAware(){
+            return bean.getDcCreatorLangAware();
+        }
+        
+        @Override
+        public Map<String,List<String>> getDcContributorLangAware(){
+            return bean.getDcContributorLangAware();
+        }
+        
+        @Override
+        public Map<String,List<String>> getDcLanguageLangAware(){
+            return bean.getDcLanguageLangAware();
+        }
 }
