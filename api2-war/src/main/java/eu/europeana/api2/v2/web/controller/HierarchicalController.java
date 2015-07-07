@@ -47,7 +47,6 @@ import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.search.SearchService;
-import eu.europeana.corelib.utils.service.OptOutService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 

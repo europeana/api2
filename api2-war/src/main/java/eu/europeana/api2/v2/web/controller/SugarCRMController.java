@@ -140,8 +140,9 @@ public class SugarCRMController {
 	 * Returns information about a single Europeana provider identified by
 	 * provider_id. The response contains the following fields: identifier,
 	 * name, description, website, country.
-	 * 
-	 * @param query
+	 *
+	 * @param id
+	 * @param wskey
 	 * @param callback
 	 * @return the JSON response
 	 */
@@ -194,7 +195,7 @@ public class SugarCRMController {
 	 * the full id (composed of the identifier and the name) of a dataset.
 	 * 
 	 * @param id
-	 * @param query
+	 * @param wskey
 	 * @param callback
 	 * @return the JSON response
 	 */
@@ -248,9 +249,9 @@ public class SugarCRMController {
 	 * 
 	 * @param wskey
 	 * @param callback
-         * @param name
-         * @param country
-         * @param status
+	 * @param name
+	 * @param country
+	 * @param status
 	 * @param offset
 	 * @param pagesize
 	 * 
