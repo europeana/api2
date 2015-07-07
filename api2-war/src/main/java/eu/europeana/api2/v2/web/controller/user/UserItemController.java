@@ -71,20 +71,20 @@ public class UserItemController extends AbstractUserController {
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		UserResults<SavedItem> response = new UserResults<SavedItem>(getApiId(principal), "/v2/user/saveditem.json");
+		UserResults<SavedItem> response = new UserResults<>(getApiId(principal), "/v2/user/saveditem.json");
 		try {
 			User user = userService.findByEmail(principal.getName());
 			if (user != null) {
-				response.items = new ArrayList<SavedItem>();
+				response.items = new ArrayList<>();
 				response.username = user.getUserName();
 				Set<eu.europeana.corelib.definitions.db.entity.relational.SavedItem> results;
 				if (StringUtils.isBlank(europeanaId)) {
 					results = user.getSavedItems();
 				} else {
-					results = new HashSet<eu.europeana.corelib.definitions.db.entity.relational.SavedItem>();
+					results = new HashSet<>();
 					results.add(userService.findSavedItemByEuropeanaId(user.getId(), europeanaId));
 				}
-				response.itemsCount = Long.valueOf(results.size());
+				response.itemsCount = (long) results.size();
 				for (eu.europeana.corelib.definitions.db.entity.relational.SavedItem item : results) {
 					SavedItem fav = new SavedItem();
 					copyUserObjectData(response.apikey, fav, item);

@@ -31,5 +31,5 @@ public class Document {
 	public ExtendedData extendedData = new ExtendedData();
 
 	@XmlElement(name = "Placemark")
-	public List<Placemark> placemarks = new ArrayList<Placemark>();
+	public List<Placemark> placemarks = new ArrayList<>();
 }

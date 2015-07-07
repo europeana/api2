@@ -74,13 +74,12 @@ public class UserTagController extends AbstractUserController {
 	public ModelAndView list(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "tag", required = false) String tagFilter,
-			@RequestParam(value = "callback", required = false) String callback, 
-                        Principal principal) {
-		UserResults<Tag> response = new UserResults<Tag>(getApiId(principal), "/v2/user/tag.json");
+			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+		UserResults<Tag> response = new UserResults<>(getApiId(principal), "/v2/user/tag.json");
 		try {
 			User user = userService.findByEmail(principal.getName());
 			if (user != null) {
-				response.items = new ArrayList<Tag>();
+				response.items = new ArrayList<>();
 				response.username = user.getUserName();
 				List<SocialTag> tags;
 				if (StringUtils.isNotBlank(tagFilter)) {
@@ -88,9 +87,9 @@ public class UserTagController extends AbstractUserController {
 				} else if (StringUtils.isNotBlank(europeanaId)) {
 					tags = userService.findSocialTagsByEuropeanaId(user.getId(), europeanaId);
 				} else {
-					tags = new ArrayList<SocialTag>(user.getSocialTags());
+					tags = new ArrayList<>(user.getSocialTags());
 				}
-				response.itemsCount = Long.valueOf(tags.size());
+				response.itemsCount = (long) tags.size();
 				for (SocialTag item : tags) {
 					Tag tag = new Tag();
 					copyUserObjectData(response.apikey, tag, item);
@@ -117,13 +116,13 @@ public class UserTagController extends AbstractUserController {
 	public ModelAndView listDistinct(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(getApiId(principal),
+		UserResults<TagCloudItem> response = new UserResults<>(getApiId(principal),
 				"/v2/user/tag.json?action=TAGCLOUD");
 		try {
 			User user = userService.findByEmail(principal.getName());
 			if (user != null) {
 				response.items = userService.createSocialTagCloud(user.getId());
-				response.itemsCount = Long.valueOf(response.items.size());
+				response.itemsCount = (long) response.items.size();
 				response.success = true;
 				response.username = user.getUserName();
 			} else {

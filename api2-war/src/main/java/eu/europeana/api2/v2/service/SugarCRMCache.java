@@ -72,7 +72,7 @@ public class SugarCRMCache {
 	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<Provider> getProviders(String country, int offset, int pagesize) {
-		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<Provider>("", "");
+		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<>("", "");
 		Query<Provider> query = datastore.find(Provider.class);
 		if (country != null) {
 			query.filter("country", country.toUpperCase());
@@ -89,8 +89,7 @@ public class SugarCRMCache {
 			query.offset(offset);
 		}
 		List<Provider> providers = query.asList();
-		long count = datastore.find(Provider.class).countAll();
-		results.totalResults = count;
+		results.totalResults = datastore.find(Provider.class).countAll();
 		results.items = providers;
 
 		for (Provider provider : providers) {
@@ -121,7 +120,7 @@ public class SugarCRMCache {
 	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<DataSet> getCollections(int offset, int pagesize, String name, String country, String status) {
-		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("", "");
+		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("", "");
 		Query<DataSet> query = datastore.find(DataSet.class);
 
 		if (StringUtils.isNotBlank(name)) {
@@ -155,10 +154,9 @@ public class SugarCRMCache {
 		}
 
 		List<DataSet> dataSets = query.asList();
-		long count = query.countAll();
 		// TODO: check how offset modifies the behaviour
 		// long count = ds.find(DataSet.class).countAll();
-		results.totalResults = count;
+		results.totalResults = query.countAll();
 		results.items = dataSets;
 
 		for (DataSet dataSet : dataSets) {
@@ -175,8 +173,8 @@ public class SugarCRMCache {
 	 * @return the JSON/Morphia annotated provider bean wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<Provider> getProviderbyID(String id) {
-		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<Provider>("", "");
-		results.items = new ArrayList<Provider>();
+		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<>("", "");
+		results.items = new ArrayList<>();
 		Provider provider = datastore.find(Provider.class).field("_id").equal(id).get();
 
 		if (provider != null) {
@@ -193,8 +191,8 @@ public class SugarCRMCache {
 	 * @return the JSON/Morphia annotated dataset bean wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<DataSet> getCollectionByID(String id) {
-		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("", "");
-		results.items = new ArrayList<DataSet>();
+		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("", "");
+		results.items = new ArrayList<>();
 		DataSet dataSet = datastore.find(DataSet.class).field("_id").equal(id).get();
 		if (dataSet != null) {
 			inflateDataset(dataSet);
@@ -213,8 +211,8 @@ public class SugarCRMCache {
 		for (DataSet dataSet : dataSets) {
 			inflateDataset(dataSet);
 		}
-		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<DataSet>("", "");
-		results.items = new ArrayList<DataSet>();
+		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("", "");
+		results.items = new ArrayList<>();
 		results.items.addAll(dataSets);
 		return results;
 	}
