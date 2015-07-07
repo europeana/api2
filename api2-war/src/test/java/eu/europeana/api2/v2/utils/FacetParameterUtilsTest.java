@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import eu.europeana.corelib.definitions.solr.Facet;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,7 +18,7 @@ public class FacetParameterUtilsTest {
 	public void setUp() throws Exception {
 		facets = new String[]{"proxy_dc_contributor"};
 
-		parameters = new HashMap<String, String[]>();
+		parameters = new HashMap<>();
 		parameters.put("facet", new String[]{"proxy_dc_contributor"});
 		parameters.put("profile", new String[]{"facets"});
 		parameters.put("f.proxy_dc_contributor.facet.limit", new String[]{"30"});
@@ -28,7 +29,7 @@ public class FacetParameterUtilsTest {
 	public void testLimitWithDefaults() {
 		Map<String, Integer> resultMap = FacetParameterUtils.getFacetParams("limit", facets, parameters, true);
 		assertNotNull(resultMap);
-		assertEquals(9, resultMap.size());
+		assertEquals(Facet.values().length + 1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.limit"));
 		assertTrue(resultMap.containsKey("f.DATA_PROVIDER.facet.limit"));
 		assertEquals(new Integer(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
@@ -37,12 +38,11 @@ public class FacetParameterUtilsTest {
 
 	@Test
 	public void testLimitWithoutDefaults() {
-		Map<String, Integer> resultMap = FacetParameterUtils.getFacetParams("limit", facets, parameters, true);
+		Map<String, Integer> resultMap = FacetParameterUtils.getFacetParams("limit", facets, parameters, false);
 		assertNotNull(resultMap);
-		assertEquals(9, resultMap.size());
+		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.limit"));
 		assertEquals(new Integer(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
-		assertEquals(new Integer(3000), resultMap.get("f.DATA_PROVIDER.facet.limit"));
 	}
 
 	@Test

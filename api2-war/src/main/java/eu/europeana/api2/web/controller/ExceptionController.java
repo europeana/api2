@@ -36,14 +36,12 @@ public class ExceptionController {
 			LimitReachedException.class})
 	@ResponseBody
 	public ApiError handleMismatchException(Exception ex) {
-		ApiError error = new ApiError(null, null, "Invalid argument(s): " + ex.toString());
-		return error;
+		return new ApiError(null, null, "Invalid argument(s): " + ex.toString());
 	}
 
 	@ExceptionHandler(LimitReachedException.class)
 	@ResponseBody
 	public ApiError handleLimitReachedException() {
-		ApiError error = new ApiError(null, null, "API Usage Limit Reached.");
-		return error;
+		return new ApiError(null, null, "API Usage Limit Reached.");
 	}
 }

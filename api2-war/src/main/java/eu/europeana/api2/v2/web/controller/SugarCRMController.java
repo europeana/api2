@@ -21,21 +21,7 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import java.util.Date;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-
-import eu.europeana.api2.model.enums.ApiLimitException;
+import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
@@ -46,17 +32,26 @@ import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.db.service.ApiKeyService;
-import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 
 /**
  * Controller for providing Provider/DataSet specific information contained into
  * SugarCRM
- * 
+ *
  * @author Georgios Markakis (gwarkx@hotmail.com)
- * 
  * @since Sep 24, 2013
  */
 @Controller
@@ -70,28 +65,22 @@ public class SugarCRMController {
 	private SugarCRMCache sugarCRMCache;
 
 	@Resource
-	private ApiKeyService apiService;
-
-	@Resource
-	private ApiLogService apiLogService;
-
-	@Resource
 	private ControllerUtils controllerUtils;
 
 	/**
 	 * Returns the list of Europeana providers. The response is an Array of JSON
 	 * objects, each one containing the identifier and the name of a provider.
-	 * 
+	 *
 	 * @param wskey
 	 * @param callback
 	 * @param countryCode
 	 * @param offset
 	 * @param pagesize
-	 * 
+	 *
 	 * @return the JSON response
 	 */
-	@RequestMapping(value = "/v2/providers.json", produces = MediaType.APPLICATION_JSON_VALUE, 
-			method = {RequestMethod.POST, RequestMethod.GET })
+	@RequestMapping(value = "/v2/providers.json", produces = MediaType.APPLICATION_JSON_VALUE,
+			method = {RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView findproviders(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -103,9 +92,9 @@ public class SugarCRMController {
 		controllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
-		SugarCRMSearchResults<Provider> response = null;
+		SugarCRMSearchResults<Provider> response;
 
-		LimitResponse limitResponse = null;
+		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"providers.json", RecordType.PROVIDERS, null);
@@ -146,8 +135,8 @@ public class SugarCRMController {
 	 * @param callback
 	 * @return the JSON response
 	 */
-	@RequestMapping(value = "/v2/provider/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, 
-			method = {RequestMethod.POST, RequestMethod.GET })
+	@RequestMapping(value = "/v2/provider/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE,
+			method = {RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView findprovidersByID(
 			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
@@ -157,9 +146,9 @@ public class SugarCRMController {
 		controllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
-		SugarCRMSearchResults<Provider> response = null;
+		SugarCRMSearchResults<Provider> response;
 
-		LimitResponse limitResponse = null;
+		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"provider.json", RecordType.PROVIDER, null);
@@ -193,14 +182,14 @@ public class SugarCRMController {
 	 * Returns the list of datasets provided by the provider. The response is an
 	 * Array of JSON objects, each one containing the identifier, the name, and
 	 * the full id (composed of the identifier and the name) of a dataset.
-	 * 
+	 *
 	 * @param id
 	 * @param wskey
 	 * @param callback
 	 * @return the JSON response
 	 */
 	@RequestMapping(value = "/v2/provider/{id}/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.GET })
+			RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView findDatasetsPerProvider(
 			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
@@ -210,9 +199,9 @@ public class SugarCRMController {
 		controllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
-		SugarCRMSearchResults<DataSet> response = null;
+		SugarCRMSearchResults<DataSet> response;
 
-		LimitResponse limitResponse = null;
+		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"provider/datasets.json", RecordType.PROVIDER_DATASETS, null);
@@ -246,7 +235,7 @@ public class SugarCRMController {
 	/**
 	 * Returns the list of Europeana datasets. The response is an Array of JSON
 	 * objects, each one containing the identifier and the name of a dataset.
-	 * 
+	 *
 	 * @param wskey
 	 * @param callback
 	 * @param name
@@ -254,11 +243,11 @@ public class SugarCRMController {
 	 * @param status
 	 * @param offset
 	 * @param pagesize
-	 * 
+	 *
 	 * @return the JSON response
 	 */
 	@RequestMapping(value = "/v2/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.GET })
+			RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView findDatasets(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -272,9 +261,9 @@ public class SugarCRMController {
 		controllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
-		SugarCRMSearchResults<DataSet> response = null;
+		SugarCRMSearchResults<DataSet> response;
 
-		LimitResponse limitResponse = null;
+		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"datasets.json", RecordType.DATASETS, null);
@@ -310,14 +299,14 @@ public class SugarCRMController {
 	 * Returns information about a dataset identified by dataset_id. The
 	 * response contains the following fields: identifier, name, description,
 	 * status,
-	 * 
+	 *
 	 * @param id
 	 * @param wskey
 	 * @param callback
 	 * @return the JSON response
 	 */
 	@RequestMapping(value = "/v2/dataset/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.GET })
+			RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView findDatasetsById(
 			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
@@ -327,9 +316,9 @@ public class SugarCRMController {
 		controllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
-		SugarCRMSearchResults<DataSet> response = null;
+		SugarCRMSearchResults<DataSet> response;
 
-		LimitResponse limitResponse = null;
+		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					"datasets.json", RecordType.DATASETS, null);

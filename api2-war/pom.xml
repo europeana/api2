@@ -1,16 +1,15 @@
 <?xml version="1.0"?>
-<!-- Copyright 2007-2013 The Europeana Foundation Licenced under the EUPL, 
-Version 1.1 (the "Licence") and subsequent versions as approved by the European 
-Commission; You may not use this work except in compliance with the Licence. 
-You may obtain a copy of the Licence at: http://joinup.ec.europa.eu/software/page/eupl 
-Unless required by applicable law or agreed to in writing, software distributed 
-under the Licence is distributed on an "AS IS" basis, without warranties 
-or conditions of any kind, either express or implied. See the Licence for 
-the specific language governing permissions and limitations under the Licence. -->
+<!-- Copyright 2007-2013 The Europeana Foundation Licenced under the EUPL,
+	Version 1.1 (the "Licence") and subsequent versions as approved by the European 
+	Commission; You may not use this work except in compliance with the Licence. 
+	You may obtain a copy of the Licence at: http://joinup.ec.europa.eu/software/page/eupl 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the Licence is distributed on an "AS IS" basis, without warranties 
+	or conditions of any kind, either express or implied. See the Licence for 
+	the specific language governing permissions and limitations under the Licence. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>eu.europeana.api2</groupId>
     <artifactId>api2-war</artifactId>
     <packaging>war</packaging>
@@ -83,9 +82,8 @@ the specific language governing permissions and limitations under the Licence. -
             <groupId>eu.europeana.api2</groupId>
             <artifactId>api2-model</artifactId>
             <version>${version.europeanaApi2}</version>
-			
         </dependency>
-		
+
         <dependency>
             <!-- will also include SOLR, DEF, UTILS -->
             <groupId>eu.europeana.corelib</groupId>
@@ -109,8 +107,8 @@ the specific language governing permissions and limitations under the Licence. -
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-storage</artifactId>
             <version>${version.europeanaCorelib}</version>
-
         </dependency>
+
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-common-storage</artifactId>
@@ -122,6 +120,7 @@ the specific language governing permissions and limitations under the Licence. -
             <artifactId>corelib-search</artifactId>
             <version>${version.europeanaCorelib}</version>
         </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
@@ -281,45 +280,29 @@ the specific language governing permissions and limitations under the Licence. -
             <version>20140107</version>
         </dependency>
 
-
-
-
-
-
-        <!--	Swagger 1.2		  -->
-        <!--	<dependency>
-                    <groupId>com.mangofactory</groupId>
-                    <artifactId>swagger-springmvc</artifactId>
-                    <version>1.0.1</version>
-                </dependency>-->
-
-        <!--		 Swagger 2.0		  -->
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-core</artifactId>
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-spi</artifactId>
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-spring-web</artifactId>
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
+
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
-        <!-- for swagger 1.2 optionally -->
-        <!--	   <dependency>
-                   <groupId>io.springfox</groupId>
-                   <artifactId>springfox-swagger1</artifactId>
-                   <version>2.0.0-SNAPSHOT</version>
-               </dependency>-->
 
     </dependencies>
 
@@ -369,7 +352,8 @@ the specific language governing permissions and limitations under the Licence. -
             </plugin>
 
             <!-- For more information on how to use the maven tomcat plugin see: http://tomcat.apache.org/maven-plugin.html
-            On how to enable the Tomcat manager application: http://tomcat.apache.org/tomcat-6.0-doc/manager-howto.html -->
+                On how to enable the Tomcat manager application: http://tomcat.apache.org/tomcat-6.0-doc/manager-howto.html -->
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>tomcat-maven-plugin</artifactId>
@@ -417,7 +401,7 @@ the specific language governing permissions and limitations under the Licence. -
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <europeana.properties>${project.parent.basedir}/properties/test</europeana.properties>
+				<europeana.properties>${project.parent.basedir}/properties/test</europeana.properties>
             </properties>
         </profile>
         <profile>
@@ -425,7 +409,7 @@ the specific language governing permissions and limitations under the Licence. -
                 production
             </id>
             <properties>
-                <europeana.properties>${project.parent.basedir}/properties/production</europeana.properties>
+				<europeana.properties>${project.parent.basedir}/properties/production</europeana.properties>
             </properties>
         </profile>
         <profile>
@@ -433,9 +417,8 @@ the specific language governing permissions and limitations under the Licence. -
                 personal
             </id>
             <properties>
-                <europeana.properties>${project.parent.basedir}/properties/personal</europeana.properties>
+				<europeana.properties>${project.parent.basedir}/properties/personal</europeana.properties>
             </properties>
         </profile>
     </profiles>
-
 </project>
