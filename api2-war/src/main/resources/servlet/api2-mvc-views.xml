@@ -57,13 +57,6 @@
     
     <mvc:annotation-driven />
     <context:component-scan base-package="eu.europeana.api2.v2.web.controller" />
-<!--    <bean class="springfox.documentation.configuration.SpringSwaggerConfig">
-    </bean>    -->
-<!--  v 1.2   <bean class="com.mangofactory.swagger.configuration.SpringSwaggerConfig">
-    </bean>    -->
-<!--  v. 2.0   -->
     <bean class="eu.europeana.api2.v2.web.swagger.SwaggerConfig">
-    </bean>  
-  
-        
+    </bean>
 </beans>

@@ -28,7 +28,7 @@ public class MyDataProfileController extends AbstractUserController {
 	public ModelAndView defaultAction(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		Profile response = new Profile(principal.getName(), "/v2/mydata/profile.json");
+		Profile response = new Profile(principal.getName(), "/v2/user/profile.json");
 		try {
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {
