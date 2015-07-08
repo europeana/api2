@@ -64,7 +64,7 @@ public abstract class ApiResponse {
 	public void addParam(String name, Object value) {
 		if (StringUtils.isNotBlank(name) && value != null) {
 			if (params == null) {
-				params = new LinkedHashMap<String, Object>();
+				params = new LinkedHashMap<>();
 			}
 			params.put(name, value);
 		}

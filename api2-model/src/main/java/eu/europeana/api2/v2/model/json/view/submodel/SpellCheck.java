@@ -15,5 +15,5 @@ public class SpellCheck {
 	/**
 	 * List of suggestions
 	 */
-	public List<LabelFrequency> suggestions = new ArrayList<LabelFrequency>();
+	public List<LabelFrequency> suggestions = new ArrayList<>();
 }
