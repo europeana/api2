@@ -4,6 +4,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 import eu.europeana.api2.v2.model.xml.definitions.Namespaces;
 
+@SuppressWarnings("unused")
 public class Item {
 
 	@XmlElement

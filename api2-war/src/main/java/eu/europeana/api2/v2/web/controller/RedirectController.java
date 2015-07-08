@@ -17,9 +17,6 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
 @Controller
 public class RedirectController {
 
-	@Resource
-	private ApiLogService apiLogService;
-
 	@Resource(name = "corelib_db_userService")
 	private UserService userService;
 	
@@ -32,9 +29,7 @@ public class RedirectController {
 	@RequestMapping(value = {"/{uid}/redirect", "/{uid}/redirect.json"}, method = RequestMethod.GET)
 	public String handleRedirect(
 			@PathVariable String uid,
-			@RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
-			@RequestParam(value = "shownAt", required = true) String isShownAt,
-			@RequestParam(value = "id", required = true) String id) throws Exception {
+			@RequestParam(value = "shownAt", required = true) String isShownAt) throws Exception {
 
 		if (StringUtils.isBlank(isShownAt)) {
 			throw new IllegalArgumentException(

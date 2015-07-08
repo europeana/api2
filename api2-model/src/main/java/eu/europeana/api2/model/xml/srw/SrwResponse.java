@@ -28,6 +28,7 @@ public class SrwResponse {
 	@XmlElement(name = "records")
 	public Records records = new Records();
 
+	@SuppressWarnings("unused")
 	@XmlElement
 	public EchoedSearchRetrieveRequest echoedSearchRetrieveRequest = new EchoedSearchRetrieveRequest();
 }

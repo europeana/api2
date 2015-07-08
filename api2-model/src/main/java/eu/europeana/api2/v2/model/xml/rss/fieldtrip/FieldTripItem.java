@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import eu.europeana.api2.v2.model.xml.definitions.Namespaces;
 
+@SuppressWarnings("unused")
 @XmlRootElement(name = "item")
 public class FieldTripItem {
 
