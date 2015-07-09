@@ -161,10 +161,10 @@ public class ModelUtils {
         }
 
         for (Map.Entry<FacetNames, Map<String, Long>> facetNameValues : mediaTypeFacets.entrySet()) {
-            if (facetNameValues.getValue().isEmpty() ||
-                FacetNames.COLOURPALETTE.equals(facetNameValues.getKey())) {
+            if (facetNameValues.getValue().isEmpty()) {
                 continue;
             }
+
             final Facet facet = new Facet();
             facet.name = facetNameValues.getKey().getRealName();
 
