@@ -63,6 +63,7 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -157,7 +158,8 @@ public class SearchController {
 	 *
 	 * @return the JSON response
 	 */
-	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "search for records")
+	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
 			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
@@ -315,7 +317,8 @@ public class SearchController {
 	 *
 	 * @return the JSON response
 	 */
-	@RequestMapping(value = "/v2/suggestions.json", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "get autocompletion recommendation for search queries")
+	@RequestMapping(value = "/v2/suggestions.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView suggestionsJson(
 			@RequestParam(value = "query", required = true) String query,
 			@RequestParam(value = "rows", required = false, defaultValue = "10") int count,
@@ -405,7 +408,8 @@ public class SearchController {
 	 *
 	 * @return the JSON response
 	 */
-	@RequestMapping(value = "/v2/search.kml", produces = {"application/vnd.google-earth.kml+xml", MediaType.ALL_VALUE})
+	@ApiOperation(value = "search for <TBD>")
+	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET}, produces = {"application/vnd.google-earth.kml+xml", MediaType.ALL_VALUE})
 	public @ResponseBody KmlResponse searchKml(
 			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
@@ -459,7 +463,8 @@ public class SearchController {
 	 *
 	 * @return the JSON response
 	 */
-	@RequestMapping(value = "/v2/opensearch.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
+	@ApiOperation(value = "Basic search function following the OpenSearch specification")
+	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
 	public @ResponseBody RssResponse openSearchRss(
 			@RequestParam(value = "searchTerms", required = true) String queryString,
 			@RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
@@ -510,7 +515,8 @@ public class SearchController {
 	 * @param response    servlet response object
 	 * @return ModelAndView instance
 	 */
-	@RequestMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
+	@ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections")
+	@RequestMapping(value = "/v2/search.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
 	public ModelAndView fieldTripRss(
 			@RequestParam(value = "query", required = true) String queryTerms,
 			@RequestParam(value = "offset", required = false, defaultValue = "1") int offset,

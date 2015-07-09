@@ -59,6 +59,7 @@ import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -107,6 +108,7 @@ public class ObjectController {
 
     private String similarItemsProfile = "minimal";
 
+    @ApiOperation(value = "get single record")
     @RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView record(
@@ -183,7 +185,8 @@ public class ObjectController {
     }
 
     @SuppressWarnings("unused")
-    @RequestMapping(value = "/{collectionId}/{recordId}.kml", produces = "application/vnd.google-earth.kml+xml")
+    @ApiOperation(value = "get single Google Earth kml record")
+    @RequestMapping(value = "/{collectionId}/{recordId}.kml", method = RequestMethod.GET, produces = "application/vnd.google-earth.kml+xml")
     public
     @ResponseBody
     ApiResponse searchKml(
@@ -193,6 +196,7 @@ public class ObjectController {
         return new ApiNotImplementedYet(apiKey, "record.kml");
     }
 
+    @ApiOperation(value = "<TBD>")
     @RequestMapping(value = {"/context.jsonld", "/context.json-ld"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView contextJSONLD(
             @RequestParam(value = "callback", required = false) String callback
@@ -201,6 +205,7 @@ public class ObjectController {
         return JsonUtils.toJson(jsonld, callback);
     }
 
+    @ApiOperation(value = "get single record (JSON LD format)")
     @RequestMapping(value = {"/{collectionId}/{recordId}.jsonld", "/{collectionId}/{recordId}.json-ld"},
             method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSONLD(
@@ -264,7 +269,8 @@ public class ObjectController {
         return JsonUtils.toJson(jsonld, callback);
     }
 
-    @RequestMapping(value = "/{collectionId}/{recordId}.rdf", produces = "application/rdf+xml")
+    @ApiOperation(value = "get single record (rdf format)")
+    @RequestMapping(value = "/{collectionId}/{recordId}.rdf", method = RequestMethod.GET, produces = "application/rdf+xml")
     public ModelAndView recordRdf(@PathVariable String collectionId, @PathVariable String recordId,
                                   @RequestParam(value = "wskey", required = true) String wskey, HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
@@ -341,7 +347,8 @@ public class ObjectController {
         return null;
     }
 
-    @RequestMapping(value = "/{collectionId}/{recordId}.srw", produces = MediaType.TEXT_XML_VALUE)
+    @ApiOperation(value = "<TBD>")
+    @RequestMapping(value = "/{collectionId}/{recordId}.srw", method = RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
     public
     @ResponseBody
     SrwResponse recordSrw(@PathVariable String collectionId, @PathVariable String recordId,

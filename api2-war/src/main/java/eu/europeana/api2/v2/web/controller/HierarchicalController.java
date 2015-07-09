@@ -31,6 +31,7 @@ import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -64,6 +65,7 @@ public class HierarchicalController {
     @Resource
     private ControllerUtils controllerUtils;
 
+    @ApiOperation(value = "returns the object itself")
     @RequestMapping(value = "/{collectionId}/{recordId}/self.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getSelf(
@@ -78,6 +80,7 @@ public class HierarchicalController {
                 profile, wskey, -1, -1, callback, request, response);
     }
 
+    @ApiOperation(value = "returns the object, its ancestors and siblings")
     @RequestMapping(value = "/{collectionId}/{recordId}/ancestor-self-siblings.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getAncestorSelfSiblings(
@@ -92,6 +95,7 @@ public class HierarchicalController {
                 profile, wskey, -1, -1, callback, request, response);
     }
 
+    @ApiOperation(value = "returns the object's children")
     @RequestMapping(value = "/{collectionId}/{recordId}/children.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getChildren(
@@ -108,6 +112,7 @@ public class HierarchicalController {
                 profile, wskey, limit, offset, callback, request, response);
     }
 
+    @ApiOperation(value = "returns the object's parent")
     @RequestMapping(value = "/{collectionId}/{recordId}/parent.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getParent(
@@ -124,6 +129,7 @@ public class HierarchicalController {
                 profile, wskey, limit, offset, callback, request, response);
     }
 
+    @ApiOperation(value = "returns the object's preceding siblings")
     @RequestMapping(value = "/{collectionId}/{recordId}/preceeding-siblings.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getPreceedingSiblings(
@@ -140,6 +146,7 @@ public class HierarchicalController {
                 profile, wskey, limit, offset, callback, request, response);
     }
 
+    @ApiOperation(value = "returns the object's following siblings")
     @RequestMapping(value = "/{collectionId}/{recordId}/following-siblings.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getFollowingSiblings(
