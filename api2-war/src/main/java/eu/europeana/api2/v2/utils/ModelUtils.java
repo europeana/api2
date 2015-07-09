@@ -186,7 +186,7 @@ public class ModelUtils {
             Collections.sort(facet.fields, new Comparator<LabelFrequency>() {
                 @Override
                 public int compare(LabelFrequency o1, LabelFrequency o2) {
-                    return o1.label.trim().compareTo(o2.label.trim());
+                    return Long.compare(o2.count, o1.count);
                 }
             });
         }
