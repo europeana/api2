@@ -34,6 +34,7 @@ import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -79,8 +80,10 @@ public class SugarCRMController {
 	 *
 	 * @return the JSON response
 	 */
+
+	@ApiOperation(value = "Retrieve information about all Europeana data providers", nickname = "providers")
 	@RequestMapping(value = "/v2/providers.json", produces = MediaType.APPLICATION_JSON_VALUE,
-			method = {RequestMethod.POST, RequestMethod.GET})
+			method = {RequestMethod.GET})
 	public ModelAndView findproviders(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -135,8 +138,9 @@ public class SugarCRMController {
 	 * @param callback
 	 * @return the JSON response
 	 */
+	@ApiOperation(value = "Retrieve information about a single Europeana provider", nickname = "singleProvider")
 	@RequestMapping(value = "/v2/provider/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE,
-			method = {RequestMethod.POST, RequestMethod.GET})
+			method = {RequestMethod.GET})
 	public ModelAndView findprovidersByID(
 			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
@@ -188,8 +192,9 @@ public class SugarCRMController {
 	 * @param callback
 	 * @return the JSON response
 	 */
+	@ApiOperation(value = "Retrieve the list of datasets provided by the provider", nickname = "providerDatasets")
 	@RequestMapping(value = "/v2/provider/{id}/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.GET})
+			RequestMethod.GET})
 	public ModelAndView findDatasetsPerProvider(
 			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
@@ -246,8 +251,9 @@ public class SugarCRMController {
 	 *
 	 * @return the JSON response
 	 */
+	@ApiOperation(value = "Retrieve the list of Europeana datasets", nickname = "datasets")
 	@RequestMapping(value = "/v2/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.GET})
+			RequestMethod.GET})
 	public ModelAndView findDatasets(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -305,8 +311,9 @@ public class SugarCRMController {
 	 * @param callback
 	 * @return the JSON response
 	 */
+	@ApiOperation(value = "Retrieve information about a dataset", nickname = "dataset")
 	@RequestMapping(value = "/v2/dataset/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.GET})
+			RequestMethod.GET})
 	public ModelAndView findDatasetsById(
 			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,

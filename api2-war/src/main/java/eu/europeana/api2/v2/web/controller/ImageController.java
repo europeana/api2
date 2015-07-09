@@ -20,6 +20,7 @@ package eu.europeana.api2.v2.web.controller;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -53,6 +54,7 @@ public class ImageController {
 	@Resource
 	private SearchService searchService;
 
+	@ApiOperation(value = "get single image")
 	@RequestMapping("/{collectionId}/{recordId}.jpg")
 	public ResponseEntity<byte[]> image(
 			@PathVariable String collectionId,
@@ -89,6 +91,7 @@ public class ImageController {
 		return new ResponseEntity<>(image, headers, HttpStatus.OK);
 	}
 
+	@ApiOperation(value = "<TBD>")
 	@RequestMapping(value = "/image")
 	public void imageRedirect(HttpServletResponse response,
 			@RequestParam(value = "uri", required = false) String uri,

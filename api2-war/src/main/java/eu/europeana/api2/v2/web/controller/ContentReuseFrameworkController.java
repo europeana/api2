@@ -41,12 +41,6 @@ public class ContentReuseFrameworkController {
     @Resource
     private ControllerUtils controllerUtils;
 
-<<<<<<< HEAD
-
-=======
-   
->>>>>>> develop
-
     private byte[] getImage(String path, String size) {
         byte[] response = null;
 

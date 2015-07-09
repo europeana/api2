@@ -6,6 +6,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -36,6 +37,7 @@ public class QueryTranslationController {
 	private static final String ERROR_TERM = "Invalid parameter: term can not be empty";
 	private static final String ERROR_LANGUAGE = "Invalid parameter: languageCodes can not be empty";
 
+	@ApiOperation(value = "translate a term to different languages")
 	@RequestMapping(value = "/v2/translateQuery.json", method = RequestMethod.GET,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView translateQuery(
