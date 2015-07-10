@@ -33,7 +33,7 @@ public enum DefaultImage {
 	private String image;
 	private byte[] cache = null;
 
-	private DefaultImage(ThumbSize size, DocType type, String image) {
+	DefaultImage(ThumbSize size, DocType type, String image) {
 		this.size = size;
 		this.type = type;
 		this.image = image;

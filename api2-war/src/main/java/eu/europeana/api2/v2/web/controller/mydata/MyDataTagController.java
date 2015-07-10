@@ -61,12 +61,12 @@ public class MyDataTagController extends AbstractUserController {
 			@RequestParam(value = "tag", required = false) String tagFilter,
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		UserResults<Tag> response = new UserResults<Tag>(principal.getName(), "/v2/mydata/tag.json");
+		UserResults<Tag> response = new UserResults<>(principal.getName(), "/v2/mydata/tag.json");
 		try {
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {
 				User user = apiKey.getUser();
-				response.items = new ArrayList<Tag>();
+				response.items = new ArrayList<>();
 				response.username = user.getUserName();
 				List<SocialTag> tags;
 				if (StringUtils.isNotBlank(tagFilter)) {
@@ -74,9 +74,9 @@ public class MyDataTagController extends AbstractUserController {
 				} else if (StringUtils.isNotBlank(europeanaId)) {
 					tags = userService.findSocialTagsByEuropeanaId(user.getId(), europeanaId);
 				} else {
-					tags = new ArrayList<SocialTag>(user.getSocialTags());
+					tags = new ArrayList<>(user.getSocialTags());
 				}
-				response.itemsCount = Long.valueOf(tags.size());
+				response.itemsCount = (long) tags.size();
 				for (SocialTag item : tags) {
 					Tag tag = new Tag();
 					copyUserObjectData(response.apikey, tag, item);
@@ -100,14 +100,14 @@ public class MyDataTagController extends AbstractUserController {
 	public ModelAndView listDistinct(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		UserResults<TagCloudItem> response = new UserResults<TagCloudItem>(principal.getName(), "/v2/mydata/tag.json?action=TAGCLOUD");
+		UserResults<TagCloudItem> response = new UserResults<>(principal.getName(), "/v2/mydata/tag.json?action=TAGCLOUD");
 		try {
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {
 				User user = apiKey.getUser();
 				try {
 					response.items = userService.createSocialTagCloud(user.getId());
-					response.itemsCount = Long.valueOf(response.items.size());
+					response.itemsCount = (long) response.items.size();
 					response.success = true;
 				} catch (DatabaseException e) {
 					response.success = false;

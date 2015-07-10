@@ -25,7 +25,7 @@ public class JsonUtils {
 
 	public static ModelAndView toJson(String json, String callback) {
 		String resultPage = "json";
-		Map<String, Object> model = new HashMap<String, Object>();
+		Map<String, Object> model = new HashMap<>();
 		model.put("json", json);
 		if (StringUtils.isNotBlank(callback)) {
 			resultPage = "jsonp";
@@ -48,7 +48,7 @@ public class JsonUtils {
 		}
 		// TODO report error...
 		String resultPage = "json";
-		Map<String, Object> model = new HashMap<String, Object>();
+		Map<String, Object> model = new HashMap<>();
 		if (StringUtils.isNotBlank(callback)) {
 			resultPage = "jsonp";
 			model.put("callback", callback);

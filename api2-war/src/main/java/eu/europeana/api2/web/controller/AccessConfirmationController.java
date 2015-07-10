@@ -34,7 +34,7 @@ public class AccessConfirmationController {
 	public ModelAndView getAccessConfirmation(@ModelAttribute AuthorizationRequest clientAuth) throws Exception {
 		ClientDetails client = clientDetailsService.loadClientByClientId(clientAuth.getClientId());
 		ApiKey key = apiKeyService.findByID(client.getClientId());
-		TreeMap<String, Object> model = new TreeMap<String, Object>();
+		TreeMap<String, Object> model = new TreeMap<>();
 		model.put("auth_request", clientAuth);
 		model.put("client", client);
 		model.put("appName", StringUtils.defaultIfBlank(key.getApplicationName(), StringUtils.defaultIfBlank(key.getUser().getCompany(), key.getId())));

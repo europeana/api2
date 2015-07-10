@@ -17,9 +17,8 @@
 
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api2.v2.model.json.common.LabelFrequency;
-import eu.europeana.api2.v2.model.json.view.submodel.Facet;
-import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
+import java.util.*;
+
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
 import eu.europeana.corelib.search.service.inverseLogic.*;
 import org.apache.commons.lang.StringUtils;
@@ -27,18 +26,21 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
 
-import java.util.*;
+import eu.europeana.api2.v2.model.json.common.LabelFrequency;
+import eu.europeana.api2.v2.model.json.view.submodel.Facet;
+import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 public class ModelUtils {
 
-	private ModelUtils() {
+
+    private ModelUtils() {
 		// Constructor must be private
 	}
 
-    public static String getFacetName(Integer tag) {
+ public static String getFacetName(Integer tag) {
         final MediaTypeEncoding mediaType = CommonPropertyExtractor.getType(tag);
         final String  mimeType  = CommonPropertyExtractor.getMimeType(tag);
 
@@ -89,12 +91,14 @@ public class ModelUtils {
 
             default: return "";
         }
-    }
+ }
 
 	public static List<Facet> conventFacetList(List<FacetField> facetFields) {
+        
         if (null == facetFields || facetFields.isEmpty()) {
             return null;
         }
+
         final List<Facet> facets = new ArrayList<Facet>();
         final Map<FacetNames, Map<String, Long>> mediaTypeFacets = new HashMap<>();
 
@@ -185,7 +189,7 @@ public class ModelUtils {
         for (final Facet facet: facets) {
             Collections.sort(facet.fields, new Comparator<LabelFrequency>() {
                 @Override
-                public int compare(LabelFrequency o1, LabelFrequency o2) {
+                public int compare (LabelFrequency o1, LabelFrequency o2) {
                     return Long.compare(o2.count, o1.count);
                 }
             });
