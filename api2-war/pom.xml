@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- Copyright 2007-2013 The Europeana Foundation Licenced under the EUPL, 
+<!-- Copyright 2007-2013 The Europeana Foundation Licenced under the EUPL,
 	Version 1.1 (the "Licence") and subsequent versions as approved by the European 
 	Commission; You may not use this work except in compliance with the Licence. 
 	You may obtain a copy of the Licence at: http://joinup.ec.europa.eu/software/page/eupl 
@@ -8,403 +8,393 @@
 	or conditions of any kind, either express or implied. See the Licence for 
 	the specific language governing permissions and limitations under the Licence. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>eu.europeana.api2</groupId>
-	<artifactId>api2-war</artifactId>
-	<packaging>war</packaging>
-	<name>Europeana API2 WAR</name>
-	<url>http://www.europeana.eu</url>
+    <groupId>eu.europeana.api2</groupId>
+    <artifactId>api2-war</artifactId>
+    <packaging>war</packaging>
+    <name>Europeana API2 WAR</name>
+    <url>http://www.europeana.eu</url>
 
-	<parent>
-		<artifactId>api2</artifactId>
-		<groupId>eu.europeana</groupId>
-		<version>${version.europeanaApi2}</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
+    <parent>
+        <artifactId>api2</artifactId>
+        <groupId>eu.europeana</groupId>
+        <version>${version.europeanaApi2}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.ws</groupId>
-			<artifactId>spring-ws-core</artifactId>
-			<version>2.2.0.RELEASE</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-beans</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-context</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-context-support</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-oxm</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework</groupId>
-					<artifactId>spring-web</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework.ws</groupId>
-					<artifactId>spring-xml</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.ws</groupId>
+            <artifactId>spring-ws-core</artifactId>
+            <version>2.2.0.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-beans</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context-support</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-oxm</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-web</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.ws</groupId>
+                    <artifactId>spring-xml</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
-		<dependency>
-			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-sugarcrm-client</artifactId>
-			<version>${version.europeanaCorelib}</version>
-		</dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-sugarcrm-client</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-definitions</artifactId>
-			<version>${version.europeanaCorelib}</version>
-		</dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-definitions</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-sugarcrm-bindings</artifactId>
-			<version>${version.europeanaCorelib}</version>
-		</dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-sugarcrm-bindings</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>eu.europeana.api2</groupId>
-			<artifactId>api2-model</artifactId>
-			<version>${version.europeanaApi2}</version>
-			
-		</dependency>
-		
-		<dependency>
-			<!-- will also include SOLR, DEF, UTILS -->
-			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-db</artifactId>
-			<version>${version.europeanaCorelib}</version>
-		</dependency>
+        <dependency>
+            <groupId>eu.europeana.api2</groupId>
+            <artifactId>api2-model</artifactId>
+            <version>${version.europeanaApi2}</version>
 
-		<dependency>
-			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-logging</artifactId>
-			<version>${version.europeanaCorelib}</version>
-		</dependency>
+        </dependency>
 
-		<dependency>
-			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-web</artifactId>
-			<version>${version.europeanaCorelib}</version>
-		</dependency>
+        <dependency>
+            <!-- will also include SOLR, DEF, UTILS -->
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-db</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-storage</artifactId>
-			<version>${version.europeanaCorelib}</version>
-			
-		</dependency>
-		<dependency>
-			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-common-storage</artifactId>
-			<version>${version.europeanaCorelib}</version>
-		</dependency>
-		
-		<dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-logging</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
+
+        <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-media-storage</artifactId>
             <version>${version.europeanaCorelib}</version>
-	  <!--
-	    <scope> system </scope>
-	    <systemPath> /home/norbert/Projects/BusyMachines/Git/corelib/corelib-media-storage/target/corelib-media-storage-2.1-SNAPSHOT.jar </systemPath>
-        	-->
-	</dependency>
-		
-		<dependency>
-			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-search</artifactId>
-			<version>${version.europeanaCorelib}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-jdk14</artifactId>
-			<version>${version.slf4j}</version>
-		</dependency>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<version>${version.springCore}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-web</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-			<version>${version.springCore}</version>
-		</dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-storage</artifactId>
+            <version>${version.europeanaCorelib}</version>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>${version.springCore}</version>
-		</dependency>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-common-storage</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context-support</artifactId>
-			<version>${version.springCore}</version>
-		</dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-oxm</artifactId>
-			<version>${version.springCore}</version>
-		</dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-search</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>${version.slf4j}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.ws</groupId>
-			<artifactId>spring-xml</artifactId>
-			<version>2.2.0.RELEASE</version>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${version.springCore}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${version.springCore}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${version.springCore}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.security.oauth</groupId>
-			<artifactId>spring-security-oauth2</artifactId>
-			<version>${version.springSecurityOauth}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${version.springCore}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-taglibs</artifactId>
-			<version>${version.springSecurity}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>${version.springCore}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId>
-			<version>${version.servletJstl}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-oxm</artifactId>
+            <version>${version.springCore}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.ws</groupId>
+            <artifactId>spring-xml</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.hsqldb</groupId>
-			<artifactId>hsqldb</artifactId>
-			<version>2.2.4</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${version.springCore}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>com.github.jsonld-java</groupId>
-			<artifactId>jsonld-java</artifactId>
-			<version>0.2</version>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.security.oauth</groupId>
+            <artifactId>spring-security-oauth2</artifactId>
+            <version>${version.springSecurityOauth}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
-		<dependency>
-			<groupId>com.github.jsonld-java</groupId>
-			<artifactId>jsonld-java-jena</artifactId>
-			<version>0.2</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-log4j12</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>log4j</groupId>
-					<artifactId>log4j</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-taglibs</artifactId>
+            <version>${version.springSecurity}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
-			<version>1.8.3</version>
-		</dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>${version.servletJstl}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>de.flapdoodle.embed</groupId>
-			<artifactId>de.flapdoodle.embed.mongo</artifactId>
-			<version>1.33</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<version>1.8.5</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.2.4</version>
+            <scope>test</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>joda-time</groupId>
-			<artifactId>joda-time</artifactId>
-			<version>2.3</version>
-		</dependency>
+        <dependency>
+            <groupId>com.github.jsonld-java</groupId>
+            <artifactId>jsonld-java</artifactId>
+            <version>0.2</version>
+        </dependency>
 
-		<dependency>
-			<groupId>eu.europeana.corelib</groupId>
-			<artifactId>corelib-definitions</artifactId>
-			<version>2.1-SNAPSHOT</version>
-			<type>jar</type>
-		</dependency>
+        <dependency>
+            <groupId>com.github.jsonld-java</groupId>
+            <artifactId>jsonld-java-jena</artifactId>
+            <version>0.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.8.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.flapdoodle.embed</groupId>
+            <artifactId>de.flapdoodle.embed.mongo</artifactId>
+            <version>1.33</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.8.5</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.3</version>
+        </dependency>
 
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20140107</version>
         </dependency>
-	
-	</dependencies>
 
-	<scm>
-		<connection>scm:git:git@github.com:europeana/api2.git</connection>
-		<developerConnection>scm:git:git@github.com:europeana/api2.git</developerConnection>
-		<tag>HEAD</tag>
-		<url>https://github.com/europeana/api2</url>
-	</scm>
+    </dependencies>
 
-	<build>
-		<finalName>api</finalName>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>1.3</version>
-				<configuration>
-					<shortRevisionLength>10</shortRevisionLength>
-					<timestampFormat>{0,date,yyyy-MM-dd HH:mm:ss}</timestampFormat>
-					<revisionOnScmFailure>-na-</revisionOnScmFailure>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>validate</phase>
-						<goals>
-							<goal>create</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+    <scm>
+        <connection>scm:git:git@github.com:europeana/api2.git</connection>
+        <developerConnection>scm:git:git@github.com:europeana/api2.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/europeana/api2</url>
+    </scm>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<configuration>
-					<webResources>
-						<resource>
-							<directory>src/main/resources</directory>
-							<filtering>true</filtering>
-							<includes>
-								<include>**/build.txt</include>
-							</includes>
-						</resource>
-					</webResources>
-				</configuration>
-			</plugin>
+    <build>
+        <finalName>api</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.3</version>
+                <configuration>
+                    <shortRevisionLength>10</shortRevisionLength>
+                    <timestampFormat>{0,date,yyyy-MM-dd HH:mm:ss}</timestampFormat>
+                    <revisionOnScmFailure>-na-</revisionOnScmFailure>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-			<!-- For more information on how to use the maven tomcat plugin see: http://tomcat.apache.org/maven-plugin.html 
-				On how to enable the Tomcat manager application: http://tomcat.apache.org/tomcat-6.0-doc/manager-howto.html -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>tomcat-maven-plugin</artifactId>
-				<configuration>
-					<charset>UTF-8</charset>
-					<url>http://localhost:8484/manager/html</url>
-					<path>/api2</path>
-					<username>tomcat</username>
-					<password>tomcat</password>
-				</configuration>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>src/main/resources</directory>
+                            <filtering>true</filtering>
+                            <includes>
+                                <include>**/build.txt</include>
+                            </includes>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+
+            <!-- For more information on how to use the maven tomcat plugin see: http://tomcat.apache.org/maven-plugin.html
+                On how to enable the Tomcat manager application: http://tomcat.apache.org/tomcat-6.0-doc/manager-howto.html -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>tomcat-maven-plugin</artifactId>
+                <configuration>
+                    <charset>UTF-8</charset>
+                    <url>http://localhost:8484/manager/html</url>
+                    <path>/api2</path>
+                    <username>tomcat</username>
+                    <password>tomcat</password>
+                </configuration>
+            </plugin>
 
 
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.7</version>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<!-- here the phase you need -->
-						<phase>validate</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${basedir}/src/main/resources</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${europeana.properties}</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
-	<profiles>
-		<profile>
-			<id>
-                    test
-                </id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<properties>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <!-- here the phase you need -->
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/main/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${europeana.properties}</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>
+                test
+            </id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
 				<europeana.properties>${project.parent.basedir}/properties/test</europeana.properties>
-			</properties>
-		</profile>
-		<profile>
-			<id>
-                    production
-                </id>
-			<properties>
+            </properties>
+        </profile>
+        <profile>
+            <id>
+                production
+            </id>
+            <properties>
 				<europeana.properties>${project.parent.basedir}/properties/production</europeana.properties>
-			</properties>
-		</profile>
-		<profile>
-			<id>
-                    personal
-                </id>
-			<properties>
+            </properties>
+        </profile>
+        <profile>
+            <id>
+                personal
+            </id>
+            <properties>
 				<europeana.properties>${project.parent.basedir}/properties/personal</europeana.properties>
-			</properties>
-		</profile>
-	</profiles>
+            </properties>
+        </profile>
+    </profiles>
 </project>

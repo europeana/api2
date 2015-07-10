@@ -55,12 +55,12 @@ public class UserSearchController extends AbstractUserController {
 	public ModelAndView list(
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		UserResults<Search> response = new UserResults<Search>(getApiId(principal), "/v2/user/search.json");
+		UserResults<Search> response = new UserResults<>(getApiId(principal), "/v2/user/search.json");
 		User user = userService.findByEmail(principal.getName());
 		if (user != null) {
-			response.items = new ArrayList<Search>();
+			response.items = new ArrayList<>();
 			response.username = user.getUserName();
-			response.itemsCount = Long.valueOf(user.getSavedSearches().size());
+			response.itemsCount = (long) user.getSavedSearches().size();
 			for (SavedSearch item : user.getSavedSearches()) {
 				Search search = new Search();
 				search.id = item.getId();

@@ -44,9 +44,6 @@ public class BasicObjectController {
 	private ApiKeyService apiKeyService;
 
 	@Resource
-	private ApiLogService apiLogService;
-
-	@Resource
 	private SearchService searchService;
 
 	@RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -56,11 +53,10 @@ public class BasicObjectController {
 			@RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
 			@RequestParam(value = "wskey", required = true) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
-			HttpServletRequest request, HttpServletResponse response) {
+			HttpServletResponse response) {
 		response.setCharacterEncoding("UTF-8");
 
 		String europeanaObjectId = "/" + collectionId + "/" + recordId;
-		String requestUri = europeanaObjectId + ".json";
 		ApiKey apiKey;
 		long requestNumber = 0;
 

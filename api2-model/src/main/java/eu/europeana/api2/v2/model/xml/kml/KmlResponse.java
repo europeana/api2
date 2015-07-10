@@ -37,12 +37,7 @@ public class KmlResponse {
 		for (BriefBean bean : results) {
 			Placemark placemark = new Placemark();
 			placemark.name = bean.getTitle()[0];
-			StringBuilder sb = new StringBuilder();
-			sb.append(bean.getEdmPlaceLongitude());
-			sb.append(",");
-			sb.append(bean.getEdmPlaceLatitude());
-			sb.append(",0");
-			placemark.point.coordinates = sb.toString();
+			placemark.point.coordinates = String.valueOf(bean.getEdmPlaceLongitude()) + "," + bean.getEdmPlaceLatitude() + ",0";
 			document.placemarks.add(placemark);
 		}
 	}

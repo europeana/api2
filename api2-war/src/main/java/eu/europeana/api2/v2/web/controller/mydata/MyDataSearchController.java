@@ -57,15 +57,15 @@ public class MyDataSearchController extends AbstractUserController {
 	public ModelAndView list(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
-		UserResults<Search> response = new UserResults<Search>(principal.getName(), "/v2/mydata/search.json");
+		UserResults<Search> response = new UserResults<>(principal.getName(), "/v2/mydata/search.json");
 		try {
 			Logger.getLogger(this.getClass()).info("Principal: " +principal.toString());
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
 			if (apiKey != null) {
 				User user = apiKey.getUser();
-				response.items = new ArrayList<Search>();
+				response.items = new ArrayList<>();
 				response.username = user.getUserName();
-				response.itemsCount = Long.valueOf(user.getSavedSearches().size());
+				response.itemsCount = (long) user.getSavedSearches().size();
 				for (SavedSearch item : user.getSavedSearches()) {
 					Search search = new Search();
 					search.id = item.getId();

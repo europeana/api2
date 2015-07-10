@@ -43,5 +43,5 @@ public class FieldTripChannel {
 	public FieldTripImage image;
 
 	@XmlElement(name = "item")
-	public List<FieldTripItem> items = new ArrayList<FieldTripItem>();
+	public List<FieldTripItem> items = new ArrayList<>();
 }
