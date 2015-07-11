@@ -8,5 +8,5 @@ import javax.xml.bind.annotation.XmlElement;
 public class Records {
 
 	@XmlElement(name = "record")
-	public List<Record> record = new ArrayList<Record>();
+	public List<Record> record = new ArrayList<>();
 }

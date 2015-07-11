@@ -24,6 +24,7 @@ import javax.xml.bind.annotation.XmlAttribute;
  */
 public class Query {
 
+	@SuppressWarnings("unused")
 	@XmlAttribute
 	final String role = "request";
 

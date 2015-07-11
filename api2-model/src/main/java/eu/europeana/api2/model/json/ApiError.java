@@ -20,7 +20,7 @@ package eu.europeana.api2.model.json;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
-import eu.europeana.api2.model.enums.ApiLimitException;
+import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 
 /**
