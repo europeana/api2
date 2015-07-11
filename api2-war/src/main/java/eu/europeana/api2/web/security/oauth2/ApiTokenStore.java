@@ -173,7 +173,7 @@ public class ApiTokenStore implements TokenStore {
 	@Override
 	public Collection<OAuth2AccessToken> findTokensByClientId(String clientId) {
 		// "select token_id, token from oauth_access_token where client_id = ?";
-		List<OAuth2AccessToken> accessTokens = new ArrayList<OAuth2AccessToken>();
+		List<OAuth2AccessToken> accessTokens = new ArrayList<>();
 		List<AccessToken> entities = oAuth2TokenService.findByClientId(clientId);
 		if (entities != null) {
 			for (RefreshToken entity : entities) {
@@ -184,7 +184,7 @@ public class ApiTokenStore implements TokenStore {
 	}
 
 	private List<OAuth2AccessToken> removeNulls(List<OAuth2AccessToken> accessTokens) {
-		List<OAuth2AccessToken> tokens = new ArrayList<OAuth2AccessToken>();
+		List<OAuth2AccessToken> tokens = new ArrayList<>();
 		for (OAuth2AccessToken token : accessTokens) {
 			if (token != null) {
 				tokens.add(token);
@@ -239,7 +239,7 @@ public class ApiTokenStore implements TokenStore {
 	@Override
 	public Collection<OAuth2AccessToken> findTokensByClientIdAndUserName(
 			String arg0, String userName) {
-		List<OAuth2AccessToken> accessTokens = new ArrayList<OAuth2AccessToken>();
+		List<OAuth2AccessToken> accessTokens = new ArrayList<>();
 		List<AccessToken> entities = oAuth2TokenService.findByUserName(userName);
 		if (entities != null) {
 			for (RefreshToken entity : entities) {

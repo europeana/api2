@@ -33,6 +33,7 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
+@SuppressWarnings("unused")
 public class Channel {
 
 	private static final String DESCRIPTION_SUFFIX = " - Europeana Open Search";
@@ -65,7 +66,7 @@ public class Channel {
 	public ChannelImage image = new ChannelImage();
 
 	@XmlElement(name = "item")
-	public List<Item> items = new ArrayList<Item>();
+	public List<Item> items = new ArrayList<>();
 
 	public void setTitle(String title) {
 		this.title = title;
