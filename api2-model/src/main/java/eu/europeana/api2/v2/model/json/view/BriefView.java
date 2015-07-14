@@ -12,10 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
@@ -223,11 +220,15 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             if (!isOptedOut && bean.getEdmObject() != null) {
                 for (String object : bean.getEdmObject()) {
                     String tn = StringUtils.defaultIfBlank(object, "");
-                    thumbs.add(urlService.getThumbnailUrl(tn, getType()).toString());
+                    final String url = urlService.getThumbnailUrl(tn, getType()).toString();
+                    if (StringUtils.isNotBlank(url)) {
+                        thumbs.add(url.trim());
+                    }
                 }
             }
             thumbnails = thumbs.toArray(new String[thumbs.size()]);
         }
+        System.out.println(Arrays.deepToString(thumbnails));
         return thumbnails;
     }
 
