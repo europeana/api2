@@ -17,31 +17,7 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import eu.europeana.api2.ApiLimitException;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.response.FacetField;
-import org.springframework.context.support.AbstractMessageSource;
-import org.springframework.http.MediaType;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
-
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
@@ -88,6 +64,23 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.context.support.AbstractMessageSource;
+import org.springframework.http.MediaType;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -97,8 +90,6 @@ public class SearchController {
 
     @Log
     private Logger log;
-
-
 
     @Resource
     private SearchService searchService;
@@ -146,15 +137,251 @@ public class SearchController {
                                           @RequestParam(value = "facet", required = false) String[] aFacet,
                                           @RequestParam(value = "wskey", required = false) String wskey,
                                           @RequestParam(value = "callback", required = false) String callback,
+
+                                          @RequestParam(value = "colourpalette", required = false) String[] colorPalette,
+                                          @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
+                                          @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
+                                          @RequestParam(value = "media", required = false) Boolean media,
+                                          @RequestParam(value = "sound_duration", required = false) String[] sound_duration,
+                                          @RequestParam(value = "sound_hq", required = false) Boolean sound_hq,
+                                          @RequestParam(value = "video_duration", required = false) String[] video_duration,
+                                          @RequestParam(value = "video_hd", required = false) Boolean video_hd,
+                                          @RequestParam(value = "image_colour", required = false) Boolean image_colour,
+                                          @RequestParam(value = "image_aspectratio", required = false) String[] image_aspectratio,
+                                          @RequestParam(value = "image_size", required = false) String[] image_size,
                                           HttpServletRequest request,
                                           HttpServletResponse response) {
-
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
         String[] _qf = (String[]) request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinements.length) {
             refinements = _qf;
         }
+
+        final List<String> newRefinements = new ArrayList<>();
+
+        final List<String> mediaTypes = new ArrayList<>();
+        final List<String> mimeTypes = new ArrayList<>();
+
+        final List<String> imageSizes = new ArrayList<>();
+
+        final List<Boolean> imageColors = new ArrayList<>();
+
+        final List<Boolean> imageGrayScales = new ArrayList<>();
+        final List<String> imageAspectRatios = new ArrayList<>();
+
+        final List<String> imageColorsPalette = new ArrayList<>();
+
+        final List<Boolean> soundHQs = new ArrayList<>();
+        final List<String> soundDurations = new ArrayList<>();
+
+        final List<Boolean> videoHDs = new ArrayList<>();
+        final List<String> videoDurations = new ArrayList<>();
+
+        final Integer imageFilterTag = imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios).get(0);
+        final Integer soundFilterTag = soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
+        final Integer videoFilterTag = videoFilterTags(mimeTypes, videoHDs, videoDurations).get(0);
+
+
+        if (null != sound_duration) {
+            soundDurations.addAll(Arrays.asList(sound_duration));
+        }
+
+        if (null != sound_hq) {
+            soundHQs.add(sound_hq);
+        }
+
+        if (null != video_duration) {
+            videoDurations.addAll(Arrays.asList(video_duration));
+        }
+
+        if (null != video_hd) {
+            videoHDs.add(video_hd);
+        }
+
+        if (null != image_aspectratio) {
+            imageAspectRatios.addAll(Arrays.asList(image_aspectratio));
+        }
+
+        if (null != image_colour) {
+            if (true == image_colour) {
+                imageColors.add(image_colour);
+            }
+            else if (false == image_colour) {
+                imageGrayScales.add(!image_colour);
+            }
+        }
+
+
+
+        if (null != image_size) {
+            imageSizes.addAll(Arrays.asList(image_size));
+        }
+
+        if (null != colorPalette) {
+            imageColorsPalette.addAll(Arrays.asList(colorPalette));
+            System.out.println("Image colors is : " + Arrays.toString(imageColorsPalette.toArray()));
+        }
+
+        if(refinements != null) {
+            for (String qf : refinements) {
+                log.info("QF: " + qf);
+                final Integer colonIndex = qf.indexOf(":");
+                if (colonIndex == null || colonIndex == -1) {
+                    continue;
+                }
+                final String prefix = qf.substring(0, colonIndex).toLowerCase();
+                final String suffix = qf.substring(colonIndex + 1).toLowerCase();
+
+                log.info("prefix: " + prefix);
+                log.info("suffix: " + suffix);
+
+                if (prefix.equalsIgnoreCase("text_fulltext")) {
+                    isFulltext = (null == isFulltext ? false : isFulltext) || Boolean.parseBoolean(suffix);
+                }
+                else if (prefix.equalsIgnoreCase("has_thumbnail")) {
+                    thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
+                }
+                else if (prefix.equalsIgnoreCase("has_media")) {
+                    media = (null == media ? false : media) || Boolean.parseBoolean(suffix);
+                }
+                else if (prefix.equalsIgnoreCase("onetagpercolour")) {
+                    //imageColorsPalette.add(suffix);
+                }
+                else if (prefix.equalsIgnoreCase("type")) {
+                    mediaTypes.add(suffix);
+                    newRefinements.add(qf);
+                }
+                else if (prefix.equalsIgnoreCase("mime_type")) {
+                    mimeTypes.add(suffix);
+                }
+                else if (prefix.equalsIgnoreCase("image_size")) {
+                    imageSizes.add(suffix);
+                }
+                else if (prefix.equalsIgnoreCase("image_colour") || prefix.equalsIgnoreCase("image_color")) {
+                    if (Boolean.valueOf(suffix)) {
+                        imageColors.add(true);
+                    }
+                    else {
+                        imageGrayScales.add(true);
+                    }
+                }
+                else if (prefix.equalsIgnoreCase("image_greyscale") || prefix.equalsIgnoreCase("image_grayscale")) {
+                    imageGrayScales.add(Boolean.valueOf(suffix));
+                }
+                else if (prefix.equalsIgnoreCase("image_aspectratio")) {
+                    imageAspectRatios.add(suffix);
+                }
+                else if (prefix.equalsIgnoreCase("sound_hq")) {
+                    soundHQs.add(Boolean.valueOf(suffix));
+                }
+                else if (prefix.equalsIgnoreCase("sound_duration")) {
+                    soundDurations.add(suffix);
+                }
+                else if (prefix.equalsIgnoreCase("video_hd")) {
+                    videoHDs.add(Boolean.valueOf(suffix));
+                }
+                else if (prefix.equalsIgnoreCase("video_duration")) {
+                    videoDurations.add(suffix);
+                }
+                else {
+                    newRefinements.add(qf);
+                }
+            }
+        }
+
+        if (isFulltext != null) {
+            newRefinements.add("is_fulltext:" + isFulltext);
+        }
+
+        // FilterTagGeneration
+        if (thumbnail != null) {
+            newRefinements.add("has_thumbnails:" + thumbnail);
+        }
+
+        if (media != null) {
+            newRefinements.add("has_media:" + media);
+        }
+
+        if (!imageColorsPalette.isEmpty()) {
+            String filterQuery = "";
+            for (String color : imageColorsPalette) {
+                log.info("Color palette: " + color);
+                final Integer filterTag = searchService.search(1, null, null, null, null, null, color, null, null, null, null);
+                log.info("Color palette: " + filterTag);
+                filterQuery += "filter_tags:" + filterTag + " AND ";
+            }
+            if (!filterQuery.equals("")) {
+                filterQuery = filterQuery.substring(0, filterQuery.lastIndexOf("AND"));
+                filterQuery = filterQuery.trim();
+
+                if (queryString.equals("")) {
+                    queryString = filterQuery;
+                } else {
+                    queryString = queryString + " AND " + filterQuery;
+                }
+            }
+        }
+
+        final List<Integer> filterTags = new ArrayList<>();
+        filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios));
+        filterTags.addAll(soundFilterTags(mimeTypes, soundHQs, soundDurations));
+        filterTags.addAll(videoFilterTags(mimeTypes, videoHDs, videoDurations));
+
+        Boolean image = false, sound = false, video = false;
+        for (final String type : mediaTypes) {
+            if (type.equalsIgnoreCase("image")) {
+                image = true;
+            }
+            if (type.equalsIgnoreCase("sound")) {
+                sound = true;
+            }
+            if (type.equalsIgnoreCase("video")) {
+                video = true;
+            }
+        }
+        if (!image) {
+            filterTags.remove(imageFilterTag);
+        }
+        if (!sound) {
+            filterTags.remove(soundFilterTag);
+        }
+        if (!video) {
+            filterTags.remove(videoFilterTag);
+        }
+
+        String filterTagQuery = "";
+        for (final Integer filterTag : filterTags) {
+            log.info("filterTag: " + filterTag);
+            if (filterTag % 33554432 != 0) {
+                filterTagQuery = filterTagQuery + "filter_tags:" + filterTag + " OR ";
+            }
+        }
+
+        log.info("filtertagquery: " + filterTagQuery);
+
+        System.out.println("filtertagquery: " + filterTagQuery);
+
+        if (filterTagQuery.contains("OR")) {
+            filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("OR"));
+            filterTagQuery = filterTagQuery.trim();
+
+            if (queryString.equals("")) {
+                queryString = filterTagQuery;
+            } else {
+                filterTagQuery = "(" + filterTagQuery + ")";
+                queryString = queryString + " AND " + filterTagQuery;
+            }
+        }
+
+        queryString = queryString.trim();
+        log.info("QUERY: |" + queryString + "|");
+
+
+        // =================================================================================================
+        refinements = newRefinements.toArray(new String[newRefinements.size()]);
+        log.info("New Refinements: " + Arrays.toString(refinements));
+
 
         boolean isFacetsRequested = isFacetsRequested(profile);
         String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
@@ -184,6 +411,9 @@ public class SearchController {
                                                       );
         }
 
+        log.info("Query: " + queryString);
+        System.out.println("Query is: " + queryString);
+        System.out.println("Refinements: " + refinements);
         Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
                               .setApiQuery(true)
                               .setRefinements(refinements)
@@ -212,6 +442,7 @@ public class SearchController {
 
         // reusability facet settings
         if (isDefaultOrReusabilityFacetRequested) {
+            //System
             query.setFacetQueries(RightReusabilityCategorizer.getQueryFacets());
         }
 
@@ -235,6 +466,7 @@ public class SearchController {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
         }
+
         Class<? extends IdBean> clazz = selectBean(profile);
 
         try {
@@ -261,6 +493,151 @@ public class SearchController {
             response.setStatus(500);
             return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
         }
+    }
+
+    private List<Integer> imageFilterTags(List<String> mimeTypes, List<String> imageSizes, List<Boolean> imageColors, List<Boolean> imageGrayScales, List<String> imageAspectRatios) {
+        final List<Integer> filterTags = new ArrayList<>();
+        Integer i = 0, j, k, l, m;
+
+        log.info("Size: " + mimeTypes.size());
+        log.info("Size: " + imageSizes.size());
+        log.info("Size: " + imageColors.size());
+        log.info("Size: " + imageGrayScales.size());
+        log.info("Size: " + imageAspectRatios.size());
+
+        do {
+            String mimeType = null;
+            if(mimeTypes.size() != 0) {
+                mimeType = mimeTypes.get(i);
+            }
+            j = 0;
+            log.info("mimetype: " + mimeType);
+            do {
+                String imageSize = null;
+                if(imageSizes.size() != 0) {
+                    imageSize = imageSizes.get(j);
+                }
+                k = 0;
+                log.info("imageSize: " + imageSize);
+                do {
+                    Boolean imageColor = null;
+                    if(imageColors.size() != 0) {
+                        imageColor = imageColors.get(k);
+                    }
+                    l = 0;
+                    log.info("imageColor: " + imageColor);
+                    do {
+                        Boolean imageGrayScale = null;
+                        if(imageGrayScales.size() != 0) {
+                            imageGrayScale = imageGrayScales.get(l);
+                        }
+                        m = 0;
+                        log.info("imageGrayScale: " + imageGrayScale);
+                        do {
+                            String imageAspectRatio = null;
+                            if(imageAspectRatios.size() != 0) {
+                                imageAspectRatio = imageAspectRatios.get(m);
+                            }
+                            log.info("imageAspectRatio: " + imageAspectRatio);
+
+                            final Integer filterTag = searchService.search(1, mimeType, imageSize, imageColor, imageGrayScale, imageAspectRatio, null, null, null, null, null);
+                            log.info("image filtertag: " + filterTag);
+                            filterTags.add(filterTag);
+
+                            m += 1;
+                        } while (m < imageAspectRatios.size());
+
+                        l += 1;
+                    } while (l < imageGrayScales.size());
+
+                    k += 1;
+                } while (k < imageColors.size());
+
+                j += 1;
+            } while (j < imageSizes.size());
+
+            i += 1;
+        } while (i < mimeTypes.size());
+
+        return filterTags;
+    }
+
+    private List<Integer> soundFilterTags(List<String> mimeTypes, List<Boolean> soundHQs, List<String> soundDurations) {
+        final List<Integer> filterTags = new ArrayList<>();
+
+        Integer i = 0, j, k;
+
+        do {
+            String mimeType = null;
+            if(mimeTypes.size() != 0) {
+                mimeType = mimeTypes.get(i);
+            }
+            j = 0;
+            do {
+                Boolean soundHQ = null;
+                if(soundHQs.size() != 0) {
+                    soundHQ = soundHQs.get(j);
+                }
+                k = 0;
+                do {
+                    String soundDuration = null;
+                    if(soundDurations.size() != 0) {
+                        soundDuration = soundDurations.get(k);
+                    }
+
+                    final Integer filterTag = searchService.search(2, mimeType, null, null, null, null, null, soundHQ, soundDuration, null, null);
+                    log.info("sound filtertag: " + filterTag);
+                    filterTags.add(filterTag);
+
+                    k += 1;
+                } while (k < soundDurations.size());
+
+                j += 1;
+            } while (j < soundHQs.size());
+
+            i += 1;
+        } while (i < mimeTypes.size());
+
+        return filterTags;
+    }
+
+    private List<Integer> videoFilterTags(List<String> mimeTypes, List<Boolean> videoHQs, List<String> videoDurations) {
+        final List<Integer> filterTags = new ArrayList<>();
+
+        Integer i = 0, j, k;
+
+        do {
+            String mimeType = null;
+            if(mimeTypes.size() != 0) {
+                mimeType = mimeTypes.get(i);
+            }
+            j = 0;
+            do {
+                Boolean videoHQ = null;
+                if(videoHQs.size() != 0) {
+                    videoHQ = videoHQs.get(j);
+                }
+                k = 0;
+                do {
+                    String videoDuration = null;
+                    if(videoDurations.size() != 0) {
+                        videoDuration = videoDurations.get(k);
+                    }
+
+                    final Integer filterTag = searchService.search(3, mimeType, null, null, null, null, null, null, null, videoHQ, videoDuration);
+                    log.info("video filtertag: " + filterTag);
+                    filterTags.add(filterTag);
+
+                    k += 1;
+                } while (k < videoDurations.size());
+
+                j += 1;
+            } while (j < videoHQs.size());
+
+            i += 1;
+        } while (i < mimeTypes.size());
+
+        return filterTags;
     }
 
     private Class<? extends IdBean> selectBean(String profile) {
@@ -344,6 +721,10 @@ public class SearchController {
         response.totalResults = resultSet.getResultSize();
         response.itemsCount = resultSet.getResults().size();
         response.items = resultSet.getResults();
+
+
+        System.out.println("Facet refinements (after): ");
+        System.out.println(Arrays.deepToString(query.getFilteredFacets().toArray()));
 
         List<T> beans = new ArrayList<T>();
         for (T b : resultSet.getResults()) {
