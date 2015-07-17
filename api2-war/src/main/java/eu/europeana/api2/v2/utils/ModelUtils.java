@@ -116,11 +116,10 @@ public class ModelUtils {
 
                 if (FacetNames.IS_FULLTEXT.name().equalsIgnoreCase(facet.name)) {
                     facet.name = FacetNames.IS_FULLTEXT.getRealName();
-                } else if (FacetNames.HAS_MEDIA.name().equalsIgnoreCase(facet.name)) {
+                }  else if (FacetNames.HAS_MEDIA.name().equalsIgnoreCase(facet.name)) {
                     facet.name = FacetNames.HAS_MEDIA.getRealName();
-                } else if (FacetNames.HAS_THUMBNAILS.name().equalsIgnoreCase(facet.name)) {
-                    facet.name = FacetNames.HAS_THUMBNAILS.getRealName();
                 }
+
 
                 /*
                  * demultiplex the face_tags into proper facets (see FacetNames)

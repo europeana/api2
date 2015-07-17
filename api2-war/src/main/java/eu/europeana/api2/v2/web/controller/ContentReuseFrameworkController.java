@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import eu.europeana.api2.ApiLimitException;
+import eu.europeana.corelib.service.MediaStorageClient;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -56,7 +57,7 @@ public class ContentReuseFrameworkController {
     private ContentReuseFrameworkService crfService;
 
     @Resource(name = "corelib_mediaStorageClient")
-    private MediaStorageClientImpl mediaStorageClient;
+    private MediaStorageClient mediaStorageClient;
 
     @Resource
     private ApiLogService apiLogService;
@@ -114,10 +115,11 @@ public class ContentReuseFrameworkController {
         log.info("Size: " + size);
         log.info("Type: " + type);
 
-        if(size.equalsIgnoreCase("BRIEF_DOC") || size.equalsIgnoreCase("h180")) {
+        if(size.equalsIgnoreCase("BRIEF_DOC") || size.equalsIgnoreCase("h180") ||
+           size.equalsIgnoreCase("FULL_DOC") || size.equalsIgnoreCase("FULL_DOC_ALL") || size.equalsIgnoreCase("w200")) {
             sufix = "200";
         }
-        if(size.equalsIgnoreCase("FULL_DOC") || size.equalsIgnoreCase("w200")) {
+        else if (size.equalsIgnoreCase("w400")) {
             sufix = "400";
         }
 
@@ -125,8 +127,8 @@ public class ContentReuseFrameworkController {
 
         byte[] imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.IMAGE);
         if(type.equalsIgnoreCase("IMAGE")) {
-            final String ID = getMD5(url + sufix);
-            log.info("Image: " + ID + " sufix: " + sufix);
+            final String ID = getMD5(url) + "-" + ("200".equals(sufix) ? "MEDIUM" : "LARGE");
+            log.info("Url: " + url + "  Image: " + ID + " sufix: " + ("200".equals(sufix) ? "MEDIUM" : "LARGE"));
             final MediaFile mediaFile = mediaStorageClient.retrieve(ID, true);
 
             if (mediaFile != null) {
@@ -174,15 +176,6 @@ public class ContentReuseFrameworkController {
             e.printStackTrace();
         }
         int imgType = img.getType() == 0? BufferedImage.TYPE_INT_ARGB : img.getType();
-
-        if (size.equals("180")) {
-            try {
-                final BufferedImage newImage = resizeImage(img, imgType, 130, 180);
-                response = getByteArray(newImage);
-            } catch (Exception e) {
-                log.error(e.getMessage());
-            }
-        }
 
         return response;
     }
