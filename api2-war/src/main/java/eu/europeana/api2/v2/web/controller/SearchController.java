@@ -149,6 +149,7 @@ public class SearchController {
                                           @RequestParam(value = "image_colour", required = false) Boolean image_colour,
                                           @RequestParam(value = "image_aspectratio", required = false) String[] image_aspectratio,
                                           @RequestParam(value = "image_size", required = false) String[] image_size,
+                                          @RequestParam(value = "has_landingpage", required = false) Boolean hasLandingPage,
                                           HttpServletRequest request,
                                           HttpServletResponse response) {
         // workaround of a Spring issue
@@ -211,8 +212,6 @@ public class SearchController {
                 imageGrayScales.add(!image_colour);
             }
         }
-
-
 
         if (null != image_size) {
             imageSizes.addAll(Arrays.asList(image_size));
@@ -301,6 +300,10 @@ public class SearchController {
 
         if (media != null) {
             newRefinements.add("has_media:" + media);
+        }
+
+        if (hasLandingPage != null) {
+            newRefinements.add("has_landingpage:" + hasLandingPage);
         }
 
         if (!imageColorsPalette.isEmpty()) {
@@ -413,7 +416,8 @@ public class SearchController {
 
         log.info("Query: " + queryString);
         System.out.println("Query is: " + queryString);
-        System.out.println("Refinements: " + refinements);
+        System.out.println("Refinements: " + Arrays.deepToString(refinements));
+
         Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
                               .setApiQuery(true)
                               .setRefinements(refinements)
@@ -423,6 +427,8 @@ public class SearchController {
                               .setParameter("fl", "*,score")
                               .setAllowSpellcheck(false)
                               .setAllowFacets(false);
+
+        System.out.println(query.toString());
 
         if (ArrayUtils.isNotEmpty(facets)) {
             query.setFacets(facets);
