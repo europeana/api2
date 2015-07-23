@@ -30,6 +30,7 @@ import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.RichView;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
+import eu.europeana.api2.v2.model.xml.rss.Enclosure;
 import eu.europeana.api2.v2.model.xml.rss.Item;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripChannel;
@@ -444,10 +445,10 @@ public class SearchController {
                 item.guid = urlService.getPortalRecord(false, bean.getId()).toString();
                 item.title = getTitle(bean);
                 item.description = getDescription(bean);
-                /*
-				 * String enclosure = getThumbnail(bean); if (enclosure != null) { item.enclosure = new
-				 * Enclosure(enclosure); }
-				 */
+                String thumbnail = getThumbnail(bean);
+                if (StringUtils.isNotBlank(thumbnail)) {
+                    item.enclosure = new Enclosure(thumbnail);
+                }
                 item.link = item.guid;
                 channel.items.add(item);
             }
@@ -459,6 +460,17 @@ public class SearchController {
             channel.items.add(item);
         }
         return rss;
+    }
+
+    private String getThumbnail(BriefBean bean) {
+            if (bean.getEdmObject() != null) {
+                for (String object : bean.getEdmObject()) {
+                    if (StringUtils.isNotBlank(object)) {
+                        return urlService.getThumbnailUrl(object, bean.getType()).toString();
+                    }
+                }
+            }
+        return null;
     }
 
     /**
