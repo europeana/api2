@@ -27,6 +27,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "rss")
 public class RssResponse {
 
+	@SuppressWarnings("unused")
 	@XmlAttribute
 	final String version = "2.0";
 
