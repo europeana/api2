@@ -73,8 +73,8 @@ public class FullView implements FullBean {
 	public List<? extends Place> getPlaces() {
 		@SuppressWarnings("unchecked")
 		List<Place> items = (List<Place>) bean.getPlaces();
-		for (int i = 0, la = items.size(); i < la; i++) {
-			items.get(i).setId(null);
+		for (Place item : items) {
+			item.setId(null);
 		}
 		return items;
 	}
@@ -87,8 +87,8 @@ public class FullView implements FullBean {
 	public List<? extends Agent> getAgents() {
 		@SuppressWarnings("unchecked")
 		List<Agent> items = (List<Agent>) bean.getAgents();
-		for (int i = 0, la = items.size(); i < la; i++) {
-			items.get(i).setId(null);
+		for (Agent item : items) {
+			item.setId(null);
 		}
 		return items;
 	}
@@ -97,8 +97,8 @@ public class FullView implements FullBean {
 	public List<? extends Timespan> getTimespans() {
 		@SuppressWarnings("unchecked")
 		List<Timespan> items = (List<Timespan>) bean.getTimespans();
-		for (int i = 0, la = items.size(); i < la; i++) {
-			items.get(i).setId(null);
+		for (Timespan item : items) {
+			item.setId(null);
 		}
 		return items;
 	}
@@ -107,8 +107,8 @@ public class FullView implements FullBean {
 	public List<? extends Concept> getConcepts() {
 		@SuppressWarnings("unchecked")
 		List<Concept> items = (List<Concept>) bean.getConcepts();
-		for (int i = 0, la = items.size(); i < la; i++) {
-			items.get(i).setId(null);
+		for (Concept item : items) {
+			item.setId(null);
 		}
 		return items;
 	}
@@ -125,8 +125,8 @@ public class FullView implements FullBean {
 	public List<? extends Proxy> getProxies() {
 		@SuppressWarnings("unchecked")
 		List<Proxy> items = (List<Proxy>) bean.getProxies();
-		for (int i = 0, la = items.size(); i < la; i++) {
-			items.get(i).setId(null);
+		for (Proxy item : items) {
+			item.setId(null);
 		}
 		return items;
 	}
@@ -143,33 +143,33 @@ public class FullView implements FullBean {
 	public List<? extends Aggregation> getAggregations() {
 		@SuppressWarnings("unchecked")
 		List<Aggregation> items = (List<Aggregation>) bean.getAggregations();
-		for (int i = 0, la = items.size(); i < la; i++) {
-			items.get(i).setId(null);
+		for (Aggregation item : items) {
+			item.setId(null);
 
 			// add bt=europanaapi
-			String isShownAt = items.get(i).getEdmIsShownAt();
+			String isShownAt = item.getEdmIsShownAt();
 			if (isShownAt != null) {
 				isShownAt = isShownAt
-						+ (isShownAt.indexOf("?") > -1 ? "&" : "?")
+						+ (isShownAt.contains("?") ? "&" : "?")
 						+ "bt=europeanaapi";
 				// items.get(i).setEdmIsShownAt(isShownAt);
 
-				String provider = items.get(i).getEdmProvider().values()
+				String provider = item.getEdmProvider().values()
 						.iterator().next().get(0);
 				String isShownAtLink = europeanaUrlService.getApi2Redirect(uid,
 						isShownAt, provider, bean.getAbout(),
 						profile).toString();
-				items.get(i).setEdmIsShownAt(isShownAtLink);
+				item.setEdmIsShownAt(isShownAtLink);
 			}
 
 			// remove edm:object if it is a opted out record
 			if (optOut) {
-				items.get(i).setEdmObject(null);
+				item.setEdmObject(null);
 			}
 
 			// remove webresources IDs
-			for (int j = 0, lw = items.get(i).getWebResources().size(); j < lw; j++) {
-				items.get(i).getWebResources().get(j).setId(null);
+			for (int j = 0, lw = item.getWebResources().size(); j < lw; j++) {
+				item.getWebResources().get(j).setId(null);
 			}
 		}
 		return items;
@@ -188,8 +188,8 @@ public class FullView implements FullBean {
 	public List<? extends ProvidedCHO> getProvidedCHOs() {
 		@SuppressWarnings("unchecked")
 		List<ProvidedCHO> items = (List<ProvidedCHO>) bean.getProvidedCHOs();
-		for (int i = 0, la = items.size(); i < la; i++) {
-			items.get(i).setId(null);
+		for (ProvidedCHO item : items) {
+			item.setId(null);
 		}
 		return items;
 	}

@@ -149,7 +149,7 @@ public class FieldTripUtils {
         }
 
 	private String extractDescription(String[] dcDescription) {
-		List<String> descriptions = new ArrayList<String>();
+		List<String> descriptions = new ArrayList<>();
 		for (String t : dcDescription) {
 			if (StringUtils.isNotBlank(t)) {
 				t = t.trim().replaceAll("\n+", "\n").replace("\n", "</p>\n<p>");
@@ -163,7 +163,7 @@ public class FieldTripUtils {
 	}
 
 	private List<FieldTripImage> getThumbnail(RichBean bean) {
-		List<FieldTripImage> images = new ArrayList<FieldTripImage>();
+		List<FieldTripImage> images = new ArrayList<>();
 
 		String attribution = getAttribution(bean);
 
@@ -180,7 +180,7 @@ public class FieldTripUtils {
 	}
 
 	private String getAttribution(RichBean bean) {
-		List<String> attribution = new ArrayList<String>();
+		List<String> attribution = new ArrayList<>();
 		if (StringArrayUtils.isNotBlank(bean.getRights())) {
 			String right = null;
 			for (String candidate : bean.getRights()) {

@@ -2,6 +2,7 @@ package eu.europeana.api2.v2.model.xml.srw;
 
 import javax.xml.bind.annotation.XmlElement;
 
+@SuppressWarnings("unused")
 public class Record {
 
 	@XmlElement

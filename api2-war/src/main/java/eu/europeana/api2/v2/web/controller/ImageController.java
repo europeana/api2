@@ -86,7 +86,7 @@ public class ImageController {
 
 		final HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(mediaType);
-		return new ResponseEntity<byte[]>(image, headers, HttpStatus.OK);
+		return new ResponseEntity<>(image, headers, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/image")
@@ -107,13 +107,8 @@ public class ImageController {
 			// ignore
 		}
 		String objectId = imageCache != null ? imageCache.getObjectId() : "";
-		StringBuilder sb = new StringBuilder();
-		sb.append("/image/");
-		sb.append(objectId);
-		sb.append("?size=");
-		sb.append(sizeString);
 		response.setStatus(301);
-		response.setHeader("Location", sb.toString());
+		response.setHeader("Location", "/image/" + objectId + "?size=" + sizeString);
 		response.setHeader("Connection", "close");
 	}
 }
