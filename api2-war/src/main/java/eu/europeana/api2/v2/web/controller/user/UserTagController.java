@@ -21,6 +21,8 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -54,6 +56,7 @@ public class UserTagController extends AbstractUserController {
 	 * @param principal
 	 * @return the JSON response
 	 */
+	@SwaggerIgnore
 	@RequestMapping(value = "/v2/user/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
@@ -70,11 +73,14 @@ public class UserTagController extends AbstractUserController {
 	 * @param principal
 	 * @return the JSON response
 	 */
-	@RequestMapping(value = "/v2/user/tag.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "lists a user's data tags", nickname = "listUserTags")
+	@RequestMapping(value = "/v2/user/tag.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE
+			, method = RequestMethod.GET)
 	public ModelAndView list(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "tag", required = false) String tagFilter,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback,
+			Principal principal) {
 		UserResults<Tag> response = new UserResults<>(getApiId(principal), "/v2/user/tag.json");
 		try {
 			User user = userService.findByEmail(principal.getName());
@@ -112,7 +118,8 @@ public class UserTagController extends AbstractUserController {
 	 * @param principal
 	 * @return the JSON response
 	 */
-	@RequestMapping(value = "/v2/user/tag.json", params = "action=TAGCLOUD", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/user/tag.json", params = "action=TAGCLOUD", produces = MediaType.APPLICATION_JSON_VALUE
+			, method = RequestMethod.GET)
 	public ModelAndView listDistinct(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
@@ -143,13 +150,14 @@ public class UserTagController extends AbstractUserController {
 	 * @param principal
 	 * @return the JSON response
 	 */
+    @ApiOperation(value = "creates a new data tag for a user", nickname = "createUserTag")
 	@RequestMapping(value = "/v2/user/tag.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
 	public ModelAndView createRest(
 			@RequestParam(value = "europeanaid", required = true) String europeanaId,
 			@RequestParam(value = "tag", required = true) String tag,
 			@RequestParam(value = "callback", required = false) String callback, 
-                        Principal principal) {
+            Principal principal) {
 		return create(europeanaId, tag, callback, principal);
 	}
 
@@ -160,12 +168,13 @@ public class UserTagController extends AbstractUserController {
 	 * @param principal
 	 * @return the JSON response
 	 */
+	@SwaggerIgnore
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView create(
 			@RequestParam(value = "europeanaid", required = true) String europeanaId,
 			@RequestParam(value = "tag", required = true) String tag,
 			@RequestParam(value = "callback", required = false) String callback, 
-                        Principal principal) {
+            Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.json?action=CREATE");
 		if (user != null) {
@@ -191,13 +200,14 @@ public class UserTagController extends AbstractUserController {
 	 * @param principal
 	 * @return the JSON response
 	 */
+    @ApiOperation(value = "deletes a data tag for a user", nickname = "deleteUserTag")
 	@RequestMapping(value = "/v2/user/tag.json", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(
 			@RequestParam(value = "tagid", required = false) Long tagId,
 			@RequestParam(value = "tag", required = false) String tag,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
-                        Principal principal) {
+            Principal principal) {
 		return delete(tagId, tag, europeanaId, callback, principal);
 	}
 
@@ -209,13 +219,14 @@ public class UserTagController extends AbstractUserController {
 	 * @param principal
 	 * @return the JSON response
 	 */
+	@SwaggerIgnore
 	@RequestMapping(value = "/v2/user/tag.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView delete(
 			@RequestParam(value = "tagid", required = false) Long tagId,
 			@RequestParam(value = "tag", required = false) String tag,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
-                        Principal principal) {
+            Principal principal) {
 		User user = userService.findByEmail(principal.getName());
 		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.json?action=DELETE");
 		if (user != null) {

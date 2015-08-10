@@ -39,6 +39,7 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.FacetParameterUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
@@ -143,8 +144,8 @@ public class SearchController {
 
 
 	/**
-	 * Returns the list of Europeana datasets. The response is an Array of JSON
-	 * objects, each one containing the identifier and the name of a dataset.
+	 * Returns a list of Europeana datasets based on the search terms.
+	 * The response is an Array of JSON objects, each one containing the identifier and the name of a dataset.
 	 *
 	 * @param queryString
 	 * @param refinements
@@ -158,7 +159,7 @@ public class SearchController {
 	 *
 	 * @return the JSON response
 	 */
-	@ApiOperation(value = "search for records")
+	@ApiOperation(value = "search for records", nickname = "searchRecords")
 	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
 			@RequestParam(value = "query", required = true) String queryString,
@@ -317,7 +318,7 @@ public class SearchController {
 	 *
 	 * @return the JSON response
 	 */
-	@ApiOperation(value = "get autocompletion recommendation for search queries")
+	@ApiOperation(value = "get autocompletion recommendations for search queries", nickname = "suggestions")
 	@RequestMapping(value = "/v2/suggestions.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView suggestionsJson(
 			@RequestParam(value = "query", required = true) String query,
@@ -408,7 +409,7 @@ public class SearchController {
 	 *
 	 * @return the JSON response
 	 */
-	@ApiOperation(value = "search for <TBD>")
+	@SwaggerIgnore
 	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET}, produces = {"application/vnd.google-earth.kml+xml", MediaType.ALL_VALUE})
 	public @ResponseBody KmlResponse searchKml(
 			@RequestParam(value = "query", required = true) String queryString,
@@ -463,7 +464,7 @@ public class SearchController {
 	 *
 	 * @return the JSON response
 	 */
-	@ApiOperation(value = "Basic search function following the OpenSearch specification")
+	@ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "suggestions")
 	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
 	public @ResponseBody RssResponse openSearchRss(
 			@RequestParam(value = "searchTerms", required = true) String queryString,
@@ -515,7 +516,7 @@ public class SearchController {
 	 * @param response    servlet response object
 	 * @return ModelAndView instance
 	 */
-	@ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections")
+	@ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
 	@RequestMapping(value = "/v2/search.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
 	public ModelAndView fieldTripRss(
 			@RequestParam(value = "query", required = true) String queryTerms,

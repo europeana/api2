@@ -38,6 +38,7 @@ import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
 import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
@@ -108,7 +109,7 @@ public class ObjectController {
 
     private String similarItemsProfile = "minimal";
 
-    @ApiOperation(value = "get single record")
+    @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
     @RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView record(
@@ -185,7 +186,7 @@ public class ObjectController {
     }
 
     @SuppressWarnings("unused")
-    @ApiOperation(value = "get single Google Earth kml record")
+    @SwaggerIgnore
     @RequestMapping(value = "/{collectionId}/{recordId}.kml", method = RequestMethod.GET, produces = "application/vnd.google-earth.kml+xml")
     public
     @ResponseBody
@@ -196,7 +197,7 @@ public class ObjectController {
         return new ApiNotImplementedYet(apiKey, "record.kml");
     }
 
-    @ApiOperation(value = "<TBD>")
+    @SwaggerIgnore
     @RequestMapping(value = {"/context.jsonld", "/context.json-ld"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView contextJSONLD(
             @RequestParam(value = "callback", required = false) String callback
@@ -205,7 +206,7 @@ public class ObjectController {
         return JsonUtils.toJson(jsonld, callback);
     }
 
-    @ApiOperation(value = "get single record (JSON LD format)")
+    @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
     @RequestMapping(value = {"/{collectionId}/{recordId}.jsonld", "/{collectionId}/{recordId}.json-ld"},
             method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSONLD(
@@ -269,10 +270,12 @@ public class ObjectController {
         return JsonUtils.toJson(jsonld, callback);
     }
 
-    @ApiOperation(value = "get single record (rdf format)")
+    @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
     @RequestMapping(value = "/{collectionId}/{recordId}.rdf", method = RequestMethod.GET, produces = "application/rdf+xml")
-    public ModelAndView recordRdf(@PathVariable String collectionId, @PathVariable String recordId,
-                                  @RequestParam(value = "wskey", required = true) String wskey, HttpServletResponse response) {
+    public ModelAndView recordRdf(@PathVariable String collectionId,
+                                  @PathVariable String recordId,
+                                  @RequestParam(value = "wskey", required = true) String wskey,
+                                  HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
 
         Map<String, Object> model = new HashMap<>();
@@ -347,12 +350,12 @@ public class ObjectController {
         return null;
     }
 
-    @ApiOperation(value = "<TBD>")
+    @SwaggerIgnore
     @RequestMapping(value = "/{collectionId}/{recordId}.srw", method = RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
-    public
-    @ResponseBody
-    SrwResponse recordSrw(@PathVariable String collectionId, @PathVariable String recordId,
-                          @RequestParam(value = "wskey", required = false) String wskey, HttpServletResponse response)
+    public @ResponseBody SrwResponse recordSrw(@PathVariable String collectionId,
+                          @PathVariable String recordId,
+                          @RequestParam(value = "wskey", required = false) String wskey,
+                          HttpServletResponse response)
             throws Exception {
         log.info("====== /v2/record/{collectionId}/{recordId}.srw ======");
 

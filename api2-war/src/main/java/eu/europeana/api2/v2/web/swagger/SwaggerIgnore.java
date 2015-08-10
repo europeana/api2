@@ -20,16 +20,16 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.ElementType.METHOD;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value=TYPE)
+@Target(value=METHOD)
 @Documented
 
 /**
- * Used to annotate classes to be included in the Swagger output
+ * Used to annotate methods to be excluded in the Swagger output
  * @author luthien
  */
-public @interface SwaggerSelect {
+public @interface SwaggerIgnore {
     String value() default "";
 }

@@ -2,9 +2,11 @@ package eu.europeana.api2.v2.web.controller.mydata;
 
 import java.security.Principal;
 
+import io.swagger.annotations.ApiOperation;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -21,10 +23,11 @@ public class MyDataProfileController extends AbstractUserController {
 
 	/**
 	 * @param callback
+	 * @param principal
 	 * @return the JSON response
 	 */
-    
-	@RequestMapping(value = "/v2/mydata/profile.json", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "lets the user fetch their profile", nickname = "fetchMyDataProfile")
+	@RequestMapping(value = "/v2/mydata/profile.json", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
