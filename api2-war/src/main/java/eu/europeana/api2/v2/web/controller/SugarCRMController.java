@@ -81,7 +81,7 @@ public class SugarCRMController {
 	 * @return the JSON response
 	 */
 
-	@ApiOperation(value = "Retrieve information about all Europeana data providers", nickname = "providers")
+	@ApiOperation(value = "get the list of Europeana data providers", nickname = "listProviders")
 	@RequestMapping(value = "/v2/providers.json", produces = MediaType.APPLICATION_JSON_VALUE,
 			method = {RequestMethod.GET})
 	public ModelAndView findproviders(
@@ -138,7 +138,7 @@ public class SugarCRMController {
 	 * @param callback
 	 * @return the JSON response
 	 */
-	@ApiOperation(value = "Retrieve information about a single Europeana provider", nickname = "singleProvider")
+	@ApiOperation(value = "get information about a specific Europeana provider", nickname = "getProvider")
 	@RequestMapping(value = "/v2/provider/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE,
 			method = {RequestMethod.GET})
 	public ModelAndView findprovidersByID(
@@ -192,7 +192,7 @@ public class SugarCRMController {
 	 * @param callback
 	 * @return the JSON response
 	 */
-	@ApiOperation(value = "Retrieve the list of datasets provided by the provider", nickname = "providerDatasets")
+	@ApiOperation(value = "get the list of datasets provided by a specific provider", nickname = "listProviderDatasets")
 	@RequestMapping(value = "/v2/provider/{id}/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.GET})
 	public ModelAndView findDatasetsPerProvider(
@@ -251,7 +251,7 @@ public class SugarCRMController {
 	 *
 	 * @return the JSON response
 	 */
-	@ApiOperation(value = "Retrieve the list of Europeana datasets", nickname = "datasets")
+	@ApiOperation(value = "get the list of Europeana datasets", nickname = "listDatasets")
 	@RequestMapping(value = "/v2/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.GET})
 	public ModelAndView findDatasets(
@@ -311,7 +311,7 @@ public class SugarCRMController {
 	 * @param callback
 	 * @return the JSON response
 	 */
-	@ApiOperation(value = "Retrieve information about a dataset", nickname = "dataset")
+	@ApiOperation(value = "get information about a specific dataset", nickname = "getDataset")
 	@RequestMapping(value = "/v2/dataset/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.GET})
 	public ModelAndView findDatasetsById(

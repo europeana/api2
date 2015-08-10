@@ -33,6 +33,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import static springfox.documentation.builders.PathSelectors.*;
 import static springfox.documentation.builders.RequestHandlerSelectors.withClassAnnotation;
+import static springfox.documentation.builders.RequestHandlerSelectors.withMethodAnnotation;
+
 import springfox.documentation.service.ApiInfo;
 
 
@@ -54,6 +56,7 @@ public class SwaggerConfig {
             .select() 
                 // Selects controllers annotated with @SwaggerSelect
                 .apis(withClassAnnotation(SwaggerSelect.class)) //Selection by RequestHandler
+                .apis(not(withMethodAnnotation(SwaggerIgnore.class))) //Selection by RequestHandler
                 .build()
             .apiInfo(apiInfo());
     }
