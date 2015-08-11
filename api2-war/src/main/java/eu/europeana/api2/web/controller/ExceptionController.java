@@ -32,8 +32,7 @@ import eu.europeana.corelib.db.exception.LimitReachedException;
 @Controller
 public class ExceptionController {
 
-	@ExceptionHandler({TypeMismatchException.class, MissingServletRequestParameterException.class,
-			LimitReachedException.class})
+	@ExceptionHandler({TypeMismatchException.class, MissingServletRequestParameterException.class})
 	@ResponseBody
 	public ApiError handleMismatchException(Exception ex) {
 		return new ApiError(null, null, "Invalid argument(s): " + ex.toString());

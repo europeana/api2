@@ -10,12 +10,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 
-public class Api2MyDataDetails implements UserDetails {
+public class MyDataDetails implements UserDetails {
 	private static final long serialVersionUID = -925096405395777537L;
 
 	private ApiKey apiKey;
 
-	public Api2MyDataDetails(ApiKey apiKey) {
+	public MyDataDetails(ApiKey apiKey) {
 		this.apiKey = apiKey;
 	}
 

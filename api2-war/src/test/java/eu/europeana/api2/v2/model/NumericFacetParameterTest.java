@@ -22,17 +22,6 @@ public class NumericFacetParameterTest {
 	}
 
 	/**
-	 * Testing with Integer
-	 */
-	@Test
-	public void initializeWithInteger() {
-		NumericFacetParameter parameter = new NumericFacetParameter("real", new Integer(3));
-		assertNotNull(parameter);
-		assertEquals("real", parameter.getName());
-		assertEquals(new Integer(3), parameter.getValue());
-	}
-
-	/**
 	 * Testing with numeric string
 	 */
 	@Test

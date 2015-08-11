@@ -463,7 +463,7 @@ public class SearchController {
     }
 
     private String getThumbnail(BriefBean bean) {
-            if (bean.getEdmObject() != null) {
+            if (ArrayUtils.isNotEmpty(bean.getEdmObject())) {
                 for (String object : bean.getEdmObject()) {
                     if (StringUtils.isNotBlank(object)) {
                         return urlService.getThumbnailUrl(object, bean.getType()).toString();

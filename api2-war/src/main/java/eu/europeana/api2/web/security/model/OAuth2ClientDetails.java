@@ -11,7 +11,7 @@ import eu.europeana.corelib.utils.StringArrayUtils;
 /**
  * The client details
  */
-public class Api2OAuth2ClientDetails extends BaseClientDetails {
+public class OAuth2ClientDetails extends BaseClientDetails {
 	private static final long serialVersionUID = -5687602758230210358L;
 
 	/**
@@ -25,7 +25,7 @@ public class Api2OAuth2ClientDetails extends BaseClientDetails {
 	 */
 	private Set<String> scope = StringArrayUtils.toSet("read", "write");
 
-	public Api2OAuth2ClientDetails(String apikey, String secret) {
+	public OAuth2ClientDetails(String apikey, String secret) {
 		super();
 		setClientId(apikey);
 		setClientSecret(secret);

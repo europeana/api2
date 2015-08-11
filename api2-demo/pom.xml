@@ -16,56 +16,66 @@
   the Licence.
  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>api2-demo</artifactId>
-	<groupId>eu.europeana.api2</groupId>
-	<packaging>war</packaging>
-	<name>Europeana API2 Demo Web Application</name>
-	<url>api.europeana.eu/demo</url>
+    <artifactId>api2-demo</artifactId>
+    <groupId>eu.europeana.api2</groupId>
+    <packaging>war</packaging>
+    <name>Europeana API2 Demo Web Application</name>
+    <url>api.europeana.eu/demo</url>
 
-	<parent>
-		<artifactId>api2</artifactId>
-		<groupId>eu.europeana</groupId>
-		<version>${version.europeanaApi2}</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
+    <parent>
+        <artifactId>api2</artifactId>
+        <groupId>eu.europeana</groupId>
+        <version>${version.europeanaApi2}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
-	<dependencies>
-		<dependency>
-			<groupId>eu.europeana.api2</groupId>
-			<artifactId>api2-model</artifactId>
-			<version>${version.europeanaApi2}</version>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>eu.europeana.api2</groupId>
+            <artifactId>api2-model</artifactId>
+            <version>${version.europeanaApi2}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework.security.oauth</groupId>
-			<artifactId>spring-security-oauth2</artifactId>
-			<version>${version.springSecurityOauth}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.security.oauth</groupId>
+            <artifactId>spring-security-oauth2</artifactId>
+            <version>${version.springSecurityOauth}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId>
-			<version>${version.servletJstl}</version>
-		</dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>${version.servletJstl}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${version.junit}</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${version.junit}</version>
+            <scope>test</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>com.sun.xml.bind</groupId>
-			<artifactId>jaxb-impl</artifactId>
-			<version>2.2.2</version>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.2.2</version>
+        </dependency>
+    </dependencies>
 
-	<build>
-		<finalName>api-demo</finalName>
-	</build>
+    <build>
+        <finalName>api-demo</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

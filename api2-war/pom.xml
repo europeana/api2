@@ -309,6 +309,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
+                <version>2.6</version>
                 <configuration>
                     <webResources>
                         <resource>
@@ -319,6 +320,7 @@
                             </includes>
                         </resource>
                     </webResources>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
 
@@ -371,7 +373,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-				<europeana.properties>${project.parent.basedir}/properties/test</europeana.properties>
+                <europeana.properties>${project.parent.basedir}/properties/test</europeana.properties>
             </properties>
         </profile>
         <profile>
@@ -379,7 +381,7 @@
                 production
             </id>
             <properties>
-				<europeana.properties>${project.parent.basedir}/properties/production</europeana.properties>
+                <europeana.properties>${project.parent.basedir}/properties/production</europeana.properties>
             </properties>
         </profile>
         <profile>
@@ -387,7 +389,7 @@
                 personal
             </id>
             <properties>
-				<europeana.properties>${project.parent.basedir}/properties/personal</europeana.properties>
+                <europeana.properties>${project.parent.basedir}/properties/personal</europeana.properties>
             </properties>
         </profile>
     </profiles>

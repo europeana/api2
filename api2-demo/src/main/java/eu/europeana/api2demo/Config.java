@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class Config {
 
-	@Value("#{europeanaProperties['api2.url']}")
+	@Value("${api2.url}")
 	private String apiUrl;
 
 	private static final String URI_PROFILE = "/v2/user/profile.json";
