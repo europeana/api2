@@ -63,15 +63,15 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 		cacheInstance = mock(SugarCRMCache.class);
 		importerInstance = mock(SugarCRMImporter.class);
 		final ArgumentCaptor<String> providercaptor = ArgumentCaptor.forClass(String.class);
-		final SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<Provider>(
+		final SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<>(
 				null, null);
 		Provider provider = new Provider();
 		provider.identifier = "mockid";
 		provider.name = "mockname";
-		provider.savedsugarcrmFields = new HashMap<String, String>();
-		providerres.items = new ArrayList<Provider>();
+		provider.savedsugarcrmFields = new HashMap<>();
+		providerres.items = new ArrayList<>();
 		providerres.items.add(provider);
-		final SugarCRMSearchResults<DataSet> collectionres = new SugarCRMSearchResults<DataSet>(
+		final SugarCRMSearchResults<DataSet> collectionres = new SugarCRMSearchResults<>(
 				null, null);
 		DataSet ds = new DataSet();
 		ds.identifier = "mockid";
@@ -80,8 +80,8 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 		ds.publishedRecords = 0;
 		ds.provIdentifier = "mockprovID";
 		ds.status = "mockstatus";
-		ds.savedsugarcrmFields = new HashMap<String, String>();
-		collectionres.items = new ArrayList<DataSet>();
+		ds.savedsugarcrmFields = new HashMap<>();
+		collectionres.items = new ArrayList<>();
 		collectionres.items.add(ds);
 
 		when(cacheInstance.getProviders()).thenAnswer(
@@ -98,15 +98,15 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 					@Override
 					public SugarCRMSearchResults<Provider> answer(
 							InvocationOnMock invocation) throws Throwable {
-						SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<Provider>(
+						SugarCRMSearchResults<Provider> providerRes = new SugarCRMSearchResults<>(
 								null, null);
 						Provider provider = new Provider();
 						provider.identifier = providercaptor.getValue();
 						provider.name = "mockname";
-						provider.savedsugarcrmFields = new HashMap<String, String>();
-						providerres.items = new ArrayList<Provider>();
-						providerres.items.add(provider);
-						return providerres;
+						provider.savedsugarcrmFields = new HashMap<>();
+						providerRes.items = new ArrayList<>();
+						providerRes.items.add(provider);
+						return providerRes;
 					}
 				});
 

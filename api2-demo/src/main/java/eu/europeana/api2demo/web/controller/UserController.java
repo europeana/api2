@@ -28,7 +28,7 @@ public class UserController {
 	@RequestMapping("/")
 	public ModelAndView profile() {
 		UserProfile profile = api2UserService.getProfile();
-		Map<String, Object> model = new HashMap<String, Object>();
+		Map<String, Object> model = new HashMap<>();
 		model.put("profile", profile);
 		return new ModelAndView("user/profile", model);
 	}
@@ -36,7 +36,7 @@ public class UserController {
 	@RequestMapping(value = "/saveditems", params="!action")
 	public ModelAndView items() {
 		UserSavedItems userSavedItems = api2UserService.getSavedItems();
-		Map<String, Object> model = new HashMap<String, Object>();
+		Map<String, Object> model = new HashMap<>();
 		model.put("items", userSavedItems.items);
 		model.put("username", userSavedItems.username);
 		return new ModelAndView("user/saveditems", model);
@@ -55,16 +55,16 @@ public class UserController {
 			@RequestParam(value = "tag", required = false) String tag
 			) {
 		UserTags userTags = api2UserService.getTags(tag);
-		Map<String, Object> model = new HashMap<String, Object>();
+		Map<String, Object> model = new HashMap<>();
 		model.put("items", userTags.items);
 		model.put("username", userTags.username);
 		return new ModelAndView("user/tags", model);
 	}
 	
 	@RequestMapping(value = "/tagcloud", params="!action")
-	public ModelAndView tagcloud() {
+	public ModelAndView tagCloud() {
 		TagCloud tagCloud = api2UserService.createTagCloud();
-		Map<String, Object> model = new HashMap<String, Object>();
+		Map<String, Object> model = new HashMap<>();
 		model.put("items", tagCloud.items);
 		model.put("username", tagCloud.username);
 		return new ModelAndView("user/tagcloud", model);
@@ -82,7 +82,7 @@ public class UserController {
 	@RequestMapping(value = "/searches", params="!action")
 	public ModelAndView searches() {
 		UserSearches userSearches = api2UserService.getSavedSearches();
-		Map<String, Object> model = new HashMap<String, Object>();
+		Map<String, Object> model = new HashMap<>();
 		model.put("items", userSearches.items);
 		model.put("username", userSearches.username);
 		return new ModelAndView("user/searches", model);
@@ -92,7 +92,7 @@ public class UserController {
 	public ModelAndView searchesDelete(
 		@RequestParam(value = "id", required = true) Long objectId
 	) {
-		api2UserService.deleteSavedSearche(objectId);
+		api2UserService.deleteSavedSearch(objectId);
 		return searches();
 	}
 

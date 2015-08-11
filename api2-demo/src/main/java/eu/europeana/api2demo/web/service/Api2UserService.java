@@ -30,6 +30,6 @@ public interface Api2UserService {
 	// SAVED SEARCHES
 	UserSearches getSavedSearches();
 
-	boolean deleteSavedSearche(Long id);
+	boolean deleteSavedSearch(Long id);
 	
 }

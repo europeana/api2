@@ -93,8 +93,6 @@ public abstract class SugarCRMCacheIntegrationTest extends
 
 		try {
 			sugarwsClient.login(ClientUtils.createStandardLoginObject("user", "pass"));
-		} catch (JIXBLoginFailureException e) {
-			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
