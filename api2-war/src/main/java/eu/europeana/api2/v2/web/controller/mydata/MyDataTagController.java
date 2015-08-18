@@ -21,6 +21,8 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -34,6 +36,7 @@ import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Tag;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.relational.custom.TagCloudItem;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
@@ -44,8 +47,17 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@SwaggerSelect
 public class MyDataTagController extends AbstractUserController {
 
+	/**
+	 * @param europeanaId
+	 * @param tag
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+	@SwaggerIgnore
 	@RequestMapping(value = "/v2/mydata/tag.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
@@ -55,7 +67,15 @@ public class MyDataTagController extends AbstractUserController {
 		return list(europeanaId, tag, callback, principal);
 	}
 
-	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
+	/**
+	 * @param europeanaId
+	 * @param tagFilter
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+    @ApiOperation(value = "lets the user list their data tags", nickname = "listMyDataTags")
+	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
 	public ModelAndView list(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "tag", required = false) String tagFilter,
@@ -95,8 +115,14 @@ public class MyDataTagController extends AbstractUserController {
 		return JsonUtils.toJson(response, callback);
 	}
 	
-
-	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=TAGCLOUD", produces = MediaType.APPLICATION_JSON_VALUE)
+	/**
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+    @ApiOperation(value = "shows the user's tag cloud", nickname = "showMyDataTagcloud")
+	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=TAGCLOUD", produces = MediaType.APPLICATION_JSON_VALUE
+			, method = RequestMethod.GET)
 	public ModelAndView listDistinct(
 			@RequestParam(value = "callback", required = false) String callback,
 			Principal principal) {
@@ -126,15 +152,32 @@ public class MyDataTagController extends AbstractUserController {
 	}
 	
 
+	/**
+	 * @param europeanaId
+	 * @param tag
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+    @ApiOperation(value = "lets the user create a new data tag", nickname = "createMyDataTag")
 	@RequestMapping(value = "/v2/mydata/tag.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
 			RequestMethod.POST, RequestMethod.PUT })
 	public ModelAndView createRest(
 			@RequestParam(value = "europeanaid", required = true) String europeanaId,
 			@RequestParam(value = "tag", required = true) String tag,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback, 
+            Principal principal) {
 		return create(europeanaId, tag, callback, principal);
 	}
 
+	/**
+	 * @param europeanaId
+	 * @param tag
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+	@SwaggerIgnore
 	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView create(
 			@RequestParam(value = "europeanaid", required = true) String europeanaId,
@@ -164,6 +207,15 @@ public class MyDataTagController extends AbstractUserController {
 		return JsonUtils.toJson(response, callback);
 	}
 
+	/**
+	 * @param tagId
+	 * @param tag
+	 * @param europeanaId
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+    @ApiOperation(value = "lets the user delete a data tag", nickname = "deleteMyDataTag")
 	@RequestMapping(value = "/v2/mydata/tag.json", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(
 			@RequestParam(value = "tagid", required = false) Long tagId,
@@ -174,12 +226,22 @@ public class MyDataTagController extends AbstractUserController {
 		return delete(tagId, tag, europeanaId, callback, principal);
 	}
 
+	/**
+	 * @param tagId
+	 * @param tag
+	 * @param europeanaId
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+	@SwaggerIgnore
 	@RequestMapping(value = "/v2/mydata/tag.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView delete(
 			@RequestParam(value = "tagid", required = false) Long tagId,
 			@RequestParam(value = "tag", required = false) String tag,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
-			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
+			@RequestParam(value = "callback", required = false) String callback, 
+            Principal principal) {
 		UserModification response = new UserModification(principal.getName(), "/v2/mydata/tag.json?action=DELETE");
 		try {
 			ApiKey apiKey = apiKeyService.findByID(principal.getName());
@@ -200,6 +262,4 @@ public class MyDataTagController extends AbstractUserController {
 		}
 		return JsonUtils.toJson(response, callback);
 	}
-	
-	
 }

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -35,6 +36,8 @@ import eu.europeana.api2.v2.model.json.UserModification;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.SavedItem;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
+import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
@@ -43,9 +46,19 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@SwaggerSelect
 public class MyDataItemController extends AbstractUserController {
 
-	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+    
+	/**
+	 * @param europeanaId
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+    @SwaggerIgnore
+	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE
+			, method = RequestMethod.GET)
 	public ModelAndView defaultAction(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -53,7 +66,15 @@ public class MyDataItemController extends AbstractUserController {
 		return list(europeanaId, callback, principal);
 	}
 
-	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE)
+	/**
+	 * @param europeanaId
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+    @ApiOperation(value = "lets the user list their data items", nickname = "listMyDataItems")
+	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE
+			, method = RequestMethod.GET)
 	public ModelAndView list(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -91,8 +112,15 @@ public class MyDataItemController extends AbstractUserController {
 	}
 
 
-	@RequestMapping(value = "/v2/mydata/saveditem.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
-			RequestMethod.POST, RequestMethod.PUT })
+	/**
+	 * @param europeanaId
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+    @ApiOperation(value = "lets the user create a new data item", nickname = "createMyDataItem")
+	@RequestMapping(value = "/v2/mydata/saveditem.json", produces = MediaType.APPLICATION_JSON_VALUE
+			, method = { RequestMethod.POST, RequestMethod.PUT })
 	public ModelAndView createRest(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
@@ -100,7 +128,14 @@ public class MyDataItemController extends AbstractUserController {
 		return create(europeanaId, callback, principal);
 	}
 
-	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+	/**
+	 * @param europeanaId
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+	@SwaggerIgnore
+	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView create(
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
@@ -123,6 +158,14 @@ public class MyDataItemController extends AbstractUserController {
 		return JsonUtils.toJson(response, callback);
 	}
 
+	/**
+	 * @param itemId
+	 * @param europeanaId
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+    @ApiOperation(value = "lets the user delete a data item", nickname = "deleteMyDataItem")
 	@RequestMapping(value = "/v2/mydata/saveditem.json", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.DELETE)
 	public ModelAndView deleteRest(
 			@RequestParam(value = "itemid", required = false) Long itemId,
@@ -132,7 +175,15 @@ public class MyDataItemController extends AbstractUserController {
 		return delete(itemId, europeanaId, callback, principal);
 	}
 
-	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+	/**
+	 * @param itemId
+	 * @param europeanaId
+	 * @param callback
+     * @param principal
+	 * @return the JSON response
+	 */
+	@SwaggerIgnore
+	@RequestMapping(value = "/v2/mydata/saveditem.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView delete(
 			@RequestParam(value = "itemid", required = false) Long itemId,
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
