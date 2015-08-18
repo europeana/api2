@@ -1,18 +1,18 @@
 /*
- * Copyright 2007-2012 The Europeana Foundation
+ * Copyright 2007-2015 The Europeana Foundation
  *
- *  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved 
- *  by the European Commission;
- *  You may not use this work except in compliance with the Licence.
- *  
- *  You may obtain a copy of the Licence at:
- *  http://joinup.ec.europa.eu/software/page/eupl
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
  *
- *  Unless required by applicable law or agreed to in writing, software distributed under 
- *  the Licence is distributed on an "AS IS" basis, without warranties or conditions of 
- *  any kind, either express or implied.
- *  See the Licence for the specific language governing permissions and limitations under 
- *  the Licence.
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
  */
 
 package eu.europeana.api2.v2.web.controller;
@@ -103,8 +103,6 @@ public class ObjectController {
     @Resource
     private ControllerUtils controllerUtils;
 
-    private String similarItemsProfile = "minimal";
-
     @RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView record(
@@ -156,7 +154,8 @@ public class ObjectController {
                     similarItems = searchService.findMoreLikeThis(europeanaObjectId);
                     for (BriefBean b : similarItems) {
                         Boolean optOut = b.getPreviewNoDistribute();
-                        BriefView view = new BriefView(b, similarItemsProfile, wskey, limitResponse.getApiKey().getUser().getId(), optOut == null ? false : optOut);
+                        String similarItemsProfile = "minimal";
+                        BriefView view = new BriefView(b, similarItemsProfile, wskey, optOut == null ? false : optOut);
 
                         beans.add(view);
                     }
@@ -166,7 +165,7 @@ public class ObjectController {
                 objectResult.similarItems = beans;
             }
             Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
-            objectResult.object = new FullView(bean, profile, limitResponse.getApiKey().getUser().getId(), optOut == null ? false : optOut);
+            objectResult.object = new FullView(bean, profile, optOut == null ? false : optOut);
             long t1 = (new Date()).getTime();
             objectResult.statsDuration = (t1 - t0);
         } catch (MongoDBException e) {
@@ -277,7 +276,7 @@ public class ObjectController {
             apiKey = apiService.findByID(wskey);
             if (apiKey == null) {
                 response.setStatus(401);
-                model.put("error", "Unregistered user");
+                model.put("error", "Unregistered API key");
                 return new ModelAndView("rdf", model);
             }
             apiKey.getUsageLimit();
@@ -352,7 +351,8 @@ public class ObjectController {
             throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
         }
 
-        if ((userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null)) {
+        ApiKey apiKey = apiService.findByID(wskey);
+        if (apiKey == null) {
             // model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Unregistered user")));
             throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
             // hasResult = true;
