@@ -153,6 +153,7 @@ public class SearchController {
 	 * @param profile
 	 * @param start
 	 * @param rows
+	 * @param sort
 	 * @param aFacet
 	 * @param wskey
 	 * @param callback
@@ -168,6 +169,7 @@ public class SearchController {
 			@RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
+			@RequestParam(value = "sort", required = false) String sort,
 			@RequestParam(value = "facet", required = false) String[] aFacet,
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -224,6 +226,7 @@ public class SearchController {
 				.setRefinements(refinements)
 				.setPageSize(rows)
 				.setStart(start - 1)
+				.setSort(sort)
 				.setParameter("facet.mincount", "1")
 				.setParameter("fl", "*,score")
 				.setAllowSpellcheck(false)
@@ -283,6 +286,7 @@ public class SearchController {
 				result.addParam("profile", profile);
 				result.addParam("start", start);
 				result.addParam("rows", rows);
+				result.addParam("sort", sort);
 			}
 
 			if (log.isInfoEnabled()) {
