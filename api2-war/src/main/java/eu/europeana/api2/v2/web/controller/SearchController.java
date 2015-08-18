@@ -180,8 +180,11 @@ public class SearchController {
 			refinements = _qf;
 		}
 
-
 		queryString = queryString.trim();
+		if  (queryString == null || "".equalsIgnoreCase(queryString)){
+			response.setStatus(400);
+			return JsonUtils.toJson(new ApiError("", "search.json", "invalid query parameter"), callback);
+		}
 		log.info("QUERY: |" + queryString + "|");
 
 
@@ -288,11 +291,11 @@ public class SearchController {
 			return JsonUtils.toJson(result, callback);
 		} catch (SolrTypeException e) {
 			log.error(wskey + " [search.json] ", e);
-			response.setStatus(500);
+			response.setStatus(400);
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		} catch (Exception e) {
 			log.error(wskey + " [search.json] " + e.getClass().getSimpleName(), e);
-			response.setStatus(500);
+			response.setStatus(400);
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		}
 	}
