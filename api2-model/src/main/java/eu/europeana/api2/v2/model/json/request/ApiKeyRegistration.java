@@ -15,7 +15,7 @@
  * the Licence.
  */
 
-package eu.europeana.api2.v2.model.json;
+package eu.europeana.api2.v2.model.json.request;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -36,6 +36,8 @@ public class ApiKeyRegistration {
     private String company;
 
     private String application;
+
+    private String website;
 
     private String description;
 
@@ -65,5 +67,9 @@ public class ApiKeyRegistration {
 
     public String getPrivateKey() {
         return privateKey;
+    }
+
+    public String getWebsite() {
+        return website;
     }
 }

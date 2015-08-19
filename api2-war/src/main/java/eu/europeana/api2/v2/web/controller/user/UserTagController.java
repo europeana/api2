@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.json.UserModification;
+import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Tag;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
@@ -129,7 +129,7 @@ public class UserTagController extends AbstractUserController {
 			@RequestParam(value = "tag", required = true) String tag,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
-		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.json?action=CREATE");
+		ModificationConfirmation response = new ModificationConfirmation(getApiId(principal), "/v2/user/tag.json?action=CREATE");
 		if (user != null) {
 			try {
 				userService.createSocialTag(user.getId(), europeanaId, tag);
@@ -161,7 +161,7 @@ public class UserTagController extends AbstractUserController {
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
-		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.json?action=DELETE");
+		ModificationConfirmation response = new ModificationConfirmation(getApiId(principal), "/v2/user/tag.json?action=DELETE");
 		if (user != null) {
 			try {
 				if (tagId != null) {

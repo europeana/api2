@@ -18,7 +18,7 @@
 package eu.europeana.api2.v2.web.controller.mydata;
 
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.json.UserModification;
+import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Tag;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
@@ -132,7 +132,7 @@ public class MyDataTagController extends AbstractUserController {
             @RequestParam(value = "tag", required = true) String tag,
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
-        UserModification response = new UserModification(principal.getName(), "/v2/mydata/tag.json?action=CREATE");
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName(), "/v2/mydata/tag.json?action=CREATE");
         User user = getUserByApiId(principal.getName());
         if (user != null) {
             try {
@@ -165,7 +165,7 @@ public class MyDataTagController extends AbstractUserController {
             @RequestParam(value = "tag", required = false) String tag,
             @RequestParam(value = "europeanaid", required = false) String europeanaId,
             @RequestParam(value = "callback", required = false) String callback, Principal principal) {
-        UserModification response = new UserModification(principal.getName(), "/v2/mydata/tag.json?action=DELETE");
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName(), "/v2/mydata/tag.json?action=DELETE");
         try {
             User user = getUserByApiId(principal.getName());
             if (user != null) {

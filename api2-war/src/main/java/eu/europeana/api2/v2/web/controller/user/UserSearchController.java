@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.json.UserModification;
+import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Search;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
@@ -92,7 +92,7 @@ public class UserSearchController extends AbstractUserController {
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "start", required = false, defaultValue = "1") String start,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
-		UserModification response = new UserModification(getApiId(principal), "/v2/user/tag.search?action=CREATE");
+		ModificationConfirmation response = new ModificationConfirmation(getApiId(principal), "/v2/user/tag.search?action=CREATE");
 		try {
 			User user = userService.findByEmail(principal.getName());
 			if (user != null) {
@@ -124,7 +124,7 @@ public class UserSearchController extends AbstractUserController {
 	public ModelAndView delete(
 			@RequestParam(value = "searchid", required = true) Long searchId,
 			@RequestParam(value = "callback", required = false) String callback, Principal principal) {
-		UserModification response = new UserModification(getApiId(principal), "/v2/user/search.json?action=DELETE");
+		ModificationConfirmation response = new ModificationConfirmation(getApiId(principal), "/v2/user/search.json?action=DELETE");
 		try {
 			User user = userService.findByEmail(principal.getName());
 			if (user != null) {
