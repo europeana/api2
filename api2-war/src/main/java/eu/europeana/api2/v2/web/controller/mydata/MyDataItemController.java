@@ -18,7 +18,7 @@
 package eu.europeana.api2.v2.web.controller.mydata;
 
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.json.UserModification;
+import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.SavedItem;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
@@ -102,7 +102,7 @@ public class MyDataItemController extends AbstractUserController {
             @RequestParam(value = "europeanaid", required = false) String europeanaId,
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
-        UserModification response = new UserModification(principal.getName(), "/v2/mydata/saveditem.json?action=CREATE");
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName(), "/v2/mydata/saveditem.json?action=CREATE");
         try {
             User user = getUserByApiId(principal.getName());
             if (user != null) {
@@ -134,7 +134,7 @@ public class MyDataItemController extends AbstractUserController {
             @RequestParam(value = "europeanaid", required = false) String europeanaId,
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
-        UserModification response = new UserModification(principal.getName(), "/v2/mydata/saveditem.json?action=DELETE");
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName(), "/v2/mydata/saveditem.json?action=DELETE");
         try {
             User user = getUserByApiId(principal.getName());
             if (user != null) {

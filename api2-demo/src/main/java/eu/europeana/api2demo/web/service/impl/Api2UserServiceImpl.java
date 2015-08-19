@@ -30,7 +30,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.web.client.RestOperations;
 
-import eu.europeana.api2.v2.model.json.UserModification;
+import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2demo.Config;
 import eu.europeana.api2demo.web.model.TagCloud;
 import eu.europeana.api2demo.web.model.UserProfile;
@@ -71,7 +71,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 	
 	@Override
 	public boolean createSavedItem(String id) {
-		UserModification result = readJson(config.getUriSavedItemCreate() + id, UserModification.class);
+		ModificationConfirmation result = readJson(config.getUriSavedItemCreate() + id, ModificationConfirmation.class);
 		return result != null ? result.success : false;
 	}
 	
@@ -102,7 +102,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 	
 	@Override
 	public boolean deleteTag(Long id) {
-		UserModification result = readJson(config.getUriTagsDelete() + id.toString(), UserModification.class);
+		ModificationConfirmation result = readJson(config.getUriTagsDelete() + id.toString(), ModificationConfirmation.class);
 		return result != null ? result.success : false;
 	}
 	
@@ -113,7 +113,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 	
 	@Override
 	public boolean deleteSavedSearche(Long id) {
-		UserModification result = readJson(config.getUriSearchesDelete() + id.toString(), UserModification.class); 
+		ModificationConfirmation result = readJson(config.getUriSearchesDelete() + id.toString(), ModificationConfirmation.class);
 		return result != null ? result.success : false;
 	}
 	

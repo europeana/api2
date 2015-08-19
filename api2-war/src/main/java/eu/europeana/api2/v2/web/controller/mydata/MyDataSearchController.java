@@ -18,7 +18,7 @@
 package eu.europeana.api2.v2.web.controller.mydata;
 
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.json.UserModification;
+import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Search;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
@@ -93,7 +93,7 @@ public class MyDataSearchController extends AbstractUserController {
             @RequestParam(value = "qf", required = false) String[] refinements,
             @RequestParam(value = "start", required = false, defaultValue = "1") String start,
             @RequestParam(value = "callback", required = false) String callback, Principal principal) {
-        UserModification response = new UserModification(principal.getName(), "/v2/mydata/tag.search?action=CREATE");
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName(), "/v2/mydata/tag.search?action=CREATE");
         try {
             User user = getUserByApiId(principal.getName());
             if (user != null) {
@@ -122,7 +122,7 @@ public class MyDataSearchController extends AbstractUserController {
     public ModelAndView delete(
             @RequestParam(value = "searchid", required = true) Long searchId,
             @RequestParam(value = "callback", required = false) String callback, Principal principal) {
-        UserModification response = new UserModification(principal.getName(), "/v2/mydata/search.json?action=DELETE");
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName(), "/v2/mydata/search.json?action=DELETE");
         try {
             User user = getUserByApiId(principal.getName());
             if (user != null) {
