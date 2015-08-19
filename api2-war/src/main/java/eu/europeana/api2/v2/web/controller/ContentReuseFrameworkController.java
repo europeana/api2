@@ -46,7 +46,6 @@ public class ContentReuseFrameworkController {
     @Resource
     private SearchService searchService;
 
-  
     @Resource
     private ApiLogService apiLogService;
 
@@ -58,8 +57,6 @@ public class ContentReuseFrameworkController {
 
     @Resource
     private ControllerUtils controllerUtils;
-
-   
 
     private byte[] getImage(String path, String size) {
         byte[] response = null;

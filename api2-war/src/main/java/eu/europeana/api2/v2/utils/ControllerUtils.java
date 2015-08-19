@@ -60,6 +60,9 @@ public class ControllerUtils {
     ApiKey apiKey = null;
     long requestNumber = 0;
     long t;
+    if (wskey == null || "".equalsIgnoreCase(wskey)){
+      throw new ApiLimitException(wskey, apiCall, "no API key provided", 0, 401);
+    }
     try {
       t = System.currentTimeMillis();
       apiKey = apiService.findByID(wskey);
