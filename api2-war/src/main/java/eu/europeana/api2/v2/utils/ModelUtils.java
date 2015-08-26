@@ -19,8 +19,8 @@ package eu.europeana.api2.v2.utils;
 
 import java.util.*;
 
+import eu.europeana.corelib.definitions.model.facets.inverseLogic.*;
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
-import eu.europeana.corelib.search.service.inverseLogic.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
@@ -118,6 +118,9 @@ public class ModelUtils {
                     facet.name = FacetNames.IS_FULLTEXT.getRealName();
                 }  else if (FacetNames.HAS_MEDIA.name().equalsIgnoreCase(facet.name)) {
                     facet.name = FacetNames.HAS_MEDIA.getRealName();
+                }
+                else if (FacetNames.HAS_THUMBNAILS.name().equalsIgnoreCase(facet.name)) {
+                    facet.name = FacetNames.HAS_THUMBNAILS.getRealName();
                 }
 
 
