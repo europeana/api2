@@ -126,6 +126,23 @@ public class SearchController {
 
     final static public int FACET_LIMIT = 16;
 
+    private String[] expandFacetNames(String[] facet) {
+        if (null == facet) return facet;
+
+        for (int i = 0; i < facet.length; ++i) {
+            if ("MEDIA".equalsIgnoreCase(facet[i])) {
+                facet[i] = "has_media";
+            }
+            else if ("THUMBNAIL".equalsIgnoreCase(facet[i])) {
+                facet[i] = "has_thumbnails";
+            }
+            else if ("TEXT_FULLTEXT".equalsIgnoreCase(facet[i])) {
+                facet[i] = "is_fulltext";
+            }
+        }
+        return facet;
+    }
+
     @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
                                           @RequestParam(value = "query", required = true) String queryString,
@@ -388,8 +405,9 @@ public class SearchController {
 
         boolean isFacetsRequested = isFacetsRequested(profile);
         String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
-        String[] facets = StringArrayUtils.splitWebParameter(aFacet);
+        String[] facets = expandFacetNames(StringArrayUtils.splitWebParameter(aFacet));
         boolean isDefaultFacetsRequested = isDefaultFacetsRequested(profile, facets);
+
         facets = limitFacets(facets, isDefaultFacetsRequested);
 
         boolean isDefaultOrReusabilityFacetRequested = isDefaultOrReusabilityFacetRequested(profile, facets);

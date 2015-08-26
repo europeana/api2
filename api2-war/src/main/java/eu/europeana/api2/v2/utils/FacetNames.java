@@ -17,7 +17,8 @@ public enum FacetNames {
     VIDEO_HD("VIDEO_HD"),
 
     SOUND_HQ("SOUND_HQ"),
-    SOUND_DURATION("SOUND_DURATION");
+    SOUND_DURATION("SOUND_DURATION"),
+    HAS_THUMBNAILS("THUMBNAIL");
 
     private final String realName_;
 
