@@ -584,7 +584,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-				<europeana.properties>${project.basedir}/properties/test</europeana.properties>
+				<europeana.properties>${project.parent.basedir}/properties/test</europeana.properties>
             </properties>
         </profile>
         <profile>
@@ -592,7 +592,7 @@
                 production
             </id>
             <properties>
-				<europeana.properties>${project.basedir}/properties/production</europeana.properties>
+				<europeana.properties>${project.parent.basedir}/properties/production</europeana.properties>
             </properties>
         </profile>
         <profile>
@@ -600,7 +600,7 @@
                 personal
             </id>
             <properties>
-				<europeana.properties>${project.basedir}/properties/personal</europeana.properties>
+				<europeana.properties>${project.parent.basedir}/properties/personal</europeana.properties>
             </properties>
         </profile>
     </profiles>
