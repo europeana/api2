@@ -20,13 +20,13 @@
 	<parent>
 		<artifactId>corelib</artifactId>
 		<groupId>eu.europeana</groupId>
-		<version>2.1-SNAPSHOT</version>
+		<version>2.2-SNAPSHOT</version>
 		<relativePath>../corelib/pom.xml</relativePath>
 	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<version.europeanaCorelib>2.1-SNAPSHOT</version.europeanaCorelib>
+		<version.europeanaCorelib>2.2-SNAPSHOT</version.europeanaCorelib>
 	</properties>
 	<modules>
 		<module>api2-model</module>
