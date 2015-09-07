@@ -22,7 +22,6 @@
     <bean id="messageSource" class="eu.europeana.corelib.web.support.ReportingMessageSource">
         <property name="basename" value="#{europeanaProperties['message.resource']}"/>
         <property name="cacheSeconds" value="#{europeanaProperties['message.cache.seconds']}"/>
-
         <property name="defaultEncoding" value="UTF-8"/>
         <property name="useCodeAsDefaultMessage" value="true"/>
     </bean>
