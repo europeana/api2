@@ -52,6 +52,7 @@ import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
+import eu.europeana.corelib.search.utils.FakeTagsUtils;
 import eu.europeana.corelib.search.utils.SearchUtils;
 import eu.europeana.corelib.utils.StringArrayUtils;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
@@ -178,10 +179,10 @@ public class SearchController {
     final List<String> videoDurations = new ArrayList<>();
 
     final Integer imageFilterTag =
-        imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios)
+        FakeTagsUtils.imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios)
             .get(0);
-    final Integer soundFilterTag = soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
-    final Integer videoFilterTag = videoFilterTags(mimeTypes, videoHDs, videoDurations).get(0);
+    final Integer soundFilterTag = FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
+    final Integer videoFilterTag = FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations).get(0);
 
 
     if (null != sound_duration) {
@@ -297,7 +298,7 @@ public class SearchController {
       for (String color : imageColorsPalette) {
         log.info("Color palette: " + color);
         final Integer filterTag =
-            searchService.search(1, null, null, null, null, null, color, null, null, null, null);
+            FakeTagsUtils.calculateTag(1, null, null, null, null, null, color, null, null, null, null);
         log.info("Color palette: " + filterTag);
         filterQuery += "filter_tags:" + filterTag + " AND ";
       }
@@ -314,11 +315,10 @@ public class SearchController {
     }
 
     final List<Integer> filterTags = new ArrayList<>();
-    filterTags.addAll(imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales,
-        imageAspectRatios));
-    filterTags.addAll(soundFilterTags(mimeTypes, soundHQs, soundDurations));
-    filterTags.addAll(videoFilterTags(mimeTypes, videoHDs, videoDurations));
-
+    filterTags.addAll(FakeTagsUtils.imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales,
+            imageAspectRatios));
+    filterTags.addAll(FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations));
+    filterTags.addAll(FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations));
     Boolean image = false, sound = false, video = false;
     for (final String type : mediaTypes) {
       if (type.equalsIgnoreCase("image")) {
@@ -350,8 +350,6 @@ public class SearchController {
     }
 
     log.info("filtertagquery: " + filterTagQuery);
-
-    System.out.println("filtertagquery: " + filterTagQuery);
 
     if (filterTagQuery.contains("OR")) {
       filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("OR"));
@@ -409,17 +407,11 @@ public class SearchController {
               valueReplacements.keySet().toArray(new String[valueReplacements.keySet().size()]));
     }
 
-    log.info("Query: " + queryString);
-    System.out.println("Query is: " + queryString);
-    System.out.println("Refinements: " + Arrays.toString(refinements));
-
     Query query =
         new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true)
             .setRefinements(refinements).setPageSize(rows).setStart(start - 1)
             .setParameter("facet.mincount", "1").setParameter("fl", "*,score")
             .setAllowSpellcheck(false).setAllowFacets(false);
-
-    System.out.println(query.toString());
 
     if (ArrayUtils.isNotEmpty(facets)) {
       query.setFacets(facets);
@@ -495,159 +487,6 @@ public class SearchController {
     }
   }
 
-  private List<Integer> imageFilterTags(List<String> mimeTypes, List<String> imageSizes,
-      List<Boolean> imageColors, List<Boolean> imageGrayScales, List<String> imageAspectRatios) {
-    final List<Integer> filterTags = new ArrayList<>();
-    Integer i = 0, j, k, l, m;
-
-    log.info("Size: " + mimeTypes.size());
-    log.info("Size: " + imageSizes.size());
-    log.info("Size: " + imageColors.size());
-    log.info("Size: " + imageGrayScales.size());
-    log.info("Size: " + imageAspectRatios.size());
-
-    do {
-      String mimeType = null;
-      if (mimeTypes.size() != 0) {
-        mimeType = mimeTypes.get(i);
-      }
-      j = 0;
-      log.info("mimetype: " + mimeType);
-      do {
-        String imageSize = null;
-        if (imageSizes.size() != 0) {
-          imageSize = imageSizes.get(j);
-        }
-        k = 0;
-        log.info("imageSize: " + imageSize);
-        do {
-          Boolean imageColor = null;
-          if (imageColors.size() != 0) {
-            imageColor = imageColors.get(k);
-          }
-          l = 0;
-          log.info("imageColor: " + imageColor);
-          do {
-            Boolean imageGrayScale = null;
-            if (imageGrayScales.size() != 0) {
-              imageGrayScale = imageGrayScales.get(l);
-            }
-            m = 0;
-            log.info("imageGrayScale: " + imageGrayScale);
-            do {
-              String imageAspectRatio = null;
-              if (imageAspectRatios.size() != 0) {
-                imageAspectRatio = imageAspectRatios.get(m);
-              }
-              log.info("imageAspectRatio: " + imageAspectRatio);
-
-              final Integer filterTag =
-                  searchService.search(1, mimeType, imageSize, imageColor, imageGrayScale,
-                      imageAspectRatio, null, null, null, null, null);
-              log.info("image filtertag: " + filterTag);
-              filterTags.add(filterTag);
-
-              m += 1;
-            } while (m < imageAspectRatios.size());
-
-            l += 1;
-          } while (l < imageGrayScales.size());
-
-          k += 1;
-        } while (k < imageColors.size());
-
-        j += 1;
-      } while (j < imageSizes.size());
-
-      i += 1;
-    } while (i < mimeTypes.size());
-
-    return filterTags;
-  }
-
-  private List<Integer> soundFilterTags(List<String> mimeTypes, List<Boolean> soundHQs,
-      List<String> soundDurations) {
-    final List<Integer> filterTags = new ArrayList<>();
-
-    Integer i = 0, j, k;
-
-    do {
-      String mimeType = null;
-      if (mimeTypes.size() != 0) {
-        mimeType = mimeTypes.get(i);
-      }
-      j = 0;
-      do {
-        Boolean soundHQ = null;
-        if (soundHQs.size() != 0) {
-          soundHQ = soundHQs.get(j);
-        }
-        k = 0;
-        do {
-          String soundDuration = null;
-          if (soundDurations.size() != 0) {
-            soundDuration = soundDurations.get(k);
-          }
-
-          final Integer filterTag =
-              searchService.search(2, mimeType, null, null, null, null, null, soundHQ,
-                  soundDuration, null, null);
-          log.info("sound filtertag: " + filterTag);
-          filterTags.add(filterTag);
-
-          k += 1;
-        } while (k < soundDurations.size());
-
-        j += 1;
-      } while (j < soundHQs.size());
-
-      i += 1;
-    } while (i < mimeTypes.size());
-
-    return filterTags;
-  }
-
-  private List<Integer> videoFilterTags(List<String> mimeTypes, List<Boolean> videoHQs,
-      List<String> videoDurations) {
-    final List<Integer> filterTags = new ArrayList<>();
-
-    Integer i = 0, j, k;
-
-    do {
-      String mimeType = null;
-      if (mimeTypes.size() != 0) {
-        mimeType = mimeTypes.get(i);
-      }
-      j = 0;
-      do {
-        Boolean videoHQ = null;
-        if (videoHQs.size() != 0) {
-          videoHQ = videoHQs.get(j);
-        }
-        k = 0;
-        do {
-          String videoDuration = null;
-          if (videoDurations.size() != 0) {
-            videoDuration = videoDurations.get(k);
-          }
-
-          final Integer filterTag =
-              searchService.search(3, mimeType, null, null, null, null, null, null, null, videoHQ,
-                  videoDuration);
-          log.info("video filtertag: " + filterTag);
-          filterTags.add(filterTag);
-
-          k += 1;
-        } while (k < videoDurations.size());
-
-        j += 1;
-      } while (j < videoHQs.size());
-
-      i += 1;
-    } while (i < mimeTypes.size());
-
-    return filterTags;
-  }
 
   private Class<? extends IdBean> selectBean(String profile) {
     Class<? extends IdBean> clazz;
@@ -875,7 +714,6 @@ public class SearchController {
    * @param profile should be "FieldTrip"
    * @param reqLanguage if supplied, the API returns only those items having a dc:language that
    *        match this language
-   * @param request servlet request object
    * @param response servlet response object
    * @return ModelAndView instance
    * 

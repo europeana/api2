@@ -228,7 +228,6 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             }
             thumbnails = thumbs.toArray(new String[thumbs.size()]);
         }
-        System.out.println(Arrays.deepToString(thumbnails));
         return thumbnails;
     }
 
