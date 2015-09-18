@@ -185,27 +185,27 @@ public class SearchController {
     final Integer videoFilterTag = FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations).get(0);
 
 
-    if (null != sound_duration) {
+    if (sound_duration != null) {
       soundDurations.addAll(Arrays.asList(sound_duration));
     }
 
-    if (null != sound_hq) {
+    if (sound_hq != null) {
       soundHQs.add(sound_hq);
     }
 
-    if (null != video_duration) {
+    if (video_duration != null) {
       videoDurations.addAll(Arrays.asList(video_duration));
     }
 
-    if (null != video_hd) {
+    if (video_hd != null) {
       videoHDs.add(video_hd);
     }
 
-    if (null != image_aspectratio) {
+    if (image_aspectratio != null) {
       imageAspectRatios.addAll(Arrays.asList(image_aspectratio));
     }
 
-    if (null != image_colour) {
+    if (image_colour != null) {
       if (true == image_colour) {
         imageColors.add(image_colour);
       } else if (false == image_colour) {
@@ -213,13 +213,12 @@ public class SearchController {
       }
     }
 
-    if (null != image_size) {
+    if (image_size != null) {
       imageSizes.addAll(Arrays.asList(image_size));
     }
 
-    if (null != colorPalette) {
+    if (colorPalette != null) {
       imageColorsPalette.addAll(Arrays.asList(colorPalette));
-      System.out.println("Image colors is : " + Arrays.toString(imageColorsPalette.toArray()));
     }
 
     if (refinements != null) {
@@ -343,13 +342,11 @@ public class SearchController {
 
     String filterTagQuery = "";
     for (final Integer filterTag : filterTags) {
-      log.info("filterTag: " + filterTag);
       if (filterTag % 33554432 != 0) {
         filterTagQuery = filterTagQuery + "filter_tags:" + filterTag + " OR ";
       }
     }
 
-    log.info("filtertagquery: " + filterTagQuery);
 
     if (filterTagQuery.contains("OR")) {
       filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("OR"));
