@@ -170,7 +170,7 @@ public class ObjectController {
                 objectResult.similarItems = beans;
             }
             Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
-            objectResult.object = new FullView(bean, profile, optOut == null ? false : optOut);
+            objectResult.object = new FullView(bean, profile, wskey, optOut == null ? false : optOut);
             long t1 = (new Date()).getTime();
             objectResult.statsDuration = (t1 - t0);
         } catch (MongoDBException e) {

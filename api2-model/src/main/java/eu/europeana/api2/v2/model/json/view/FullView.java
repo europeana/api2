@@ -47,28 +47,20 @@ public class FullView implements FullBean {
 
 	private FullBean bean;
 	private String profile;
-	private long uid;
 	private boolean optOut;
+	private String apiKey;
 	private EuropeanaUrlService europeanaUrlService;
 	private Date timestampCreated;
 	private Date timestampUpdated;
 
-	public FullView(FullBean bean, boolean optOut) {
+	public FullView(FullBean bean, String profile, String apiKey, boolean optOut) {
 		this.bean = bean;
 		this.optOut = optOut;
+		this.profile = profile;
+		this.apiKey = apiKey;
 		europeanaUrlService = EuropeanaUrlServiceImpl.getBeanInstance();
 		extractTimestampCreated();
 		extractTimestampUpdated();
-	}
-
-	public FullView(FullBean bean, String profile, boolean optOut) {
-		this(bean, optOut);
-		this.profile = profile;
-	}
-
-	public FullView(FullBean bean, String profile, long uid, boolean optOut) {
-		this(bean, profile, optOut);
-		this.uid = uid;
 	}
 
 	@Override
@@ -173,7 +165,7 @@ public class FullView implements FullBean {
 
 				String provider = item.getEdmProvider().values()
 						.iterator().next().get(0);
-				String isShownAtLink = europeanaUrlService.getApi2Redirect(uid,
+				String isShownAtLink = europeanaUrlService.getApi2Redirect(apiKey,
 						isShownAt, provider, bean.getAbout(),
 						profile).toString();
 				item.setEdmIsShownAt(isShownAtLink);
