@@ -19,6 +19,7 @@ package eu.europeana.api2.v2.web.controller;
 
 import javax.annotation.Resource;
 
+import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;

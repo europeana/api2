@@ -17,9 +17,12 @@
 
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api2.model.json.ApiNotImplementedYet;
+import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.model.json.request.ApiKeyRegistration;
+import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
@@ -27,10 +30,7 @@ import eu.europeana.corelib.web.exception.EmailServiceException;
 import eu.europeana.corelib.web.service.EmailService;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -51,13 +51,30 @@ public class ApiKeyController {
     private EmailService emailService;
 
     @RequestMapping(value = "/apikey",
+            method = {RequestMethod.GET},
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @SwaggerIgnore
+    public @ResponseBody ApiResponse findAll() {
+        return new ApiNotImplementedYet(null, "/apikey (GET)");
+    }
+
+    @RequestMapping(value = "/apikey/{apikey}",
+            method = {RequestMethod.GET},
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @SwaggerIgnore
+    public @ResponseBody ApiResponse findAll(@PathVariable String apikey) {
+        return new ApiNotImplementedYet(null, "/apikey/{apikey} (GET)");
+    }
+
+    @RequestMapping(value = "/apikey",
             method = {RequestMethod.POST, RequestMethod.PUT},
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
+    @SwaggerIgnore
     public ModelAndView createApiKey(@RequestBody ApiKeyRegistration registration,
-                                     @RequestParam(value = "wskey", required = true) String wskey,
+                                     @RequestParam(value = "wskey", required = true) String apikey,
                                      @RequestParam(value = "callback", required = false) String callback) {
-        ModificationConfirmation response = new ModificationConfirmation(wskey, "/apikey (POST)");
+        ModificationConfirmation response = new ModificationConfirmation(apikey, "/apikey (POST)");
         try {
             ApiKey apiKey = apiKeyService.createApiKey(
                     registration.getEmail(),
