@@ -20,6 +20,7 @@ import eu.europeana.corelib.web.service.ContentReuseFrameworkService;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.MediaStorageService;
 import eu.europeana.harvester.domain.SourceDocumentReferenceMetaInfo;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -69,19 +70,19 @@ public class ContentReuseFrameworkController {
     private ControllerUtils controllerUtils;
 
     @RequestMapping(value = "/v2/metadata-by-url.json", method = RequestMethod.GET,
-                           produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView metadataByUrl(
-                                             @RequestParam(value = "url", required = true) String url,
-                                             @RequestParam(value = "wskey", required = true) String wskey,
-                                             @RequestParam(value = "callback", required = false) String callback,
-                                             HttpServletRequest request,
-                                             HttpServletResponse response) {
+            @RequestParam(value = "url", required = true) String url,
+            @RequestParam(value = "wskey", required = true) String wskey,
+            @RequestParam(value = "callback", required = false) String callback,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         long t0 = System.currentTimeMillis();
         controllerUtils.addResponseHeaders(response);
         LimitResponse limitResponse = null;
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                                                       "record.json", RecordType.OBJECT, null);
+                    "record.json", RecordType.OBJECT, null);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
@@ -98,60 +99,67 @@ public class ContentReuseFrameworkController {
 
     @RequestMapping(value = "/v2/thumbnail-by-url.json", method = RequestMethod.GET)
     public ResponseEntity<byte[]> thumbnailByUrl(
-                                                        @RequestParam(value = "uri", required = true) String url,
-                                                        @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
-                                                        @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
-                                                        @RequestParam(value = "callback", required = false) String callback,
-                                                        HttpServletRequest request,
-                                                        HttpServletResponse response) {
+            @RequestParam(value = "uri", required = true) String url,
+            @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
+            @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
+            @RequestParam(value = "callback", required = false) String callback,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         controllerUtils.addResponseHeaders(response);
 
-        String sufix = "";
+        String suffix = "";
 
-        if(size.equalsIgnoreCase("BRIEF_DOC") || size.equalsIgnoreCase("h180") ||
-           size.equalsIgnoreCase("FULL_DOC") || size.equalsIgnoreCase("FULL_DOC_ALL") || size.equalsIgnoreCase("w200")) {
-            sufix = "200";
-        }
-        else if (size.equalsIgnoreCase("w400")) {
-            sufix = "400";
+        if (size.equalsIgnoreCase("BRIEF_DOC") || size.equalsIgnoreCase("h180") ||
+                size.equalsIgnoreCase("FULL_DOC") || size.equalsIgnoreCase("FULL_DOC_ALL") || size.equalsIgnoreCase("w200")) {
+            suffix = "200";
+        } else if (size.equalsIgnoreCase("w400")) {
+            suffix = "400";
         }
 
         final HttpHeaders headers = new HttpHeaders();
 
         byte[] imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.IMAGE);
-        if(type.equalsIgnoreCase("IMAGE")) {
-            final String ID = getMD5(url) + "-" + ("200".equals(sufix) ? "MEDIUM" : "LARGE");
-            final MediaFile mediaFile = mediaStorageService.retrieve(ID, true);
+        switch (StringUtils.upperCase(type)) {
+            case "IMAGE":
+                final String ID = getMD5(url) + "-" + ("200".equals(suffix) ? "MEDIUM" : "LARGE");
+                final MediaFile mediaFile = mediaStorageService.retrieve(ID, true);
 
-            if (mediaFile != null) {
-                if (mediaFile.getContentType().equals("image/jpeg")) {
-                    headers.setContentType(MediaType.IMAGE_JPEG);
-                }
-                if (mediaFile.getContentType().equals("image/png")) {
-                    headers.setContentType(MediaType.IMAGE_PNG);
-                }
+                if (mediaFile != null) {
 
-                imageResponse = mediaFile.getContent();
-            } else {
-                imageResponse = getImage("/images/item-image-large.gif", sufix);
+                    switch (mediaFile.getContentType()) {
+                        case "image/jpeg":
+                            headers.setContentType(MediaType.IMAGE_JPEG);
+                            break;
+                        case "image/png":
+                            headers.setContentType(MediaType.IMAGE_PNG);
+                            break;
+                        default:
+                            // TODO: Ask Remy if we need to add more cases.
+                            break;
+                    }
+                    imageResponse = mediaFile.getContent();
+
+                } else {
+                    imageResponse = getImage("/images/item-image-large.gif", suffix);
+                    headers.setContentType(MediaType.IMAGE_GIF);
+                }
+                break;
+            case "SOUND":
+                imageResponse = getImage("/images/item-sound-large.gif", suffix);
                 headers.setContentType(MediaType.IMAGE_GIF);
-            }
-        }
-        if(type.equalsIgnoreCase("SOUND")) {
-            imageResponse = getImage("/images/item-sound-large.gif", sufix);
-            headers.setContentType(MediaType.IMAGE_GIF);
-        }
-        if(type.equalsIgnoreCase("VIDEO")) {
-            imageResponse = getImage("/images/item-video-large.gif", sufix);
-            headers.setContentType(MediaType.IMAGE_GIF);
-        }
-        if(type.equalsIgnoreCase("TEXT")) {
-            imageResponse = getImage("/images/item-text-large.gif", sufix);
-            headers.setContentType(MediaType.IMAGE_GIF);
-        }
-        if(type.equalsIgnoreCase("3D")) {
-            imageResponse = getImage("/images/item-3d-large.gif", sufix);
-            headers.setContentType(MediaType.IMAGE_GIF);
+                break;
+            case "VIDEO":
+                imageResponse = getImage("/images/item-video-large.gif", suffix);
+                headers.setContentType(MediaType.IMAGE_GIF);
+                break;
+            case "TEXT":
+                imageResponse = getImage("/images/item-text-large.gif", suffix);
+                headers.setContentType(MediaType.IMAGE_GIF);
+                break;
+            case "3D":
+                imageResponse = getImage("/images/item-3d-large.gif", suffix);
+                headers.setContentType(MediaType.IMAGE_GIF);
+                break;
         }
 
         return new ResponseEntity<>(imageResponse, headers, HttpStatus.CREATED);
@@ -167,7 +175,7 @@ public class ContentReuseFrameworkController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        int imgType = img.getType() == 0? BufferedImage.TYPE_INT_ARGB : img.getType();
+        int imgType = img.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : img.getType();
 
         return response;
     }
@@ -176,7 +184,7 @@ public class ContentReuseFrameworkController {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try {
-            ImageIO.write(bufferedImage, "gif", baos );
+            ImageIO.write(bufferedImage, "gif", baos);
             baos.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -185,7 +193,7 @@ public class ContentReuseFrameworkController {
         return baos.toByteArray();
     }
 
-    private BufferedImage resizeImage(BufferedImage originalImage, int type, int width, int height){
+    private BufferedImage resizeImage(BufferedImage originalImage, int type, int width, int height) {
         BufferedImage resizedImage = new BufferedImage(width, height, type);
         Graphics2D g = resizedImage.createGraphics();
         g.drawImage(originalImage, 0, 0, width, height, null);
