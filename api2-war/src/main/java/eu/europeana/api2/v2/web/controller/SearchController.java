@@ -163,7 +163,8 @@ public class SearchController {
 	@ApiOperation(value = "search for records", nickname = "searchRecords")
 	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
-			@RequestParam(value = "query", required = true) String queryString,
+			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "query", required = false) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinements,
 			@RequestParam(value = "reusability", required = false) String[] aReusability,
 			@RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
@@ -171,7 +172,6 @@ public class SearchController {
 			@RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
 			@RequestParam(value = "sort", required = false) String sort,
 			@RequestParam(value = "facet", required = false) String[] aFacet,
-			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse response) {
@@ -182,13 +182,21 @@ public class SearchController {
 			refinements = _qf;
 		}
 
-		queryString = queryString.trim();
+		LimitResponse limitResponse;
+		try {
+			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+					"search.json", RecordType.SEARCH, profile);
+		} catch (ApiLimitException e) {
+			response.setStatus(e.getHttpStatus());
+			return JsonUtils.toJson(new ApiError(e), callback);
+		}
+
 		if  (queryString == null || "".equalsIgnoreCase(queryString)){
 			response.setStatus(400);
-			return JsonUtils.toJson(new ApiError("", "search.json", "invalid query parameter"), callback);
+			return JsonUtils.toJson(new ApiError("", "search.json", (queryString == null ? "Missing" : "Invalid") + " query parameter"), callback);
 		}
 		log.info("QUERY: |" + queryString + "|");
-
+		queryString = queryString.trim();
 
 		boolean isFacetsRequested = isFacetsRequested(profile);
 		String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
@@ -264,15 +272,6 @@ public class SearchController {
 					&& (ArrayUtils.contains(facets, "DATA_PROVIDER") || ArrayUtils.contains(facets, "DEFAULT"))) {
 				query.setParameter("f.DATA_PROVIDER.facet.limit", "3000");
 			}
-		}
-
-		LimitResponse limitResponse;
-		try {
-			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"search.json", RecordType.SEARCH, profile);
-		} catch (ApiLimitException e) {
-			response.setStatus(e.getHttpStatus());
-			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
 		Class<? extends IdBean> clazz = selectBean(profile);
