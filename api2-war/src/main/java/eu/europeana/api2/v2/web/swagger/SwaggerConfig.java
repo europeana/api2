@@ -63,8 +63,11 @@ public class SwaggerConfig {
     
     ApiInfo apiInfo() {
         ApiInfo apiInfo = new ApiInfo(
-        "Europeana API",
-        "TBD Api Description",
+        "Europeana REST API",
+        "This Swagger API console provides an overview of and interface to the Europeana REST API. " +
+                "You can build and test anything from the simplest search to a complex query using facets " +
+                "such as dates, geotags and permissions. For more help and information, head to our " +
+                "comprehensive <a href=\"http://labs.europeana.api/api/\">online documentation</a>.",
         "1.0",
         "Contact Email",
         "development-core@europeanalabs.eu",

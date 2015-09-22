@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
@@ -41,11 +43,13 @@ import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 
+
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
 @SwaggerSelect
+@Api(value = "my-europeana", description = "User & MyData API")
 public class UserItemController extends AbstractUserController {
 
 	/**
@@ -70,6 +74,7 @@ public class UserItemController extends AbstractUserController {
 	 * @param principal
 	 * @return the JSON response
 	 */
+
     @ApiOperation(value = "list a user's data items", nickname = "listUserItems")
 	@RequestMapping(value = "/v2/user/saveditem.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE
 			, method = RequestMethod.GET)

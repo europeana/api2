@@ -31,6 +31,7 @@ import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
@@ -50,6 +51,7 @@ import java.util.List;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@Api(value = "hierarchical_records", description = " ")
 @RequestMapping(value = "/v2/record")
 @SwaggerSelect
 public class HierarchicalController {

@@ -34,6 +34,7 @@ import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -56,6 +57,7 @@ import java.util.Date;
  * @since Sep 24, 2013
  */
 @Controller
+@Api(value = "provider_datasets", description = " ")
 @SwaggerSelect
 public class SugarCRMController {
 

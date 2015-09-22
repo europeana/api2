@@ -60,6 +60,7 @@ import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -85,6 +86,7 @@ import java.util.*;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@Api(value = "record", description = " ")
 @RequestMapping(value = "/v2/record")
 @SwaggerSelect
 public class ObjectController {
@@ -206,8 +208,23 @@ public class ObjectController {
         return JsonUtils.toJson(jsonld, callback);
     }
 
+    @SwaggerIgnore
+    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld",
+            method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView recordJSON_LD(
+            @PathVariable String collectionId,
+            @PathVariable String recordId,
+            @RequestParam(value = "wskey", required = true) String wskey,
+            @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
+            @RequestParam(value = "callback", required = false) String callback,
+            HttpServletRequest request, HttpServletResponse response) {
+        response.setCharacterEncoding("UTF-8");
+        return recordJSONLD(collectionId, recordId, wskey, format, callback, request, response);
+    }
+
+
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
-    @RequestMapping(value = {"/{collectionId}/{recordId}.jsonld", "/{collectionId}/{recordId}.json-ld"},
+    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld",
             method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSONLD(
             @PathVariable String collectionId,
