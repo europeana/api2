@@ -27,6 +27,7 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.logging.Logger;
+import org.springframework.http.HttpStatus;
 
 /**
  * Class containing a number of useful controller utilities
@@ -61,13 +62,13 @@ public class ControllerUtils {
     long requestNumber = 0;
     long t;
     if (wskey == null || "".equalsIgnoreCase(wskey)){
-      throw new ApiLimitException(wskey, apiCall, "no API key provided", 0, 403);
+      throw new ApiLimitException(wskey, apiCall, "no API key provided", 0, HttpStatus.FORBIDDEN.value());
     }
     try {
       t = System.currentTimeMillis();
       apiKey = apiService.findByID(wskey);
       if (apiKey == null) {
-        throw new ApiLimitException(wskey, apiCall, "Invalid API key", 0, 403);
+        throw new ApiLimitException(wskey, apiCall, "Invalid API key", 0, HttpStatus.FORBIDDEN.value());
       }
 //       apiKey.getUsageLimit();
       log.info("get apiKey: " + (System.currentTimeMillis() - t));
@@ -83,7 +84,7 @@ public class ControllerUtils {
       // log.info("logApiRequest: " + (System.currentTimeMillis() - t));
     } catch (DatabaseException e) {
       // apiLogService.logApiRequest(wskey, url, recordType, profile);
-      throw new ApiLimitException(wskey, apiCall, e.getMessage(), requestNumber, 401);
+      throw new ApiLimitException(wskey, apiCall, e.getMessage(), requestNumber, HttpStatus.UNAUTHORIZED.value());
       // } catch (LimitReachedException e) {
       // apiLogService.logApiRequest(wskey, url, RecordType.LIMIT, recordType.toString());
       // throw new ApiLimitException(wskey, apiCall, e.getMessage(), requestNumber, 429);
