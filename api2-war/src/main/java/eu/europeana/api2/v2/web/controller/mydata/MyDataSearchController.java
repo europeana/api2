@@ -21,6 +21,7 @@ import java.security.Principal;
 import java.util.ArrayList;
 
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -47,6 +48,7 @@ import eu.europeana.corelib.web.utils.UrlBuilder;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@Api(value = "my-europeana", description = "User & MyData API")
 @SwaggerSelect
 public class MyDataSearchController extends AbstractUserController {
 

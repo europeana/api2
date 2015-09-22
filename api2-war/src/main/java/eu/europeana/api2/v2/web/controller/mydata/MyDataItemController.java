@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
@@ -42,11 +43,15 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
 @SwaggerSelect
+@Api(value = "my-europeana", description = "User & MyData API")
 public class MyDataItemController extends AbstractUserController {
 
     

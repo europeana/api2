@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
@@ -47,6 +48,7 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@Api(value = "my-europeana", description = "User & MyData API")
 @SwaggerSelect
 public class MyDataTagController extends AbstractUserController {
 

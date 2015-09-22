@@ -2,6 +2,7 @@ package eu.europeana.api2.v2.web.controller.mydata;
 
 import java.security.Principal;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,7 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 
 @Controller
+@Api(value = "my-europeana", description = "User & MyData API")
 @SwaggerSelect
 public class MyDataProfileController extends AbstractUserController {
 
