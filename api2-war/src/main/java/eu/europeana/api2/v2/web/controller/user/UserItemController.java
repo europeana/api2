@@ -49,7 +49,7 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
  */
 @Controller
 @SwaggerSelect
-@Api(value = "my-europeana", description = "User & MyData API")
+@Api(value = "my_europeana", description = " ")
 public class UserItemController extends AbstractUserController {
 
 	/**

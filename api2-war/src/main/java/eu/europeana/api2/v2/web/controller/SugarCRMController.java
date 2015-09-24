@@ -57,7 +57,7 @@ import java.util.Date;
  * @since Sep 24, 2013
  */
 @Controller
-@Api(value = "provider_datasets", description = " ")
+@Api(value = "provider-and_datasets", description = " ")
 @SwaggerSelect
 public class SugarCRMController {
 

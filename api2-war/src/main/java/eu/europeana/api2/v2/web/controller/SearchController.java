@@ -64,9 +64,7 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.Authorization;
+import io.swagger.annotations.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -165,7 +163,8 @@ public class SearchController {
 	 *
 	 * @return the JSON response
 	 */
-	@ApiOperation(value = "search for records", nickname = "searchRecords")
+	@ApiOperation(value = "search for records", nickname = "searchRecords", response = java.lang.Void.class)
+//	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
 	@RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView searchJson(
 			@RequestParam(value = "wskey", required = true) String wskey,
