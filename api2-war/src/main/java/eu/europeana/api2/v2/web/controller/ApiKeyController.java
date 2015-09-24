@@ -74,6 +74,7 @@ public class ApiKeyController {
     public ModelAndView createApiKey(@RequestBody ApiKeyRegistration registration,
                                      @RequestParam(value = "wskey", required = true) String apikey,
                                      @RequestParam(value = "callback", required = false) String callback) {
+        // TODO: add TRUSTED_CLIENT authentication
         ModificationConfirmation response = new ModificationConfirmation(apikey, "/apikey (POST)");
         try {
             ApiKey apiKey = apiKeyService.createApiKey(

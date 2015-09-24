@@ -54,7 +54,7 @@ public class AccessConfirmationController {
 		TreeMap<String, Object> model = new TreeMap<>();
 		model.put("auth_request", clientAuth);
 		model.put("client", client);
-		model.put("appName", StringUtils.defaultIfBlank(key.getApplicationName(), StringUtils.defaultIfBlank(key.getUser().getCompany(), key.getId())));
+		model.put("appName", StringUtils.defaultIfBlank(key.getApplicationName(), StringUtils.defaultIfBlank(key.getCompany(), key.getId())));
 		return new ModelAndView("user/authorize", model);
 	}
 
