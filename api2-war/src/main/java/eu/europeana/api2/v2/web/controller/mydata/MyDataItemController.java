@@ -51,7 +51,7 @@ import javax.ws.rs.Produces;
  */
 @Controller
 @SwaggerSelect
-@Api(value = "my-europeana", description = "User & MyData API")
+@Api(value = "my_europeana", description = " ")
 public class MyDataItemController extends AbstractUserController {
 
     

@@ -6,6 +6,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
@@ -29,6 +30,7 @@ import eu.europeana.corelib.utils.StringArrayUtils;
 
 @Controller
 @SwaggerSelect
+@Api(value = "search", description = " ")
 public class QueryTranslationController {
 
 	@Resource

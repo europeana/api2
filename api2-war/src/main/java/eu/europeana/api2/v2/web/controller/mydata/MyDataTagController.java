@@ -48,7 +48,7 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@Api(value = "my-europeana", description = "User & MyData API")
+@Api(value = "my_europeana", description = " ")
 @SwaggerSelect
 public class MyDataTagController extends AbstractUserController {
 

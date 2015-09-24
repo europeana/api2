@@ -19,6 +19,9 @@
 package eu.europeana.api2.v2.web.swagger;
 
 import com.google.common.base.Predicate;
+import org.springframework.web.bind.annotation.RequestMethod;
+import springfox.documentation.builders.ResponseMessageBuilder;
+import springfox.documentation.schema.ModelRef;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -31,11 +34,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+
+import static com.google.common.collect.Lists.newArrayList;
 import static springfox.documentation.builders.PathSelectors.*;
 import static springfox.documentation.builders.RequestHandlerSelectors.withClassAnnotation;
 import static springfox.documentation.builders.RequestHandlerSelectors.withMethodAnnotation;
 
 import springfox.documentation.service.ApiInfo;
+
+import java.util.ArrayList;
 
 
 /**
@@ -71,7 +78,7 @@ public class SwaggerConfig {
         "1.0",
         "Contact Email",
         "development-core@europeanalabs.eu",
-        "TBD Licence Type",
+        "Terms of use",
         "http://www.europeana.eu/portal/rights/api-terms-of-use.html" );
         return apiInfo;
     }

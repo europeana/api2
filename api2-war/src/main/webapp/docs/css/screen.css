@@ -120,6 +120,12 @@
 .swagger-section pre .xml .cdata {
   opacity: 0.5;
 }
+
+/* tweak UI, hide response class ticket #217 */
+.model-signature, .response-content-type {
+  display: none;
+}
+
 .swagger-section .swagger-ui-wrap {
   line-height: 1;
   font-family: "Droid Sans", sans-serif;
