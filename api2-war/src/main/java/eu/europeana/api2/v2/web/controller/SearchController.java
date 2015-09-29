@@ -197,7 +197,8 @@ public class SearchController {
 
 		if  (queryString == null || "".equalsIgnoreCase(queryString)){
 			response.setStatus(400);
-			return JsonUtils.toJson(new ApiError("", "search.json", (queryString == null ? "Missing" : "Invalid") + " query parameter"), callback);
+			// TODO - either remove following ternary operator or assign meaningful strings to conditions
+			return JsonUtils.toJson(new ApiError("", "search.json", (queryString == null ? "Missing" : "Missing") + " query parameter"), callback);
 		}
 		log.info("QUERY: |" + queryString + "|");
 		queryString = queryString.trim();
