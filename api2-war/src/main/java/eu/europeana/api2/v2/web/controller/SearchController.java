@@ -186,6 +186,11 @@ public class SearchController {
 			refinements = _qf;
 		}
 
+		// exclude sorting on timestamp, #238
+		if (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp ")){
+			sort = "";
+		}
+
 		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
