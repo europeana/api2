@@ -44,12 +44,13 @@ public class ControllerUtils {
     long requestNumber = 0;
     long t;
     if (wskey == null || "".equalsIgnoreCase(wskey)){
-      throw new ApiLimitException(wskey, apiCall, "no API key provided", 0, 403);
+      throw new ApiLimitException(wskey, apiCall, "No API key provided", 0, 403);
     }
     try {
       t = System.currentTimeMillis();
       apiKey = apiService.findByID(wskey);
       if (apiKey == null) {
+
         throw new ApiLimitException(wskey, apiCall, "Invalid API key", 0, 403);
       }
 //       apiKey.getUsageLimit();
