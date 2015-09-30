@@ -80,8 +80,6 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import java.util.*;
 
 /**
@@ -187,7 +185,7 @@ public class SearchController {
 		}
 
 		// exclude sorting on timestamp, #238
-		if (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp ")){
+		if (sort != null && (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp "))){
 			sort = "";
 		}
 
@@ -543,57 +541,67 @@ public class SearchController {
 			HttpServletResponse response) {
 		controllerUtils.addResponseHeaders(response);
 
-		String collectionID = getIdFromQueryTerms(queryTerms);
-		Map<String, String> gftChannelAttributes = configuration.getGftChannelAttributes(collectionID);
-
 		FieldTripResponse rss = new FieldTripResponse();
 		FieldTripChannel channel = rss.channel;
-
-		if (gftChannelAttributes.isEmpty() || gftChannelAttributes.size() < 5) {
-			log.error("error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
-			channel.title = "error retrieving attributes";
-			channel.description = "error retrieving attributes";
-			channel.language = "--";
-			channel.link = "error retrieving attributes";
-			channel.image = null;
-		} else {
-			channel.title = gftChannelAttributes.get(reqLanguage + "_title") == null || gftChannelAttributes.get(reqLanguage + "_title").equalsIgnoreCase("")
-					? (gftChannelAttributes.get("title") == null
-					|| gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title")) :
-					gftChannelAttributes.get(reqLanguage + "_title");
-			channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
-					? (gftChannelAttributes.get("description") == null
-					|| gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description")) :
-					gftChannelAttributes.get(reqLanguage + "_description");
-			channel.language = gftChannelAttributes.get("language") == null
-					|| gftChannelAttributes.get("language").equalsIgnoreCase("") ? "--" : gftChannelAttributes.get("language");
-			channel.link = gftChannelAttributes.get("link") == null
-					|| gftChannelAttributes.get("link").equalsIgnoreCase("") ? "no link defined" : gftChannelAttributes.get("link");
-			channel.image = gftChannelAttributes.get("image") == null
-					|| gftChannelAttributes.get("image").equalsIgnoreCase("") ? null : new FieldTripImage(gftChannelAttributes.get("image"));
-		}
-
-		if (StringUtils.equals(profile, "FieldTrip")) {
-			offset++;
-		}
 		FieldTripUtils fieldTripUtils = new FieldTripUtils(urlService);
-		try {
-			Query query = new Query(SearchUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
-					.setStart(offset - 1).setAllowFacets(false).setAllowSpellcheck(false);
-			ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
-			for (RichBean bean : resultSet.getResults()) {
-				if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
-					channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, reqLanguage == null ? channel.language : reqLanguage)));
-				}
-			}
-		} catch (SolrTypeException e) {
-			log.error("error: " + e.getLocalizedMessage());
+
+		if  (queryTerms == null || "".equalsIgnoreCase(queryTerms) || "".equals(getIdFromQueryTerms(queryTerms))){
+			response.setStatus(400);
+			String errorMsg = "error: Query ('" + queryTerms + "') is malformed, can't retrieve collection ID";
+			log.error(errorMsg);
 			FieldTripItem item = new FieldTripItem();
 			item.title = "Error";
-			item.description = e.getMessage();
+			item.description = errorMsg;
 			channel.items.add(item);
-		}
+		} else {
 
+			String collectionID = getIdFromQueryTerms(queryTerms);
+			Map<String, String> gftChannelAttributes = configuration.getGftChannelAttributes(collectionID);
+
+			if (gftChannelAttributes.isEmpty() || gftChannelAttributes.size() < 5) {
+				log.error("error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
+				channel.title = "error retrieving attributes";
+				channel.description = "error retrieving attributes";
+				channel.language = "--";
+				channel.link = "error retrieving attributes";
+				channel.image = null;
+			} else {
+				channel.title = gftChannelAttributes.get(reqLanguage + "_title") == null || gftChannelAttributes.get(reqLanguage + "_title").equalsIgnoreCase("")
+						? (gftChannelAttributes.get("title") == null
+						|| gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title")) :
+						gftChannelAttributes.get(reqLanguage + "_title");
+				channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
+						? (gftChannelAttributes.get("description") == null
+						|| gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description")) :
+						gftChannelAttributes.get(reqLanguage + "_description");
+				channel.language = gftChannelAttributes.get("language") == null
+						|| gftChannelAttributes.get("language").equalsIgnoreCase("") ? "--" : gftChannelAttributes.get("language");
+				channel.link = gftChannelAttributes.get("link") == null
+						|| gftChannelAttributes.get("link").equalsIgnoreCase("") ? "no link defined" : gftChannelAttributes.get("link");
+				channel.image = gftChannelAttributes.get("image") == null
+						|| gftChannelAttributes.get("image").equalsIgnoreCase("") ? null : new FieldTripImage(gftChannelAttributes.get("image"));
+			}
+
+			if (StringUtils.equals(profile, "FieldTrip")) {
+				offset++;
+			}
+			try {
+				Query query = new Query(SearchUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
+						.setStart(offset - 1).setAllowFacets(false).setAllowSpellcheck(false);
+				ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
+				for (RichBean bean : resultSet.getResults()) {
+					if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
+						channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, reqLanguage == null ? channel.language : reqLanguage)));
+					}
+				}
+			} catch (SolrTypeException|MissingResourceException e) {
+				log.error("error: " + e.getLocalizedMessage());
+				FieldTripItem item = new FieldTripItem();
+				item.title = "Error";
+				item.description = e.getMessage();
+				channel.items.add(item);
+			}
+		}
 		String xml = fieldTripUtils.cleanRss(xmlUtils.toString(rss));
 
 		Map<String, Object> model = new HashMap<>();
@@ -703,42 +711,48 @@ public class SearchController {
 	 * @param language String containing the channel's language code
 	 * @return String containing the label translation
 	 */
-	private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String language) {
+	private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String language){
 		String translatedEdmIsShownAtLabel;
 		// first try with the bean language
-		translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getBeanLocale(bean.getLanguage()));
-		// check bean translation
+		try {
+			translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getLocale(bean.getLanguage()));
+		} catch (MissingResourceException e) {
+			log.error("error: 'edmIsShownAtLabel' translation for bean language '" + getLocale(bean.getLanguage()) + "' unavailable: " + e.getMessage());
+			translatedEdmIsShownAtLabel = "";
+		}
+		// check if retrieving translation for bean language failed
 		if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
-			log.error("error: 'edmIsShownAtLabel translation for language code '" + getBeanLocale(bean.getLanguage()) + "' unavailable");
-			log.error("falling back on channel language ('" + language + "')");
-			// if empty, try with channel language instead
-			translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(language);
-			// check channel translation
+			// if so, and bean language != channel language, try channel language
+			if (!isLanguageEqual(bean.getLanguage(), language)) {
+				log.error("falling back on channel language ('" + language + "')");
+				try {
+					translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getLocale(language));
+				} catch (MissingResourceException e) {
+					log.error("error: 'edmIsShownAtLabel' translation for channel language '" + getLocale(bean.getLanguage()) + "' unavailable: " + e.getMessage());
+					translatedEdmIsShownAtLabel = "";
+				}
+			} else {
+				log.error("channel language ('" + language + "') is identical to bean language, skipping ...");
+			}
+			// check if translation is still empty
 			if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
-				log.error("error: 'fallback edmIsShownAtLabel translation for channel language code '" + language + "' unavailable");
 				log.error("falling back on default English translation ...");
-				// if empty, try with english instead
-				translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation("en");
-				// check english translation
+				// if so, try English translation
+				try {
+					translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getLocale("en"));
+				} catch (MissingResourceException e) {
+					log.error("error: 'edmIsShownAtLabel' English translation unavailable: " + e.getMessage());
+					translatedEdmIsShownAtLabel = "";
+				}
+				// check if retrieving English translation failed
 				if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
-					log.error("Default English translation unavailable.");
-					// if empty, return hardcoded message
-					return "error: 'edmIsShownAtLabel' english fallback translation unavailable";
+					log.error("No translation for 'edmIsShownAtLabel' available.");
+					// if so, return hardcoded message
+					return "error: translations for 'edmIsShownAtLabel' unavailable";
 				}
 			}
 		}
 		return translatedEdmIsShownAtLabel;
-	}
-
-	/**
-	 * Gives the translation of the 'EdmIsShownAt' label in the language that
-	 * the provided String specifies
-	 *
-	 * @param language containing language code
-	 * @return String containing the label translation
-	 */
-	private String getEdmIsShownAtLabelTranslation(String language) {
-		return messageSource.getMessage("edm_isShownAtLabel_t", null, new Locale(language));
 	}
 
 	/**
@@ -748,7 +762,7 @@ public class SearchController {
 	 * @param locale Locale instance initiated with the desired language
 	 * @return String containing the label translation
 	 */
-	private String getEdmIsShownAtLabelTranslation(Locale locale) {
+	private String getEdmIsShownAtLabelTranslation(Locale locale) throws java.util.MissingResourceException {
 		return messageSource.getMessage("edm_isShownAtLabel_t", null, locale);
 	}
 
@@ -758,18 +772,55 @@ public class SearchController {
 	 * <p>Checks for NULL values, and whether or not the found code is two
 	 * characters long; if not, it returns a locale initiated to English
 	 *
-	 * @param beanLanguage String Array containing language code
+	 * @param languageArray String Array containing language code
 	 * @return Locale instance
 	 */
-	private Locale getBeanLocale(String[] beanLanguage) {
-		if (!ArrayUtils.isEmpty(beanLanguage)
-				&& !StringUtils.isBlank(beanLanguage[0])
-				&& beanLanguage[0].length() == 2) {
-			return new Locale(beanLanguage[0]);
+	private Locale getLocale(String[] languageArray) {
+		if (!ArrayUtils.isEmpty(languageArray)
+				&& !StringUtils.isBlank(languageArray[0])
+				&& languageArray[0].length() == 2) {
+			return new Locale(languageArray[0]);
 		} else {
 			log.error("error: language code unavailable or malformed (e.g. not two characters long)");
 			return new Locale("en");
 		}
+	}
+
+	/**
+	 * Initiates and returns a Locale instance for the language specified by
+	 * the language code found in the input.
+	 * <p>Checks for NULL values, and whether or not the found code is two
+	 * characters long; if not, it returns a locale initiated to English
+	 *
+	 * @param language String containing language code
+	 * @return Locale instance
+	 */
+	private Locale getLocale(String language) {
+		if (!StringUtils.isBlank(language)
+				&& language.length() == 2) {
+			return new Locale(language);
+		} else {
+			log.error("error: language code unavailable or malformed (e.g. not two characters long)");
+			return new Locale("en");
+		}
+	}
+
+
+	/**
+	 * simple utility method to compare the language code contained in a String array
+	 * with another contained in a String. Also checks for well-formedness, i.e. if they're two characters long
+	 *
+	 * @param languageArray String[]
+	 * @param language String
+	 * @return boolean TRUE if equal, else FALSE
+	 */
+	private boolean isLanguageEqual(String[] languageArray, String language){
+		return (!ArrayUtils.isEmpty(languageArray)
+				&& !StringUtils.isBlank(languageArray[0])
+				&& languageArray[0].length() == 2
+				&& !StringUtils.isBlank(language)
+				&& language.length() == 2
+				&& language.equalsIgnoreCase(languageArray[0]));
 	}
 
 	/**
@@ -781,6 +832,8 @@ public class SearchController {
 	 * @return String containing the Europeana collection ID only
 	 */
 	private String getIdFromQueryTerms(String queryTerms) {
-		return queryTerms.substring(queryTerms.indexOf(":"), queryTerms.indexOf("*")).replaceAll("\\D+", "");
+		int from = queryTerms.indexOf(":") == -1 ? 0 : queryTerms.indexOf(":");
+		int to = queryTerms.indexOf("*") == -1 ? queryTerms.length() - 1 : queryTerms.indexOf("*");
+		return queryTerms.substring(from, to).replaceAll("\\D+", "");
 	}
 }
