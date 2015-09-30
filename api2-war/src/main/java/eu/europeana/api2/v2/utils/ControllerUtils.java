@@ -49,13 +49,12 @@ public class ControllerUtils {
     try {
       t = System.currentTimeMillis();
       apiKey = apiService.findByID(wskey);
-      if (apiKey == null) {
 
+      if (apiKey == null) {
         throw new ApiLimitException(wskey, apiCall, "Invalid API key", 0, 403);
       }
 //       apiKey.getUsageLimit();
       log.info("get apiKey: " + (System.currentTimeMillis() - t));
-
       requestNumber = 999;
       log.info("setting default request number; (checklimit disabled): " + requestNumber);
 
