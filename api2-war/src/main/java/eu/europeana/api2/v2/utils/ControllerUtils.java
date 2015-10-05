@@ -39,19 +39,22 @@ public class ControllerUtils {
    *         daily limit has been reached
    */
   public LimitResponse checkLimit(String wskey, String url, String apiCall, RecordType recordType,
-      String profile) throws ApiLimitException {
+                                  String profile) throws ApiLimitException {
     ApiKey apiKey = null;
     long requestNumber = 0;
     long t;
+    if (wskey == null || "".equalsIgnoreCase(wskey)){
+      throw new ApiLimitException(wskey, apiCall, "No API key provided", 0, 403);
+    }
     try {
       t = System.currentTimeMillis();
       apiKey = apiService.findByID(wskey);
+
       if (apiKey == null) {
-        throw new ApiLimitException(wskey, apiCall, "Unregistered user", 0, 401);
+        throw new ApiLimitException(wskey, apiCall, "Invalid API key", 0, 403);
       }
 //       apiKey.getUsageLimit();
       log.info("get apiKey: " + (System.currentTimeMillis() - t));
-
       requestNumber = 999;
       log.info("setting default request number; (checklimit disabled): " + requestNumber);
 
