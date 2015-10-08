@@ -14,11 +14,11 @@ import javax.servlet.ServletException;
  */
 public class ServletInitializer extends AbstractDispatcherServletInitializer {
 
-
     @Override
     protected WebApplicationContext createServletApplicationContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         context.scan(ClassUtils.getPackageName(getClass()));
+        context.refresh();
         return context;
     }
 
@@ -35,8 +35,13 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
         super.onStartup(servletContext);
-        DelegatingFilterProxy filter = new DelegatingFilterProxy("springSecurityFilterChain");
-        filter.setContextAttribute("org.springframework.web.servlet.FrameworkServlet.CONTEXT.dispatcher");
-        servletContext.addFilter("springSecurityFilterChain", filter).addMappingForUrlPatterns(null, false, "/*");
+        registerProxyFilter(servletContext, "springSecurityFilterChain");
     }
+
+    private void registerProxyFilter(ServletContext servletContext, String name) {
+        DelegatingFilterProxy filter = new DelegatingFilterProxy(name);
+        filter.setContextAttribute("org.springframework.web.servlet.FrameworkServlet.CONTEXT.dispatcher");
+        servletContext.addFilter(name, filter).addMappingForUrlPatterns(null, false, "/*");
+    }
+
 }

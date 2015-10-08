@@ -35,7 +35,7 @@ public class ApiTokenStore implements TokenStore {
 
 	private AuthenticationKeyGenerator authenticationKeyGenerator = new DefaultAuthenticationKeyGenerator();
 
-	@Scheduled(cron="@daily")
+	@Scheduled(cron="0 2 * * * *")
 	public void cleanExpiredTokens() {
 		oAuth2TokenService.cleanExpiredTokens();
 	}

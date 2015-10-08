@@ -832,8 +832,8 @@ public class SearchController {
 	 * @return String containing the Europeana collection ID only
 	 */
 	private String getIdFromQueryTerms(String queryTerms) {
-		int from = queryTerms.indexOf(":") == -1 ? 0 : queryTerms.indexOf(":");
-		int to = queryTerms.indexOf("*") == -1 ? queryTerms.length() - 1 : queryTerms.indexOf("*");
+		int from = !queryTerms.contains(":") ? 0 : queryTerms.indexOf(":");
+		int to = !queryTerms.contains("*") ? queryTerms.length() - 1 : queryTerms.indexOf("*");
 		return queryTerms.substring(from, to).replaceAll("\\D+", "");
 	}
 }
