@@ -19,37 +19,34 @@ package eu.europeana.api2.web.security.model;
 
 import java.util.Collection;
 
-import org.apache.commons.lang.StringUtils;
-import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
+import eu.europeana.corelib.definitions.db.entity.relational.User;
 
-public class MyDataDetails implements UserDetails {
+public class Api2UserDetails implements UserDetails {
 	private static final long serialVersionUID = -925096405395777537L;
 
-	private ApiKey apiKey;
+	private User user;
 
-	public MyDataDetails(ApiKey apiKey) {
-		this.apiKey = apiKey;
+	public Api2UserDetails(User user) {
+		this.user = user;
 	}
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return AuthorityUtils
-				.commaSeparatedStringToAuthorityList("ROLE_MYDATA");
+		return AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER");
 	}
 
 	@Override
 	public String getPassword() {
-		return hashPassword(apiKey.getPrivateKey());
+		return user.getPassword();
 	}
 
 	@Override
 	public String getUsername() {
-		return apiKey.getId();
+		return user.getEmail();
 	}
 
 	@Override
@@ -70,20 +67,6 @@ public class MyDataDetails implements UserDetails {
 	@Override
 	public boolean isEnabled() {
 		return true;
-	}
-
-	/**
-	 * Hashing password using ShaPasswordEncoder.
-	 * 
-	 * @param password
-	 *            The password in initial form.
-	 * @return Hashed password as to be stored in database
-	 */
-	private String hashPassword(String password) {
-		if (StringUtils.isNotBlank(password)) {
-			return new ShaPasswordEncoder().encodePassword(password, null);
-		}
-		return null;
 	}
 
 }

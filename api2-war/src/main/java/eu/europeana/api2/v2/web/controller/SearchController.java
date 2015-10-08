@@ -1,18 +1,18 @@
 /*
- * Copyright 2007-2012 The Europeana Foundation
+ * Copyright 2007-2015 The Europeana Foundation
  *
- *  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
- *  by the European Commission;
- *  You may not use this work except in compliance with the Licence.
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
  *
- *  You may obtain a copy of the Licence at:
- *  http://joinup.ec.europa.eu/software/page/eupl
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
  *
- *  Unless required by applicable law or agreed to in writing, software distributed under
- *  the Licence is distributed on an "AS IS" basis, without warranties or conditions of
- *  any kind, either express or implied.
- *  See the Licence for the specific language governing permissions and limitations under
- *  the Licence.
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
  */
 
 package eu.europeana.api2.v2.web.controller;
@@ -286,7 +286,7 @@ public class SearchController {
 
 		try {
 			SearchResults<? extends IdBean> result = createResults(wskey, profile,
-					query, clazz, limitResponse.getApiKey().getUser().getId());
+					query, clazz);
 			result.requestNumber = limitResponse.getRequestNumber();
 			if (StringUtils.containsIgnoreCase(profile, "params")) {
 				result.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -359,8 +359,7 @@ public class SearchController {
 			String apiKey,
 			String profile,
 			Query query,
-			Class<T> clazz,
-			long uid)
+			Class<T> clazz)
 			throws SolrTypeException {
 		SearchResults<T> response = new SearchResults<>(apiKey, "search.json");
 		ResultSet<T> resultSet = searchService.search(clazz, query);
@@ -378,13 +377,13 @@ public class SearchController {
 			if (b instanceof RichBean) {
 				Boolean optOut = ((RichBean) b).getPreviewNoDistribute();
 
-				beans.add((T) new RichView((RichBean) b, profile, apiKey, uid, optOut));
+				beans.add((T) new RichView((RichBean) b, profile, apiKey, optOut));
 			} else if (b instanceof ApiBean) {
 				Boolean optOut = ((ApiBean) b).getPreviewNoDistribute();
-				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, uid, optOut));
+				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, optOut));
 			} else if (b instanceof BriefBean) {
 				Boolean optOut = ((BriefBean) b).getPreviewNoDistribute();
-				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, uid, optOut));
+				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, optOut));
 			}
 		}
 

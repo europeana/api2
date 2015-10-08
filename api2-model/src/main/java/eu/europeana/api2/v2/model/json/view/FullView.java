@@ -1,3 +1,20 @@
+/*
+ * Copyright 2007-2015 The Europeana Foundation
+ *
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
+ *
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
+ */
+
 package eu.europeana.api2.v2.model.json.view;
 
 import java.util.*;
@@ -24,29 +41,21 @@ public class FullView implements FullBean {
 
 	private FullBean bean;
 	private String profile;
-	private long uid;
 	private boolean optOut;
+	private String apiKey;
 	private EuropeanaUrlService europeanaUrlService;
 	private Date timestampCreated;
 	private Date timestampUpdated;
 	private boolean urlified = false;
 
-	public FullView(FullBean bean, boolean optOut) {
+	public FullView(FullBean bean, String profile, String apiKey, boolean optOut) {
 		this.bean = bean;
 		this.optOut = optOut;
+		this.profile = profile;
+		this.apiKey = apiKey;
 		europeanaUrlService = EuropeanaUrlServiceImpl.getBeanInstance();
 		extractTimestampCreated();
 		extractTimestampUpdated();
-	}
-
-	public FullView(FullBean bean, String profile, boolean optOut) {
-		this(bean, optOut);
-		this.profile = profile;
-	}
-
-	public FullView(FullBean bean, String profile, long uid, boolean optOut) {
-		this(bean, profile, optOut);
-		this.uid = uid;
 	}
 
 	@Override
@@ -151,7 +160,7 @@ public class FullView implements FullBean {
 
 				String provider = item.getEdmProvider().values()
 						.iterator().next().get(0);
-				String isShownAtLink = europeanaUrlService.getApi2Redirect(uid,
+				String isShownAtLink = europeanaUrlService.getApi2Redirect(apiKey,
 						isShownAt, provider, bean.getAbout(),
 						profile).toString();
 				item.setEdmIsShownAt(isShownAtLink);
