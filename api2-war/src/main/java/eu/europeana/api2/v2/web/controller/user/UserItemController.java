@@ -1,18 +1,18 @@
 /*
- * Copyright 2007-2012 The Europeana Foundation
+ * Copyright 2007-2015 The Europeana Foundation
  *
- *  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved 
- *  by the European Commission;
- *  You may not use this work except in compliance with the Licence.
- *  
- *  You may obtain a copy of the Licence at:
- *  http://joinup.ec.europa.eu/software/page/eupl
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
  *
- *  Unless required by applicable law or agreed to in writing, software distributed under 
- *  the Licence is distributed on an "AS IS" basis, without warranties or conditions of 
- *  any kind, either express or implied.
- *  See the Licence for the specific language governing permissions and limitations under 
- *  the Licence.
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
  */
 
 package eu.europeana.api2.v2.web.controller.user;
@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.json.UserModification;
+import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.SavedItem;
 import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
@@ -142,7 +142,7 @@ public class UserItemController extends AbstractUserController {
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		UserModification response = new UserModification(getApiId(principal), "/v2/user/saveditem.json?action=CREATE");
+		ModificationConfirmation response = new ModificationConfirmation(getApiId(principal), "/v2/user/saveditem.json?action=CREATE");
 		try {
 			User user = userService.findByEmail(principal.getName());
 			userService.createSavedItem(user.getId(), europeanaId);
@@ -186,7 +186,7 @@ public class UserItemController extends AbstractUserController {
 			@RequestParam(value = "europeanaid", required = false) String europeanaId,
 			@RequestParam(value = "callback", required = false) String callback, 
 			Principal principal) {
-		UserModification response = new UserModification(getApiId(principal), "/v2/user/saveditem.json?action=DELETE");
+		ModificationConfirmation response = new ModificationConfirmation(getApiId(principal), "/v2/user/saveditem.json?action=DELETE");
 		try {
 			User user = userService.findByEmail(principal.getName());
 			if (user != null) {

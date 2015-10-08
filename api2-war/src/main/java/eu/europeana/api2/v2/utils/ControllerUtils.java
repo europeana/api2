@@ -1,3 +1,20 @@
+/*
+ * Copyright 2007-2015 The Europeana Foundation
+ *
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
+ *
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
+ */
+
 package eu.europeana.api2.v2.utils;
 
 import javax.annotation.Resource;
@@ -10,6 +27,7 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.logging.Logger;
+import org.springframework.http.HttpStatus;
 
 /**
  * Class containing a number of useful controller utilities
@@ -44,14 +62,14 @@ public class ControllerUtils {
     long requestNumber = 0;
     long t;
     if (wskey == null || "".equalsIgnoreCase(wskey)){
-      throw new ApiLimitException(wskey, apiCall, "No API key provided", 0, 403);
+      throw new ApiLimitException(wskey, apiCall, "no API key provided", 0, HttpStatus.FORBIDDEN.value());
     }
     try {
       t = System.currentTimeMillis();
       apiKey = apiService.findByID(wskey);
 
       if (apiKey == null) {
-        throw new ApiLimitException(wskey, apiCall, "Invalid API key", 0, 403);
+        throw new ApiLimitException(wskey, apiCall, "Invalid API key", 0, HttpStatus.FORBIDDEN.value());
       }
 //       apiKey.getUsageLimit();
       log.info("get apiKey: " + (System.currentTimeMillis() - t));
@@ -66,7 +84,7 @@ public class ControllerUtils {
       // log.info("logApiRequest: " + (System.currentTimeMillis() - t));
     } catch (DatabaseException e) {
       // apiLogService.logApiRequest(wskey, url, recordType, profile);
-      throw new ApiLimitException(wskey, apiCall, e.getMessage(), requestNumber, 401);
+      throw new ApiLimitException(wskey, apiCall, e.getMessage(), requestNumber, HttpStatus.UNAUTHORIZED.value());
       // } catch (LimitReachedException e) {
       // apiLogService.logApiRequest(wskey, url, RecordType.LIMIT, recordType.toString());
       // throw new ApiLimitException(wskey, apiCall, e.getMessage(), requestNumber, 429);
