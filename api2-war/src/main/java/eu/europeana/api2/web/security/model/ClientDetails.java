@@ -1,6 +1,8 @@
 package eu.europeana.api2.web.security.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
@@ -21,6 +23,8 @@ public class ClientDetails implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
+//		List<GrantedAuthority> roles = new ArrayList<>(2);
+//		switch (apiKey.)
 		return AuthorityUtils
 				.commaSeparatedStringToAuthorityList("ROLE_CLIENT");
 	}

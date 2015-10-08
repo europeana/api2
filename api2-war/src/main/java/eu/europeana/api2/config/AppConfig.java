@@ -66,7 +66,7 @@ public class AppConfig {
         return new SugarCRMImporter();
     }
 
-    @Bean( name = "api_db_mongo_cache")
+    @Bean(name = "api_db_mongo_cache")
     public Mongo ApiDbMongoCache() throws UnknownHostException {
         return new Mongo(cacheHost, cachePort);
     }
