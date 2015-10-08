@@ -1,6 +1,6 @@
 package eu.europeana.api2demo.web.service.impl;
 
-import eu.europeana.api2.v2.model.json.UserModification;
+import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2demo.Config;
 import eu.europeana.api2demo.web.model.*;
 import eu.europeana.api2demo.web.service.Api2UserService;
@@ -44,7 +44,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 
     @Override
     public boolean createSavedItem(String id) {
-        UserModification result = readJson(config.getUriSavedItemCreate() + id, UserModification.class);
+        ModificationConfirmation result = readJson(config.getUriSavedItemCreate() + id, ModificationConfirmation.class);
         return result != null && result.success;
     }
 
@@ -75,7 +75,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 
     @Override
     public boolean deleteTag(Long id) {
-        UserModification result = readJson(config.getUriTagsDelete() + id.toString(), UserModification.class);
+        ModificationConfirmation result = readJson(config.getUriTagsDelete() + id.toString(), ModificationConfirmation.class);
         return result != null && result.success;
     }
 
@@ -86,7 +86,7 @@ public class Api2UserServiceImpl implements Api2UserService {
 
     @Override
     public boolean deleteSavedSearch(Long id) {
-        UserModification result = readJson(config.getUriSearchesDelete() + id.toString(), UserModification.class);
+        ModificationConfirmation result = readJson(config.getUriSearchesDelete() + id.toString(), ModificationConfirmation.class);
         return result != null && result.success;
     }
 
