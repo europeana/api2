@@ -35,7 +35,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<version.europeanaCorelib>2.1-SNAPSHOT</version.europeanaCorelib>
-		<!--<version.springSecurity>4.0.2.RELEASE</version.springSecurity>-->
 	</properties>
 	<modules>
 		<module>api2-model</module>

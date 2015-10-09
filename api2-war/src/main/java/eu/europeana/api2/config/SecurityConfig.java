@@ -16,23 +16,24 @@ import javax.annotation.Resource;
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
+@Configuration
 @EnableWebSecurity
+@ComponentScan("eu.europeana.api2.web.security")
 public class SecurityConfig {
+
+    @Resource(name = "api2_userDetailsService")
+    private UserDetailsService userDetailsService;
+
+    @Resource
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth
+                .userDetailsService(userDetailsService)
+                .passwordEncoder(new ShaPasswordEncoder());
+    }
 
     @Configuration
     @Order(1)
-    @ComponentScan("eu.europeana.api2.web.security")
-    public static class basicLoginConfig extends WebSecurityConfigurerAdapter {
-
-        @Resource(name = "api2_userDetailsService")
-        private UserDetailsService userDetailsService;
-
-        @Resource
-        public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-            auth
-                    .userDetailsService(userDetailsService)
-                    .passwordEncoder(new ShaPasswordEncoder());
-        }
+    public static class BasicLoginConfig extends WebSecurityConfigurerAdapter {
 
         @Override
         public void configure(WebSecurity web) throws Exception {
