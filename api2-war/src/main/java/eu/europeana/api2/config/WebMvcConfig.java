@@ -3,7 +3,6 @@ package eu.europeana.api2.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.web.accept.ContentNegotiationManagerFactoryBean;
 import org.springframework.web.servlet.View;
@@ -21,8 +20,8 @@ import java.util.Collections;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @Configuration
-@EnableWebMvc
 @ComponentScan(basePackages = {"eu.europeana.api2.web.controller, eu.europeana.api2.v2.web.controller"})
+@EnableWebMvc
 //@Import(SwaggerConfig.class)
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 

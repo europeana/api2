@@ -1,17 +1,18 @@
 package eu.europeana.api2.config;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
-import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+//import org.springframework.context.annotation.Configuration;
+//import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
+//import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
+//import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+//import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
+//import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+//import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+//import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
+//@Configuration
 public class Oauth2ServerConfig {
 
 //    @Configuration
