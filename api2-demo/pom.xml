@@ -21,53 +21,73 @@
 
     <artifactId>api2-demo</artifactId>
     <groupId>eu.europeana.api2</groupId>
+    <version>2.1.1-snapshot</version>
     <packaging>war</packaging>
     <name>Europeana API2 Demo Web Application</name>
     <url>api.europeana.eu/demo</url>
-
-    <parent>
-        <artifactId>api2</artifactId>
-        <groupId>eu.europeana</groupId>
-        <version>${version.europeanaApi2}</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
 
     <dependencies>
         <dependency>
             <groupId>eu.europeana.api2</groupId>
             <artifactId>api2-model</artifactId>
-            <version>${version.europeanaApi2}</version>
+            <version>2.1.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>
-            <version>${version.springSecurityOauth}</version>
+            <version>2.0.7.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.jackson</groupId>
+                    <artifactId>jackson-mapper-asl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>jstl</artifactId>
-            <version>${version.servletJstl}</version>
+            <version>1.2</version>
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${version.junit}</version>
-            <scope>test</scope>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>2.2.2</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.4.6</version>
+        </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>com.sun.xml.bind</groupId>-->
+            <!--<artifactId>jaxb-impl</artifactId>-->
+            <!--<version>2.2.2</version>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
         </dependency>
     </dependencies>
 
     <build>
         <finalName>api-demo</finalName>
         <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>

@@ -15,34 +15,20 @@
  * the Licence.
  */
 
-package eu.europeana.api2demo.web.service;
+package eu.europeana.api2demo.web.controller;
 
-import eu.europeana.api2demo.web.model.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
 
-public interface Api2UserService {
+/**
+ * @author Willem-Jan Boogerd (www.eledge.net/contact).
+ */
+@Controller
+public class IndexController {
 
-    // PROFILE
-    UserProfile getProfile();
-
-    // SAVED ITEMS
-    UserSavedItems getSavedItems();
-
-    boolean createSavedItem(String id);
-
-    void deleteSavedItem(Long id);
-
-    // TAGS
-    UserTags getTags(String tag);
-
-    TagCloud createTagCloud();
-
-    boolean createTag(String id, String tag);
-
-    boolean deleteTag(Long id);
-
-    // SAVED SEARCHES
-    UserSearches getSavedSearches();
-
-    boolean deleteSavedSearch(Long id);
-
+    @RequestMapping("/")
+    public ModelAndView index() {
+        return new ModelAndView("index");
+    }
 }
