@@ -1,11 +1,12 @@
 package eu.europeana.api2demo.web.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2demo.Config;
 import eu.europeana.api2demo.web.model.*;
 import eu.europeana.api2demo.web.service.Api2UserService;
-import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestOperations;
 
 import javax.annotation.Resource;
@@ -14,17 +15,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+@Service
 public class Api2UserServiceImpl implements Api2UserService {
 
+    @Resource(name = "myEuropeanaRestTemplate")
     private RestOperations restTemplate;
 
     @Resource
     private Config config;
 
     private <T> T readJson(String uri, Class<T> clazz) {
-        InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-                URI.create(uri), byte[].class));
-        try {
+
+        try (InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
+                URI.create(uri), byte[].class))) {
             return new ObjectMapper().readValue(is, clazz);
         } catch (IOException e) {
             e.printStackTrace();
@@ -88,9 +91,5 @@ public class Api2UserServiceImpl implements Api2UserService {
     public boolean deleteSavedSearch(Long id) {
         ModificationConfirmation result = readJson(config.getUriSearchesDelete() + id.toString(), ModificationConfirmation.class);
         return result != null && result.success;
-    }
-
-    public void setRestTemplate(RestOperations restTemplate) {
-        this.restTemplate = restTemplate;
     }
 }
