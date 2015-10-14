@@ -798,7 +798,7 @@ this["Handlebars"]["templates"]["parameter_content_type"] = Handlebars.template(
   return buffer + "</select>\n";
 },"useData":true});
 this["Handlebars"]["templates"]["resource"] = Handlebars.template({"1":function(depth0,helpers,partials,data) {
-  return " : ";
+  return " ";
   },"3":function(depth0,helpers,partials,data) {
   var helper, functionType="function", helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
   return "    <li>\n      <a href='"
