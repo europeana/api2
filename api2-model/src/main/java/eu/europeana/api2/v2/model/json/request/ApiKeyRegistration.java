@@ -17,7 +17,7 @@
 
 package eu.europeana.api2.v2.model.json.request;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).

@@ -26,8 +26,8 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
 
 import java.util.ArrayList;
 import java.util.Date;

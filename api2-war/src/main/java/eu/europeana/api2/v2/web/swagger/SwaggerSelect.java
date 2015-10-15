@@ -22,14 +22,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.TYPE;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(value=TYPE)
-@Documented
+
 
 /**
  * Used to annotate classes to be included in the Swagger output
  * @author luthien
  */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value=TYPE)
+@Documented
 public @interface SwaggerSelect {
     String value() default "";
 }

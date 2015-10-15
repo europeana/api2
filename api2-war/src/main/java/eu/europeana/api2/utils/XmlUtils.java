@@ -23,25 +23,19 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.springframework.oxm.XmlMappingException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
+@Service
 public class XmlUtils {
 
+	@Resource(name = "api2_mvc_views_jaxbmarshaller")
 	private Jaxb2Marshaller marshaller;
-
-	public XmlUtils(Jaxb2Marshaller marshaller) {
-		this.marshaller = marshaller;
-	}
-
-	public ModelAndView buildModelAndView(Object rss) {
-		Map<String, Object> model = new HashMap<>();
-		model.put("rss", toString(rss));
-		return new ModelAndView("rss", model);
-	}
 
 	public String toString(Object rss) {
 		String xml = null;
