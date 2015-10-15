@@ -5,7 +5,9 @@ import eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler;
 import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.corelib.web.support.ReportingMessageSource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
@@ -18,6 +20,7 @@ import java.net.UnknownHostException;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @Configuration
+@ComponentScan(basePackages = {"eu.europeana.api2.web.controller, eu.europeana.api2.v2.web.controller"})
 @ImportResource({
         "classpath:corelib-logging-context.xml",
         "classpath:corelib-db-context.xml",
@@ -35,6 +38,12 @@ public class AppConfig {
 
     @Value("${cachemongodb.port}")
     private int cachePort;
+
+    @Value("${message.resource}")
+    private String messageResource;
+
+    @Value("${message.cache.seconds}")
+    private int messageCacheSeconds;
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer properties() {
@@ -68,4 +77,13 @@ public class AppConfig {
         return new Mongo(cacheHost, cachePort);
     }
 
+    @Bean
+    public MessageSource messageSource() {
+        ReportingMessageSource source = new ReportingMessageSource();
+        source.setBasename(messageResource);
+        source.setCacheSeconds(messageCacheSeconds);
+        source.setDefaultEncoding("UTF-8");
+        source.setUseCodeAsDefaultMessage(true);
+        return source;
+    }
 }

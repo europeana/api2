@@ -1,6 +1,6 @@
 <%@ page session="false" language="java" contentType="application/json; charset=UTF-8" pageEncoding="UTF-8" isELIgnored="false" trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-${callback}<%--
+<%--
   ~ Copyright 2007-2015 The Europeana Foundation
   ~
   ~ Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
@@ -17,7 +17,7 @@ ${callback}<%--
   ~ the Licence.
   --%>
 
-(
+${callback}(
 <c:choose>
   <c:when test="${!empty error}">{"error": ${error}}</c:when>
   <c:otherwise>${json}</c:otherwise>

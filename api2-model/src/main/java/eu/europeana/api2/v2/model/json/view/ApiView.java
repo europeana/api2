@@ -21,13 +21,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
-import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.utils.DateUtils;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)

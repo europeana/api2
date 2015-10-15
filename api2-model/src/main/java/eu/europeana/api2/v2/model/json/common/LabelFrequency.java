@@ -17,8 +17,8 @@
 
 package eu.europeana.api2.v2.model.json.common;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>

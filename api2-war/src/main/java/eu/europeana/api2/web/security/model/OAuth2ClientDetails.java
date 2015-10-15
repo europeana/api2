@@ -19,7 +19,7 @@ package eu.europeana.api2.web.security.model;
 
 import java.util.Set;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 

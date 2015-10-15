@@ -20,8 +20,8 @@ package eu.europeana.api2.v2.model.json.view.submodel;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 

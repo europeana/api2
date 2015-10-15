@@ -40,6 +40,7 @@ import java.util.Locale;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @Controller
+@SwaggerIgnore
 public class ApiKeyController {
 
     private static final long DEFAULT_USAGE_LIMIT = 10000;
@@ -53,7 +54,6 @@ public class ApiKeyController {
     @RequestMapping(value = "/apikey",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @SwaggerIgnore
     public @ResponseBody ApiResponse findAll() {
         return new ApiNotImplementedYet(null, "/apikey (GET)");
     }
@@ -61,7 +61,6 @@ public class ApiKeyController {
     @RequestMapping(value = "/apikey/{apikey}",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @SwaggerIgnore
     public @ResponseBody ApiResponse findAll(@PathVariable String apikey) {
         return new ApiNotImplementedYet(null, "/apikey/{apikey} (GET)");
     }
@@ -70,7 +69,6 @@ public class ApiKeyController {
             method = {RequestMethod.POST, RequestMethod.PUT},
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @SwaggerIgnore
     public ModelAndView createApiKey(@RequestBody ApiKeyRegistration registration,
                                      @RequestParam(value = "callback", required = false) String callback) {
         // TODO: add TRUSTED_CLIENT authentication

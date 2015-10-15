@@ -17,8 +17,8 @@
 
 package eu.europeana.api2.v2.model.json;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
 
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.harvester.domain.ImageMetaInfo;

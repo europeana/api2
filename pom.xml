@@ -39,6 +39,5 @@
 	<modules>
 		<module>api2-model</module>
 		<module>api2-war</module>
-		<module>api2-demo</module>
 	</modules>
 </project>

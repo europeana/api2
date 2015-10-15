@@ -82,6 +82,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
+import static eu.europeana.api2.v2.utils.ModelUtils.*;
+
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
@@ -105,7 +107,7 @@ public class SearchController {
     private EuropeanaUrlService urlService;
     @Resource
     private ControllerUtils controllerUtils;
-    @Resource(name = "api2_mvc_xmlUtils")
+    @Resource
     private XmlUtils xmlUtils;
     @Resource
     private AbstractMessageSource messageSource;
@@ -310,19 +312,6 @@ public class SearchController {
 			return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
 		}
 	}
-
-	private Class<? extends IdBean> selectBean(String profile) {
-		Class<? extends IdBean> clazz;
-		if (StringUtils.containsIgnoreCase(profile, "minimal")) {
-			clazz = BriefBean.class;
-		} else if (StringUtils.containsIgnoreCase(profile, "rich")) {
-			clazz = RichBean.class;
-		} else {
-			clazz = ApiBean.class;
-		}
-		return clazz;
-	}
-
 
 	/**
 	 * @param query
@@ -590,7 +579,7 @@ public class SearchController {
 				ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
 				for (RichBean bean : resultSet.getResults()) {
 					if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
-						channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, reqLanguage == null ? channel.language : reqLanguage)));
+						channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(messageSource, bean, reqLanguage == null ? channel.language : reqLanguage)));
 					}
 				}
 			} catch (SolrTypeException|MissingResourceException e) {
@@ -612,227 +601,4 @@ public class SearchController {
 		return new ModelAndView("rss", model);
 	}
 
-	/**
-	 * Retrieves the title from the bean if not null; otherwise, returns
-	 * a concatenation of the Data Provier and ID fields.
-	 * <p>! FIX ME ! Note that this method will yield unwanted results when
-	 * there is more than one Title field!
-	 *
-	 * @param bean mapped pojo bean
-	 * @return String containing the concatenated fields
-	 */
-	private String getTitle(BriefBean bean) {
-		if (!ArrayUtils.isEmpty(bean.getTitle())) {
-			for (String title : bean.getTitle()) {
-				if (!StringUtils.isBlank(title)) {
-					return title;
-				}
-			}
-		}
-		return bean.getDataProvider()[0] + " " + bean.getId();
-	}
-
-	/**
-	 * retrieves a concatenation of the bean's DC Creator, Year and Provider
-	 * fields (if available)
-	 *
-	 * @param bean mapped pojo bean
-	 * @return String containing the fields, separated by semicolons
-	 */
-	private String getDescription(BriefBean bean) {
-		StringBuilder sb = new StringBuilder();
-		if (bean.getDcCreator() != null && bean.getDcCreator().length > 0
-				&& StringUtils.isNotBlank(bean.getDcCreator()[0])) {
-			sb.append(bean.getDcCreator()[0]);
-		}
-		if (bean.getYear() != null && bean.getYear().length > 0) {
-			if (sb.length() > 0) {
-				sb.append("; ");
-			}
-			sb.append(StringUtils.join(bean.getYear(), ", "));
-		}
-		if (!ArrayUtils.isEmpty(bean.getProvider())) {
-			if (sb.length() > 0) {
-				sb.append("; ");
-			}
-			sb.append(StringUtils.join(bean.getProvider(), ", "));
-		}
-		return sb.toString();
-	}
-
-	private String getDcLanguage(BriefBean bean) {
-		if (bean.getDcLanguage() != null && bean.getDcLanguage().length > 0
-				&& StringUtils.isNotBlank(bean.getDcLanguage()[0])) {
-			return bean.getDcLanguage()[0];
-		} else {
-			return "";
-		}
-	}
-
-	private boolean isFacetsRequested(String profile) {
-		return StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "facets");
-	}
-
-	private boolean isDefaultFacetsRequested(String profile, String[] facets) {
-		return StringUtils.containsIgnoreCase(profile, "portal") ||
-				(StringUtils.containsIgnoreCase(profile, "facets")
-						&& (ArrayUtils.isEmpty(facets)
-						|| ArrayUtils.contains(facets, "DEFAULT")
-				));
-	}
-
-	private boolean isDefaultOrReusabilityFacetRequested(String profile, String[] facets) {
-		return StringUtils.containsIgnoreCase(profile, "portal")
-				|| (
-				StringUtils.containsIgnoreCase(profile, "facets")
-						&& (
-						ArrayUtils.isEmpty(facets)
-								|| ArrayUtils.contains(facets, "DEFAULT")
-								|| ArrayUtils.contains(facets, "REUSABILITY")
-				));
-	}
-
-	/**
-	 * Gives a translation of the 'EdmIsShownAt' label in the appropriate
-	 * language.
-	 * <p>The 'appropriate language' is arrived at as follows: first it tries
-	 * to retrieve the language code from the bean and look up the translation
-	 * in this language.
-	 * <p>If this doesn't yield a string (either because the bean contains
-	 * no language settings or there is no translation provided for that
-	 * language), it tries to retrieve the translation based on the language
-	 * code provided in the 'language' parameter - which has the value of the
-	 * 'language' GET parameter if provided, or else the channel language code.
-	 * <p>If that fails as well, it looks up the English translation of the
-	 * label. And if that fails too, it returns a hardcoded error message.
-	 *
-	 * @param bean     containing language code
-	 * @param language String containing the channel's language code
-	 * @return String containing the label translation
-	 */
-	private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String language){
-		String translatedEdmIsShownAtLabel;
-		// first try with the bean language
-		try {
-			translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getLocale(bean.getLanguage()));
-		} catch (MissingResourceException e) {
-			log.error("error: 'edmIsShownAtLabel' translation for bean language '" + getLocale(bean.getLanguage()) + "' unavailable: " + e.getMessage());
-			translatedEdmIsShownAtLabel = "";
-		}
-		// check if retrieving translation for bean language failed
-		if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
-			// if so, and bean language != channel language, try channel language
-			if (!isLanguageEqual(bean.getLanguage(), language)) {
-				log.error("falling back on channel language ('" + language + "')");
-				try {
-					translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getLocale(language));
-				} catch (MissingResourceException e) {
-					log.error("error: 'edmIsShownAtLabel' translation for channel language '" + getLocale(bean.getLanguage()) + "' unavailable: " + e.getMessage());
-					translatedEdmIsShownAtLabel = "";
-				}
-			} else {
-				log.error("channel language ('" + language + "') is identical to bean language, skipping ...");
-			}
-			// check if translation is still empty
-			if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
-				log.error("falling back on default English translation ...");
-				// if so, try English translation
-				try {
-					translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getLocale("en"));
-				} catch (MissingResourceException e) {
-					log.error("error: 'edmIsShownAtLabel' English translation unavailable: " + e.getMessage());
-					translatedEdmIsShownAtLabel = "";
-				}
-				// check if retrieving English translation failed
-				if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
-					log.error("No translation for 'edmIsShownAtLabel' available.");
-					// if so, return hardcoded message
-					return "error: translations for 'edmIsShownAtLabel' unavailable";
-				}
-			}
-		}
-		return translatedEdmIsShownAtLabel;
-	}
-
-	/**
-	 * Gives the translation of the 'EdmIsShownAt' label in the language of
-	 * the provided Locale
-	 *
-	 * @param locale Locale instance initiated with the desired language
-	 * @return String containing the label translation
-	 */
-	private String getEdmIsShownAtLabelTranslation(Locale locale) throws java.util.MissingResourceException {
-		return messageSource.getMessage("edm_isShownAtLabel_t", null, locale);
-	}
-
-	/**
-	 * Initiates and returns a Locale instance for the language specified by
-	 * the language code found in the input.
-	 * <p>Checks for NULL values, and whether or not the found code is two
-	 * characters long; if not, it returns a locale initiated to English
-	 *
-	 * @param languageArray String Array containing language code
-	 * @return Locale instance
-	 */
-	private Locale getLocale(String[] languageArray) {
-		if (!ArrayUtils.isEmpty(languageArray)
-				&& !StringUtils.isBlank(languageArray[0])
-				&& languageArray[0].length() == 2) {
-			return new Locale(languageArray[0]);
-		} else {
-			log.error("error: language code unavailable or malformed (e.g. not two characters long)");
-			return new Locale("en");
-		}
-	}
-
-	/**
-	 * Initiates and returns a Locale instance for the language specified by
-	 * the language code found in the input.
-	 * <p>Checks for NULL values, and whether or not the found code is two
-	 * characters long; if not, it returns a locale initiated to English
-	 *
-	 * @param language String containing language code
-	 * @return Locale instance
-	 */
-	private Locale getLocale(String language) {
-		if (!StringUtils.isBlank(language)
-				&& language.length() == 2) {
-			return new Locale(language);
-		} else {
-			log.error("error: language code unavailable or malformed (e.g. not two characters long)");
-			return new Locale("en");
-		}
-	}
-
-
-	/**
-	 * simple utility method to compare the language code contained in a String array
-	 * with another contained in a String. Also checks for well-formedness, i.e. if they're two characters long
-	 *
-	 * @param languageArray String[]
-	 * @param language String
-	 * @return boolean TRUE if equal, else FALSE
-	 */
-	private boolean isLanguageEqual(String[] languageArray, String language){
-		return (!ArrayUtils.isEmpty(languageArray)
-				&& !StringUtils.isBlank(languageArray[0])
-				&& languageArray[0].length() == 2
-				&& !StringUtils.isBlank(language)
-				&& language.length() == 2
-				&& language.equalsIgnoreCase(languageArray[0]));
-	}
-
-	/**
-	 * retrieves the numerical part of the substring between the ':' and '*'
-	 * characters.
-	 * <p>e.g. "europeana_collectionName:91697*" will result in "91697"
-	 *
-	 * @param queryTerms provided String
-	 * @return String containing the Europeana collection ID only
-	 */
-	private String getIdFromQueryTerms(String queryTerms) {
-		int from = !queryTerms.contains(":") ? 0 : queryTerms.indexOf(":");
-		int to = !queryTerms.contains("*") ? queryTerms.length() - 1 : queryTerms.indexOf("*");
-		return queryTerms.substring(from, to).replaceAll("\\D+", "");
-	}
 }

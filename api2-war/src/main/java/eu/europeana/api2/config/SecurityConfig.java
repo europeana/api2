@@ -39,11 +39,11 @@ public class SecurityConfig {
         public void configure(WebSecurity web) throws Exception {
             web.ignoring().antMatchers(
                     "/image*",
-                    "/suggestions.json",
+                    "/v2/suggestions.json",
                     "/opensearch.rss",
                     "/opensearch.json",
-                    "/search.*",
-                    "/record/**"
+                    "/v2/search.*",
+                    "/v2/record/**"
             );
 
         }

@@ -20,7 +20,6 @@ package eu.europeana.api2.config;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
@@ -49,8 +48,8 @@ public class SwaggerConfig {
                 .apiInfo(apiInfo());
     }
 
-    ApiInfo apiInfo() {
-        ApiInfo apiInfo = new ApiInfo(
+    private ApiInfo apiInfo() {
+        return new ApiInfo(
                 "Europeana REST API",
                 "This Swagger API console provides an overview of and interface to the Europeana REST API. " +
                         "You can build and test anything from the simplest search to a complex query using facets " +
@@ -61,7 +60,6 @@ public class SwaggerConfig {
                 "development-core@europeanalabs.eu",
                 "Terms of use",
                 "http://www.europeana.eu/portal/rights/api-terms-of-use.html");
-        return apiInfo;
     }
 
 }
