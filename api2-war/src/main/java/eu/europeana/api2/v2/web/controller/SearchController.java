@@ -54,6 +54,10 @@ import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.search.utils.FakeTagsUtils;
 import eu.europeana.corelib.search.utils.SearchUtils;
+import eu.europeana.corelib.solr.bean.impl.ApiBeanImpl;
+import eu.europeana.corelib.solr.bean.impl.BriefBeanImpl;
+import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
+import eu.europeana.corelib.solr.bean.impl.RichBeanImpl;
 import eu.europeana.corelib.utils.StringArrayUtils;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
@@ -110,8 +114,8 @@ public class SearchController {
     private AbstractMessageSource messageSource;
 
     private String[] expandFacetNames(String[] facet) {
-        if (null == facet)
-            return facet;
+        if (facet == null)
+            return null;
 
         for (int i = 0; i < facet.length; ++i) {
             if ("MEDIA".equalsIgnoreCase(facet[i])) {
@@ -180,7 +184,7 @@ public class SearchController {
 
 
         if (cursorMark != null) {
-            if (start > 1){
+            if (start > 1) {
                 response.setStatus(400);
                 return JsonUtils.toJson(new ApiError("", "search.json", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
             } else {
@@ -209,9 +213,9 @@ public class SearchController {
         }
 
         if (image_colour != null) {
-            if (true == image_colour) {
-                imageColors.add(image_colour);
-            } else if (false == image_colour) {
+            if (image_colour) {
+                imageColors.add(true);
+            } else {
                 imageGrayScales.add(!image_colour);
             }
         }
@@ -228,7 +232,7 @@ public class SearchController {
             for (String qf : refinements) {
                 log.info("QF: " + qf);
                 final Integer colonIndex = qf.indexOf(":");
-                if (colonIndex == null || colonIndex == -1) {
+                if (colonIndex == -1) {
                     continue;
                 }
                 final String prefix = qf.substring(0, colonIndex).toLowerCase();
@@ -243,7 +247,7 @@ public class SearchController {
                     thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
                 } else if (prefix.equalsIgnoreCase("has_media")) {
                     media = (null == media ? false : media) || Boolean.parseBoolean(suffix);
-                } else if (prefix.equalsIgnoreCase("onetagpercolour")) {
+//        } else if (prefix.equalsIgnoreCase("onetagpercolour")) {
                     // imageColorsPalette.add(suffix);
                 } else if (prefix.equalsIgnoreCase("type")) {
                     mediaTypes.add(suffix);
@@ -355,7 +359,7 @@ public class SearchController {
             filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("OR"));
             filterTagQuery = filterTagQuery.trim();
 
-            if (queryString.equals("")) {
+            if (StringUtils.isBlank(queryString)) {
                 queryString = filterTagQuery;
             } else {
                 filterTagQuery = "(" + filterTagQuery + ")";
@@ -364,7 +368,7 @@ public class SearchController {
         }
 
         queryString = queryString.trim();
-        if (queryString == null || "".equalsIgnoreCase(queryString)) {
+        if (StringUtils.isBlank(queryString)) {
             response.setStatus(400);
             return JsonUtils.toJson(new ApiError("", "search.json", "invalid query parameter"), callback);
         }
@@ -407,6 +411,7 @@ public class SearchController {
                             valueReplacements.keySet().toArray(new String[valueReplacements.keySet().size()]));
         }
 
+        Class<? extends IdBean> clazz = selectBean(profile);
         Query query =
                 new Query(SearchUtils.rewriteQueryFields(queryString))
                         .setApiQuery(true)
@@ -416,7 +421,7 @@ public class SearchController {
                         .setSort(sort)
                         .setCurrentCursorMark(cursorMark)
                         .setParameter("facet.mincount", "1")
-                        .setParameter("fl", "*,score")
+                        .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                         .setAllowSpellcheck(false)
                         .setAllowFacets(false);
 
@@ -466,8 +471,6 @@ public class SearchController {
             return JsonUtils.toJson(new ApiError(e), callback);
         }
 
-        Class<? extends IdBean> clazz = selectBean(profile);
-
         try {
             SearchResults<? extends IdBean> result =
                     createResults(wskey, profile, query, clazz, limitResponse.getApiKey().getUser().getId());
@@ -508,6 +511,16 @@ public class SearchController {
         return clazz;
     }
 
+    private Class<? extends IdBeanImpl> getBeanImpl(Class clazz) {
+        if (BriefBean.class.equals(clazz)) {
+            return BriefBeanImpl.class;
+        }
+        if (RichBean.class.equals(clazz)) {
+            return RichBeanImpl.class;
+        }
+        return ApiBeanImpl.class;
+    }
+
     /**
      * Limits the number of facets
      *
@@ -517,7 +530,7 @@ public class SearchController {
      */
     public static String[] limitFacets(String[] facets, boolean isDefaultFacetsRequested) {
         List<String> requestedFacets = Arrays.asList(facets);
-        List<String> allowedFacets = new ArrayList<String>();
+        List<String> allowedFacets = new ArrayList<>();
 
         int count = 0;
         if (isDefaultFacetsRequested && !requestedFacets.contains("DEFAULT")) {
@@ -564,7 +577,7 @@ public class SearchController {
     @SuppressWarnings("unchecked")
     private <T extends IdBean> SearchResults<T> createResults(String apiKey, String profile,
                                                               Query query, Class<T> clazz, long uid) throws SolrTypeException {
-        SearchResults<T> response = new SearchResults<T>(apiKey, "search.json");
+        SearchResults<T> response = new SearchResults<>(apiKey, "search.json");
         ResultSet<T> resultSet = searchService.search(clazz, query);
         response.totalResults = resultSet.getResultSize();
         response.itemsCount = resultSet.getResults().size();
@@ -595,7 +608,7 @@ public class SearchController {
         if (resultSet.getQueryFacets() != null) {
             List<FacetField> allQueryFacetsMap =
                     SearchUtils.extractQueryFacets(resultSet.getQueryFacets());
-            if (allQueryFacetsMap != null && !allQueryFacetsMap.isEmpty()) {
+            if (!allQueryFacetsMap.isEmpty()) {
                 facetFields.addAll(allQueryFacetsMap);
             }
         }
@@ -636,7 +649,7 @@ public class SearchController {
 
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
-        String[] _qf = (String[]) request.getParameterMap().get("qf");
+        String[] _qf = request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinements.length) {
             refinements = _qf;
         }
@@ -809,7 +822,7 @@ public class SearchController {
 
         String xml = fieldTripUtils.cleanRss(xmlUtils.toString(rss));
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("rss", xml);
 
         response.setCharacterEncoding("UTF-8");
