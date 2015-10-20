@@ -182,7 +182,7 @@ public class SearchController {
         if (cursorMark != null) {
             if (start > 1){
                 response.setStatus(400);
-                return JsonUtils.toJson(new ApiError("", "search.json", "Parameters 'start' amd 'cursorMark' cannot be used together"), callback);
+                return JsonUtils.toJson(new ApiError("", "search.json", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
             } else {
                 sort = "europeana_id desc";
             }
