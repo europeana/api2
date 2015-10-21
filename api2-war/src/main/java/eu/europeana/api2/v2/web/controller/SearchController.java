@@ -184,7 +184,7 @@ public class SearchController {
 
 
         if (cursorMark != null) {
-            if (start > 1){
+            if (start > 1) {
                 response.setStatus(400);
                 return JsonUtils.toJson(new ApiError("", "search.json", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
             } else {
@@ -256,13 +256,15 @@ public class SearchController {
                     mimeTypes.add(suffix);
                 } else if (prefix.equalsIgnoreCase("image_size")) {
                     imageSizes.add(suffix);
-                } else if (prefix.equalsIgnoreCase("image_colour") || prefix.equalsIgnoreCase("image_color")) {
+                } else if (prefix.equalsIgnoreCase("image_colour")
+                        || prefix.equalsIgnoreCase("image_color")) {
                     if (Boolean.valueOf(suffix)) {
                         imageColors.add(true);
                     } else {
                         imageGrayScales.add(true);
                     }
-                } else if (prefix.equalsIgnoreCase("image_greyscale") || prefix.equalsIgnoreCase("image_grayscale")) {
+                } else if (prefix.equalsIgnoreCase("image_greyscale")
+                        || prefix.equalsIgnoreCase("image_grayscale")) {
                     imageGrayScales.add(Boolean.valueOf(suffix));
                 } else if (prefix.equalsIgnoreCase("image_aspectratio")) {
                     imageAspectRatios.add(suffix);
