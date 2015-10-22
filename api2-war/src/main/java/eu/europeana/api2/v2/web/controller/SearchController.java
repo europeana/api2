@@ -476,9 +476,10 @@ public class SearchController {
                     createResults(wskey, profile, query, clazz, limitResponse.getApiKey().getUser().getId());
             result.requestNumber = limitResponse.getRequestNumber();
 
-            if (result.params.containsKey("sort")) {
-                sort = result.params.get("sort").toString();
-            }
+//            NOTE: the actual sorting is available in resultSet.getSortField, disabling for now
+//            if (result.params.containsKey("sort")) {
+//                sort = result.params.get("sort").toString();
+//            }
 
             if (StringUtils.containsIgnoreCase(profile, "params")) {
                 result.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -636,12 +637,12 @@ public class SearchController {
                 || StringUtils.containsIgnoreCase(profile, "portal")) {
             response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
         }
-        if (StringUtils.containsIgnoreCase(profile, "params")) {
-            response.addParam("sort", resultSet.getSortField());
-        }
-        // if (StringUtils.containsIgnoreCase(profile, "suggestions") ||
-        // StringUtils.containsIgnoreCase(profile, "portal")) {
-        // }
+//        if (StringUtils.containsIgnoreCase(profile, "params")) {
+//            response.addParam("sort", resultSet.getSortField());
+//        }
+//        if (StringUtils.containsIgnoreCase(profile, "suggestions") ||
+//            StringUtils.containsIgnoreCase(profile, "portal")) {
+//        }
         return response;
     }
 
