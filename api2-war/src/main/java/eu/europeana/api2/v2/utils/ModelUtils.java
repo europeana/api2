@@ -17,8 +17,9 @@
 
 package eu.europeana.api2.v2.utils;
 
-import java.util.*;
-
+import eu.europeana.api2.v2.model.json.common.LabelFrequency;
+import eu.europeana.api2.v2.model.json.view.submodel.Facet;
+import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
 import eu.europeana.corelib.definitions.model.facets.inverseLogic.*;
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
 import org.apache.commons.lang.StringUtils;
@@ -26,25 +27,22 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
 
-import eu.europeana.api2.v2.model.json.common.LabelFrequency;
-import eu.europeana.api2.v2.model.json.view.submodel.Facet;
-import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
+import java.util.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 public class ModelUtils {
 
-
     private ModelUtils() {
-		// Constructor must be private
-	}
+        // Constructor must be private
+    }
 
- public static String getFacetName(Integer tag) {
+    public static String getFacetName(Integer tag) {
         final MediaTypeEncoding mediaType = CommonPropertyExtractor.getType(tag);
-        final String  mimeType  = CommonPropertyExtractor.getMimeType(tag);
+        final String mimeType = CommonPropertyExtractor.getMimeType(tag);
 
-        if (null != mimeType && !mimeType.trim().isEmpty()) {
+        if (StringUtils.isNotBlank(mimeType)) {
             return "MIME_TYPE";
         }
 
@@ -52,54 +50,55 @@ public class ModelUtils {
         switch (mediaType) {
             case IMAGE:
                 label = ImagePropertyExtractor.getAspectRatio(tag);
-                if(!label.equals("")) {
+                if (StringUtils.isNotBlank(label)) {
                     return "IMAGE_ASPECTRATIO";
                 }
                 label = ImagePropertyExtractor.getColor(tag);
-                if(!label.equals("")) {
+                if (StringUtils.isNotBlank(label)) {
                     return "COLOURPALETTE";
                 }
                 label = ImagePropertyExtractor.getColorSpace(tag);
-                if(!label.equals("")) {
-                    return "greyscale".equalsIgnoreCase(label) ? "IMAGE_GREYSCALE": "IMAGE_COLOUR" ;
+                if (StringUtils.isNotBlank(label)) {
+                    return "greyscale".equalsIgnoreCase(label) ? "IMAGE_GREYSCALE" : "IMAGE_COLOUR";
                 }
                 label = ImagePropertyExtractor.getSize(tag);
-                if (!label.equals("")) {
+                if (StringUtils.isNotBlank(label)) {
                     return "IMAGE_SIZE";
                 }
                 return label;
             case SOUND:
                 label = SoundPropertyExtractor.getDuration(tag);
-                if(!label.equals("")) {
+                if (StringUtils.isNotBlank(label)) {
                     return "SOUND_DURATION";
                 }
                 label = SoundPropertyExtractor.getQuality(tag);
-                if (!label.equals("")) {
+                if (StringUtils.isNotBlank(label)) {
                     return "SOUND_HQ";
                 }
                 return "";
             case VIDEO:
                 label = VideoPropertyExtractor.getDuration(tag);
-                if(!label.equals("")) {
+                if (StringUtils.isNotBlank(label)) {
                     return "VIDEO_DURATION";
                 }
                 label = VideoPropertyExtractor.getQuality(tag);
-                if (!label.equals("")) {
+                if (StringUtils.isNotBlank(label)) {
                     return "VIDEO_HD";
                 }
                 return "";
 
-            default: return "";
+            default:
+                return "";
         }
- }
+    }
 
-	public static List<Facet> conventFacetList(List<FacetField> facetFields) {
-        
-        if (null == facetFields || facetFields.isEmpty()) {
+    public static List<Facet> conventFacetList(List<FacetField> facetFields) {
+
+        if (facetFields == null || facetFields.isEmpty()) {
             return null;
         }
 
-        final List<Facet> facets = new ArrayList<Facet>();
+        final List<Facet> facets = new ArrayList<>();
         final Map<FacetNames, Map<String, Long>> mediaTypeFacets = new HashMap<>();
 
         /*
@@ -116,10 +115,9 @@ public class ModelUtils {
 
                 if (FacetNames.IS_FULLTEXT.name().equalsIgnoreCase(facet.name)) {
                     facet.name = FacetNames.IS_FULLTEXT.getRealName();
-                }  else if (FacetNames.HAS_MEDIA.name().equalsIgnoreCase(facet.name)) {
+                } else if (FacetNames.HAS_MEDIA.name().equalsIgnoreCase(facet.name)) {
                     facet.name = FacetNames.HAS_MEDIA.getRealName();
-                }
-                else if (FacetNames.HAS_THUMBNAILS.name().equalsIgnoreCase(facet.name)) {
+                } else if (FacetNames.HAS_THUMBNAILS.name().equalsIgnoreCase(facet.name)) {
                     facet.name = FacetNames.HAS_THUMBNAILS.getRealName();
                 }
 
@@ -141,7 +139,6 @@ public class ModelUtils {
                         final String label = FacetLabelExtractor.getFacetLabel(tag).trim();
 
                         if (label.isEmpty()) {
-                            System.out.println("Bad facet_tag encoding: " + tag + " Got empty label!");
                             continue;
                         }
 
@@ -188,10 +185,10 @@ public class ModelUtils {
         /*
          * sort the label of each facet
          */
-        for (final Facet facet: facets) {
+        for (final Facet facet : facets) {
             Collections.sort(facet.fields, new Comparator<LabelFrequency>() {
                 @Override
-                public int compare (LabelFrequency o1, LabelFrequency o2) {
+                public int compare(LabelFrequency o1, LabelFrequency o2) {
                     return Long.compare(o2.count, o1.count);
                 }
             });
@@ -200,22 +197,21 @@ public class ModelUtils {
         return facets;
     }
 
-	public static SpellCheck convertSpellCheck(SpellCheckResponse response) {
-		if (response != null) {
-			SpellCheck spellCheck = new SpellCheck();
-			spellCheck.correctlySpelled = response.isCorrectlySpelled();
-			for (Suggestion suggestion : response.getSuggestions()) {
-				for (int i = 0; i < suggestion.getNumFound(); i++) {
-					LabelFrequency value = new LabelFrequency();
-					value.label = suggestion.getAlternatives().get(i);
-					value.count = suggestion.getAlternativeFrequencies().get(i)
-							.longValue();
-					spellCheck.suggestions.add(value);
-				}
-			}
-			return spellCheck;
-		}
-		return null;
-	}
+    public static SpellCheck convertSpellCheck(SpellCheckResponse response) {
+        if (response != null) {
+            SpellCheck spellCheck = new SpellCheck();
+            spellCheck.correctlySpelled = response.isCorrectlySpelled();
+            for (Suggestion suggestion : response.getSuggestions()) {
+                for (int i = 0; i < suggestion.getNumFound(); i++) {
+                    LabelFrequency value = new LabelFrequency();
+                    value.label = suggestion.getAlternatives().get(i);
+                    value.count = suggestion.getAlternativeFrequencies().get(i).longValue();
+                    spellCheck.suggestions.add(value);
+                }
+            }
+            return spellCheck;
+        }
+        return null;
+    }
 
 }
