@@ -34,9 +34,9 @@ public class AbstractSearchResults<T> extends ApiResponse {
 
 	public long totalResults;
 
-	public List<T> items;
-
 	public String nextCursor;
+
+	public List<T> items;
 
 	public AbstractSearchResults(String apikey, String action) {
 		super(apikey, action);
