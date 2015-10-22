@@ -589,9 +589,9 @@ public class SearchController {
         SearchResults<T> response = new SearchResults<>(apiKey, "search.json");
         ResultSet<T> resultSet = searchService.search(clazz, query);
         response.totalResults = resultSet.getResultSize();
-        if (StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) && StringUtils.isNotBlank(resultSet.getNextCursorMark())) {
-            response.nextCursor = resultSet.getNextCursorMark().equalsIgnoreCase(resultSet.getCurrentCursorMark()) ? "false"
-                    : resultSet.getNextCursorMark();
+        if (StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) && StringUtils.isNotBlank(resultSet.getNextCursorMark())
+                && !resultSet.getNextCursorMark().equalsIgnoreCase(resultSet.getCurrentCursorMark())) {
+            response.nextCursor = resultSet.getNextCursorMark();
         }
         response.itemsCount = resultSet.getResults().size();
         response.items = resultSet.getResults();
