@@ -36,9 +36,7 @@ public class AbstractSearchResults<T> extends ApiResponse {
 
 	public List<T> items;
 
-	public String currentCursorMark;
-
-	public String nextCursorMark;
+	public String nextCursor;
 
 	public AbstractSearchResults(String apikey, String action) {
 		super(apikey, action);
