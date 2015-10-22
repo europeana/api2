@@ -52,7 +52,5 @@ public class AbstractSearchResults<T> extends ApiResponse {
 		return totalResults;
 	}
 
-	public String currentCursorMark;
-
-	public String nextCursorMark;
+	public String nextCursor;
 }

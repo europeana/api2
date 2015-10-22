@@ -154,7 +154,7 @@ public class SearchController {
             @RequestParam(value = "image_aspectratio", required = false) String[] image_aspectratio,
             @RequestParam(value = "image_size", required = false) String[] image_size,
             @RequestParam(value = "has_landingpage", required = false) Boolean hasLandingPage,
-            @RequestParam(value = "cursormark", required = false) String cursorMark,
+            @RequestParam(value = "cursor", required = false) String cursorMark,
             HttpServletRequest request, HttpServletResponse response) {
 
         // workaround of a Spring issue
@@ -182,14 +182,15 @@ public class SearchController {
         final Integer soundFilterTag = FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
         final Integer videoFilterTag = FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations).get(0);
 
-
         if (cursorMark != null) {
             if (start > 1) {
                 response.setStatus(400);
                 return JsonUtils.toJson(new ApiError("", "search.json", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
-            } else {
-                sort = "europeana_id desc";
             }
+        }
+        // exclude sorting on timestamp, #238
+        if (sort != null && (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp "))){
+            sort = "";
         }
 
         if (sound_duration != null) {
@@ -474,6 +475,11 @@ public class SearchController {
             SearchResults<? extends IdBean> result =
                     createResults(wskey, profile, query, clazz, limitResponse.getApiKey().getUser().getId());
             result.requestNumber = limitResponse.getRequestNumber();
+
+            if (result.params.containsKey("sort")) {
+                sort = result.params.get("sort").toString();
+            }
+
             if (StringUtils.containsIgnoreCase(profile, "params")) {
                 result.addParams(RequestUtils.getParameterMap(request), "wskey");
                 result.addParam("profile", profile);
@@ -579,10 +585,12 @@ public class SearchController {
         SearchResults<T> response = new SearchResults<>(apiKey, "search.json");
         ResultSet<T> resultSet = searchService.search(clazz, query);
         response.totalResults = resultSet.getResultSize();
+        if (StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) && StringUtils.isNotBlank(resultSet.getNextCursorMark())) {
+            response.nextCursor = resultSet.getNextCursorMark().equalsIgnoreCase(resultSet.getCurrentCursorMark()) ? "false"
+                    : resultSet.getNextCursorMark();
+        }
         response.itemsCount = resultSet.getResults().size();
         response.items = resultSet.getResults();
-        response.currentCursorMark = resultSet.getCurrentCursorMark();
-        response.nextCursorMark = resultSet.getNextCursorMark();
 
         System.out.println("Facet refinements (after): ");
         System.out.println(Arrays.deepToString(query.getFilteredFacets().toArray()));
@@ -627,6 +635,9 @@ public class SearchController {
         if (StringUtils.containsIgnoreCase(profile, "spelling")
                 || StringUtils.containsIgnoreCase(profile, "portal")) {
             response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
+        }
+        if (StringUtils.containsIgnoreCase(profile, "params")) {
+            response.addParam("sort", resultSet.getSortField());
         }
         // if (StringUtils.containsIgnoreCase(profile, "suggestions") ||
         // StringUtils.containsIgnoreCase(profile, "portal")) {
