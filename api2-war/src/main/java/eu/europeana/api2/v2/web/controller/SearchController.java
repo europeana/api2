@@ -219,6 +219,7 @@ public class SearchController {
                 log.info("QF: " + qf);
                 final Integer colonIndex = qf.indexOf(":");
                 if (colonIndex == -1) {
+                    newRefinements.add(qf);
                     continue;
                 }
                 final String prefix = qf.substring(0, colonIndex).toLowerCase();
@@ -301,6 +302,9 @@ public class SearchController {
             newRefinements.add("has_landingpage:" + hasLandingPage);
         }
 
+        refinements = newRefinements.toArray(new String[newRefinements.size()]);
+        log.info("New Refinements: " + Arrays.toString(refinements));
+
         if (!imageColorsPalette.isEmpty()) {
             String filterQuery = "";
             for (String color : imageColorsPalette) {
@@ -358,7 +362,6 @@ public class SearchController {
             }
         }
 
-
         if (filterTagQuery.contains("OR")) {
             filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("OR"));
             filterTagQuery = filterTagQuery.trim();
@@ -377,11 +380,6 @@ public class SearchController {
             return JsonUtils.toJson(new ApiError("", "search.json", "invalid query parameter"), callback);
         }
         log.info("QUERY: |" + queryString + "|");
-
-
-        refinements = newRefinements.toArray(new String[newRefinements.size()]);
-        log.info("New Refinements: " + Arrays.toString(refinements));
-
 
         boolean isFacetsRequested = isFacetsRequested(profile);
         String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
