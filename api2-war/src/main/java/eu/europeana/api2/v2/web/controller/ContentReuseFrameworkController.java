@@ -8,16 +8,12 @@ import eu.europeana.api2.v2.model.enums.DefaultImage;
 import eu.europeana.api2.v2.model.json.CrfMetadataResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.db.service.ApiKeyService;
-import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.definitions.model.ThumbSize;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.domain.MediaFile;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
-import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.service.ContentReuseFrameworkService;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.MediaStorageService;
 import eu.europeana.harvester.domain.SourceDocumentReferenceMetaInfo;
 import org.apache.commons.lang.StringUtils;
@@ -49,22 +45,10 @@ public class ContentReuseFrameworkController {
     private Logger log;
 
     @Resource
-    private SearchService searchService;
-
-    @Resource
     private ContentReuseFrameworkService crfService;
 
     @Resource
     private MediaStorageService mediaStorageService;
-
-    @Resource
-    private ApiLogService apiLogService;
-
-    @Resource
-    private ApiKeyService apiService;
-
-    @Resource
-    private EuropeanaUrlService urlService;
 
     @Resource
     private ControllerUtils controllerUtils;
@@ -79,7 +63,7 @@ public class ContentReuseFrameworkController {
             HttpServletResponse response) {
         long t0 = System.currentTimeMillis();
         controllerUtils.addResponseHeaders(response);
-        LimitResponse limitResponse = null;
+        LimitResponse limitResponse;
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
                     "record.json", RecordType.OBJECT, null);
@@ -102,8 +86,6 @@ public class ContentReuseFrameworkController {
             @RequestParam(value = "uri", required = true) String url,
             @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
-            @RequestParam(value = "callback", required = false) String callback,
-            HttpServletRequest request,
             HttpServletResponse response) {
         controllerUtils.addResponseHeaders(response);
 
@@ -140,24 +122,24 @@ public class ContentReuseFrameworkController {
                     imageResponse = mediaFile.getContent();
 
                 } else {
-                    imageResponse = getImage("/images/item-image-large.gif", suffix);
+                    imageResponse = getImage("/images/item-image-large.gif");
                     headers.setContentType(MediaType.IMAGE_GIF);
                 }
                 break;
             case "SOUND":
-                imageResponse = getImage("/images/item-sound-large.gif", suffix);
+                imageResponse = getImage("/images/item-sound-large.gif");
                 headers.setContentType(MediaType.IMAGE_GIF);
                 break;
             case "VIDEO":
-                imageResponse = getImage("/images/item-video-large.gif", suffix);
+                imageResponse = getImage("/images/item-video-large.gif");
                 headers.setContentType(MediaType.IMAGE_GIF);
                 break;
             case "TEXT":
-                imageResponse = getImage("/images/item-text-large.gif", suffix);
+                imageResponse = getImage("/images/item-text-large.gif");
                 headers.setContentType(MediaType.IMAGE_GIF);
                 break;
             case "3D":
-                imageResponse = getImage("/images/item-3d-large.gif", suffix);
+                imageResponse = getImage("/images/item-3d-large.gif");
                 headers.setContentType(MediaType.IMAGE_GIF);
                 break;
         }
@@ -165,17 +147,17 @@ public class ContentReuseFrameworkController {
         return new ResponseEntity<>(imageResponse, headers, HttpStatus.CREATED);
     }
 
-    private byte[] getImage(String path, String size) {
+    private byte[] getImage(String path) {
         byte[] response = null;
 
-        BufferedImage img = null;
+        BufferedImage img;
         try {
             img = ImageIO.read(getClass().getResourceAsStream(path));
             response = getByteArray(img);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        int imgType = img.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : img.getType();
+//        int imgType = img.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : img.getType();
 
         return response;
     }

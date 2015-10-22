@@ -193,41 +193,26 @@ public class SearchController {
             sort = "";
         }
 
-        if (sound_duration != null) {
-            soundDurations.addAll(Arrays.asList(sound_duration));
-        }
-
+        StringArrayUtils.addToList(soundDurations, sound_duration);
         if (sound_hq != null) {
             soundHQs.add(sound_hq);
         }
 
-        if (video_duration != null) {
-            videoDurations.addAll(Arrays.asList(video_duration));
-        }
-
+        StringArrayUtils.addToList(videoDurations, video_duration);
         if (video_hd != null) {
             videoHDs.add(video_hd);
         }
 
-        if (image_aspectratio != null) {
-            imageAspectRatios.addAll(Arrays.asList(image_aspectratio));
-        }
-
+        StringArrayUtils.addToList(imageAspectRatios, image_aspectratio);
         if (image_colour != null) {
             if (image_colour) {
                 imageColors.add(true);
             } else {
-                imageGrayScales.add(!image_colour);
+                imageGrayScales.add(true);
             }
         }
-
-        if (image_size != null) {
-            imageSizes.addAll(Arrays.asList(image_size));
-        }
-
-        if (colorPalette != null) {
-            imageColorsPalette.addAll(Arrays.asList(colorPalette));
-        }
+        StringArrayUtils.addToList(imageSizes, image_size);
+        StringArrayUtils.addToList(imageColorsPalette, colorPalette);
 
         if (refinements != null) {
             for (String qf : refinements) {
@@ -242,43 +227,59 @@ public class SearchController {
                 log.info("prefix: " + prefix);
                 log.info("suffix: " + suffix);
 
-                if (prefix.equalsIgnoreCase("text_fulltext")) {
-                    isFulltext = (null == isFulltext ? false : isFulltext) || Boolean.parseBoolean(suffix);
-                } else if (prefix.equalsIgnoreCase("has_thumbnail")) {
-                    thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
-                } else if (prefix.equalsIgnoreCase("has_media")) {
-                    media = (null == media ? false : media) || Boolean.parseBoolean(suffix);
-//        } else if (prefix.equalsIgnoreCase("onetagpercolour")) {
-                    // imageColorsPalette.add(suffix);
-                } else if (prefix.equalsIgnoreCase("type")) {
-                    mediaTypes.add(suffix);
-                    newRefinements.add(qf);
-                } else if (prefix.equalsIgnoreCase("mime_type")) {
-                    mimeTypes.add(suffix);
-                } else if (prefix.equalsIgnoreCase("image_size")) {
-                    imageSizes.add(suffix);
-                } else if (prefix.equalsIgnoreCase("image_colour")
-                        || prefix.equalsIgnoreCase("image_color")) {
-                    if (Boolean.valueOf(suffix)) {
-                        imageColors.add(true);
-                    } else {
-                        imageGrayScales.add(true);
-                    }
-                } else if (prefix.equalsIgnoreCase("image_greyscale")
-                        || prefix.equalsIgnoreCase("image_grayscale")) {
-                    imageGrayScales.add(Boolean.valueOf(suffix));
-                } else if (prefix.equalsIgnoreCase("image_aspectratio")) {
-                    imageAspectRatios.add(suffix);
-                } else if (prefix.equalsIgnoreCase("sound_hq")) {
-                    soundHQs.add(Boolean.valueOf(suffix));
-                } else if (prefix.equalsIgnoreCase("sound_duration")) {
-                    soundDurations.add(suffix);
-                } else if (prefix.equalsIgnoreCase("video_hd")) {
-                    videoHDs.add(Boolean.valueOf(suffix));
-                } else if (prefix.equalsIgnoreCase("video_duration")) {
-                    videoDurations.add(suffix);
-                } else {
-                    newRefinements.add(qf);
+                switch (prefix.toLowerCase()) {
+                    case "text_fulltext":
+                        isFulltext = (isFulltext == null ? false : isFulltext) || Boolean.parseBoolean(suffix);
+                        break;
+                    case "has_thumbnail":
+                        thumbnail = (thumbnail == null ? false : thumbnail) || Boolean.parseBoolean(suffix);
+                        break;
+                    case "has_media":
+                        media = (media == null ? false : media) || Boolean.parseBoolean(suffix);
+                        break;
+//                    case "onetagpercolour":
+//                        imageColorsPalette.add(suffix);
+//                        break;
+                    case "type":
+                        mediaTypes.add(suffix);
+                        newRefinements.add(qf);
+                        break;
+                    case "mime_type":
+                        mimeTypes.add(suffix);
+                        break;
+                    case "image_size":
+                        imageSizes.add(suffix);
+                        break;
+                    case "image_colour":
+                    case "image_color":
+                        if (Boolean.valueOf(suffix)) {
+                            imageColors.add(true);
+                        } else {
+                            imageGrayScales.add(true);
+                        }
+                        break;
+                    case "image_greyscale":
+                    case "image_grayscale":
+                        imageGrayScales.add(Boolean.valueOf(suffix));
+                        break;
+                    case "image_aspectratio":
+                        imageAspectRatios.add(suffix);
+                        break;
+                    case "sound_hq":
+                        soundHQs.add(Boolean.valueOf(suffix));
+                        break;
+                    case "sound_duration":
+                        soundDurations.add(suffix);
+                        break;
+                    case "video_hd":
+                        videoHDs.add(Boolean.valueOf(suffix));
+                        break;
+                    case "video_duration":
+                        videoDurations.add(suffix);
+                        break;
+                    default:
+                        newRefinements.add(qf);
+
                 }
             }
         }
@@ -303,10 +304,10 @@ public class SearchController {
         if (!imageColorsPalette.isEmpty()) {
             String filterQuery = "";
             for (String color : imageColorsPalette) {
-                log.info("Color palette: " + color);
+                log.debug("Color palette: " + color);
                 final Integer filterTag =
                         FakeTagsUtils.calculateTag(1, null, null, null, null, null, color, null, null, null, null);
-                log.info("Color palette: " + filterTag);
+                log.debug("Color palette: " + filterTag);
                 filterQuery += "filter_tags:" + filterTag + " AND ";
             }
             if (!filterQuery.equals("")) {
@@ -326,16 +327,18 @@ public class SearchController {
                 imageAspectRatios));
         filterTags.addAll(FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations));
         filterTags.addAll(FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations));
-        Boolean image = false, sound = false, video = false;
+        boolean image = false, sound = false, video = false;
         for (final String type : mediaTypes) {
-            if (type.equalsIgnoreCase("image")) {
-                image = true;
-            }
-            if (type.equalsIgnoreCase("sound")) {
-                sound = true;
-            }
-            if (type.equalsIgnoreCase("video")) {
-                video = true;
+            switch (type.toLowerCase()) {
+                case "image":
+                    image = true;
+                    break;
+                case "sound":
+                    sound = true;
+                    break;
+                case "video":
+                    video = true;
+                    break;
             }
         }
         if (!image) {
@@ -414,16 +417,16 @@ public class SearchController {
 
         Class<? extends IdBean> clazz = selectBean(profile);
         Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
-                        .setApiQuery(true)
-                        .setRefinements(refinements)
-                        .setPageSize(rows)
-                        .setStart(start - 1)
-                        .setSort(sort)
-                        .setCurrentCursorMark(cursorMark)
-                        .setParameter("facet.mincount", "1")
-                        .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
-                        .setAllowSpellcheck(false)
-                        .setAllowFacets(false);
+                .setApiQuery(true)
+                .setRefinements(refinements)
+                .setPageSize(rows)
+                .setStart(start - 1)
+                .setSort(sort)
+                .setCurrentCursorMark(cursorMark)
+                .setParameter("facet.mincount", "1")
+                .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
+                .setAllowSpellcheck(false)
+                .setAllowFacets(false);
 
         if (ArrayUtils.isNotEmpty(facets)) {
             query.setFacets(facets);
