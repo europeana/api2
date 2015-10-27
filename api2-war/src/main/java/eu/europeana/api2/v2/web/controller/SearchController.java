@@ -649,15 +649,15 @@ public class SearchController {
 
     @RequestMapping(value = "/v2/search.kml", produces = {"application/vnd.google-earth.kml+xml",
             MediaType.ALL_VALUE})
-    // @RequestMapping(value = "/v2/search.kml", produces =
-    // "application/vnd.google-earth.kml+xml")
-    public
+    // @RequestMapping(value = "/v2/search.kml", produces = "application/vnd.google-earth.kml+xml")
     @ResponseBody
-    KmlResponse searchKml(@RequestParam(value = "query", required = true) String queryString,
-                          @RequestParam(value = "qf", required = false) String[] refinements, @RequestParam(
-            value = "start", required = false, defaultValue = "1") int start, @RequestParam(
-            value = "wskey", required = true) String wskey, HttpServletRequest request,
-                          HttpServletResponse response) throws Exception {
+    public KmlResponse searchKml(
+            @RequestParam(value = "query", required = true) String queryString,
+            @RequestParam(value = "qf", required = false) String[] refinements,
+            @RequestParam(value = "start", required = false, defaultValue = "1") int start,
+            @RequestParam(value = "wskey", required = true) String wskey,
+            HttpServletRequest request,
+            HttpServletResponse response) throws Exception {
 
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
@@ -698,12 +698,11 @@ public class SearchController {
 
     @RequestMapping(value = "/v2/opensearch.rss", produces = {MediaType.APPLICATION_XML_VALUE,
             MediaType.ALL_VALUE})
-    public
     @ResponseBody
-    RssResponse openSearchRss(
-            @RequestParam(value = "searchTerms", required = true) String queryString, @RequestParam(
-            value = "startIndex", required = false, defaultValue = "1") int start, @RequestParam(
-            value = "count", required = false, defaultValue = "12") int count) {
+    public RssResponse openSearchRss(
+            @RequestParam(value = "searchTerms", required = true) String queryString,
+            @RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
+            @RequestParam(value = "count", required = false, defaultValue = "12") int count) {
         RssResponse rss = new RssResponse();
         Channel channel = rss.channel;
         channel.startIndex.value = start;
