@@ -1,6 +1,7 @@
 package eu.europeana.api2.config;
 
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler;
 import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.service.SugarCRMImporter;
@@ -74,7 +75,7 @@ public class AppConfig {
 
     @Bean(name = "api_db_mongo_cache")
     public Mongo ApiDbMongoCache() throws UnknownHostException {
-        return new Mongo(cacheHost, cachePort);
+        return new MongoClient(cacheHost, cachePort);
     }
 
     @Bean
@@ -83,7 +84,7 @@ public class AppConfig {
         source.setBasename(messageResource);
         source.setCacheSeconds(messageCacheSeconds);
         source.setDefaultEncoding("UTF-8");
-        source.setUseCodeAsDefaultMessage(true);
+        source.setFallbackToSystemLocale(true);
         return source;
     }
 }
