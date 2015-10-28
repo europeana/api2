@@ -50,15 +50,17 @@ public class SecurityConfig {
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.antMatcher("/v2/mydata/**")
+            http.antMatcher("/**")
                     .authorizeRequests()
                     .antMatchers("/v2/mydata", "/v2/mydata/**").hasAnyRole("CLIENT", "TRUSTED_CLIENT")
                     .antMatchers("/apikey", "/apikey/**").hasRole("TRUSTED_CLIENT")
                     .and()
                             // FORM LOGIN
-                    .formLogin()
-                    .loginProcessingUrl("/login.do")
-                    .loginPage("/login?form=myData")
+                    .httpBasic()
+                    .realmName("Europeana API2")
+//                    .formLogin()
+//                    .loginProcessingUrl("/login.do")
+//                    .loginPage("/login?form=myData")
                     .and()
                             // LOG OUT
                     .logout()
