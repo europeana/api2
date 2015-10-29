@@ -45,6 +45,7 @@ import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
+import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.definitions.solr.Facet;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
@@ -487,7 +488,11 @@ public class SearchController {
             }
             return JsonUtils.toJson(result, callback);
         } catch (SolrTypeException e) {
-            log.error(wskey + " [search.json] ", e);
+            if(e.getProblem().equals(ProblemType.SEARCH_LIMIT_REACHED)){
+                log.error(wskey + " [search.json] " + ProblemType.SEARCH_LIMIT_REACHED.getMessage());
+            } else {
+                log.error(wskey + " [search.json] ", e);
+            }
             response.setStatus(400);
             return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
         } catch (Exception e) {
