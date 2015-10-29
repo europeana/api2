@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.utils;
 
 public enum FacetNames {
+
     MIME_TYPE("MIME_TYPE"),
 
     IS_FULLTEXT("TEXT_FULLTEXT"),
@@ -20,12 +21,14 @@ public enum FacetNames {
     SOUND_DURATION("SOUND_DURATION"),
     HAS_THUMBNAILS("THUMBNAIL");
 
-    private final String realName_;
+    private final String realName;
 
     FacetNames(String realName) {
-        realName_ = realName;
+        this.realName = realName;
     }
 
-    public String getRealName() {return realName_;}
+    public String getRealName() {
+        return realName;
+    }
 
 }

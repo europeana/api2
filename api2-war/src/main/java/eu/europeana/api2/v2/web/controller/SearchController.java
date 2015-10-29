@@ -155,7 +155,7 @@ public class SearchController {
             @RequestParam(value = "image_aspectratio", required = false) String[] image_aspectratio,
             @RequestParam(value = "image_size", required = false) String[] image_size,
             @RequestParam(value = "has_landingpage", required = false) Boolean hasLandingPage,
-            @RequestParam(value = "cursormark", required = false) String cursorMark,
+            @RequestParam(value = "cursor", required = false) String cursorMark,
             HttpServletRequest request, HttpServletResponse response) {
 
         // workaround of a Spring issue
@@ -183,57 +183,44 @@ public class SearchController {
         final Integer soundFilterTag = FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
         final Integer videoFilterTag = FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations).get(0);
 
-
         if (cursorMark != null) {
             if (start > 1) {
                 response.setStatus(400);
                 return JsonUtils.toJson(new ApiError("", "search.json", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
-            } else {
-                sort = "europeana_id desc";
             }
         }
-
-        if (sound_duration != null) {
-            soundDurations.addAll(Arrays.asList(sound_duration));
+        // exclude sorting on timestamp, #238
+        if (sort != null && (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp "))){
+            sort = "";
         }
 
+        StringArrayUtils.addToList(soundDurations, sound_duration);
         if (sound_hq != null) {
             soundHQs.add(sound_hq);
         }
 
-        if (video_duration != null) {
-            videoDurations.addAll(Arrays.asList(video_duration));
-        }
-
+        StringArrayUtils.addToList(videoDurations, video_duration);
         if (video_hd != null) {
             videoHDs.add(video_hd);
         }
 
-        if (image_aspectratio != null) {
-            imageAspectRatios.addAll(Arrays.asList(image_aspectratio));
-        }
-
+        StringArrayUtils.addToList(imageAspectRatios, image_aspectratio);
         if (image_colour != null) {
             if (image_colour) {
                 imageColors.add(true);
             } else {
-                imageGrayScales.add(!image_colour);
+                imageGrayScales.add(true);
             }
         }
-
-        if (image_size != null) {
-            imageSizes.addAll(Arrays.asList(image_size));
-        }
-
-        if (colorPalette != null) {
-            imageColorsPalette.addAll(Arrays.asList(colorPalette));
-        }
+        StringArrayUtils.addToList(imageSizes, image_size);
+        StringArrayUtils.addToList(imageColorsPalette, colorPalette);
 
         if (refinements != null) {
             for (String qf : refinements) {
                 log.info("QF: " + qf);
                 final Integer colonIndex = qf.indexOf(":");
                 if (colonIndex == -1) {
+                    newRefinements.add(qf);
                     continue;
                 }
                 final String prefix = qf.substring(0, colonIndex).toLowerCase();
@@ -242,43 +229,59 @@ public class SearchController {
                 log.info("prefix: " + prefix);
                 log.info("suffix: " + suffix);
 
-                if (prefix.equalsIgnoreCase("text_fulltext")) {
-                    isFulltext = (null == isFulltext ? false : isFulltext) || Boolean.parseBoolean(suffix);
-                } else if (prefix.equalsIgnoreCase("has_thumbnail")) {
-                    thumbnail = (null == thumbnail ? false : thumbnail) || Boolean.parseBoolean(suffix);
-                } else if (prefix.equalsIgnoreCase("has_media")) {
-                    media = (null == media ? false : media) || Boolean.parseBoolean(suffix);
-//        } else if (prefix.equalsIgnoreCase("onetagpercolour")) {
-                    // imageColorsPalette.add(suffix);
-                } else if (prefix.equalsIgnoreCase("type")) {
-                    mediaTypes.add(suffix);
-                    newRefinements.add(qf);
-                } else if (prefix.equalsIgnoreCase("mime_type")) {
-                    mimeTypes.add(suffix);
-                } else if (prefix.equalsIgnoreCase("image_size")) {
-                    imageSizes.add(suffix);
-                } else if (prefix.equalsIgnoreCase("image_colour")
-                        || prefix.equalsIgnoreCase("image_color")) {
-                    if (Boolean.valueOf(suffix)) {
-                        imageColors.add(true);
-                    } else {
-                        imageGrayScales.add(true);
-                    }
-                } else if (prefix.equalsIgnoreCase("image_greyscale")
-                        || prefix.equalsIgnoreCase("image_grayscale")) {
-                    imageGrayScales.add(Boolean.valueOf(suffix));
-                } else if (prefix.equalsIgnoreCase("image_aspectratio")) {
-                    imageAspectRatios.add(suffix);
-                } else if (prefix.equalsIgnoreCase("sound_hq")) {
-                    soundHQs.add(Boolean.valueOf(suffix));
-                } else if (prefix.equalsIgnoreCase("sound_duration")) {
-                    soundDurations.add(suffix);
-                } else if (prefix.equalsIgnoreCase("video_hd")) {
-                    videoHDs.add(Boolean.valueOf(suffix));
-                } else if (prefix.equalsIgnoreCase("video_duration")) {
-                    videoDurations.add(suffix);
-                } else {
-                    newRefinements.add(qf);
+                switch (prefix.toLowerCase()) {
+                    case "text_fulltext":
+                        isFulltext = (isFulltext == null ? false : isFulltext) || Boolean.parseBoolean(suffix);
+                        break;
+                    case "has_thumbnail":
+                        thumbnail = (thumbnail == null ? false : thumbnail) || Boolean.parseBoolean(suffix);
+                        break;
+                    case "has_media":
+                        media = (media == null ? false : media) || Boolean.parseBoolean(suffix);
+                        break;
+//                    case "onetagpercolour":
+//                        imageColorsPalette.add(suffix);
+//                        break;
+                    case "type":
+                        mediaTypes.add(suffix);
+                        newRefinements.add(qf);
+                        break;
+                    case "mime_type":
+                        mimeTypes.add(suffix);
+                        break;
+                    case "image_size":
+                        imageSizes.add(suffix);
+                        break;
+                    case "image_colour":
+                    case "image_color":
+                        if (Boolean.valueOf(suffix)) {
+                            imageColors.add(true);
+                        } else {
+                            imageGrayScales.add(true);
+                        }
+                        break;
+                    case "image_greyscale":
+                    case "image_grayscale":
+                        imageGrayScales.add(Boolean.valueOf(suffix));
+                        break;
+                    case "image_aspectratio":
+                        imageAspectRatios.add(suffix);
+                        break;
+                    case "sound_hq":
+                        soundHQs.add(Boolean.valueOf(suffix));
+                        break;
+                    case "sound_duration":
+                        soundDurations.add(suffix);
+                        break;
+                    case "video_hd":
+                        videoHDs.add(Boolean.valueOf(suffix));
+                        break;
+                    case "video_duration":
+                        videoDurations.add(suffix);
+                        break;
+                    default:
+                        newRefinements.add(qf);
+
                 }
             }
         }
@@ -300,13 +303,16 @@ public class SearchController {
             newRefinements.add("has_landingpage:" + hasLandingPage);
         }
 
+        refinements = newRefinements.toArray(new String[newRefinements.size()]);
+        log.info("New Refinements: " + Arrays.toString(refinements));
+
         if (!imageColorsPalette.isEmpty()) {
             String filterQuery = "";
             for (String color : imageColorsPalette) {
-                log.info("Color palette: " + color);
+                log.debug("Color palette: " + color);
                 final Integer filterTag =
                         FakeTagsUtils.calculateTag(1, null, null, null, null, null, color, null, null, null, null);
-                log.info("Color palette: " + filterTag);
+                log.debug("Color palette: " + filterTag);
                 filterQuery += "filter_tags:" + filterTag + " AND ";
             }
             if (!filterQuery.equals("")) {
@@ -326,16 +332,18 @@ public class SearchController {
                 imageAspectRatios));
         filterTags.addAll(FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations));
         filterTags.addAll(FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations));
-        Boolean image = false, sound = false, video = false;
+        boolean image = false, sound = false, video = false;
         for (final String type : mediaTypes) {
-            if (type.equalsIgnoreCase("image")) {
-                image = true;
-            }
-            if (type.equalsIgnoreCase("sound")) {
-                sound = true;
-            }
-            if (type.equalsIgnoreCase("video")) {
-                video = true;
+            switch (type.toLowerCase()) {
+                case "image":
+                    image = true;
+                    break;
+                case "sound":
+                    sound = true;
+                    break;
+                case "video":
+                    video = true;
+                    break;
             }
         }
         if (!image) {
@@ -355,7 +363,6 @@ public class SearchController {
             }
         }
 
-
         if (filterTagQuery.contains("OR")) {
             filterTagQuery = filterTagQuery.substring(0, filterTagQuery.lastIndexOf("OR"));
             filterTagQuery = filterTagQuery.trim();
@@ -374,11 +381,6 @@ public class SearchController {
             return JsonUtils.toJson(new ApiError("", "search.json", "invalid query parameter"), callback);
         }
         log.info("QUERY: |" + queryString + "|");
-
-
-        refinements = newRefinements.toArray(new String[newRefinements.size()]);
-        log.info("New Refinements: " + Arrays.toString(refinements));
-
 
         boolean isFacetsRequested = isFacetsRequested(profile);
         String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
@@ -414,16 +416,16 @@ public class SearchController {
 
         Class<? extends IdBean> clazz = selectBean(profile);
         Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
-                        .setApiQuery(true)
-                        .setRefinements(refinements)
-                        .setPageSize(rows)
-                        .setStart(start - 1)
-                        .setSort(sort)
-                        .setCurrentCursorMark(cursorMark)
-                        .setParameter("facet.mincount", "1")
-                        .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
-                        .setAllowSpellcheck(false)
-                        .setAllowFacets(false);
+                .setApiQuery(true)
+                .setRefinements(refinements)
+                .setPageSize(rows)
+                .setStart(start - 1)
+                .setSort(sort)
+                .setCurrentCursorMark(cursorMark)
+                .setParameter("facet.mincount", "1")
+                .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
+                .setAllowSpellcheck(false)
+                .setAllowFacets(false);
 
         if (ArrayUtils.isNotEmpty(facets)) {
             query.setFacets(facets);
@@ -475,6 +477,12 @@ public class SearchController {
             SearchResults<? extends IdBean> result =
                     createResults(wskey, profile, query, clazz, limitResponse.getApiKey().getUser().getId());
             result.requestNumber = limitResponse.getRequestNumber();
+
+//            NOTE: the actual sorting is available in resultSet.getSortField, disabling for now
+//            if (result.params.containsKey("sort")) {
+//                sort = result.params.get("sort").toString();
+//            }
+
             if (StringUtils.containsIgnoreCase(profile, "params")) {
                 result.addParams(RequestUtils.getParameterMap(request), "wskey");
                 result.addParam("profile", profile);
@@ -584,10 +592,12 @@ public class SearchController {
         SearchResults<T> response = new SearchResults<>(apiKey, "search.json");
         ResultSet<T> resultSet = searchService.search(clazz, query);
         response.totalResults = resultSet.getResultSize();
+        if (StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) && StringUtils.isNotBlank(resultSet.getNextCursorMark())
+                && !resultSet.getNextCursorMark().equalsIgnoreCase(resultSet.getCurrentCursorMark())) {
+            response.nextCursor = resultSet.getNextCursorMark();
+        }
         response.itemsCount = resultSet.getResults().size();
         response.items = resultSet.getResults();
-        response.currentCursorMark = resultSet.getCurrentCursorMark();
-        response.nextCursorMark = resultSet.getNextCursorMark();
 
         System.out.println("Facet refinements (after): ");
         System.out.println(Arrays.deepToString(query.getFilteredFacets().toArray()));
@@ -633,23 +643,26 @@ public class SearchController {
                 || StringUtils.containsIgnoreCase(profile, "portal")) {
             response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
         }
-        // if (StringUtils.containsIgnoreCase(profile, "suggestions") ||
-        // StringUtils.containsIgnoreCase(profile, "portal")) {
-        // }
+//        if (StringUtils.containsIgnoreCase(profile, "params")) {
+//            response.addParam("sort", resultSet.getSortField());
+//        }
+//        if (StringUtils.containsIgnoreCase(profile, "suggestions") ||
+//            StringUtils.containsIgnoreCase(profile, "portal")) {
+//        }
         return response;
     }
 
     @RequestMapping(value = "/v2/search.kml", produces = {"application/vnd.google-earth.kml+xml",
             MediaType.ALL_VALUE})
-    // @RequestMapping(value = "/v2/search.kml", produces =
-    // "application/vnd.google-earth.kml+xml")
-    public
+    // @RequestMapping(value = "/v2/search.kml", produces = "application/vnd.google-earth.kml+xml")
     @ResponseBody
-    KmlResponse searchKml(@RequestParam(value = "query", required = true) String queryString,
-                          @RequestParam(value = "qf", required = false) String[] refinements, @RequestParam(
-            value = "start", required = false, defaultValue = "1") int start, @RequestParam(
-            value = "wskey", required = true) String wskey, HttpServletRequest request,
-                          HttpServletResponse response) throws Exception {
+    public KmlResponse searchKml(
+            @RequestParam(value = "query", required = true) String queryString,
+            @RequestParam(value = "qf", required = false) String[] refinements,
+            @RequestParam(value = "start", required = false, defaultValue = "1") int start,
+            @RequestParam(value = "wskey", required = true) String wskey,
+            HttpServletRequest request,
+            HttpServletResponse response) throws Exception {
 
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
@@ -690,12 +703,11 @@ public class SearchController {
 
     @RequestMapping(value = "/v2/opensearch.rss", produces = {MediaType.APPLICATION_XML_VALUE,
             MediaType.ALL_VALUE})
-    public
     @ResponseBody
-    RssResponse openSearchRss(
-            @RequestParam(value = "searchTerms", required = true) String queryString, @RequestParam(
-            value = "startIndex", required = false, defaultValue = "1") int start, @RequestParam(
-            value = "count", required = false, defaultValue = "12") int count) {
+    public RssResponse openSearchRss(
+            @RequestParam(value = "searchTerms", required = true) String queryString,
+            @RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
+            @RequestParam(value = "count", required = false, defaultValue = "12") int count) {
         RssResponse rss = new RssResponse();
         Channel channel = rss.channel;
         channel.startIndex.value = start;
