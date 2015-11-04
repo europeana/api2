@@ -114,20 +114,37 @@ public class SearchController {
     @Resource
     private AbstractMessageSource messageSource;
 
-    private String[] expandFacetNames(String[] facet) {
-        if (facet == null)
-            return null;
+    /**
+     * Limits the number of facets
+     *
+     * @param facets                   The user entered facet names list
+     * @param isDefaultFacetsRequested Flag if default facets should be returned
+     * @return The limited set of facet names
+     */
+    public static String[] limitFacets(String[] facets, boolean isDefaultFacetsRequested) {
+        List<String> requestedFacets = Arrays.asList(facets);
+        List<String> allowedFacets = new ArrayList<>();
 
-        for (int i = 0; i < facet.length; ++i) {
-            if ("MEDIA".equalsIgnoreCase(facet[i])) {
-                facet[i] = "has_media";
-            } else if ("THUMBNAIL".equalsIgnoreCase(facet[i])) {
-                facet[i] = "has_thumbnails";
-            } else if ("TEXT_FULLTEXT".equalsIgnoreCase(facet[i])) {
-                facet[i] = "is_fulltext";
+        int count = 0;
+        if (isDefaultFacetsRequested && !requestedFacets.contains("DEFAULT")) {
+            count = Facet.values().length;
+        }
+
+        int increment;
+        for (String facet : requestedFacets) {
+            increment = 1;
+            if (StringUtils.equals(facet, "DEFAULT")) {
+                increment = Facet.values().length;
+            }
+            if (count + increment <= FACET_LIMIT) {
+                allowedFacets.add(facet);
+                count += increment;
+            } else {
+                break;
             }
         }
-        return facet;
+
+        return allowedFacets.toArray(new String[allowedFacets.size()]);
     }
 
     @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET, RequestMethod.POST},
@@ -531,39 +548,6 @@ public class SearchController {
             return RichBeanImpl.class;
         }
         return ApiBeanImpl.class;
-    }
-
-    /**
-     * Limits the number of facets
-     *
-     * @param facets                   The user entered facet names list
-     * @param isDefaultFacetsRequested Flag if default facets should be returned
-     * @return The limited set of facet names
-     */
-    public static String[] limitFacets(String[] facets, boolean isDefaultFacetsRequested) {
-        List<String> requestedFacets = Arrays.asList(facets);
-        List<String> allowedFacets = new ArrayList<>();
-
-        int count = 0;
-        if (isDefaultFacetsRequested && !requestedFacets.contains("DEFAULT")) {
-            count = Facet.values().length;
-        }
-
-        int increment;
-        for (String facet : requestedFacets) {
-            increment = 1;
-            if (StringUtils.equals(facet, "DEFAULT")) {
-                increment = Facet.values().length;
-            }
-            if (count + increment <= FACET_LIMIT) {
-                allowedFacets.add(facet);
-                count += increment;
-            } else {
-                break;
-            }
-        }
-
-        return allowedFacets.toArray(new String[allowedFacets.size()]);
     }
 
     @RequestMapping(value = "/v2/suggestions.json", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -1022,4 +1006,21 @@ public class SearchController {
         return queryTerms.substring(queryTerms.indexOf(":"), queryTerms.indexOf("*")).replaceAll(
                 "\\D+", "");
     }
+
+    private String[] expandFacetNames(String[] facet) {
+        if (facet == null)
+            return null;
+
+        for (int i = 0; i < facet.length; ++i) {
+            if ("MEDIA".equalsIgnoreCase(facet[i])) {
+                facet[i] = "has_media";
+            } else if ("THUMBNAIL".equalsIgnoreCase(facet[i])) {
+                facet[i] = "has_thumbnails";
+            } else if ("TEXT_FULLTEXT".equalsIgnoreCase(facet[i])) {
+                facet[i] = "is_fulltext";
+            }
+        }
+        return facet;
+    }
+
 }
