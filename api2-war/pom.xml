@@ -290,13 +290,6 @@
         </dependency>
 
         <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-definitions</artifactId>
-            <version>2.1-SNAPSHOT</version>
-            <type>jar</type>
-        </dependency>
-
-        <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20140107</version>
