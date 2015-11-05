@@ -44,18 +44,17 @@ public class ControllerUtils {
     ApiKey apiKey;
     long requestNumber = 0;
     long t;
-    if (StringUtils.isBlank(wskey)) {
-      throw new ApiLimitException(wskey, apiCall, "no API key provided", 0, 401);
+      if (StringUtils.isBlank(wskey)) {
+        throw new ApiLimitException(wskey, apiCall, "No API key provided", 0, 403);
     }
     try {
       t = System.currentTimeMillis();
       apiKey = apiService.findByID(wskey);
       if (apiKey == null) {
-        throw new ApiLimitException(wskey, apiCall, "Unregistered user", 0, 401);
+        throw new ApiLimitException(wskey, apiCall, "Invalid API key", 0, 403);
       }
 //       apiKey.getUsageLimit();
       log.info("get apiKey: " + (System.currentTimeMillis() - t));
-
       requestNumber = 999;
       log.info("setting default request number; (checklimit disabled): " + requestNumber);
 
