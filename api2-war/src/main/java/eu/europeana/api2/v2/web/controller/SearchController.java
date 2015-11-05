@@ -499,17 +499,6 @@ public class SearchController {
             }
         }
 
-        LimitResponse limitResponse;
-        try {
-            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    "search.json", RecordType.SEARCH, profile);
-        } catch (ApiLimitException e) {
-            response.setStatus(e.getHttpStatus());
-            return JsonUtils.toJson(new ApiError(e), callback);
-        }
-
-        Class<? extends IdBean> clazz = selectBean(profile);
-
         try {
             SearchResults<? extends IdBean> result = createResults(wskey, profile,
                     query, clazz, limitResponse.getApiKey().getUser().getId());
@@ -954,9 +943,9 @@ public class SearchController {
         String translatedEdmIsShownAtLabel;
         // first try with the bean language
         try {
-            translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getLocale(bean.getLanguage()));
+            translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getBeanLocale(bean.getLanguage()));
         } catch (MissingResourceException e) {
-            log.error("error: 'edmIsShownAtLabel' translation for bean language '" + getLocale(bean.getLanguage()) + "' unavailable: " + e.getMessage());
+            log.error("error: 'edmIsShownAtLabel' translation for bean language '" + getBeanLocale(bean.getLanguage()) + "' unavailable: " + e.getMessage());
             translatedEdmIsShownAtLabel = "";
         }
         // check if retrieving translation for bean language failed
@@ -967,7 +956,7 @@ public class SearchController {
                 try {
                     translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getLocale(language));
                 } catch (MissingResourceException e) {
-                    log.error("error: 'edmIsShownAtLabel' translation for channel language '" + getLocale(bean.getLanguage()) + "' unavailable: " + e.getMessage());
+                    log.error("error: 'edmIsShownAtLabel' translation for channel language '" + getBeanLocale(bean.getLanguage()) + "' unavailable: " + e.getMessage());
                     translatedEdmIsShownAtLabel = "";
                 }
             } else {
