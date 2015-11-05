@@ -43,7 +43,7 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMissingServletRequestParameter(
             MissingServletRequestParameterException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
-        ModelAndView mav = JsonUtils.toJson(new ApiError("", "search.json", "missing parameters"));
-        return new ResponseEntity<>(mav.getModel().get("json"), headers, HttpStatus.BAD_REQUEST);
+        ModelAndView mav = JsonUtils.toJson(new ApiError("", "search.json", "No API key provided"));
+        return new ResponseEntity<>(mav.getModel().get("json"), headers, HttpStatus.FORBIDDEN);
     }
 }

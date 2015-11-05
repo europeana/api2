@@ -51,6 +51,18 @@ public class ContentReuseFrameworkController {
     private MediaStorageService mediaStorageService;
 
     @Resource
+    private SearchService searchService;
+
+    @Resource
+    private ApiLogService apiLogService;
+
+    @Resource
+    private ApiKeyService apiService;
+
+    @Resource
+    private EuropeanaUrlService urlService;
+
+    @Resource
     private ControllerUtils controllerUtils;
 
     @RequestMapping(value = "/v2/metadata-by-url.json", method = RequestMethod.GET,
@@ -147,7 +159,8 @@ public class ContentReuseFrameworkController {
         return new ResponseEntity<>(imageResponse, headers, HttpStatus.CREATED);
     }
 
-    private byte[] getImage(String path) {
+
+    private byte[] getImage(String path, String size) {
         byte[] response = null;
 
         BufferedImage img;
@@ -157,7 +170,16 @@ public class ContentReuseFrameworkController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        int imgType = img.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : img.getType();
+        int imgType = img.getType() == 0? BufferedImage.TYPE_INT_ARGB : img.getType();
+
+        if (size.equals("180")) {
+            try {
+                final BufferedImage newImage = resizeImage(img, imgType, 130, 180);
+                response = getByteArray(newImage);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+        }
 
         return response;
     }

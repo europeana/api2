@@ -41,6 +41,12 @@
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-hierarchies</artifactId>
             <version>${version.europeanaCorelib}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>google-collections</artifactId>
+                    <groupId>com.google.collections</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 		<dependency>
 			<groupId>eu.europeana.corelib</groupId>
