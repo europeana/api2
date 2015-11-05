@@ -94,15 +94,13 @@ public class ContentReuseFrameworkController {
         if (size.equalsIgnoreCase("BRIEF_DOC") || size.equalsIgnoreCase("h180") ||
                 size.equalsIgnoreCase("FULL_DOC") || size.equalsIgnoreCase("FULL_DOC_ALL") || size.equalsIgnoreCase("w200")) {
             suffix = "200";
-            type = "IMAGE";
         } else if (size.equalsIgnoreCase("w400")) {
             suffix = "400";
-            type = "IMAGE";
         }
 
         final HttpHeaders headers = new HttpHeaders();
 
-        byte[] imageResponse;
+        byte[] imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.IMAGE);
         switch (StringUtils.upperCase(type)) {
             case "IMAGE":
                 final String ID = getMD5(url) + "-" + ("200".equals(suffix) ? "MEDIUM" : "LARGE");
@@ -144,10 +142,6 @@ public class ContentReuseFrameworkController {
                 imageResponse = getImage("/images/item-3d-large.gif");
                 headers.setContentType(MediaType.IMAGE_GIF);
                 break;
-            default :
-                imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.IMAGE);
-                break;
-
         }
 
         return new ResponseEntity<>(imageResponse, headers, HttpStatus.CREATED);
