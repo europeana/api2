@@ -25,9 +25,24 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jclouds.api</groupId>
+            <artifactId>openstack-swift</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jclouds</groupId>
+            <artifactId>jclouds-core</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.ws</groupId>
             <artifactId>spring-ws-core</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>${version.springWebService}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -94,6 +109,12 @@
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-logging</artifactId>
+            <version>${version.europeanaCorelib}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-media-storage</artifactId>
             <version>${version.europeanaCorelib}</version>
         </dependency>
 
@@ -166,13 +187,14 @@
         <dependency>
             <groupId>org.springframework.ws</groupId>
             <artifactId>spring-xml</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>${version.springWebService}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <version>${version.springCore}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -257,21 +279,14 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>1.8.5</version>
+            <version>${version.mockito}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>2.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-definitions</artifactId>
-            <version>2.1-SNAPSHOT</version>
-            <type>jar</type>
+            <version>${version.jodatime}</version>
         </dependency>
 
         <dependency>
