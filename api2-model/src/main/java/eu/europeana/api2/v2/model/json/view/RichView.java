@@ -11,54 +11,53 @@ import eu.europeana.corelib.definitions.edm.beans.RichBean;
 
 public class RichView extends ApiView implements RichBean {
 
-	private String[] isShownBy;
-	private String[] dcDescription;
-	private String[] edmLandingPage;
-        private Map<String,List<String>> dcDescriptionLangAware;
-        private Map<String,List<String>> dcSubjectLangAware;
-        private Map<String,List<String>>dcTypeLangAware;
-//    private String attributionSnippet; -- disabled until later order
+    private String[] isShownBy;
+    private String[] dcDescription;
+    private String[] edmLandingPage;
+    private Map<String, List<String>> dcDescriptionLangAware;
+    private Map<String, List<String>> dcSubjectLangAware;
+    private Map<String, List<String>> dcTypeLangAware;
 
-	public RichView(RichBean bean, String profile, String wskey, long uid,
-			boolean optOut) {
-		super(bean, profile, wskey, uid, optOut);
-		dcDescription = bean.getDcDescription();
-		isShownBy = bean.getEdmIsShownBy();
-		edmLandingPage = bean.getEdmLandingPage();
-                dcTypeLangAware = bean.getDcTypeLangAware();
-                dcSubjectLangAware = bean.getDcSubjectLangAware();
-                dcDescriptionLangAware = bean.getDcDescriptionLangAware();
-	}
+    public RichView(RichBean bean, String profile, String wskey, long uid,
+                    boolean optOut) {
+        super(bean, profile, wskey, uid, optOut);
+        dcDescription = bean.getDcDescription();
+        isShownBy = bean.getEdmIsShownBy();
+        edmLandingPage = bean.getEdmLandingPage();
+        dcTypeLangAware = bean.getDcTypeLangAware();
+        dcSubjectLangAware = bean.getDcSubjectLangAware();
+        dcDescriptionLangAware = bean.getDcDescriptionLangAware();
+    }
 
-	@Override
-	public String[] getEdmIsShownBy() {
-		if (ArrayUtils.isEmpty(isShownBy)) {
-			return isShownBy;
-		}
-		// String provider = getProvider()[0];
-		List<String>isShownByLinks = new ArrayList<>();
-		for (String item : isShownBy) {
-			if (StringUtils.isBlank(item)) {
-				continue;
-			}
-			isShownByLinks.add(item);
-		}
-		return isShownByLinks.toArray(new String[isShownByLinks.size()]);
-	}
+    @Override
+    public String[] getEdmIsShownBy() {
+        if (ArrayUtils.isEmpty(isShownBy)) {
+            return isShownBy;
+        }
+        // String provider = getProvider()[0];
+        List<String> isShownByLinks = new ArrayList<>();
+        for (String item : isShownBy) {
+            if (StringUtils.isBlank(item)) {
+                continue;
+            }
+            isShownByLinks.add(item);
+        }
+        return isShownByLinks.toArray(new String[isShownByLinks.size()]);
+    }
 
-	@Override
-	public String[] getDcDescription() {
-		return dcDescription;
-	}
+    @Override
+    public String[] getDcDescription() {
+        return dcDescription;
+    }
 
-	@Override
-	public String[] getEdmLandingPage() {
-		return edmLandingPage;
-	}
-        
-         @Override
+    @Override
+    public String[] getEdmLandingPage() {
+        return edmLandingPage;
+    }
+
+    @Override
     public Map<String, List<String>> getDcDescriptionLangAware() {
-       return dcDescriptionLangAware;
+        return dcDescriptionLangAware;
     }
 
     @Override
@@ -68,7 +67,7 @@ public class RichView extends ApiView implements RichBean {
 
     @Override
     public Map<String, List<String>> getDcSubjectLangAware() {
-        
+
         return dcSubjectLangAware;
     }
 
