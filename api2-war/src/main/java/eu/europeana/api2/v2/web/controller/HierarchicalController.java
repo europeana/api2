@@ -20,6 +20,7 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.logging.Log;
@@ -130,6 +131,24 @@ public class HierarchicalController {
     @RequestMapping(value = "/{collectionId}/{recordId}/preceding-siblings.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getPrecedingSiblings(
+            @PathVariable String collectionId,
+            @PathVariable String recordId,
+            @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
+            @RequestParam(value = "wskey", required = true) String wskey,
+            @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
+            @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
+            @RequestParam(value = "callback", required = false) String callback,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        return hierarchyTemplate(RecordType.HIERARCHY_PRECEDING_SIBLINGS, collectionId, recordId,
+                profile, wskey, limit, offset, callback, request, response);
+    }
+
+    @SwaggerIgnore
+//    @ApiOperation(value = "returns the object's preceeeeeding siblings (backwards compatibility")
+    @RequestMapping(value = "/{collectionId}/{recordId}/preceeding-siblings.json", method = RequestMethod.GET,
+                    produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView getPreceedingSiblings(
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,

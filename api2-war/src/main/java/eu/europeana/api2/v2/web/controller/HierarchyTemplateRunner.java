@@ -117,19 +117,10 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
                 hierarchicalResult.self.setChildrenCount(
                         searchService.getChildrenCount(hierarchicalResult.self.getId()));
             } else {
-                try {
-                    if (searchService.findById(rdfAbout, false) == null) {
-                        return JsonUtils.toJson(new ApiError(wskey, HierarchicalController.getAction(recordType),
-                                String.format("Invalid record identifier: %s", rdfAbout),
-                                limitResponse.getRequestNumber()), callback);
-                    } else {
-                        return JsonUtils.toJson(new ApiError(wskey, HierarchicalController.getAction(recordType),
-                                String.format("No hierarchical structure found for record: %s", rdfAbout),
-                                limitResponse.getRequestNumber()), callback);
-                    }
-                } catch (MongoDBException ex) {
-                    log.info("MongoDBException caught while retrieving object with identifier: " + rdfAbout);
-                }
+                response.setStatus(404);
+                return JsonUtils.toJson(new ApiError(wskey, HierarchicalController.getAction(recordType),
+                            String.format("Invalid record identifier: %s", rdfAbout),
+                            limitResponse.getRequestNumber()), callback);
             }
         }
 
@@ -141,25 +132,18 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
             if (hierarchicalResult.children == null || hierarchicalResult.children.isEmpty()) {
                 hierarchicalResult.message = "This record has no children";
                 hierarchicalResult.success = false;
+                response.setStatus(404);
             } else {
                 addChildrenCount(hierarchicalResult.children);
             }
         } else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
             hierarchicalResult.self = searchService.getHierarchicalBean(rdfAbout);
             if (hierarchicalResult.self == null) {
-                try {
-                    if (searchService.findById(rdfAbout, false) == null) {
-                        return JsonUtils.toJson(new ApiError(wskey, HierarchicalController.getAction(recordType),
-                                String.format("Invalid record identifier: %s", rdfAbout),
-                                limitResponse.getRequestNumber()), callback);
-                    } else {
-                        return JsonUtils.toJson(new ApiError(wskey, HierarchicalController.getAction(recordType),
-                                String.format("This record has no hierarchical structure %s", rdfAbout),
-                                limitResponse.getRequestNumber()), callback);
-                    }
-                } catch (MongoDBException ex) {
-                    log.info("MongoDBException caught while retrieving object with identifier: " + rdfAbout);
-                }
+                hierarchicalResult.success = false;
+                response.setStatus(404);
+                return JsonUtils.toJson(new ApiError(wskey, HierarchicalController.getAction(recordType),
+                        String.format("Invalid record identifier: %s", rdfAbout),
+                        limitResponse.getRequestNumber()), callback);
             } else {
                 hierarchicalResult.self.setChildrenCount(
                         searchService.getChildrenCount(rdfAbout));
@@ -168,6 +152,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
             if (hierarchicalResult.self == null || StringUtils.isBlank(hierarchicalResult.self.getParent())) {
                 hierarchicalResult.message = "This record has no parent";
                 hierarchicalResult.success = false;
+                response.setStatus(404);
             } else {
                 hierarchicalResult.parent = searchService.getHierarchicalBean(hierarchicalResult.self.getParent());
                 if (hierarchicalResult.parent != null) {
@@ -182,6 +167,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
             if (hierarchicalResult.followingSiblings == null || hierarchicalResult.followingSiblings.isEmpty()) {
                 hierarchicalResult.message = "This record has no following siblings";
                 hierarchicalResult.success = false;
+                response.setStatus(404);
             } else {
                 long tgetsiblingsCount = System.currentTimeMillis();
                 addChildrenCount(hierarchicalResult.followingSiblings);
@@ -192,6 +178,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
             if (hierarchicalResult.precedingSiblings == null || hierarchicalResult.precedingSiblings.isEmpty()) {
                 hierarchicalResult.message = "This record has no preceding siblings";
                 hierarchicalResult.success = false;
+                response.setStatus(404);
             } else {
                 addChildrenCount(hierarchicalResult.precedingSiblings);
             }
@@ -200,6 +187,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
             if (struct == null) {
                 hierarchicalResult.message = String.format("This record has no hierarchical structure %s", rdfAbout);
                 hierarchicalResult.success = false;
+                response.setStatus(404);
             } else {
                 String partialErrorMsg = "This record has no";
                 boolean hasParent = true;
