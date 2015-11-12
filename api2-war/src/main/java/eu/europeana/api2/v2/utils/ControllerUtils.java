@@ -28,6 +28,7 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.logging.Logger;
 import org.springframework.http.HttpStatus;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Class containing a number of useful controller utilities
@@ -57,17 +58,16 @@ public class ControllerUtils {
    *         daily limit has been reached
    */
   public LimitResponse checkLimit(String wskey, String url, String apiCall, RecordType recordType,
-                                  String profile) throws ApiLimitException {
-    ApiKey apiKey = null;
+      String profile) throws ApiLimitException {
+    ApiKey apiKey;
     long requestNumber = 0;
     long t;
-    if (wskey == null || "".equalsIgnoreCase(wskey)){
-      throw new ApiLimitException(wskey, apiCall, "no API key provided", 0, HttpStatus.FORBIDDEN.value());
+      if (StringUtils.isBlank(wskey)) {
+        throw new ApiLimitException(wskey, apiCall, "No API key provided", 0, HttpStatus.FORBIDDEN.value());
     }
     try {
       t = System.currentTimeMillis();
       apiKey = apiService.findByID(wskey);
-
       if (apiKey == null) {
         throw new ApiLimitException(wskey, apiCall, "Invalid API key", 0, HttpStatus.FORBIDDEN.value());
       }
