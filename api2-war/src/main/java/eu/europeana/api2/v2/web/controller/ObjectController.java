@@ -189,10 +189,10 @@ public class ObjectController {
     @SuppressWarnings("unused")
     @SwaggerIgnore
     @RequestMapping(value = "/{collectionId}/{recordId}.kml", method = RequestMethod.GET, produces = "application/vnd.google-earth.kml+xml")
-    public
     @ResponseBody
-    ApiResponse searchKml(
-            @PathVariable String collectionId, @PathVariable String recordId,
+    public ApiResponse searchKml(
+            @PathVariable String collectionId,
+            @PathVariable String recordId,
             @RequestParam(value = "apikey", required = true) String apiKey,
             @RequestParam(value = "sessionhash", required = true) String sessionHash) {
         return new ApiNotImplementedYet(apiKey, "record.kml");
@@ -368,10 +368,11 @@ public class ObjectController {
 
     @SwaggerIgnore
     @RequestMapping(value = "/{collectionId}/{recordId}.srw", method = RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
-    public @ResponseBody SrwResponse recordSrw(@PathVariable String collectionId,
-                          @PathVariable String recordId,
-                          @RequestParam(value = "wskey", required = false) String wskey,
-                          HttpServletResponse response)
+    public @ResponseBody SrwResponse recordSrw(
+            @PathVariable String collectionId,
+          @PathVariable String recordId,
+          @RequestParam(value = "wskey", required = false) String wskey,
+          HttpServletResponse response)
             throws Exception {
         log.info("====== /v2/record/{collectionId}/{recordId}.srw ======");
 

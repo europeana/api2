@@ -34,6 +34,8 @@ public class AbstractSearchResults<T> extends ApiResponse {
 
 	public long totalResults;
 
+	public String nextCursor;
+
 	public List<T> items;
 
 	public AbstractSearchResults(String apikey, String action) {
@@ -51,4 +53,5 @@ public class AbstractSearchResults<T> extends ApiResponse {
 		}
 		return totalResults;
 	}
+
 }
