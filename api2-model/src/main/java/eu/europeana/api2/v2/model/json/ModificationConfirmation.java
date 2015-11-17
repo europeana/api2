@@ -14,22 +14,19 @@
  * See the Licence for the specific language governing permissions and limitations under
  * the Licence.
  */
-package eu.europeana.api2.v2.web.swagger;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
+package eu.europeana.api2.v2.model.json;
 
-/**
- * Used to annotate methods to be excluded in the Swagger output
- * @author luthien
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(value={TYPE, METHOD})
-@Documented
-public @interface SwaggerIgnore {
-    String value() default "";
+import eu.europeana.api2.model.json.abstracts.ApiResponse;
+
+public class ModificationConfirmation extends ApiResponse {
+
+	public ModificationConfirmation() {
+		// used by Jackson
+		super();
+	}
+
+	public ModificationConfirmation(String apikey, String action) {
+		super(apikey, action);
+	}
 }
