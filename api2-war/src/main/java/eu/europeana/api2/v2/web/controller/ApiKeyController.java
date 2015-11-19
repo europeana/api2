@@ -54,14 +54,16 @@ public class ApiKeyController {
     @RequestMapping(value = "/apikey",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody ApiResponse findAll() {
+    @ResponseBody
+    public ApiResponse findAll() {
         return new ApiNotImplementedYet(null, "/apikey (GET)");
     }
 
     @RequestMapping(value = "/apikey/{apikey}",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody ApiResponse findAll(@PathVariable String apikey) {
+    @ResponseBody
+    public ApiResponse findAll(@PathVariable String apikey) {
         return new ApiNotImplementedYet(null, "/apikey/{apikey} (GET)");
     }
 

@@ -74,6 +74,7 @@ import io.swagger.annotations.*;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.context.MessageSource;
 import org.springframework.context.support.AbstractMessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -120,7 +121,7 @@ public class SearchController {
     private XmlUtils xmlUtils;
 
     @Resource
-    private AbstractMessageSource messageSource;
+    private MessageSource messageSource;
 
 	/**
 	 * Limits the number of facets
@@ -501,7 +502,7 @@ public class SearchController {
 
         try {
             SearchResults<? extends IdBean> result = createResults(wskey, profile,
-                    query, clazz, limitResponse.getApiKey().getUser().getId());
+                    query, clazz);
             result.requestNumber = limitResponse.getRequestNumber();
             if (StringUtils.containsIgnoreCase(profile, "params")) {
                 result.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -579,8 +580,7 @@ public class SearchController {
             String apiKey,
             String profile,
             Query query,
-            Class<T> clazz,
-            long uid)
+            Class<T> clazz)
             throws SolrTypeException {
         SearchResults<T> response = new SearchResults<>(apiKey, "search.json");
         ResultSet<T> resultSet = searchService.search(clazz, query);
@@ -598,13 +598,13 @@ public class SearchController {
 			if (b instanceof RichBean) {
 				Boolean optOut = ((RichBean) b).getPreviewNoDistribute();
 
-				beans.add((T) new RichView((RichBean) b, profile, apiKey, uid, optOut));
+				beans.add((T) new RichView((RichBean) b, profile, apiKey, optOut));
 			} else if (b instanceof ApiBean) {
 				Boolean optOut = ((ApiBean) b).getPreviewNoDistribute();
-				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, uid, optOut));
+				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, optOut));
 			} else if (b instanceof BriefBean) {
 				Boolean optOut = ((BriefBean) b).getPreviewNoDistribute();
-				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, uid, optOut));
+				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, optOut));
 			}
 		}
 

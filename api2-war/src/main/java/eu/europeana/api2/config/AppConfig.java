@@ -2,6 +2,7 @@ package eu.europeana.api2.config;
 
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
+import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler;
 import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.service.SugarCRMImporter;
@@ -78,13 +79,13 @@ public class AppConfig {
         return new MongoClient(cacheHost, cachePort);
     }
 
-    @Bean
-    public MessageSource messageSource() {
-        ReportingMessageSource source = new ReportingMessageSource();
-        source.setBasename(messageResource);
-        source.setCacheSeconds(messageCacheSeconds);
-        source.setDefaultEncoding("UTF-8");
-        source.setFallbackToSystemLocale(true);
-        return source;
-    }
+//    @Bean
+//    public MessageSource messageSource() {
+//        ReportingMessageSource source = new ReportingMessageSource();
+//        source.setBasename(messageResource);
+//        source.setCacheSeconds(messageCacheSeconds);
+//        source.setDefaultEncoding("UTF-8");
+//        source.setFallbackToSystemLocale(true);
+//        return source;
+//    }
 }

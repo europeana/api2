@@ -23,8 +23,6 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 
-
-
 /**
  * Used to annotate methods to be excluded in the Swagger output
  * @author luthien

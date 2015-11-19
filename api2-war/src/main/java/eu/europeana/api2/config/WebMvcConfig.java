@@ -54,7 +54,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         return new MarshallingView(jaxb2Marshaller());
     }
 
-    @Bean
+    @Bean(name = "api2_mvc_xmlUtils")
     public XmlUtils xmlUtils() {
         return new XmlUtils();
     }
