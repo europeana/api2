@@ -62,7 +62,7 @@ public class SwaggerConfig {
                 "You can build and test anything from the simplest search to a complex query using facets " +
                 "such as dates, geotags and permissions. For more help and information, head to our " +
                 "comprehensive <a href=\"http://labs.europeana.api/api/\">online documentation</a>.",
-        "1.0",
+        "2.0.14",
         "Contact Email",
         "development-core@europeanalabs.eu",
         "Terms of use",
