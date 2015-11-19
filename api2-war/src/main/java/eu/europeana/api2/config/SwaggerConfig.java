@@ -27,6 +27,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Predicates.or;
 import static springfox.documentation.builders.RequestHandlerSelectors.withClassAnnotation;
 import static springfox.documentation.builders.RequestHandlerSelectors.withMethodAnnotation;
 
@@ -41,9 +42,12 @@ public class SwaggerConfig {
     public Docket customImplementation() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                        // Selects controllers annotated with @SwaggerSelect
+                // Selects controllers annotated with @SwaggerSelect
                 .apis(withClassAnnotation(SwaggerSelect.class)) //Selection by RequestHandler
-                .apis(not(withMethodAnnotation(SwaggerIgnore.class))) //Selection by RequestHandler
+                .apis(not(or(
+                        withMethodAnnotation(SwaggerIgnore.class),
+                        withClassAnnotation(SwaggerIgnore.class)
+                ))) //Selection by RequestHandler
                 .build()
                 .apiInfo(apiInfo());
     }

@@ -37,6 +37,7 @@
 		<version.europeanaCorelib>2.2-SNAPSHOT</version.europeanaCorelib>
 	</properties>
 	<modules>
+		<module>api2-demo</module>
 		<module>api2-model</module>
 		<module>api2-war</module>
 	</modules>
