@@ -191,6 +191,23 @@ public class SearchController {
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
             HttpServletResponse response) {
+
+        LimitResponse limitResponse;
+        try {
+            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+                    "search.json", RecordType.SEARCH, profile);
+        } catch (ApiLimitException e) {
+            response.setStatus(e.getHttpStatus());
+            return JsonUtils.toJson(new ApiError(e), callback);
+        }
+
+        if (StringUtils.isBlank(queryString)) {
+            response.setStatus(400);
+            return JsonUtils.toJson(new ApiError("", "search.json", (queryString == null ? "Missing" : "Invalid") + " query parameter"), callback);
+        }
+        queryString = queryString.trim();
+        log.info("QUERY: |" + queryString + "|");
+
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
         String[] _qf = request.getParameterMap().get("qf");
@@ -408,21 +425,6 @@ public class SearchController {
             }
         }
 
-        LimitResponse limitResponse;
-        try {
-            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    "search.json", RecordType.SEARCH, profile);
-        } catch (ApiLimitException e) {
-            response.setStatus(e.getHttpStatus());
-            return JsonUtils.toJson(new ApiError(e), callback);
-        }
-
-        queryString = queryString.trim();
-        if (StringUtils.isBlank(queryString)) {
-            response.setStatus(400);
-            return JsonUtils.toJson(new ApiError("", "search.json", "invalid query parameter"), callback);
-        }
-        log.info("QUERY: |" + queryString + "|");
 
         boolean isFacetsRequested = isFacetsRequested(profile);
         String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
