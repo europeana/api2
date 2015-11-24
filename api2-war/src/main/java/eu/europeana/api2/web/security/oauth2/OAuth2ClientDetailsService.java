@@ -47,13 +47,10 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
         try {
             ApiKey apiKey = apiKeyService.findByID(oAuthClientId);
             if (apiKey != null) {
-                return new OAuth2ClientDetails(apiKey.getId(),
-                        apiKey.getPrivateKey());
+                return new OAuth2ClientDetails(apiKey);
             }
         } catch (DatabaseException e) {
             Logger.getLogger(this.getClass()).error(e.getMessage());
-            e.printStackTrace();
-
         }
         throw new OAuth2Exception("OAuth2 ClientId unknown");
     }

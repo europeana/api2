@@ -1,47 +1,147 @@
 package eu.europeana.api2.config;
 
-//import org.springframework.context.annotation.Configuration;
-//import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
-//import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
-//import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
-//import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-//import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
-//import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-//import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import eu.europeana.api2.web.security.oauth2.ApiApprovalHandler;
+import eu.europeana.api2.web.security.oauth2.ApiTokenStore;
+import eu.europeana.api2.web.security.oauth2.OAuth2ClientDetailsService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
+import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
+import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
+import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+
+import javax.annotation.Resource;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
-//@Configuration
+@Configuration
 public class Oauth2ServerConfig {
 
-//    @Configuration
-//    @EnableResourceServer
-//    protected static class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
-//
-//        private static final String EUROPEANA_RESOURCE_ID = "Europeana API2";
-//
-//        @Override
-//        public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
-//            resources.resourceId(EUROPEANA_RESOURCE_ID).stateless(false);
-//        }
-//    }
-//
-//    @Configuration
-//    @EnableAuthorizationServer
-//    protected static class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
-//
-//
-//        @Override
-//        public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-//            super.configure(endpoints);
-//        }
-//
-//        @Override
-//        public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
-//            oauthServer.realm("europeana/client");
-//        }
-//    }
+    @Configuration
+    @EnableResourceServer
+    protected static class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
+        private static final String EUROPEANA_RESOURCE_ID = "Europeana API2";
+
+        @Override
+        public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+            resources.resourceId(EUROPEANA_RESOURCE_ID).stateless(false);
+        }
+
+        @Override
+        public void configure(HttpSecurity http) throws Exception {
+            // @formatter:off
+			http
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
+			.and()
+				.requestMatchers().antMatchers("/v2/user/**", "/oauth/users/**", "/oauth/clients/**","/me")
+			.and()
+				.authorizeRequests()
+					.antMatchers("/v2/user").access("#oauth2.hasScope('read') or (!#oauth2.isOAuth() and hasRole('ROLE_USER'))")
+					.antMatchers("/v2/user/**").access("#oauth2.hasScope('read') or (!#oauth2.isOAuth() and hasRole('ROLE_USER'))")
+                    // Authentication
+					.regexMatchers(HttpMethod.DELETE, "/oauth/users/([^/].*?)/tokens/.*")
+						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('write')")
+					.regexMatchers(HttpMethod.GET, "/oauth/clients/([^/].*?)/users/.*")
+						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('read')")
+					.regexMatchers(HttpMethod.GET, "/oauth/clients/.*")
+						.access("#oauth2.clientHasRole('ROLE_CLIENT') and #oauth2.isClient() and #oauth2.hasScope('read')");
+			// @formatter:on
+        }
+    }
+
+    @Configuration
+    @EnableAuthorizationServer
+    protected static class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
+
+        @Resource
+        private TokenStore tokenStore;
+
+        @Resource
+        private UserApprovalHandler userApprovalHandler;
+
+        @Resource
+        @Qualifier("api2_oauth2_clientDetailsService")
+        private ClientDetailsService clientDetailsService;
+
+        @Resource
+        @Qualifier("authenticationManagerBean")
+        private AuthenticationManager authenticationManager;
+
+        @Override
+        public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+            clients
+                    .withClientDetails(clientDetailsService);
+        }
+
+        @Override
+        public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+            endpoints
+                    .tokenStore(tokenStore)
+                    .userApprovalHandler(userApprovalHandler)
+                    .authenticationManager(authenticationManager);
+        }
+
+        @Override
+        public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
+            oauthServer.realm("europeana/client");
+        }
+
+        @Bean
+        public TokenStore tokenStore() {
+            return new ApiTokenStore();
+        }
+
+        @Bean(name = "api2_oauth2_clientDetailsService")
+        public ClientDetailsService clientDetailsService() {
+            return new OAuth2ClientDetailsService();
+        }
+    }
+
+    @Configuration
+    @SuppressWarnings("unused")
+    protected static class Stuff {
+
+        @Resource
+        @Qualifier("api2_oauth2_clientDetailsService")
+        private ClientDetailsService clientDetailsService;
+
+        @Resource
+        private TokenStore tokenStore;
+
+        @Bean
+        public ApprovalStore approvalStore() throws Exception {
+            TokenApprovalStore store = new TokenApprovalStore();
+            store.setTokenStore(tokenStore);
+            return store;
+        }
+
+        @Bean
+        @Lazy
+        @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
+        public ApiApprovalHandler userApprovalHandler() throws Exception {
+            ApiApprovalHandler handler = new ApiApprovalHandler();
+            handler.setApprovalStore(approvalStore());
+            handler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService));
+            handler.setClientDetailsService(clientDetailsService);
+            handler.setUseApprovalStore(true);
+            return handler;
+        }
+    }
 
 }
