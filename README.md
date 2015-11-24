@@ -1,7 +1,7 @@
 ![](https://github.com/europeana/portal/blob/master/portal2/src/main/webapp/themes/default/images/europeana-logo-retina-1.png)
 
 # Europeana: catalyst for change in the world of cultural heritage
-[![Build Status](https://travis-ci.org/europeana/api2.svg?branch=master)](https://travis-ci.org/europeana/api2)
+[![Build Status](https://travis-ci.org/europeana/api2.svg?branch=master)](https://travis-ci.org/europeana/api2)[![Coverage Status](https://coveralls.io/repos/europeana/api2/badge.svg?branch=master&service=github)](https://coveralls.io/github/europeana/api2?branch=master)
 
 ## What does it do?
 
