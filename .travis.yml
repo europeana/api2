@@ -4,6 +4,6 @@ notifications:
     secure: piRv5z9EkMKpcvaAQZLauYQVnNE0SM4q1LVjvqCbPEwtnysS1j/i02G0ZcXu7brgdCK1hdrVezuarM7mLa2tKipR8Bu3W83KtfefKaNors0QnG3PwlcujotER/1IQ5HlZ3r7JKmT1tcpvrbCekn+SRpq5+s/PVBX8jlAza5IjU4=
 sudo: false
 language: java
-before_script:
+before_install:
   - git clone https://github.com/europeana/corelib.git
   - mvn install -f corelib/pom.xml -DskipTests
