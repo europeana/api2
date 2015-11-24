@@ -5,6 +5,7 @@ import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.web.controller.SearchController;
+import eu.europeana.api2.web.controller.ExceptionController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -23,8 +24,8 @@ import java.util.Collections;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @Configuration
-@ComponentScan(basePackages = {"eu.europeana.api2.web.controller, eu.europeana.api2.v2.web.controller"})
 @EnableWebMvc
+@ComponentScan(basePackageClasses = {SearchController.class, ExceptionController.class})
 @Import(SwaggerConfig.class)
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
@@ -42,11 +43,6 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         marshaller.setClassesToBeBound(RssResponse.class, FieldTripResponse.class, KmlResponse.class);
         marshaller.setMarshallerProperties(Collections.singletonMap("jaxb.formatted.output", Boolean.TRUE));
         return marshaller;
-    }
-
-    @Bean
-    public SearchController searchController() {
-        return new SearchController();
     }
 
     @Bean

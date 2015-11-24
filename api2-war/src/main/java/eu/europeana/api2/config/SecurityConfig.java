@@ -1,8 +1,10 @@
 package eu.europeana.api2.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,6 +26,8 @@ public class SecurityConfig {
     @Resource(name = "api2_userDetailsService")
     private UserDetailsService userDetailsService;
 
+
+
     @Resource
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth
@@ -34,6 +38,12 @@ public class SecurityConfig {
     @Configuration
     @Order(1)
     public static class BasicLoginConfig extends WebSecurityConfigurerAdapter {
+
+        @Override
+        @Bean
+        public AuthenticationManager authenticationManagerBean() throws Exception {
+            return super.authenticationManagerBean();
+        }
 
         @Override
         public void configure(WebSecurity web) throws Exception {
@@ -50,19 +60,20 @@ public class SecurityConfig {
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.antMatcher("/**")
+            http
+                    .antMatcher("/**")
                     .authorizeRequests()
                     .antMatchers("/v2/mydata", "/v2/mydata/**").hasAnyRole("CLIENT", "TRUSTED_CLIENT")
                     .antMatchers("/apikey", "/apikey/**").hasRole("TRUSTED_CLIENT")
                     .and()
-                            // FORM LOGIN
+                    // FORM LOGIN
                     .httpBasic()
                     .realmName("Europeana API2")
 //                    .formLogin()
 //                    .loginProcessingUrl("/login.do")
 //                    .loginPage("/login?form=myData")
                     .and()
-                            // LOG OUT
+                    // LOG OUT
                     .logout()
                     .logoutSuccessUrl("/")
                     .logoutUrl("/logout.do");

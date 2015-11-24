@@ -42,11 +42,12 @@ import eu.europeana.corelib.db.entity.nosql.AccessToken;
 import eu.europeana.corelib.db.entity.nosql.RefreshToken;
 import eu.europeana.corelib.db.service.OAuth2TokenService;
 
-@Service
 /**
- * Implemetation of oAuth TokenStore. Manages the persistency of access tokens
+ * Implementation of oAuth TokenStore. Manages the persistency of access tokens
  */
+@Service
 public class ApiTokenStore implements TokenStore {
+
 	@Resource
 	private OAuth2TokenService oAuth2TokenService;
 
