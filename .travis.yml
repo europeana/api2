@@ -7,3 +7,5 @@ language: java
 before_install:
   - git clone https://github.com/europeana/corelib.git
   - mvn install -f corelib/pom.xml -DskipTests
+after_success:
+  - mvn clean cobertura:cobertura coveralls:report
