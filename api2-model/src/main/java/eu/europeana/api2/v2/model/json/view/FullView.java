@@ -141,8 +141,13 @@ public class FullView implements FullBean {
 		for (Aggregation item : items) {
 			item.setId(null);
 
+			// add bt=europanaapi
 			String isShownAt = item.getEdmIsShownAt();
 			if (!urlified && isShownAt != null) {
+				isShownAt = isShownAt
+						+ (isShownAt.contains("?") ? "&" : "?")
+						+ "bt=europeanaapi";
+				// items.get(i).setEdmIsShownAt(isShownAt);
 
 				String provider = item.getEdmProvider().values()
 						.iterator().next().get(0);
@@ -381,9 +386,11 @@ public class FullView implements FullBean {
 		String zHref = "\">";
 		String ferh = "</a>";
 		String naps = "</span>";
-		String retval = "", landingPage = "", title = "", creator = "", dataProvider = "", shownAt = "", shownBy = "", rights = "";
+		String retval = "", landingPage = "", shownAt = "", shownBy = "", rights = "";
 		int i, j;
-
+		Map <String, String> creatorMap = new HashMap<>();
+		Map <String, String> titleMap = new HashMap<>();
+		Map <String, String> dataProviderMap = new HashMap<>();
 
 		List<? extends Proxy> prxs = getProxies();
 		EuropeanaAggregation euAgg = getEuropeanaAggregation();
@@ -392,56 +399,13 @@ public class FullView implements FullBean {
 		// if there are proxies present: check if there are dc:creator / dc:title data in there
 		if (!prxs.isEmpty()){
 			for (Proxy prx : prxs) {
-				// check for dc:creator
-				if ("".equals(creator) && prx.getDcCreator() != null && !prx.getDcCreator().isEmpty()){
-					if (prx.getDcCreator().get("def") != null) {
-						List<String> dcc = stripEmptyStrings(prx.getDcCreator().get("def"));
-						// assign possible multiple 'def' entries to creator
-						j = dcc.size();
-						i = 1;
-						creator += "(def) ";
-						for (String creatorEntry : dcc) {
-							creator += cleanUp(creatorEntry) + (i < j ? "; " : "");
-							i++;
-						}
-					} else {
-						// no 'def' key implies 1 or more language-specific keys. loop through those. For every one:
-						// loop through possible multiple entries & concat those
-						for (Map.Entry<String, List<String>> langCreatorEntry : prx.getDcCreator().entrySet()) {
-							List<String> lcev = stripEmptyStrings(langCreatorEntry.getValue());
-							j = lcev.size();
-							i = 1;
-							creator += "(" + langCreatorEntry.getKey() + ") ";
-							for (String langCreatorLine : lcev) {
-								creator += cleanUp(langCreatorLine) + (i < j ? "; " : "");
-								i++;
-							}
-						}
-					}
+				// check for dc:creator if it's still empty
+				if (creatorMap.size() == 0 && prx.getDcCreator() != null && !prx.getDcCreator().isEmpty()){
+					creatorMap = flattenBulkyMap(prx.getDcCreator());
 				}
-				// check for dc:title
-				if ("".equals(title) && prx.getDcTitle() != null && !prx.getDcTitle().isEmpty()){
-					if (prx.getDcTitle().get("def") != null) {
-						List<String> dct = stripEmptyStrings(prx.getDcTitle().get("def"));
-						j = dct.size();
-						i = 1;
-						title += "(def) ";
-						for (String titleEntry : dct) {
-							title += cleanUp(titleEntry) + (i < j ? "; " : "");
-							i++;
-						}
-					} else {
-						for (Map.Entry<String, List<String>> langTitleEntry : prx.getDcTitle().entrySet()) {
-							List<String> ltev = stripEmptyStrings(langTitleEntry.getValue());
-							j = ltev.size();
-							i = 1;
-							title += "(" + langTitleEntry.getKey() + ") ";
-							for (String langTitleLine : ltev) {
-								title += cleanUp(langTitleLine) + (i < j ? "; " : "");
-								i++;
-							}
-						}
-					}
+				// check for dc:title if it's still empty
+				if (titleMap.size() == 0 && prx.getDcTitle() != null && !prx.getDcTitle().isEmpty()){
+					titleMap = flattenBulkyMap(prx.getDcTitle());
 				}
 			}
 		}
@@ -512,27 +476,7 @@ public class FullView implements FullBean {
 
 			// check if aggregation contains edm:dataprovider: yes? Get it.
 			if (agg.getEdmDataProvider() != null && !agg.getEdmDataProvider().isEmpty()){
-				if (agg.getEdmDataProvider().get("def") != null) {
-					List<String> edp = stripEmptyStrings(agg.getEdmDataProvider().get("def"));
-					j = edp.size();
-					i = 1;
-					dataProvider += "(def) ";
-					for (String dataProviderEntry : edp) {
-						dataProvider += cleanUp(dataProviderEntry) + (i < j ? "; " : "");
-						i++;
-					}
-				} else {
-					for (Map.Entry<String, List<String>> langDataProviderEntry : agg.getEdmDataProvider().entrySet()) {
-						List<String> ldpev = stripEmptyStrings(langDataProviderEntry.getValue());
-						j = ldpev.size();
-						i = 1;
-						dataProvider += "(" + langDataProviderEntry.getKey() + ") ";
-						for (String langDataProviderLine : ldpev) {
-							dataProvider += cleanUp(langDataProviderLine) + (i < j ? "; " : "");
-							i++;
-						}
-					}
-				}
+				dataProviderMap = flattenBulkyMap(agg.getEdmDataProvider());
 			}
 
 			// If no edm:rights entries were found on the webresources, check the aggregation itself
@@ -551,7 +495,7 @@ public class FullView implements FullBean {
 		if (euAgg != null) {
 			landingPage = "".equals(euAgg.getEdmLandingPage()) ? "" : euAgg.getEdmLandingPage();
 
-			// if there was no dc:creator in the webresources, check the Europeana aggregation
+			// if there were no relevant dc:creator entries in the webresources, check the Europeana aggregation
 			if ("".equals(creator) && euAgg.getDcCreator() != null && !euAgg.getDcCreator().isEmpty()) {
 				if (euAgg.getDcCreator().get("def") != null) {
 					List<String> dcc = stripEmptyStrings(euAgg.getDcCreator().get("def"));
@@ -699,4 +643,29 @@ public class FullView implements FullBean {
 	private String spannify(String spanType, String spanning){
 		return "<span " + spanType + "=\"" + spanning + "\">";
 	}
+
+	private Map flattenBulkyMap(Map<String, List<String>> bulkyMap){
+		Map <String, String> flatMap = new HashMap<>();
+			if (bulkyMap.get("def") != null) {
+				List<String> defList = stripEmptyStrings(bulkyMap.get("def"));
+				flatMap.put("def", collectListLines(defList));
+			} else {
+				for (Map.Entry<String, List<String>> langMap : bulkyMap.entrySet()) {
+					List<String> langList = stripEmptyStrings(langMap.getValue());
+					flatMap.put(langMap.getKey(), collectListLines(langList));
+				}
+			}
+		return flatMap;
+	}
+
+	private String collectListLines(List<String> list){
+		String value = "";
+		int i = 1;
+		for (String langString : list) {
+			value += cleanUp(langString) + (i < list.size() ? "; " : "");
+			i++;
+		}
+		return value;
+	}
+
 }
