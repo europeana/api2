@@ -15,15 +15,14 @@
  * the Licence.
  */
 
-package eu.europeana.api2.v2.web.controller.mydata;
+package eu.europeana.api2.web.controller.mydata;
 
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Search;
-import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
-import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
+import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.SavedSearch;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
@@ -46,36 +45,20 @@ import java.util.ArrayList;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@Api(value = "my_europeana", description = " ")
+@Api(value = "my_data", description = " ")
 @SwaggerSelect
 public class MyDataSearchController extends AbstractUserController {
 
-    /**
-     * @param callback
-     * @param principal
-     * @return the JSON response
-     */
-    @SwaggerIgnore
-    @RequestMapping(value = "/v2/mydata/savedsearch.json", params = "!action", produces = MediaType.APPLICATION_JSON_VALUE
-            , method = RequestMethod.GET)
-    public ModelAndView defaultAction(
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        return list(callback, principal);
-    }
-
-    /**
-     * @param callback
-     * @param principal
-     * @return the JSON response
-     */
     @ApiOperation(value = "lets the user list their saved searches", nickname = "listMySavedSearches")
-    @RequestMapping(value = "/v2/mydata/savedsearch.json", params = "action=LIST", produces = MediaType.APPLICATION_JSON_VALUE
-            , method = RequestMethod.GET)
+    @RequestMapping(
+            value = "/mydata/savedsearch",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method = RequestMethod.GET
+    )
     public ModelAndView list(
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
-        UserResults<Search> response = new UserResults<>(principal.getName(), "/v2/mydata/search.json");
+        UserResults<Search> response = new UserResults<>(principal.getName());
         Logger.getLogger(this.getClass()).info("Principal: " + principal.toString());
         User user = getUserByApiId(principal.getName());
         if (user != null) {
@@ -97,42 +80,18 @@ public class MyDataSearchController extends AbstractUserController {
         return JsonUtils.toJson(response, callback);
     }
 
-    /**
-     * @param query
-     * @param refinements
-     * @param start
-     * @param callback
-     * @param principal
-     * @return the JSON response
-     */
     @ApiOperation(value = "lets the user create a new saved search", nickname = "createMySavedSearch")
-    @RequestMapping(value = "/v2/mydata/savedsearch.json", produces = MediaType.APPLICATION_JSON_VALUE
-            , method = {RequestMethod.POST, RequestMethod.PUT})
-    public ModelAndView createRest(
-            @RequestParam(value = "query", required = true) String query,
-            @RequestParam(value = "qf", required = false) String[] refinements,
-            @RequestParam(value = "start", required = false, defaultValue = "1") String start,
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        return create(query, refinements, start, callback, principal);
-    }
-
-    /**
-     * @param query
-     * @param refinements
-     * @param start
-     * @param callback
-     * @param principal
-     * @return the JSON response
-     */
-    @SwaggerIgnore
-    @RequestMapping(value = "/v2/mydata/savedsearch.json", params = "action=CREATE", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(
+            value = "/mydata/savedsearch",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method = RequestMethod.POST
+    )
     public ModelAndView create(
             @RequestParam(value = "query", required = true) String query,
             @RequestParam(value = "qf", required = false) String[] refinements,
             @RequestParam(value = "start", required = false, defaultValue = "1") String start,
             @RequestParam(value = "callback", required = false) String callback, Principal principal) {
-        ModificationConfirmation response = new ModificationConfirmation(principal.getName(), "/v2/mydata/tag.search?action=CREATE");
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName());
         try {
             User user = getUserByApiId(principal.getName());
             if (user != null) {
@@ -150,34 +109,15 @@ public class MyDataSearchController extends AbstractUserController {
         return JsonUtils.toJson(response, callback);
     }
 
-    /**
-     * @param objectId
-     * @param callback
-     * @param principal
-     * @return the JSON response
-     */
     @ApiOperation(value = "lets the user delete a saved search", nickname = "deleteMySavedSearch")
-    @RequestMapping(value = "/v2/mydata/savedsearch.json", produces = MediaType.APPLICATION_JSON_VALUE
-            , method = RequestMethod.DELETE)
-    public ModelAndView deleteRest(
-            @RequestParam(value = "searchid", required = false) Long objectId,
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        return delete(objectId, callback, principal);
-    }
-
-    /**
-     * @param searchId
-     * @param callback
-     * @param principal
-     * @return the JSON response
-     */
-    @SwaggerIgnore
-    @RequestMapping(value = "/v2/mydata/savedsearch.json", params = "action=DELETE", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(
+            value = "/mydata/savedsearch",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method = RequestMethod.DELETE)
     public ModelAndView delete(
             @RequestParam(value = "searchid", required = true) Long searchId,
             @RequestParam(value = "callback", required = false) String callback, Principal principal) {
-        ModificationConfirmation response = new ModificationConfirmation(principal.getName(), "/v2/mydata/search.json?action=DELETE");
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName());
         try {
             User user = getUserByApiId(principal.getName());
             if (user != null) {

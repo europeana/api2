@@ -38,11 +38,11 @@ public interface Api2UserService {
 
     boolean createTag(String id, String tag);
 
-    boolean deleteTag(Long id);
+    void deleteTag(Long id);
 
     // SAVED SEARCHES
     UserSearches getSavedSearches();
 
-    boolean deleteSavedSearch(Long id);
+    void deleteSavedSearch(Long id);
 
 }

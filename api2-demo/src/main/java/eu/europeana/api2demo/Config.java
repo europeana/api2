@@ -25,25 +25,23 @@ public class Config {
     @Value("${api2.url}")
     private String apiUrl;
 
-    private static final String URI_PROFILE = "/v2/user/profile.json";
+    private static final String URI_PROFILE = "/user/profile";
 
-    private static final String URI_SAVEDITEM_GET = "/v2/user/saveditem.json";
+    private static final String URI_SAVEDITEM_GET = "/user/saveditem";
 
-    private static final String URI_SAVEDITEM_CREATE = "/v2/user/saveditem.json?action=CREATE&europeanaid=";
+    private static final String URI_SAVEDITEM_CREATE = "/user/saveditem?europeanaid=";
 
-    private static final String URI_SAVEDITEM_DELETE = "/v2/user/saveditem.json?action=DELETE&itemid=";
+    private static final String URI_SAVEDITEM_DELETE = "/user/saveditem?itemid=";
 
-    private static final String URI_TAGS_GET = "/v2/user/tag.json";
+    private static final String URI_TAGS_GET = "/user/tag";
 
-    private static final String URI_TAGS_TAGCLOUD = "/v2/user/tag.json?action=TAGCLOUD";
+    private static final String URI_TAGS_TAGCLOUD = "/user/tag/cloud";
 
-    private static final String URI_TAGS_CREATE = "/v2/user/tag.json?action=CREATE&europeanaid=";
+    private static final String URI_TAGS_DELETE = "/user/tag?tagid=";
 
-    private static final String URI_TAGS_DELETE = "/v2/user/tag.json?action=DELETE&tagid=";
+    private static final String URI_SEARCHES_GET = "/user/savedsearch";
 
-    private static final String URI_SEARCHES_GET = "/v2/user/savedsearch.json";
-
-    private static final String URI_SEARCHES_DELETE = "/v2/user/savedsearch.json?action=DELETE&searchid=";
+    private static final String URI_SEARCHES_DELETE = "/user/savedsearch?searchid=";
 
     public String getApiUrl() {
         return StringUtils.stripEnd(apiUrl, "/");
@@ -71,10 +69,6 @@ public class Config {
 
     public String getUriTagsTagcloud() {
         return getApiUrl() + URI_TAGS_TAGCLOUD;
-    }
-
-    public String getUriTagsCreate() {
-        return getApiUrl() + URI_TAGS_CREATE;
     }
 
     public String getUriTagsDelete() {

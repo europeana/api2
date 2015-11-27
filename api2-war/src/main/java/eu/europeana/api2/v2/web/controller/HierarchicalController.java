@@ -178,7 +178,7 @@ public class HierarchicalController {
         LimitResponse limitResponse;
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    getAction(recordType), recordType, profile);
+                    recordType, profile);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
@@ -186,7 +186,7 @@ public class HierarchicalController {
         log.info("Limit: " + (System.currentTimeMillis() - t1));
 
         t1 = System.currentTimeMillis();
-        HierarchicalResult objectResult = new HierarchicalResult(wskey, getAction(recordType), limitResponse.getRequestNumber());
+        HierarchicalResult objectResult = new HierarchicalResult(wskey, limitResponse.getRequestNumber());
         log.info("Init object: " + (System.currentTimeMillis() - t1));
 
         if (StringUtils.containsIgnoreCase(profile, "params")) {
@@ -208,7 +208,7 @@ public class HierarchicalController {
         } else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
             objectResult.self = searchService.getHierarchicalBean(nodeId);
             if (objectResult.self == null) {
-                return JsonUtils.toJson(new ApiError(wskey, getAction(recordType),
+                return JsonUtils.toJson(new ApiError(wskey,
                         String.format("Invalid record identifier: %s!", nodeId),
                         limitResponse.getRequestNumber()), callback);
             } else {
@@ -296,23 +296,5 @@ public class HierarchicalController {
                 }
             }
         }
-    }
-
-    private String getAction(RecordType recordType) {
-        String action = "";
-        if (recordType.equals(RecordType.HIERARCHY_CHILDREN)) {
-            action = "children.json";
-        } else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
-            action = "self.json";
-        } else if (recordType.equals(RecordType.HIERARCHY_PARENT)) {
-            action = "parent.json";
-        } else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
-            action = "following-siblings.json";
-        } else if (recordType.equals(RecordType.HIERARCHY_PRECEEDING_SIBLINGS)) {
-            action = "preceeding-siblings.json";
-        } else if (recordType.equals(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS)) {
-            action = "ancestor-self-siblings.json";
-        }
-        return action;
     }
 }

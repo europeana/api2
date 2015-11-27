@@ -61,8 +61,8 @@ public class Profile extends ApiResponse {
 	public Profile() {
 	}
 	
-	public Profile(String apiKey, String method) {
-		super(apiKey, method);
+	public Profile(String apiKey) {
+		super(apiKey);
 	}
 
 	public void copyDetails(User user) {

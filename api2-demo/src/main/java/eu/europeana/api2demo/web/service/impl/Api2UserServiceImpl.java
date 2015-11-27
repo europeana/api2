@@ -24,10 +24,13 @@ public class Api2UserServiceImpl implements Api2UserService {
     @Resource
     private Config config;
 
-    private <T> T readJson(String uri, Class<T> clazz) {
+    private <T> T getJson(String uri, Class<T> clazz) {
 
-        try (InputStream is = new ByteArrayInputStream(restTemplate.getForObject(
-                URI.create(uri), byte[].class))) {
+        try (
+                InputStream is = new ByteArrayInputStream(
+                        restTemplate.getForObject(URI.create(uri), byte[].class)
+                )
+        ) {
             return new ObjectMapper().readValue(is, clazz);
         } catch (IOException e) {
             e.printStackTrace();
@@ -35,25 +38,43 @@ public class Api2UserServiceImpl implements Api2UserService {
         return null;
     }
 
+    private <T> T postJson(String uri, Class<T> clazz) {
+
+        try (
+                InputStream is = new ByteArrayInputStream(
+                        restTemplate.postForObject(URI.create(uri), null, byte[].class)
+                )
+        ) {
+            return new ObjectMapper().readValue(is, clazz);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void deleteJson(String uri) {
+        restTemplate.delete(URI.create(uri));
+    }
+
     @Override
     public UserProfile getProfile() {
-        return readJson(config.getUriProfile(), UserProfile.class);
+        return getJson(config.getUriProfile(), UserProfile.class);
     }
 
     @Override
     public UserSavedItems getSavedItems() {
-        return readJson(config.getUriSavedItemGet(), UserSavedItems.class);
+        return getJson(config.getUriSavedItemGet(), UserSavedItems.class);
     }
 
     @Override
     public boolean createSavedItem(String id) {
-        ModificationConfirmation result = readJson(config.getUriSavedItemCreate() + id, ModificationConfirmation.class);
+        ModificationConfirmation result = postJson(config.getUriSavedItemCreate() + id, ModificationConfirmation.class);
         return result != null && result.success;
     }
 
     @Override
     public void deleteSavedItem(Long id) {
-        restTemplate.delete(URI.create(config.getUriSavedItemDelete() + id.toString()));
+        deleteJson(config.getUriSavedItemDelete() + id.toString());
     }
 
     @Override
@@ -62,12 +83,12 @@ public class Api2UserServiceImpl implements Api2UserService {
         if (StringUtils.isNotBlank(tag)) {
             url.append("?tag=").append(tag);
         }
-        return readJson(url.toString(), UserTags.class);
+        return getJson(url.toString(), UserTags.class);
     }
 
     @Override
     public TagCloud createTagCloud() {
-        return readJson(config.getUriTagsTagcloud(), TagCloud.class);
+        return postJson(config.getUriTagsTagcloud(), TagCloud.class);
     }
 
     @Override
@@ -77,19 +98,17 @@ public class Api2UserServiceImpl implements Api2UserService {
     }
 
     @Override
-    public boolean deleteTag(Long id) {
-        ModificationConfirmation result = readJson(config.getUriTagsDelete() + id.toString(), ModificationConfirmation.class);
-        return result != null && result.success;
+    public void deleteTag(Long id) {
+        deleteJson(config.getUriTagsDelete() + id.toString());
     }
 
     @Override
     public UserSearches getSavedSearches() {
-        return readJson(config.getUriSearchesGet(), UserSearches.class);
+        return getJson(config.getUriSearchesGet(), UserSearches.class);
     }
 
     @Override
-    public boolean deleteSavedSearch(Long id) {
-        ModificationConfirmation result = readJson(config.getUriSearchesDelete() + id.toString(), ModificationConfirmation.class);
-        return result != null && result.success;
+    public void deleteSavedSearch(Long id) {
+        deleteJson(config.getUriSearchesDelete() + id.toString());
     }
 }

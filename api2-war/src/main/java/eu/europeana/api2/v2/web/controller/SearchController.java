@@ -75,7 +75,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.context.MessageSource;
-import org.springframework.context.support.AbstractMessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -219,7 +218,7 @@ public class SearchController {
         if (cursorMark != null) {
             if (start > 1) {
                 response.setStatus(400);
-                return JsonUtils.toJson(new ApiError("", "search.json", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
+                return JsonUtils.toJson(new ApiError("", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
             }
         }
         // exclude sorting on timestamp, #238
@@ -411,7 +410,7 @@ public class SearchController {
         LimitResponse limitResponse;
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    "search.json", RecordType.SEARCH, profile);
+                    RecordType.SEARCH, profile);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
@@ -420,7 +419,7 @@ public class SearchController {
         queryString = queryString.trim();
         if (StringUtils.isBlank(queryString)) {
             response.setStatus(400);
-            return JsonUtils.toJson(new ApiError("", "search.json", "invalid query parameter"), callback);
+            return JsonUtils.toJson(new ApiError("", "invalid query parameter"), callback);
         }
         log.info("QUERY: |" + queryString + "|");
 
@@ -523,11 +522,11 @@ public class SearchController {
                 log.error(wskey + " [search.json] ", e);
             }
             response.setStatus(400);
-            return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
+            return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
         } catch (Exception e) {
             log.error(wskey + " [search.json] " + e.getClass().getSimpleName(), e);
             response.setStatus(400);
-            return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
+            return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
         }
     }
 
@@ -565,12 +564,12 @@ public class SearchController {
         if (log.isInfoEnabled()) {
             log.info("phrases: " + phrases);
         }
-        Suggestions apiResponse = new Suggestions(null, "suggestions.json");
+        Suggestions apiResponse = new Suggestions(null);
         try {
             apiResponse.items = searchService.suggestions(query, count);
             apiResponse.itemsCount = apiResponse.items.size();
         } catch (SolrTypeException e) {
-            return JsonUtils.toJson(new ApiError(null, "suggestions.json", e.getMessage()), callback);
+            return JsonUtils.toJson(new ApiError(null, e.getMessage()), callback);
         }
         return JsonUtils.toJson(apiResponse, callback);
     }
@@ -582,7 +581,7 @@ public class SearchController {
             Query query,
             Class<T> clazz)
             throws SolrTypeException {
-        SearchResults<T> response = new SearchResults<>(apiKey, "search.json");
+        SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T> resultSet = searchService.search(clazz, query);
         response.totalResults = resultSet.getResultSize();
         if (StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) && StringUtils.isNotBlank(resultSet.getNextCursorMark())
@@ -694,13 +693,6 @@ public class SearchController {
         return kmlResponse;
     }
 
-	/**
-	 * @param queryString
-	 * @param start
-	 * @param count
-	 *
-	 * @return the JSON response
-	 */
 	@ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "suggestions")
 	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
     @ResponseBody

@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import io.swagger.annotations.ApiOperation;
@@ -39,7 +38,6 @@ import eu.europeana.api2.v2.model.json.BasicObjectResult;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
-import eu.europeana.corelib.db.service.ApiLogService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
@@ -82,22 +80,22 @@ public class BasicObjectController {
 		try {
 			apiKey = apiKeyService.findByID(wskey);
 			if (apiKey == null) {
-				return JsonUtils.toJson(new ApiError(wskey, "record.json", "Unregistered user"), callback);
+				return JsonUtils.toJson(new ApiError(wskey, "Unregistered user"), callback);
 			}
 			apiKey.getUsageLimit();
 			requestNumber = apiKeyService.checkReachedLimit(apiKey);
 		} catch (DatabaseException e) {
 		  // Disabled while awaiting better implementation (ticket #1742)
 		  //			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
+			return JsonUtils.toJson(new ApiError(wskey, e.getMessage(),
 					requestNumber), callback);
 		} catch (LimitReachedException e) {
           // Disabled while awaiting better implementation (ticket #1742)
 		  //			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), e.getRequested()), callback);
 		}
 		
-		BasicObjectResult objectResult = new BasicObjectResult(wskey, "record.json",
+		BasicObjectResult objectResult = new BasicObjectResult(wskey,
 				requestNumber);
 		
 		objectResult.object = new HashMap<String, Object>();
@@ -112,7 +110,7 @@ public class BasicObjectController {
 			if (bean == null) {
 	          // Disabled while awaiting better implementation (ticket #1742)
 			  // apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
-				return JsonUtils.toJson(new ApiError(wskey, "record.json",
+				return JsonUtils.toJson(new ApiError(wskey,
 						"Invalid record identifier: " + europeanaObjectId,
 						requestNumber), callback);
 			}
@@ -120,10 +118,10 @@ public class BasicObjectController {
 			flattenBean(bean, objectResult.object);
 
 		} catch (SolrTypeException e) {
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
+			return JsonUtils.toJson(new ApiError(wskey, e.getMessage(),
 					requestNumber), callback);
 		} catch (MongoDBException e) {
-			return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(),
+			return JsonUtils.toJson(new ApiError(wskey, e.getMessage(),
 					requestNumber), callback);
 		}
 		

@@ -35,12 +35,12 @@ public class ExceptionController {
 	@ExceptionHandler({TypeMismatchException.class, MissingServletRequestParameterException.class})
 	@ResponseBody
 	public ApiError handleMismatchException(Exception ex) {
-		return new ApiError(null, null, "Invalid argument(s): " + ex.toString());
+		return new ApiError(null, "Invalid argument(s): " + ex.toString());
 	}
 
 	@ExceptionHandler(LimitReachedException.class)
 	@ResponseBody
 	public ApiError handleLimitReachedException() {
-		return new ApiError(null, null, "API Usage Limit Reached.");
+		return new ApiError(null, "API Usage Limit Reached.");
 	}
 }

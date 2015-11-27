@@ -26,8 +26,8 @@ public class UserSavedItems extends UserResults<SavedItem> {
         super();
     }
 
-    public UserSavedItems(String apikey, String action) {
-        super(apikey, action);
+    public UserSavedItems(String apikey) {
+        super(apikey);
     }
 
 }

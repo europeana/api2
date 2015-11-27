@@ -26,8 +26,8 @@ public class UserSearches extends UserResults<Search> {
         super();
     }
 
-    public UserSearches(String apikey, String action) {
-        super(apikey, action);
+    public UserSearches(String apikey) {
+        super(apikey);
     }
 
 }

@@ -29,8 +29,8 @@ import eu.europeana.corelib.definitions.solr.model.Term;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class Suggestions extends AbstractSearchResults<Term> {
 
-	public Suggestions(String apikey, String action) {
-		super(apikey, action);
+	public Suggestions(String apikey) {
+		super(apikey);
 	}
 
 }

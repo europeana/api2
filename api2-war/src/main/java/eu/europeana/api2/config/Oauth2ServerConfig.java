@@ -30,7 +30,7 @@ import javax.annotation.Resource;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @Configuration
-public class Oauth2ServerConfig {
+public class OAuth2ServerConfig {
 
     @Configuration
     @EnableResourceServer
@@ -47,13 +47,15 @@ public class Oauth2ServerConfig {
         public void configure(HttpSecurity http) throws Exception {
             // @formatter:off
 			http
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
 			.and()
-				.requestMatchers().antMatchers("/v2/user/**", "/oauth/users/**", "/oauth/clients/**","/me")
+				.requestMatchers().antMatchers("/user/**", "/oauth/users/**", "/oauth/clients/**")
 			.and()
 				.authorizeRequests()
-					.antMatchers("/v2/user").access("#oauth2.hasScope('read') or (!#oauth2.isOAuth() and hasRole('ROLE_USER'))")
-					.antMatchers("/v2/user/**").access("#oauth2.hasScope('read') or (!#oauth2.isOAuth() and hasRole('ROLE_USER'))")
+					.antMatchers(HttpMethod.GET, "/user/**").access("#oauth2.hasScope('read')")
+					.antMatchers(HttpMethod.POST, "/user/**").access("#oauth2.hasScope('write')")
+					.antMatchers(HttpMethod.PUT, "/user/**").access("#oauth2.hasScope('write')")
+					.antMatchers(HttpMethod.DELETE, "/user/**").access("#oauth2.hasScope('write')")
                     // Authentication
 					.regexMatchers(HttpMethod.DELETE, "/oauth/users/([^/].*?)/tokens/.*")
 						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('write')")

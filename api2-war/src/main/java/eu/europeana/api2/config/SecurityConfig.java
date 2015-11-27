@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.annotation.Resource;
 
@@ -53,30 +54,36 @@ public class SecurityConfig {
                     "/opensearch.rss",
                     "/opensearch.json",
                     "/v2/search.*",
-                    "/v2/record/**"
+                    "/v2/record/**",
+                    "/oauth/uncache_approvals",
+                    "/oauth/cache_approvals"
             );
 
         }
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
+            // @formatter:off
             http
-                    .antMatcher("/**")
-                    .authorizeRequests()
-                    .antMatchers("/v2/mydata", "/v2/mydata/**").hasAnyRole("CLIENT", "TRUSTED_CLIENT")
-                    .antMatchers("/apikey", "/apikey/**").hasRole("TRUSTED_CLIENT")
+//                    .antMatcher("/**")
+                .authorizeRequests()
+                    .antMatchers("/login*").permitAll()
+                    .antMatchers("/mydata", "/mydata/**").hasAnyRole("CLIENT", "TRUSTED_CLIENT")
+                    .antMatchers("/admin", "/admin/**").hasRole("TRUSTED_CLIENT")
                     .and()
-                    // FORM LOGIN
-                    .httpBasic()
+                .csrf()
+                    .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/authorize"))
+                    .disable()
+                .httpBasic()
                     .realmName("Europeana API2")
 //                    .formLogin()
 //                    .loginProcessingUrl("/login.do")
 //                    .loginPage("/login?form=myData")
                     .and()
-                    // LOG OUT
-                    .logout()
+                .logout()
                     .logoutSuccessUrl("/")
                     .logoutUrl("/logout.do");
+            // @formatter:on
         }
     }
 

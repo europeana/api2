@@ -48,12 +48,12 @@ public class HierarchicalResult extends ApiResponse {
 
 	public String message;
 
-	public HierarchicalResult(String apikey, String action) {
-		super(apikey, action);
+	public HierarchicalResult(String apikey) {
+		super(apikey);
 	}
 
-	public HierarchicalResult(String apikey, String action, long requestNumber) {
-		this(apikey, action);
+	public HierarchicalResult(String apikey, long requestNumber) {
+		this(apikey);
 		this.requestNumber = requestNumber;
 	}
 }

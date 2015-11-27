@@ -15,7 +15,7 @@
  * the Licence.
  */
 
-package eu.europeana.api2.v2.web.controller;
+package eu.europeana.api2.web.controller;
 
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
@@ -51,7 +51,7 @@ public class ApiKeyController {
     @Resource
     private EmailService emailService;
 
-    @RequestMapping(value = "/apikey",
+    @RequestMapping(value = "/admin/apikey",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -59,7 +59,7 @@ public class ApiKeyController {
         return new ApiNotImplementedYet(null, "/apikey (GET)");
     }
 
-    @RequestMapping(value = "/apikey/{apikey}",
+    @RequestMapping(value = "/admin/apikey/{apikey}",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -67,14 +67,14 @@ public class ApiKeyController {
         return new ApiNotImplementedYet(null, "/apikey/{apikey} (GET)");
     }
 
-    @RequestMapping(value = "/apikey",
+    @RequestMapping(value = "/admin/apikey",
             method = {RequestMethod.POST, RequestMethod.PUT},
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView createApiKey(@RequestBody ApiKeyRegistration registration,
                                      @RequestParam(value = "callback", required = false) String callback) {
         // TODO: add TRUSTED_CLIENT authentication
-        ModificationConfirmation response = new ModificationConfirmation("?", "/apikey (POST)");
+        ModificationConfirmation response = new ModificationConfirmation("?");
         try {
             ApiKey apiKey = apiKeyService.createApiKey(
                     registration.getEmail(),
