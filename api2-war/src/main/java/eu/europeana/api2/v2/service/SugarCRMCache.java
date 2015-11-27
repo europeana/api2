@@ -72,7 +72,7 @@ public class SugarCRMCache {
 	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<Provider> getProviders(String country, int offset, int pagesize) {
-		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<>("", "");
+		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<>("");
 		Query<Provider> query = datastore.find(Provider.class);
 		if (country != null) {
 			query.filter("country", country.toUpperCase());
@@ -120,7 +120,7 @@ public class SugarCRMCache {
 	 * @return the JSON/Morphia annotated provider beans wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<DataSet> getCollections(int offset, int pagesize, String name, String country, String status) {
-		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("", "");
+		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("");
 		Query<DataSet> query = datastore.find(DataSet.class);
 
 		if (StringUtils.isNotBlank(name)) {
@@ -173,7 +173,7 @@ public class SugarCRMCache {
 	 * @return the JSON/Morphia annotated provider bean wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<Provider> getProviderbyID(String id) {
-		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<>("", "");
+		SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<>("");
 		results.items = new ArrayList<>();
 		Provider provider = datastore.find(Provider.class).field("_id").equal(id).get();
 
@@ -191,7 +191,7 @@ public class SugarCRMCache {
 	 * @return the JSON/Morphia annotated dataset bean wrapped in a SugarCRMSearchResults JSON object
 	 */
 	public SugarCRMSearchResults<DataSet> getCollectionByID(String id) {
-		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("", "");
+		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("");
 		results.items = new ArrayList<>();
 		DataSet dataSet = datastore.find(DataSet.class).field("_id").equal(id).get();
 		if (dataSet != null) {
@@ -211,7 +211,7 @@ public class SugarCRMCache {
 		for (DataSet dataSet : dataSets) {
 			inflateDataset(dataSet);
 		}
-		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("", "");
+		SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("");
 		results.items = new ArrayList<>();
 		results.items.addAll(dataSets);
 		return results;

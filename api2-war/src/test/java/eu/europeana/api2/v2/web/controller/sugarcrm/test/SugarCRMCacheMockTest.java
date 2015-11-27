@@ -64,7 +64,7 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 		importerInstance = mock(SugarCRMImporter.class);
 		final ArgumentCaptor<String> providercaptor = ArgumentCaptor.forClass(String.class);
 		final SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<>(
-				null, null);
+				null);
 		Provider provider = new Provider();
 		provider.identifier = "mockid";
 		provider.name = "mockname";
@@ -72,7 +72,7 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 		providerres.items = new ArrayList<>();
 		providerres.items.add(provider);
 		final SugarCRMSearchResults<DataSet> collectionres = new SugarCRMSearchResults<>(
-				null, null);
+				null);
 		DataSet ds = new DataSet();
 		ds.identifier = "mockid";
 		ds.edmDatasetName = "mockname";
@@ -99,7 +99,7 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 					public SugarCRMSearchResults<Provider> answer(
 							InvocationOnMock invocation) throws Throwable {
 						SugarCRMSearchResults<Provider> providerRes = new SugarCRMSearchResults<>(
-								null, null);
+								null);
 						Provider provider = new Provider();
 						provider.identifier = providercaptor.getValue();
 						provider.name = "mockname";

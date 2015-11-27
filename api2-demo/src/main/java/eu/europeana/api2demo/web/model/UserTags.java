@@ -26,8 +26,8 @@ public class UserTags extends UserResults<Tag> {
         super();
     }
 
-    public UserTags(String apikey, String action) {
-        super(apikey, action);
+    public UserTags(String apikey) {
+        super(apikey);
     }
 
 }

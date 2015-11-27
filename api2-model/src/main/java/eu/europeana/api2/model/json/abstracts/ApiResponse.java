@@ -38,7 +38,7 @@ public abstract class ApiResponse {
 
 	public String apikey;
 
-	public String action;
+	public final String action = "--deprecated--";
 
 	public boolean success = true;
 
@@ -52,9 +52,8 @@ public abstract class ApiResponse {
 
 	public Map<String, Object> params;
 
-	public ApiResponse(String apikey, String action) {
+	public ApiResponse(String apikey) {
 		this.apikey = apikey;
-		this.action = action;
 	}
 
 	public ApiResponse() {

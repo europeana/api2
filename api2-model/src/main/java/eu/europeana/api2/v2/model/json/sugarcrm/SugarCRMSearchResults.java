@@ -28,7 +28,7 @@ import eu.europeana.api2.v2.model.json.abstracts.AbstractSearchResults;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class SugarCRMSearchResults<T> extends AbstractSearchResults<T>{
 
-	public SugarCRMSearchResults(String apikey, String action) {
-		super(apikey, action);
+	public SugarCRMSearchResults(String apikey) {
+		super(apikey);
 	}
 }

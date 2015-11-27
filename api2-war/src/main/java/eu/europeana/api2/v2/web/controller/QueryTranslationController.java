@@ -74,20 +74,20 @@ public class QueryTranslationController {
 		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"translateQuery.json", RecordType.TRANSLATE_QUERY, null);
+					RecordType.TRANSLATE_QUERY, null);
 		} catch (ApiLimitException e) {
 			response.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
 		if (StringUtils.isBlank(term)) {
-			return JsonUtils.toJson(new ApiError(wskey, "translateQuery", ERROR_TERM, limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, ERROR_TERM, limitResponse.getRequestNumber()), callback);
 		} else if (StringArrayUtils.isBlank(languageCodes)) {
-			return JsonUtils.toJson(new ApiError(wskey, "translateQuery", ERROR_LANGUAGE, limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, ERROR_LANGUAGE, limitResponse.getRequestNumber()), callback);
 		}
 
 		QueryTranslationResult queryTranslationResult = 
-				new QueryTranslationResult(wskey, "translateQuery.json", limitResponse.getRequestNumber());
+				new QueryTranslationResult(wskey, limitResponse.getRequestNumber());
 
 		QueryTranslation queryTranslation = SearchUtils.translateQuery(term, Arrays.asList(languageCodes));
 		queryTranslationResult.translations = queryTranslation.getLanguageVersions();

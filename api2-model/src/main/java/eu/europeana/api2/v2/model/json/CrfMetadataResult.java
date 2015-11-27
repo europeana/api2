@@ -31,12 +31,8 @@ public class CrfMetadataResult extends ApiResponse {
 
 	public ImageMetaInfo imageMetaInfo;
 
-	public CrfMetadataResult(String apikey, String action) {
-		super(apikey, action);
-	}
-
-	public CrfMetadataResult(String apikey, String action, long requestNumber) {
-		this(apikey, action);
+	public CrfMetadataResult(String apikey, long requestNumber) {
+		super(apikey);
 		this.requestNumber = requestNumber;
 	}
 }

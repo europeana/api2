@@ -83,13 +83,13 @@ public class ContentReuseFrameworkController {
         LimitResponse limitResponse;
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    "record.json", RecordType.OBJECT, null);
+                    RecordType.OBJECT, null);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
         }
 
-        CrfMetadataResult result = new CrfMetadataResult(wskey, "metadata-by-url.json", limitResponse.getRequestNumber());
+        CrfMetadataResult result = new CrfMetadataResult(wskey, limitResponse.getRequestNumber());
         SourceDocumentReferenceMetaInfo info = crfService.getMetadata(url);
         if (info != null) {
             result.imageMetaInfo = info.getImageMetaInfo();

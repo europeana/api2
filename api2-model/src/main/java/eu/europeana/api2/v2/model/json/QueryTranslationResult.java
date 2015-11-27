@@ -32,12 +32,12 @@ public class QueryTranslationResult extends ApiResponse {
 
 	public String translatedQuery;
 
-	public QueryTranslationResult(String apikey, String action) {
-		super(apikey, action);
+	public QueryTranslationResult(String apikey) {
+		super(apikey);
 	}
 
-	public QueryTranslationResult(String apikey, String action, long requestNumber) {
-		this(apikey, action);
+	public QueryTranslationResult(String apikey, long requestNumber) {
+		this(apikey);
 		this.requestNumber = requestNumber;
 	}
 }

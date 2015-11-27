@@ -125,14 +125,14 @@ public class ObjectController {
         LimitResponse limitResponse;
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    "record.json", RecordType.OBJECT, profile);
+                    RecordType.OBJECT, profile);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
         }
 
         log.info("record");
-        ObjectResult objectResult = new ObjectResult(wskey, "record.json", limitResponse.getRequestNumber());
+        ObjectResult objectResult = new ObjectResult(wskey, limitResponse.getRequestNumber());
         if (StringUtils.containsIgnoreCase(profile, "params")) {
             objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
             objectResult.addParam("profile", profile);
@@ -150,7 +150,7 @@ public class ObjectController {
                 bean.getAggregations().get(0).setEdmObject("");
             }
             if (bean == null) {
-                return JsonUtils.toJson(new ApiError(wskey, "record.json", "Invalid record identifier: "
+                return JsonUtils.toJson(new ApiError(wskey, "Invalid record identifier: "
                         + europeanaObjectId, limitResponse.getRequestNumber()), callback);
             }
 
@@ -176,7 +176,7 @@ public class ObjectController {
             long t1 = (new Date()).getTime();
             objectResult.statsDuration = (t1 - t0);
         } catch (MongoDBException e) {
-            return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), limitResponse.getRequestNumber()), callback);
+            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), limitResponse.getRequestNumber()), callback);
         }
 
 //        final ObjectMapper objectMapper = new ObjectMapper();
@@ -236,7 +236,7 @@ public class ObjectController {
 
         try {
             controllerUtils.checkLimit(wskey,
-                    request.getRequestURL().toString(), "record.jsonld", RecordType.OBJECT_JSONLD, null);
+                    request.getRequestURL().toString(), RecordType.OBJECT_JSONLD, null);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);

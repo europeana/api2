@@ -26,7 +26,7 @@ public class ModificationConfirmation extends ApiResponse {
 		super();
 	}
 
-	public ModificationConfirmation(String apikey, String action) {
-		super(apikey, action);
+	public ModificationConfirmation(String apikey) {
+		super(apikey);
 	}
 }

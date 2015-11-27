@@ -125,7 +125,7 @@ public class SugarCRMImporter {
             throws JIXBQueryResultException {
 
         GetEntryList request = new GetEntryList();
-        SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<>("", "");
+        SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<>("");
         results.items = new ArrayList<>();
         request.setSelectFields(new SelectFields());
         request.setModuleName(EuropeanaDatasets.ORGANIZATIONS.getSysId());
@@ -302,7 +302,7 @@ public class SugarCRMImporter {
      */
     private SugarCRMSearchResults<DataSet> retrieveDataset(String query, String providerID)
             throws JIXBQueryResultException {
-        SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("", "");
+        SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("");
         results.items = new ArrayList<>();
 
         GetEntryList request = new GetEntryList();

@@ -15,7 +15,7 @@
  * the Licence.
  */
 
-package eu.europeana.api2.v2.web.controller.abstracts;
+package eu.europeana.api2.web.controller.abstracts;
 
 import java.security.Principal;
 

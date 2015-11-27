@@ -25,8 +25,8 @@ public class TagCloud extends UserResults<TagCloudItem> {
         super();
     }
 
-    public TagCloud(String apikey, String action) {
-        super(apikey, action);
+    public TagCloud(String apikey) {
+        super(apikey);
     }
 
 }

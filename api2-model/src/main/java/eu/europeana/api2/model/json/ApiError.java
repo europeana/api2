@@ -31,18 +31,18 @@ public class ApiError extends ApiResponse {
 
 	public boolean success = false;
 
-	public ApiError(String apikey, String action, String error) {
-		super(apikey, action);
+	public ApiError(String apikey, String error) {
+		super(apikey);
 		this.error = error;
 	}
 
-	public ApiError(String apikey, String action, String error,
-			long requestNumber) {
-		this(apikey, action, error);
+	public ApiError(String apikey, String error,
+					long requestNumber) {
+		this(apikey, error);
 		this.requestNumber = requestNumber;
 	}
 
 	public ApiError(ApiLimitException ex) {
-		this(ex.getApikey(), ex.getAction(), ex.getError(), ex.getRequestNumber());
+		this(ex.getApikey(), ex.getError(), ex.getRequestNumber());
 	}
 }

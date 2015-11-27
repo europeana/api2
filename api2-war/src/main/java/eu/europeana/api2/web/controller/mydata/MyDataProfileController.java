@@ -15,7 +15,7 @@
  * the Licence.
  */
 
-package eu.europeana.api2.v2.web.controller.mydata;
+package eu.europeana.api2.web.controller.mydata;
 
 import java.security.Principal;
 
@@ -31,27 +31,20 @@ import org.springframework.web.servlet.ModelAndView;
 
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.user.Profile;
-import eu.europeana.api2.v2.web.controller.abstracts.AbstractUserController;
+import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
-import eu.europeana.corelib.db.exception.DatabaseException;
-import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 
 @Controller
-@Api(value = "my_europeana", description = " ")
+@Api(value = "my_data", description = " ")
 @SwaggerSelect
 public class MyDataProfileController extends AbstractUserController {
 
-	/**
-	 * @param callback
-	 * @param principal
-	 * @return the JSON response
-	 */
 	@ApiOperation(value = "lets the user fetch their profile", nickname = "fetchMyDataProfile")
-	@RequestMapping(value = "/v2/mydata/profile.json", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+	@RequestMapping(value = "/mydata/profile", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
     public ModelAndView defaultAction(
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
-        Profile response = new Profile(principal.getName(), "/v2/user/profile.json");
+        Profile response = new Profile(principal.getName());
         User user = getUserByApiId(principal.getName());
         if (user != null) {
             response.copyDetails(user);

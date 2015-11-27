@@ -35,8 +35,8 @@ public class UserResults<T> extends AbstractSearchResults<T> {
 		super();
 	}
 
-	public UserResults(String apikey, String action) {
-		super(apikey, action);
+	public UserResults(String apikey) {
+		super(apikey);
 	}
 
 	public String getUsername() {

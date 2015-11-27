@@ -35,12 +35,8 @@ public class BasicObjectResult extends ApiResponse {
 
 	public List<? extends BriefBean> similarItems;
 
-	public BasicObjectResult(String apikey, String action) {
-		super(apikey, action);
-	}
-
-	public BasicObjectResult(String apikey, String action, long requestNumber) {
-		this(apikey, action);
+	public BasicObjectResult(String apikey, long requestNumber) {
+		super(apikey);
 		this.requestNumber = requestNumber;
 	}
 }

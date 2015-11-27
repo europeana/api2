@@ -36,12 +36,8 @@ public class ObjectResult extends ApiResponse {
 
 	public List<? extends BriefBean> similarItems;
 
-	public ObjectResult(String apikey, String action) {
-		super(apikey, action);
-	}
-
-	public ObjectResult(String apikey, String action, long requestNumber) {
-		this(apikey, action);
+	public ObjectResult(String apikey, long requestNumber) {
+		super(apikey);
 		this.requestNumber = requestNumber;
 	}
 }

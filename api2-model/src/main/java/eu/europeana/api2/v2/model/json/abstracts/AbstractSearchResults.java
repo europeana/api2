@@ -38,8 +38,8 @@ public class AbstractSearchResults<T> extends ApiResponse {
 
 	public List<T> items;
 
-	public AbstractSearchResults(String apikey, String action) {
-		super(apikey, action);
+	public AbstractSearchResults(String apikey) {
+		super(apikey);
 	}
 
 	public AbstractSearchResults() {
