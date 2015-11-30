@@ -21,15 +21,10 @@ import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
-import eu.europeana.api2.v2.model.enums.DefaultImage;
 import eu.europeana.api2.v2.model.json.CrfMetadataResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.definitions.model.ThumbSize;
-import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.domain.MediaFile;
-import eu.europeana.corelib.logging.Log;
-import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.web.service.ContentReuseFrameworkService;
 import eu.europeana.corelib.web.service.MediaStorageService;
 import eu.europeana.harvester.domain.SourceDocumentReferenceMetaInfo;
@@ -57,9 +52,6 @@ import java.security.NoSuchAlgorithmException;
 
 @Controller
 public class ContentReuseFrameworkController {
-
-    @Log
-    private Logger log;
 
     @Resource
     private ContentReuseFrameworkService crfService;
@@ -106,62 +98,22 @@ public class ContentReuseFrameworkController {
             HttpServletResponse response) {
         controllerUtils.addResponseHeaders(response);
 
-        String suffix = "";
-
-        if (size.equalsIgnoreCase("BRIEF_DOC") || size.equalsIgnoreCase("h180") ||
-                size.equalsIgnoreCase("FULL_DOC") || size.equalsIgnoreCase("FULL_DOC_ALL") || size.equalsIgnoreCase("w200")) {
-            suffix = "200";
-        } else if (size.equalsIgnoreCase("w400")) {
-            suffix = "400";
-        }
-
         final HttpHeaders headers = new HttpHeaders();
+        final String mediaFileId = computeResourceUrl(url, size);
+        final MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, true);
 
-        byte[] imageResponse = DefaultImage.getImage(ThumbSize.LARGE, DocType.IMAGE);
-        switch (StringUtils.upperCase(type)) {
-            case "IMAGE":
-                final String ID = getMD5(url) + "-" + ("200".equals(suffix) ? "MEDIUM" : "LARGE");
-                final MediaFile mediaFile = mediaStorageService.retrieve(ID, true);
-
-                if (mediaFile != null) {
-
-                    switch (mediaFile.getContentType()) {
-                        case "image/jpeg":
-                            headers.setContentType(MediaType.IMAGE_JPEG);
-                            break;
-                        case "image/png":
-                            headers.setContentType(MediaType.IMAGE_PNG);
-                            break;
-                        default:
-                            // TODO: Ask Remy if we need to add more cases.
-                            break;
-                    }
-                    imageResponse = mediaFile.getContent();
-
-                } else {
-                    imageResponse = getImage("/images/item-image-large.gif");
-                    headers.setContentType(MediaType.IMAGE_GIF);
-                }
-                break;
-            case "SOUND":
-                imageResponse = getImage("/images/item-sound-large.gif");
-                headers.setContentType(MediaType.IMAGE_GIF);
-                break;
-            case "VIDEO":
-                imageResponse = getImage("/images/item-video-large.gif");
-                headers.setContentType(MediaType.IMAGE_GIF);
-                break;
-            case "TEXT":
-                imageResponse = getImage("/images/item-text-large.gif");
-                headers.setContentType(MediaType.IMAGE_GIF);
-                break;
-            case "3D":
-                imageResponse = getImage("/images/item-3d-large.gif");
-                headers.setContentType(MediaType.IMAGE_GIF);
-                break;
+        byte[] mediaResponse;
+        if (mediaFile != null) {
+            mediaResponse = mediaFile.getContent();
+            // All stored thumbnails are JPEG.
+            headers.setContentType(MediaType.IMAGE_JPEG);
+        } else {
+            headers.setContentType(MediaType.IMAGE_GIF);
+            // All default not found thumbnails are GIF.
+            mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
         }
 
-        return new ResponseEntity<>(imageResponse, headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(mediaResponse, headers, HttpStatus.CREATED);
     }
 
 
@@ -229,5 +181,27 @@ public class ContentReuseFrameworkController {
         }
 
         return temp;
+    }
+
+    private byte[] getDefaultThumbnailForNotFoundResourceByType(final String type) {
+        switch (StringUtils.upperCase(type)) {
+            case "IMAGE":
+                return getImage("/images/item-image-large.gif");
+            case "SOUND":
+                return getImage("/images/item-sound-large.gif");
+            case "VIDEO":
+                return getImage("/images/item-video-large.gif");
+            case "TEXT":
+                return getImage("/images/item-text-large.gif");
+            case "3D":
+                return getImage("/images/item-3d-large.gif");
+            default:
+                return getImage("/images/item-image-large.gif");
+        }
+    }
+
+    private String computeResourceUrl(final String resourceUrl, final String resourceSize) {
+        return getMD5(resourceUrl) + "-" + (StringUtils.equalsIgnoreCase(resourceSize, "w400") ? "LARGE" : "MEDIUM");
+
     }
 }

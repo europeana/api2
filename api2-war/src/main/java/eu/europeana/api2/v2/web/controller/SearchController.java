@@ -70,7 +70,8 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -90,6 +91,7 @@ import java.util.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @author Maike (edits)
  */
 @Controller
 @SwaggerSelect
@@ -165,7 +167,8 @@ public class SearchController {
 //	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
     @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
-            @RequestParam(value = "query", required = true) String queryString,
+			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "query", required = false) String queryString,
             @RequestParam(value = "qf", required = false) String[] refinements,
             @RequestParam(value = "reusability", required = false) String[] aReusability,
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
@@ -173,7 +176,6 @@ public class SearchController {
             @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
             @RequestParam(value = "facet", required = false) String[] aFacet,
             @RequestParam(value = "sort", required = false) String sort,
-            @RequestParam(value = "wskey", required = false) String wskey,
             @RequestParam(value = "colourpalette", required = false) String[] colorPalette,
             @RequestParam(value = "text_fulltext", required = false) Boolean isFulltext,
             @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
@@ -190,6 +192,23 @@ public class SearchController {
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
             HttpServletResponse response) {
+
+        LimitResponse limitResponse;
+        try {
+            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+                    RecordType.SEARCH, profile);
+        } catch (ApiLimitException e) {
+            response.setStatus(e.getHttpStatus());
+            return JsonUtils.toJson(new ApiError(e), callback);
+        }
+
+        if (StringUtils.isBlank(queryString)) {
+            response.setStatus(400);
+            return JsonUtils.toJson(new ApiError("", (queryString == null ? "Missing" : "Invalid") + " query parameter"), callback);
+        }
+        queryString = queryString.trim();
+        log.info("QUERY: |" + queryString + "|");
+
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
         String[] _qf = request.getParameterMap().get("qf");
@@ -407,21 +426,6 @@ public class SearchController {
             }
         }
 
-        LimitResponse limitResponse;
-        try {
-            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    RecordType.SEARCH, profile);
-        } catch (ApiLimitException e) {
-            response.setStatus(e.getHttpStatus());
-            return JsonUtils.toJson(new ApiError(e), callback);
-        }
-
-        queryString = queryString.trim();
-        if (StringUtils.isBlank(queryString)) {
-            response.setStatus(400);
-            return JsonUtils.toJson(new ApiError("", "invalid query parameter"), callback);
-        }
-        log.info("QUERY: |" + queryString + "|");
 
         boolean isFacetsRequested = isFacetsRequested(profile);
         String[] reusability = StringArrayUtils.splitWebParameter(aReusability);
@@ -834,9 +838,8 @@ public class SearchController {
     /**
      * Retrieves the title from the bean if not null; otherwise, returns a concatenation of the Data
      * Provier and ID fields.
-     * <p/>
-     * ! FIX ME ! Note that this method will yield unwanted results when there is more than one Title
-     * field!
+     * TODO Note that this method will yield unwanted results when there is more than one Title
+     * TODO field! (especially now we consider language aware titles)
      *
      * @param bean mapped pojo bean
      * @return String containing the concatenated fields
@@ -973,17 +976,6 @@ public class SearchController {
             }
         }
         return translatedEdmIsShownAtLabel;
-    }
-
-    /**
-     * Gives the translation of the 'EdmIsShownAt' label in the language that
-     * the provided String specifies
-     *
-     * @param language containing language code
-     * @return String containing the label translation
-     */
-    private String getEdmIsShownAtLabelTranslation(String language) {
-        return messageSource.getMessage("edm_isShownAtLabel_t", null, new Locale(language));
     }
 
     /**

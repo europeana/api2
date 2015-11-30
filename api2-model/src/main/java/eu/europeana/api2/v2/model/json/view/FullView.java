@@ -150,13 +150,8 @@ public class FullView implements FullBean {
 		for (Aggregation item : items) {
 			item.setId(null);
 
-			// add bt=europanaapi
 			String isShownAt = item.getEdmIsShownAt();
 			if (!urlified && isShownAt != null) {
-				isShownAt = isShownAt
-						+ (isShownAt.contains("?") ? "&" : "?")
-						+ "bt=europeanaapi";
-				// items.get(i).setEdmIsShownAt(isShownAt);
 
 				String provider = item.getEdmProvider().values()
 						.iterator().next().get(0);

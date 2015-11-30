@@ -284,9 +284,6 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             if (StringUtils.isBlank(bean.getEdmIsShownAt()[0])) {
                 continue;
             }
-            isShownAt = isShownAt
-                    + (isShownAt.contains("?") ? "&" : "?")
-                    + "bt=europeanaapi";
             String isShownAtLink = urlService.getApi2Redirect(
                     wskey, isShownAt, provider, bean.getId(), profile)
                     .toString();

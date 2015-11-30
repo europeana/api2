@@ -17,6 +17,7 @@ public class RichView extends ApiView implements RichBean {
     private Map<String, List<String>> dcDescriptionLangAware;
     private Map<String, List<String>> dcSubjectLangAware;
     private Map<String, List<String>> dcTypeLangAware;
+//    private String attributionSnippet; -- disabled until later order
 
     public RichView(RichBean bean, String profile, String wskey, boolean optOut) {
         super(bean, profile, wskey, optOut);

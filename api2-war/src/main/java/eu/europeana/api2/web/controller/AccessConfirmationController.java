@@ -20,7 +20,6 @@ package eu.europeana.api2.web.controller;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
@@ -81,8 +80,7 @@ public class AccessConfirmationController {
         return "mydata/login";
     }
 
-    @Resource
-    @Qualifier("api2_oauth2_clientDetailsService")
+    @Resource(name = "api2_oauth2_clientDetailsService")
     public void setClientDetailsService(ClientDetailsService clientDetailsService) {
         this.clientDetailsService = clientDetailsService;
     }

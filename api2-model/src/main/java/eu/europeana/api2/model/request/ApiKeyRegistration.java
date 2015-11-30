@@ -15,7 +15,7 @@
  * the Licence.
  */
 
-package eu.europeana.api2.v2.model.json.request;
+package eu.europeana.api2.model.request;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 

@@ -40,11 +40,17 @@ public class HierarchicalResult extends ApiResponse {
 
 	public List<Neo4jBean> ancestors;
 
-	@JsonProperty("preceeding-siblings")
-	public List<Neo4jBean> preceedingSiblings;
+	@JsonProperty("preceding-siblings")
+	public List<Neo4jBean> precedingSiblings;
 
 	@JsonProperty("following-siblings")
 	public List<Neo4jBean> followingSiblings;
+
+	@JsonProperty("preceding-sibling-children")
+	public List<Neo4jBean> precedingSiblingChildren;
+
+	@JsonProperty("following-sibling-children")
+	public List<Neo4jBean> followingSiblingChildren;
 
 	public String message;
 
