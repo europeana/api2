@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class ApiNotImplementedYet extends ApiError {
 
-	public ApiNotImplementedYet(String apikey, String action) {
+	public ApiNotImplementedYet(String apikey) {
 		super(apikey, "Not Implemented Yet!");
 	}
 }

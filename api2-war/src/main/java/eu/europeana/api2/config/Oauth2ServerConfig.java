@@ -3,7 +3,6 @@ package eu.europeana.api2.config;
 import eu.europeana.api2.web.security.oauth2.ApiApprovalHandler;
 import eu.europeana.api2.web.security.oauth2.ApiTokenStore;
 import eu.europeana.api2.web.security.oauth2.OAuth2ClientDetailsService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -77,12 +76,10 @@ public class OAuth2ServerConfig {
         @Resource
         private UserApprovalHandler userApprovalHandler;
 
-        @Resource
-        @Qualifier("api2_oauth2_clientDetailsService")
+        @Resource(name = "api2_oauth2_clientDetailsService")
         private ClientDetailsService clientDetailsService;
 
-        @Resource
-        @Qualifier("authenticationManagerBean")
+        @Resource(name = "authenticationManagerBean")
         private AuthenticationManager authenticationManager;
 
         @Override
@@ -119,8 +116,7 @@ public class OAuth2ServerConfig {
     @SuppressWarnings("unused")
     protected static class Stuff {
 
-        @Resource
-        @Qualifier("api2_oauth2_clientDetailsService")
+        @Resource(name = "api2_oauth2_clientDetailsService")
         private ClientDetailsService clientDetailsService;
 
         @Resource

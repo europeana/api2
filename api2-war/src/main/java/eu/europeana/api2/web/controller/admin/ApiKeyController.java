@@ -15,13 +15,13 @@
  * the Licence.
  */
 
-package eu.europeana.api2.web.controller;
+package eu.europeana.api2.web.controller.admin;
 
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
-import eu.europeana.api2.v2.model.json.request.ApiKeyRegistration;
+import eu.europeana.api2.model.request.ApiKeyRegistration;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
@@ -34,12 +34,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import java.security.Principal;
 import java.util.Locale;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @Controller
+@RequestMapping("/admin/apikey")
 @SwaggerIgnore
 public class ApiKeyController {
 
@@ -51,29 +53,35 @@ public class ApiKeyController {
     @Resource
     private EmailService emailService;
 
-    @RequestMapping(value = "/admin/apikey",
+    @RequestMapping(
             method = {RequestMethod.GET},
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @ResponseBody
-    public ApiResponse findAll() {
-        return new ApiNotImplementedYet(null, "/apikey (GET)");
+    public ApiResponse findAll(Principal principal) {
+        return new ApiNotImplementedYet(principal.getName());
     }
 
     @RequestMapping(value = "/admin/apikey/{apikey}",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ApiResponse findAll(@PathVariable String apikey) {
-        return new ApiNotImplementedYet(null, "/apikey/{apikey} (GET)");
+    public ApiResponse find(
+            @PathVariable String apikey,
+            Principal principal
+    ) {
+        return new ApiNotImplementedYet(principal.getName());
     }
 
-    @RequestMapping(value = "/admin/apikey",
-            method = {RequestMethod.POST, RequestMethod.PUT},
+    @RequestMapping(
+            method = {RequestMethod.POST},
             consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView createApiKey(@RequestBody ApiKeyRegistration registration,
-                                     @RequestParam(value = "callback", required = false) String callback) {
-        // TODO: add TRUSTED_CLIENT authentication
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ModelAndView createApiKey(
+            @RequestBody ApiKeyRegistration registration,
+            @RequestParam(value = "callback", required = false) String callback
+    ) {
         ModificationConfirmation response = new ModificationConfirmation("?");
         try {
             ApiKey apiKey = apiKeyService.createApiKey(

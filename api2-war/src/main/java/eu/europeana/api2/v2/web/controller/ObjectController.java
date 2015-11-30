@@ -195,7 +195,7 @@ public class ObjectController {
             @PathVariable String recordId,
             @RequestParam(value = "apikey", required = true) String apiKey,
             @RequestParam(value = "sessionhash", required = true) String sessionHash) {
-        return new ApiNotImplementedYet(apiKey, "record.kml");
+        return new ApiNotImplementedYet(apiKey);
     }
 
     @SwaggerIgnore
