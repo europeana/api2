@@ -18,8 +18,8 @@ import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 
 @Controller
-@Api(value = "my_europeana", description = " ")
-@SwaggerSelect
+//@Api(value = "my_europeana", description = " ")
+//@SwaggerSelect
 public class UserProfileController extends AbstractUserController {
 
 	/**

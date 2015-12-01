@@ -50,8 +50,8 @@ import javax.ws.rs.Produces;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@SwaggerSelect
-@Api(value = "my_europeana", description = " ")
+//@SwaggerSelect
+//@Api(value = "my_europeana", description = " ")
 public class MyDataItemController extends AbstractUserController {
 
     
