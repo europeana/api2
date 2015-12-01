@@ -56,9 +56,9 @@ import java.util.concurrent.Future;
  * @author Maike Dulk
  */
 @Controller
-@Api(value = "hierarchical_records", description = " ")
+//@Api(value = "hierarchical_records", description = " ")
+//@SwaggerSelect
 @RequestMapping(value = "/v2/record")
-@SwaggerSelect
 public class HierarchicalController {
 
     @Log

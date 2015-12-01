@@ -1,23 +1,20 @@
 package eu.europeana.api2.v2.model.json.view;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import eu.europeana.corelib.definitions.edm.beans.BriefBean;
+import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.*;
-import org.apache.commons.lang.ArrayUtils;
+import eu.europeana.corelib.definitions.solr.DocType;
+import eu.europeana.corelib.utils.DateUtils;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
+import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
-import eu.europeana.corelib.definitions.edm.beans.BriefBean;
-import eu.europeana.corelib.definitions.edm.beans.FullBean;
-import eu.europeana.corelib.definitions.solr.DocType;
-import eu.europeana.corelib.utils.DateUtils;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
-import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
+import java.util.Date;
+import java.util.List;
 
 @JsonSerialize(include = Inclusion.NON_EMPTY)
 public class FullView implements FullBean {
@@ -141,8 +138,13 @@ public class FullView implements FullBean {
 		for (Aggregation item : items) {
 			item.setId(null);
 
+			// add bt=europanaapi
 			String isShownAt = item.getEdmIsShownAt();
 			if (!urlified && isShownAt != null) {
+				isShownAt = isShownAt
+						+ (isShownAt.contains("?") ? "&" : "?")
+						+ "bt=europeanaapi";
+				// items.get(i).setEdmIsShownAt(isShownAt);
 
 				String provider = item.getEdmProvider().values()
 						.iterator().next().get(0);
@@ -364,339 +366,5 @@ public class FullView implements FullBean {
 	@Override
 	public void setLicenses(List<? extends License> licenses) {
 		
-	}
-
-	public String getAttributionSnippet(){
-		return getAttributionSnippet(true, true);
-	}
-
-	public String getAttributionSnippet(boolean htmlOut){
-		return getAttributionSnippet(true, htmlOut);
-	}
-
-	public String getAttributionSnippet(boolean firstOnly, boolean htmlOut){
-		String rightsPage = "rel=\"xhv:license http://www.europeana.eu/schemas/edm/rights\"";
-		String resPdUsgGd = "resource=\"http://www.europeana.eu/rights/pd-usage-guide/\"";
-		String aHref = "<a href=\"";
-		String zHref = "\">";
-		String ferh = "</a>";
-		String naps = "</span>";
-		String retval = "", landingPage = "", title = "", creator = "", dataProvider = "", shownAt = "", shownBy = "", rights = "";
-		int i, j;
-
-
-		List<? extends Proxy> prxs = getProxies();
-		EuropeanaAggregation euAgg = getEuropeanaAggregation();
-		Aggregation agg = getAggregations().get(0);
-
-		// if there are proxies present: check if there are dc:creator / dc:title data in there
-		if (!prxs.isEmpty()){
-			for (Proxy prx : prxs) {
-				// check for dc:creator
-				if ("".equals(creator) && prx.getDcCreator() != null && !prx.getDcCreator().isEmpty()){
-					if (prx.getDcCreator().get("def") != null) {
-						List<String> dcc = stripEmptyStrings(prx.getDcCreator().get("def"));
-						// assign possible multiple 'def' entries to creator
-						j = dcc.size();
-						i = 1;
-						creator += "(def) ";
-						for (String creatorEntry : dcc) {
-							creator += cleanUp(creatorEntry) + (i < j ? "; " : "");
-							i++;
-						}
-					} else {
-						// no 'def' key implies 1 or more language-specific keys. loop through those. For every one:
-						// loop through possible multiple entries & concat those
-						for (Map.Entry<String, List<String>> langCreatorEntry : prx.getDcCreator().entrySet()) {
-							List<String> lcev = stripEmptyStrings(langCreatorEntry.getValue());
-							j = lcev.size();
-							i = 1;
-							creator += "(" + langCreatorEntry.getKey() + ") ";
-							for (String langCreatorLine : lcev) {
-								creator += cleanUp(langCreatorLine) + (i < j ? "; " : "");
-								i++;
-							}
-						}
-					}
-				}
-				// check for dc:title
-				if ("".equals(title) && prx.getDcTitle() != null && !prx.getDcTitle().isEmpty()){
-					if (prx.getDcTitle().get("def") != null) {
-						List<String> dct = stripEmptyStrings(prx.getDcTitle().get("def"));
-						j = dct.size();
-						i = 1;
-						title += "(def) ";
-						for (String titleEntry : dct) {
-							title += cleanUp(titleEntry) + (i < j ? "; " : "");
-							i++;
-						}
-					} else {
-						for (Map.Entry<String, List<String>> langTitleEntry : prx.getDcTitle().entrySet()) {
-							List<String> ltev = stripEmptyStrings(langTitleEntry.getValue());
-							j = ltev.size();
-							i = 1;
-							title += "(" + langTitleEntry.getKey() + ") ";
-							for (String langTitleLine : ltev) {
-								title += cleanUp(langTitleLine) + (i < j ? "; " : "");
-								i++;
-							}
-						}
-					}
-				}
-			}
-		}
-
-
-		// if an aggregation is present; fetch the shownAt & shownBy
-		// if the aggregation contains webresources, check if the 'about' URL is equal to
-		// the edm:isShownBy URL from the aggregation (if available).
-		// If this is the case, fetch the *first* edm:rights from the webresource
-
-		if (agg!= null) {
-			// check if aggregation contains an edmIsShownAt URL
-			if (!"".equals(agg.getEdmIsShownAt())){
-				shownAt = cleanUp(agg.getEdmIsShownAt());
-			}
-			// check if aggregation contains an edm:isShownBy URL
-			if (!"".equals(agg.getEdmIsShownBy())){
-				shownBy = agg.getEdmIsShownBy();
-				// check if aggregation contains webresources
-				if (agg.getWebResources() != null && !agg.getWebResources().isEmpty()) {
-					List<? extends WebResource> wRess = agg.getWebResources();
-					for (WebResource wRes : wRess) {
-						// ++++ leave webresource-level dc:creator for 2nd iteration (David, Antoine) ++++
-//						if (wRes.getAbout().equalsIgnoreCase(shownBy)
-//								&& wRes.getDcCreator() != null){
-//							// there is a webresource where the about URL == aggregation edm:isShownBy
-//							// and which has a dc:creator entry
-//							if (wRes.getDcCreator().get("def") != null) {
-//								List<String> dcc = stripEmptyStrings(wRes.getDcCreator().get("def"));
-//								// assign possible multiple 'def' entries to creator
-//								j = dcc.size();
-//								i = 1;
-//								creator += "(def) ";
-//								for (String creatorEntry : dcc) {
-//									creator += cleanUp(creatorEntry) + (i < j ? "; " : "");
-//									i++;
-//								}
-//							} else {
-//								// no 'def' key implies 1 or more language-specific keys. loop through those. For every one:
-//								// loop through possible multiple entries & concat those
-//								for (Map.Entry<String, List<String>> langCreatorEntry : wRes.getDcCreator().entrySet()) {
-//									List<String> lcev = stripEmptyStrings(langCreatorEntry.getValue());
-//									j = lcev.size();
-//									i = 1;
-//									creator += "(" + langCreatorEntry.getKey() + ") ";
-//									for (String langCreatorLine : lcev) {
-//										creator += cleanUp(langCreatorLine) + (i < j ? "; " : "");
-//										i++;
-//									}
-//								}
-//							}
-//						} else
-						// check if the webResource.about URL == aggregation's isShownBy URL
-						if (wRes.getAbout().equalsIgnoreCase(shownBy)
-								&& wRes.getWebResourceEdmRights() != null) {
-							// fetch edm:rights values
-							for (Map.Entry<String, List<String>> wrEdmRights : wRes.getWebResourceEdmRights().entrySet()) {
-								List<String> wrer = stripEmptyStrings(wrEdmRights.getValue());
-								if (wrer != null && !wrer.isEmpty()){
-									rights += cleanUp(wrer.get(0));
-									break; // needed ernly wernce
-								}
-							}
-						}
-					}
-				}
-			}
-
-			// check if aggregation contains edm:dataprovider: yes? Get it.
-			if (agg.getEdmDataProvider() != null && !agg.getEdmDataProvider().isEmpty()){
-				if (agg.getEdmDataProvider().get("def") != null) {
-					List<String> edp = stripEmptyStrings(agg.getEdmDataProvider().get("def"));
-					j = edp.size();
-					i = 1;
-					dataProvider += "(def) ";
-					for (String dataProviderEntry : edp) {
-						dataProvider += cleanUp(dataProviderEntry) + (i < j ? "; " : "");
-						i++;
-					}
-				} else {
-					for (Map.Entry<String, List<String>> langDataProviderEntry : agg.getEdmDataProvider().entrySet()) {
-						List<String> ldpev = stripEmptyStrings(langDataProviderEntry.getValue());
-						j = ldpev.size();
-						i = 1;
-						dataProvider += "(" + langDataProviderEntry.getKey() + ") ";
-						for (String langDataProviderLine : ldpev) {
-							dataProvider += cleanUp(langDataProviderLine) + (i < j ? "; " : "");
-							i++;
-						}
-					}
-				}
-			}
-
-			// If no edm:rights entries were found on the webresources, check the aggregation itself
-			if ("".equals(rights) && agg.getEdmRights() != null && !agg.getEdmRights().isEmpty()) {
-				for (Map.Entry<String, List<String>> edmRights : agg.getEdmRights().entrySet()) {
-					List<String> edr = stripEmptyStrings(edmRights.getValue());
-					if (edr != null && !edr.isEmpty()){
-						rights += cleanUp(edr.get(0));
-						break; // needed ernly wernce
-					}
-				}
-			}
-		}
-
-		// check if there's a Europeana Aggregation. If found, get the edm:landingPage
-		if (euAgg != null) {
-			landingPage = "".equals(euAgg.getEdmLandingPage()) ? "" : euAgg.getEdmLandingPage();
-
-			// if there was no dc:creator in the webresources, check the Europeana aggregation
-			if ("".equals(creator) && euAgg.getDcCreator() != null && !euAgg.getDcCreator().isEmpty()) {
-				if (euAgg.getDcCreator().get("def") != null) {
-					List<String> dcc = stripEmptyStrings(euAgg.getDcCreator().get("def"));
-					j = dcc.size();
-					i = 1;
-					creator += "(def) ";
-					for (String creatorEntry : dcc) {
-						creator += cleanUp(creatorEntry) + (i < j ? "; " : "");
-						i++;
-					}
-				} else {
-					for (Map.Entry<String, List<String>> langCreatorEntry : euAgg.getDcCreator().entrySet()) {
-						List<String> lcev = stripEmptyStrings(langCreatorEntry.getValue());
-						j = lcev.size();
-						i = 1;
-						creator += "(" + langCreatorEntry.getKey() + ") ";
-						for (String langCreatorLine : lcev) {
-							creator += cleanUp(langCreatorLine) + (i < j ? "; " : "");
-							i++;
-						}
-					}
-				}
-			}
-			// if there was no edm:rights in the webresources or in the aggregation itself,
-			// check the Europeana aggregation
-			if ("".equals(rights) && euAgg.getEdmRights() != null && !euAgg.getEdmRights().isEmpty()) {
-				for (Map.Entry<String, List<String>> euEdmRights : euAgg.getEdmRights().entrySet()) {
-					List<String> euer = stripEmptyStrings(euEdmRights.getValue());
-					if (euer != null && !euer.isEmpty()){
-						rights += cleanUp(euer.get(0));
-						break; // needed ernly wernce
-					}
-				}
-			}
-		}
-
-		// if there was no title found in the proxy, get it from the record object itself
-		if ("".equals(title) && getTitle() != null && !ArrayUtils.isEmpty(getTitle())) {
-			String[] titles = stripEmptyStrings(getTitle());
-			j = titles.length;
-			i = 1;
-			for (String titlePart : titles) {
-				title += cleanUp(titlePart);
-				if (firstOnly) {
-					break;
-				} else if (i < j) {
-					title += "; ";
-				}
-				i++;
-			}
-		}
-
-		if (htmlOut){
-			if (!"".equals(title)){
-				if (!"".equals(landingPage)) {
-					retval += spannify("about", landingPage) + aHref + landingPage + zHref;
-				}
-				retval += spannify("property", "dc:title") + title + naps;
-				if (!"".equals(landingPage)) {
-					retval += ferh;
-				}
-				retval += ". ";
-			}
-			retval += !"".equals(creator) ? spannify("property", "dc:creator") + creator + naps + ". " : "";
-
-			if (!"".equals(dataProvider)){
-				if (!"".equals(shownAt)) {
-					retval += aHref + shownAt + zHref;
-				}
-				retval += dataProvider + ". ";
-				if (!"".equals(shownAt)) {
-					retval += ferh;
-				}
-			}
-			if (!"".equals(rights)){
-				retval += aHref + rights + "\" " + rightsPage + ">" + getRightsLabel(rights) + ferh + spannify("rel", "cc:useGuidelines") + resPdUsgGd + ".";
-			}
-			if (!"".equals(landingPage)) {
-				retval += naps; // close opening <span about ...>
-			}
-			return retval;
-		} else {
-			retval += title;
-			retval += (!"".equals(title) && !"".equals(landingPage)) ? " - " : "";
-			retval += landingPage;
-			retval += (!"".equals(title) || !"".equals(landingPage)) ? ". " : "";
-			retval += !"".equals(creator) ? creator + ". " : "";
-			retval += dataProvider;
-			retval += (!"".equals(dataProvider) && !"".equals(shownAt)) ? " - " : "";
-			retval += shownAt;
-			retval += (!"".equals(dataProvider) || !"".equals(shownAt)) ? ". " : "";
-			retval += !"".equals(rights) ? getRightsLabel(rights) + " - " + rights + "." : "";
-			return retval;
-		}
-	}
-
-	//	removes empty Strings from String arrays
-	private String[] stripEmptyStrings(String[] swissCheese){
-		List<String> solidCheese = new ArrayList<String>();
-		for (String cheeseOrHole : swissCheese){
-			if (!"".equals(cheeseOrHole)){
-				solidCheese.add(cheeseOrHole);
-			}
-		}
-		return solidCheese.toArray(new String[ solidCheese.size() ]);
-	}
-
-	//	removes "" and null elements from String Lists
-	private List stripEmptyStrings(List swissCheese){
-		swissCheese.removeAll(Arrays.asList("", null));
-		return swissCheese;
-	}
-
-	private String cleanUp(String input){
-		if (input.endsWith(".")){
-			return input.substring(0, input.length() - 1).trim();
-		} else {
-			return input.trim();
-		}
-	}
-
-	private String getRightsLabel(String rightsURL) {
-		String rightsLabel = "could not determine rights label";
-		String rightsPattern = "zero|mark|/by/|/by-sa/|/by-nd/|/by-nc/|/by-nc-sa/|/by-nc-nd/|orphan|rr-p|rr-f|out-of-copyright|unknown";
-		final Matcher m = Pattern.compile(rightsPattern).matcher(rightsURL);
-		if (m.find())
-			switch (m.group()) {
-				case "zero": rightsLabel = "Public Domain"; break;
-				case "mark": rightsLabel = "Public Domain"; break;
-				case "/by/": rightsLabel = "CC BY"; break;
-				case "/by-sa/": rightsLabel = "CC BY-SA"; break;
-				case "/by-nd/": rightsLabel = "CC BY-ND"; break;
-				case "/by-nc/": rightsLabel = "CC BY-NC"; break;
-				case "/by-nc-sa/": rightsLabel = "CC BY-NC-SA"; break;
-				case "/by-nc-nd/": rightsLabel = "CC BY-NC-ND"; break;
-				case "orphan": rightsLabel = "Orphan Work"; break;
-				case "rr-p": rightsLabel = "Rights Reserved - Paid Access"; break;
-				case "rr-f": rightsLabel = "Rights Reserved - Free Access"; break;
-				case "out-of-copyright": rightsLabel = "Out of copyright - non commercial re-use"; break;
-				case "unknown": rightsLabel = "Unknown"; break;
-			}
-		return rightsLabel;
-	}
-
-	private String spannify(String spanType, String spanning){
-		return "<span " + spanType + "=\"" + spanning + "\">";
 	}
 }

@@ -19,8 +19,8 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 
 @Controller
-@Api(value = "my_europeana", description = " ")
-@SwaggerSelect
+//@Api(value = "my_europeana", description = " ")
+//@SwaggerSelect
 public class MyDataProfileController extends AbstractUserController {
 
 	/**
