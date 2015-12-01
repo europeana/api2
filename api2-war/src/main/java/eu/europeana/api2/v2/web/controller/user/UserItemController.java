@@ -48,8 +48,8 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@SwaggerSelect
-@Api(value = "my_europeana", description = " ")
+//@SwaggerSelect
+//@Api(value = "my_europeana", description = " ")
 public class UserItemController extends AbstractUserController {
 
 	/**
