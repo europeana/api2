@@ -48,8 +48,8 @@ import eu.europeana.corelib.web.utils.UrlBuilder;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@Api(value = "my_europeana", description = " ")
-@SwaggerSelect
+//@Api(value = "my_europeana", description = " ")
+//@SwaggerSelect
 public class MyDataSearchController extends AbstractUserController {
 
 	/**
