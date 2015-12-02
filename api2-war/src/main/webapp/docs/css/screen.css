@@ -1,4 +1,5 @@
 /* Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiacs.Org> */
+/* Europeana style based on Europeana styleguides http://styleguide.europeana.eu/ */
 .swagger-section pre code {
   display: block;
   padding: 0.5em;
@@ -10,7 +11,7 @@
 .swagger-section pre .lisp .title,
 .swagger-section pre .clojure .built_in,
 .swagger-section pre .nginx .title {
-  color: black;
+  color: #4D4D4D;
 }
 .swagger-section pre .string,
 .swagger-section pre .title,
@@ -128,14 +129,14 @@
 
 .swagger-section .swagger-ui-wrap {
   line-height: 1;
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans", "Arial", sans-serif;
   max-width: 960px;
   margin-left: auto;
   margin-right: auto;
 }
 .swagger-section .swagger-ui-wrap b,
 .swagger-section .swagger-ui-wrap strong {
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans","Arial",sans-serif;
   font-weight: bold;
 }
 .swagger-section .swagger-ui-wrap q,
@@ -145,7 +146,7 @@
 .swagger-section .swagger-ui-wrap p {
   line-height: 1.4em;
   padding: 0 0 10px;
-  color: #333333;
+  color: #4D4D4D;
 }
 .swagger-section .swagger-ui-wrap q:before,
 .swagger-section .swagger-ui-wrap q:after,
@@ -219,7 +220,7 @@
 .swagger-section .swagger-ui-wrap h4 a:hover,
 .swagger-section .swagger-ui-wrap h5 a:hover,
 .swagger-section .swagger-ui-wrap h6 a:hover {
-  text-decoration: underline;
+  /*text-decoration: underline;*/
 }
 .swagger-section .swagger-ui-wrap h1 span.divider,
 .swagger-section .swagger-ui-wrap h2 span.divider,
@@ -230,7 +231,11 @@
   color: #aaaaaa;
 }
 .swagger-section .swagger-ui-wrap a {
-  color: #547f00;
+  color: #095F90;
+  text-decoration: none;
+}
+.swagger-section .swagger-ui-wrap a:hover{
+  text-decoration: 1px dotted #095F90;
 }
 .swagger-section .swagger-ui-wrap a img {
   border: none;
@@ -250,7 +255,7 @@
   display: block;
 }
 .swagger-section .swagger-ui-wrap pre {
-  font-family: "Anonymous Pro", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
   background-color: #fcf6db;
   border: 1px solid #e5e0c6;
   padding: 10px;
@@ -272,16 +277,23 @@
   margin-top: 5px;
   padding: 5px;
 }
+.swagger-section .swagger-ui-wrap input {
+    font: 12px/2 "Open Sans","Arial",sans-serif;
+}
 .swagger-section .swagger-ui-wrap .icon-btn {
   cursor: pointer;
 }
 .swagger-section .swagger-ui-wrap .info_title {
   padding-bottom: 10px;
   font-weight: bold;
-  font-size: 25px;
+  font-size: 1.375rem;
+  color: #4D4D4D;
 }
 .swagger-section .swagger-ui-wrap .footer {
   margin-top: 20px;
+}
+.swagger-section .swagger-ui-wrap .footer a:hover {
+  border: none;
 }
 .swagger-section .swagger-ui-wrap p.big,
 .swagger-section .swagger-ui-wrap div.big p {
@@ -339,7 +351,7 @@
   width: 100%;
 }
 .swagger-section .swagger-ui-wrap .model-signature {
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans","Arial",sans-serif;
   font-size: 1em;
   line-height: 1.5em;
 }
@@ -349,16 +361,16 @@
 }
 .swagger-section .swagger-ui-wrap .model-signature .signature-nav a:hover {
   text-decoration: underline;
-  color: black;
+  color: #4D4D4D;
 }
 .swagger-section .swagger-ui-wrap .model-signature .signature-nav .selected {
-  color: black;
+  color: #4D4D4D;
   text-decoration: none;
 }
 .swagger-section .swagger-ui-wrap .model-signature .propType {
   color: #5555aa;
 }
-.swagger-section .swagger-ui-wrap .model-signature pre:hover {
+.swagger-section .swagger-ui-wrap .model-signature pre {
   background-color: #ffffdd;
 }
 .swagger-section .swagger-ui-wrap .model-signature pre {
@@ -415,7 +427,7 @@
   font-size: 11px;
   max-width: 400px;
   line-height: 30px;
-  color: black;
+  color: #4D4D4D;
   padding: 5px;
   margin-left: 10px;
 }
@@ -456,9 +468,9 @@
 }
 .swagger-section .swagger-ui-wrap .markdown p code,
 .swagger-section .swagger-ui-wrap .markdown li code {
-  font-family: "Anonymous Pro", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
   background-color: #f0f0f0;
-  color: black;
+  color: #4D4D4D;
   padding: 1px 3px;
 }
 .swagger-section .swagger-ui-wrap .required {
@@ -469,11 +481,11 @@
   border: 1px solid #aaa;
 }
 .swagger-section .swagger-ui-wrap h1 {
-  color: black;
+  color: #4D4D4D;
   font-size: 1.5em;
   line-height: 1.3em;
   padding: 10px 0 10px 0;
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans","Arial",sans-serif;
   font-weight: bold;
 }
 .swagger-section .swagger-ui-wrap .heading_with_menu {
@@ -493,12 +505,12 @@
   margin-top: 10px;
 }
 .swagger-section .swagger-ui-wrap h2 {
-  color: black;
+  color: #1A1A1A;
   font-size: 1.3em;
   padding: 10px 0 10px 0;
 }
 .swagger-section .swagger-ui-wrap h2 a {
-  color: black;
+  color: #1A1A1A;
 }
 .swagger-section .swagger-ui-wrap h2 span.sub {
   font-size: 0.7em;
@@ -522,10 +534,10 @@
   vertical-align: middle;
 }
 .swagger-section .swagger-ui-wrap .code {
-  font-family: "Anonymous Pro", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
 }
 .swagger-section .swagger-ui-wrap form.formtastic fieldset.inputs ol li.text textarea {
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans","Arial",sans-serif;
   height: 250px;
   padding: 4px;
   display: block;
@@ -555,7 +567,7 @@
   margin: 0 5px 0 0;
 }
 .swagger-section .swagger-ui-wrap form.formtastic fieldset.inputs ol li.required label {
-  color: black;
+  color: #4D4D4D;
 }
 .swagger-section .swagger-ui-wrap form.formtastic fieldset.inputs ol li label {
   display: block;
@@ -590,7 +602,7 @@
   color: #666666;
 }
 .swagger-section .swagger-ui-wrap .markdown pre {
-  font-family: "Anonymous Pro", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
   background-color: #fcf6db;
   border: 1px solid #e5e0c6;
   padding: 10px;
@@ -603,7 +615,7 @@
   margin: 20px 0 25px 0 !important;
 }
 .swagger-section .swagger-ui-wrap ul#resources {
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans","Arial",sans-serif;
   font-size: 0.9em;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource {
@@ -611,7 +623,7 @@
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource:hover div.heading h2 a,
 .swagger-section .swagger-ui-wrap ul#resources li.resource.active div.heading h2 a {
-  color: black;
+  color: #4D4D4D;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource:hover div.heading ul.options li a,
 .swagger-section .swagger-ui-wrap ul#resources li.resource.active div.heading ul.options li a {
@@ -649,13 +661,13 @@
   text-decoration: none;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource div.heading ul.options li a:hover {
-  text-decoration: underline;
-  color: black;
+  /*text-decoration: underline;*/
+  color: #1A1A1A;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource div.heading ul.options li a:hover,
 .swagger-section .swagger-ui-wrap ul#resources li.resource div.heading ul.options li a:active,
 .swagger-section .swagger-ui-wrap ul#resources li.resource div.heading ul.options li a.active {
-  text-decoration: underline;
+  /*text-decoration: underline;*/
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource div.heading ul.options li:first-child,
 .swagger-section .swagger-ui-wrap ul#resources li.resource div.heading ul.options li.first {
@@ -671,19 +683,19 @@
   padding-left: 0;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource div.heading h2 {
-  color: #999999;
+  color: #A6A6A6;
   padding-left: 0;
   display: block;
   clear: none;
   float: left;
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans", "Arial", sans-serif;
   font-weight: bold;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource div.heading h2 a {
-  color: #999999;
+  color: #A6A6A6;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource div.heading h2 a:hover {
-  color: black;
+  color: #1A1A1A;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation {
   float: none;
@@ -709,17 +721,18 @@
   margin: 0;
   padding: 0;
   line-height: 1.1em;
-  color: black;
+  color: #4D4D4D;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation div.heading h3 span.path {
   padding-left: 10px;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation div.heading h3 span.path a {
-  color: black;
+  color: #4D4D4D;
   text-decoration: none;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation div.heading h3 span.path a:hover {
-  text-decoration: underline;
+  /*text-decoration: underline;*/
+  border-color: inherit;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation div.heading h3 span.http_method a {
   text-transform: uppercase;
@@ -760,12 +773,12 @@
   text-decoration: none;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation div.heading ul.options li.access {
-  color: black;
+  color: #4D4D4D;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation div.content {
   border-top: none;
   padding: 10px;
-  -moz-border-radius-bottomleft: 6px;
+  /*-moz-border-radius-bottomleft: 6px;
   -webkit-border-bottom-left-radius: 6px;
   -o-border-bottom-left-radius: 6px;
   -ms-border-bottom-left-radius: 6px;
@@ -776,7 +789,7 @@
   -o-border-bottom-right-radius: 6px;
   -ms-border-bottom-right-radius: 6px;
   -khtml-border-bottom-right-radius: 6px;
-  border-bottom-right-radius: 6px;
+  border-bottom-right-radius: 6px;*/
   margin: 0 0 20px;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation div.content h4 {
@@ -817,7 +830,7 @@
   max-width: 300px;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation div.content div.response div.block pre {
-  font-family: "Anonymous Pro", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+  font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
   padding: 10px;
   font-size: 0.9em;
   max-height: 400px;
@@ -825,7 +838,7 @@
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.put div.heading {
   background-color: #f9f2e9;
-  border: 1px solid #f0e0ca;
+  /*border: 1px solid #f0e0ca;*/
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.put div.heading h3 span.http_method a {
   background-color: #c5862b;
@@ -878,7 +891,7 @@
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.delete div.heading {
   background-color: #f5e8e8;
-  border: 1px solid #e8c6c7;
+  /*border: 1px solid #e8c6c7;*/
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.delete div.heading h3 span.http_method a {
   text-transform: uppercase;
@@ -904,7 +917,7 @@
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.post div.heading {
   background-color: #e7f6ec;
-  border: 1px solid #c3e8d1;
+  /*border: 1px solid #c3e8d1;*/
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.post div.heading h3 span.http_method a {
   background-color: #10a54a;
@@ -954,10 +967,10 @@
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.get div.heading {
   background-color: #e7f0f7;
-  border: 1px solid #c3d9ec;
+  /*border: 1px solid #c3d9ec;*/
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.get div.heading h3 span.http_method a {
-  background-color: #0f6ab4;
+  background-color: #095F90;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.get div.heading ul.options li {
   border-right: 1px solid #dddddd;
@@ -965,7 +978,7 @@
   color: #0f6ab4;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.get div.heading ul.options li a {
-  color: #0f6ab4;
+  color: #1A8AC7;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.get div.content {
   background-color: #ebf3f9;
@@ -1002,13 +1015,16 @@
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.options div.content div.sandbox_header a {
   color: #6fa5d2;
 }
+.swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations div.heading h3 span.http_method a:hover{
+  border: none;
+}
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.get div.content,
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.post div.content,
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.head div.content,
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.put div.content,
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.patch div.content,
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.delete div.content {
-  border-top: none;
+  border: none;
 }
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.get div.heading ul.options li:last-child,
 .swagger-section .swagger-ui-wrap ul#resources li.resource ul.endpoints li.endpoint ul.operations li.operation.post div.heading ul.options li:last-child,
@@ -1043,7 +1059,7 @@
   padding: 10px 0;
   font-size: 0.8em;
   border-top: 1px solid #dddddd;
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans", "Arial", sans-serif;
   color: #999999;
   font-style: italic;
 }
@@ -1052,13 +1068,13 @@
   color: #547f00;
 }
 .swagger-section .swagger-ui-wrap h3 {
-  color: black;
+  color: #4D4D4D;
   font-size: 1.1em;
   padding: 10px 0 10px 0;
 }
 .swagger-section .swagger-ui-wrap .markdown ol,
 .swagger-section .swagger-ui-wrap .markdown ul {
-  font-family: "Droid Sans", sans-serif;
+  font-family: "Open Sans", "Arial", sans-serif;
   margin: 5px 0 10px;
   padding: 0 0 0 18px;
   list-style-type: disc;
@@ -1087,7 +1103,7 @@
   color: #646257;
 }
 .swagger-section .swagger-ui-wrap form.form_box p strong {
-  color: black;
+  color: #4D4D4D;
 }
 .swagger-section .swagger-ui-wrap .operation-status td.markdown > p:last-child {
   padding-bottom: 0;
@@ -1181,7 +1197,7 @@
   font-size: 13px;
   max-width: 300px;
   line-height: 30px;
-  color: black;
+  color: #4D4D4D;
   padding: 5px;
 }
 .swagger-section .api-ic .api_information_panel p .api-msg-enabled {
@@ -1227,6 +1243,7 @@
 .swagger-section #header {
   background-color: #89bf04;
   padding: 14px;
+  display: none;
 }
 .swagger-section #header a#logo {
   font-size: 1.5em;
@@ -1285,4 +1302,5 @@
   min-height: 30px;
   text-align: center;
   padding-top: 10px;
+  display: none;
 }
