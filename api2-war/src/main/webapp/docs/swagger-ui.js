@@ -31146,6 +31146,7 @@ SwaggerUi.Views.HeaderView = Backbone.View.extend({
 SwaggerUi.Views.MainView = Backbone.View.extend({
   apisSorter : {
     alpha   : function(a,b){ return a.name.localeCompare(b.name); }
+    zalpha  : function(b,a){ return a.name.localeCompare(b.name); }
   },
   operationsSorters : {
     alpha   : function(a,b){ return a.path.localeCompare(b.path); },
