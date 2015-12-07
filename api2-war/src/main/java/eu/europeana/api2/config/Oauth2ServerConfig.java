@@ -46,12 +46,15 @@ public class OAuth2ServerConfig {
         public void configure(HttpSecurity http) throws Exception {
             // @formatter:off
 			http
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-			.and()
-				.requestMatchers().antMatchers("/user/**", "/oauth/users/**", "/oauth/clients/**")
-			.and()
+				.sessionManagement()
+                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+			        .and()
+				.requestMatchers()
+                    .antMatchers("/user/**", "/oauth/users/**", "/oauth/clients/**")
+			        .and()
 				.authorizeRequests()
 					.antMatchers(HttpMethod.GET, "/user/**").access("#oauth2.hasScope('read')")
+					.antMatchers(HttpMethod.GET, "/user/authorize/**").permitAll()
 					.antMatchers(HttpMethod.POST, "/user/**").access("#oauth2.hasScope('write')")
 					.antMatchers(HttpMethod.PUT, "/user/**").access("#oauth2.hasScope('write')")
 					.antMatchers(HttpMethod.DELETE, "/user/**").access("#oauth2.hasScope('write')")
@@ -61,7 +64,16 @@ public class OAuth2ServerConfig {
 					.regexMatchers(HttpMethod.GET, "/oauth/clients/([^/].*?)/users/.*")
 						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('read')")
 					.regexMatchers(HttpMethod.GET, "/oauth/clients/.*")
-						.access("#oauth2.clientHasRole('ROLE_CLIENT') and #oauth2.isClient() and #oauth2.hasScope('read')");
+						.access("#oauth2.clientHasRole('ROLE_CLIENT') and #oauth2.isClient() and #oauth2.hasScope('read')")
+                    .and()
+                .formLogin()
+                    .loginProcessingUrl("/login")
+                    .loginPage("/login/user")
+                    .and()
+                .logout()
+                    .logoutSuccessUrl("/")
+                    .logoutUrl("/logout")
+            ;
 			// @formatter:on
         }
     }

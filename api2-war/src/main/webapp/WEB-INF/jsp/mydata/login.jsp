@@ -51,7 +51,7 @@
 			<li><strong>j_password</strong>: containing your private key</li>
 		</p>
 		<form id="loginForm" name="loginForm"
-			action="<c:url value="/login.do"/>" method="post">
+			action="<c:url value="/login"/>" method="post">
 			<p>
 				<label>Public api key: <input type='text' name='j_username'/></label>
 			</p>

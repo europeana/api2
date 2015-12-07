@@ -48,7 +48,7 @@
 
 			<p>You hereby authorize "<c:out value="${appName}" />" to access your:</p>
 			<ul>
-				<li>MyEuropeana profile data (excluding password and API keys)</li>
+				<li>MyEuropeana profile data</li>
 				<li>Saved items</li>
 				<li>Tags</li>
 				<li>Saved searches</li>

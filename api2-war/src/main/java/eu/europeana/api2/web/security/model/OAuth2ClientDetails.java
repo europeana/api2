@@ -46,17 +46,7 @@ public class OAuth2ClientDetails extends BaseClientDetails {
         super();
         setClientId(apiKey.getId());
         setClientSecret(apiKey.getPrivateKey());
-        String roles;
-        switch (apiKey.getLevel()) {
-            case TRUSTED:
-                roles = "ROLE_CLIENT,ROLE_TRUSTED_CLIENT";
-                break;
-            default:
-                roles = "ROLE_CLIENT";
-                break;
-        }
-        setAuthorities(AuthorityUtils
-                .commaSeparatedStringToAuthorityList(roles));
+        setAuthorities(AuthorityUtils.commaSeparatedStringToAuthorityList(apiKey.getLevel().getRoles()));
     }
 
     @Override

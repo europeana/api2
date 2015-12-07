@@ -64,18 +64,12 @@ public class AccessConfirmationController {
         return "oauth_error";
     }
 
-    //
-    // @RequestMapping("/login")
-    // public String loginForm() {
-    // return "user/login";
-    // }
-
-    @RequestMapping(value = "/login", params = "form=user")
+    @RequestMapping(value = "/login/user")
     public String loginUserForm() {
         return "user/login";
     }
 
-    @RequestMapping(value = "/login", params = "form=myData")
+    @RequestMapping(value = "/login/api")
     public String loginMyDataForm() {
         return "mydata/login";
     }
