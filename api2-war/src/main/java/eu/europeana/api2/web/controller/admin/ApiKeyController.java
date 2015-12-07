@@ -19,15 +19,13 @@ package eu.europeana.api2.web.controller.admin;
 
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
+import eu.europeana.api2.model.request.ApiKeyRegistration;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
-import eu.europeana.api2.model.request.ApiKeyRegistration;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
-import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.web.exception.EmailServiceException;
-import eu.europeana.corelib.web.service.EmailService;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +33,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.security.Principal;
-import java.util.Locale;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -49,9 +46,6 @@ public class ApiKeyController {
 
     @Resource
     private ApiKeyService apiKeyService;
-
-    @Resource
-    private EmailService emailService;
 
     @RequestMapping(
             method = {RequestMethod.GET},
@@ -80,11 +74,12 @@ public class ApiKeyController {
     )
     public ModelAndView createApiKey(
             @RequestBody ApiKeyRegistration registration,
-            @RequestParam(value = "callback", required = false) String callback
+            @RequestParam(value = "callback", required = false) String callback,
+            Principal principal
     ) {
-        ModificationConfirmation response = new ModificationConfirmation("?");
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName());
         try {
-            ApiKey apiKey = apiKeyService.createApiKey(
+            apiKeyService.createApiKey(
                     registration.getEmail(),
                     DEFAULT_USAGE_LIMIT,
                     registration.getApplication(),
@@ -94,7 +89,6 @@ public class ApiKeyController {
                     registration.getWebsite(),
                     registration.getDescription()
             );
-            emailService.sendRegisterApiNotifyUser(apiKey, Locale.ENGLISH);
             response.success = true;
         } catch (DatabaseException | EmailServiceException e) {
             response.success = false;

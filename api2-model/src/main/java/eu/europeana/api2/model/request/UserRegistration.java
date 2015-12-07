@@ -2,8 +2,6 @@ package eu.europeana.api2.model.request;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import java.util.Date;
-
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
@@ -12,13 +10,9 @@ public class UserRegistration {
 
     private String email;
 
-    private String userName;
+    private String username;
 
     private String password;
-
-    private Date registrationDate;
-
-    private Date lastLogin;
 
     private String firstName;
 
@@ -60,10 +54,6 @@ public class UserRegistration {
         return firstName;
     }
 
-    public Date getLastLogin() {
-        return lastLogin;
-    }
-
     public String getLastName() {
         return lastName;
     }
@@ -76,12 +66,8 @@ public class UserRegistration {
         return phone;
     }
 
-    public Date getRegistrationDate() {
-        return registrationDate;
-    }
-
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
     public String getWebsite() {

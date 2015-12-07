@@ -47,7 +47,7 @@
 
 		<p>Use your <strong>MyEuropeana account</strong> to login here!</p>
 		<form id="loginForm" name="loginForm"
-			action="<c:url value="login.do"/>" method="post">
+			action="<c:url value="/login"/>" method="post">
 			<p>
 				<label>E-mail: <input type='text' name='j_username'/></label>
 			</p>

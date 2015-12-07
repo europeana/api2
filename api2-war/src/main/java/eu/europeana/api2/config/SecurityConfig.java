@@ -5,7 +5,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -15,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.annotation.Resource;
+
+import static eu.europeana.corelib.db.util.UserUtils.getPasswordEncoder;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -28,12 +29,11 @@ public class SecurityConfig {
     private UserDetailsService userDetailsService;
 
 
-
     @Resource
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth
                 .userDetailsService(userDetailsService)
-                .passwordEncoder(new ShaPasswordEncoder());
+                .passwordEncoder(getPasswordEncoder());
     }
 
     @Configuration
@@ -50,11 +50,9 @@ public class SecurityConfig {
         public void configure(WebSecurity web) throws Exception {
             web.ignoring().antMatchers(
                     "/image*",
-                    "/v2/suggestions.json",
+                    "/v2/**",
                     "/opensearch.rss",
                     "/opensearch.json",
-                    "/v2/search.*",
-                    "/v2/record/**",
                     "/oauth/uncache_approvals",
                     "/oauth/cache_approvals"
             );
@@ -65,24 +63,25 @@ public class SecurityConfig {
         protected void configure(HttpSecurity http) throws Exception {
             // @formatter:off
             http
-//                    .antMatcher("/**")
                 .authorizeRequests()
-                    .antMatchers("/login*").permitAll()
-                    .antMatchers("/mydata", "/mydata/**").hasAnyRole("CLIENT", "TRUSTED_CLIENT")
-                    .antMatchers("/admin", "/admin/**").hasRole("TRUSTED_CLIENT")
+                    .antMatchers("/login/**").permitAll()
+                    .antMatchers("/mydata", "/mydata/**").hasAnyRole("CLIENT", "ADMIN_CLIENT")
+                    .antMatchers("/admin", "/admin/**").hasRole("ADMIN_CLIENT")
                     .and()
                 .csrf()
                     .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/authorize"))
                     .disable()
                 .httpBasic()
                     .realmName("Europeana API2")
-//                    .formLogin()
-//                    .loginProcessingUrl("/login.do")
-//                    .loginPage("/login?form=myData")
                     .and()
+//                .formLogin()
+//                    .loginProcessingUrl("/login")
+//                    .loginPage("/login/api")
+//                    .and()
                 .logout()
                     .logoutSuccessUrl("/")
-                    .logoutUrl("/logout.do");
+                    .logoutUrl("/logout")
+            ;
             // @formatter:on
         }
     }

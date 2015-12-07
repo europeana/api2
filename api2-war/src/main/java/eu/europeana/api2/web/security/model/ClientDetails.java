@@ -18,13 +18,18 @@
 package eu.europeana.api2.web.security.model;
 
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
+import eu.europeana.corelib.definitions.db.entity.relational.enums.ApiClientLevel;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+
+import static eu.europeana.corelib.db.util.UserUtils.hashPassword;
+import static eu.europeana.corelib.definitions.db.entity.relational.enums.ApiClientLevel.ADMIN;
+import static eu.europeana.corelib.definitions.db.entity.relational.enums.ApiClientLevel.CLIENT;
 
 public class ClientDetails implements UserDetails {
     private static final long serialVersionUID = -925096405395777537L;
@@ -37,17 +42,7 @@ public class ClientDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String roles;
-        switch (apiKey.getLevel()) {
-            case TRUSTED:
-                roles = "ROLE_CLIENT,ROLE_TRUSTED_CLIENT";
-                break;
-            default:
-                roles = "ROLE_CLIENT";
-                break;
-        }
-        return AuthorityUtils
-                .commaSeparatedStringToAuthorityList(roles);
+        return AuthorityUtils.commaSeparatedStringToAuthorityList(apiKey.getLevel().getRoles());
     }
 
     @Override
@@ -78,19 +73,6 @@ public class ClientDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    /**
-     * Hashing password using ShaPasswordEncoder.
-     *
-     * @param password The password in initial form.
-     * @return Hashed password as to be stored in database
-     */
-    private String hashPassword(String password) {
-        if (StringUtils.isNotBlank(password)) {
-            return new ShaPasswordEncoder().encodePassword(password, null);
-        }
-        return null;
     }
 
 }

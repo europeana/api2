@@ -66,7 +66,7 @@ public class Api2UserDetails implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return true;
+		return user.getActivationDate() != null;
 	}
 
 }
