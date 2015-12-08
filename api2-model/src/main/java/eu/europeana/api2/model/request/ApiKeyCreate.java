@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
-public class ApiKeyRegistration {
+public class ApiKeyCreate {
 
     private String privateKey;
 

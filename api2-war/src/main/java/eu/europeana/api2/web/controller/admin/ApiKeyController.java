@@ -17,19 +17,19 @@
 
 package eu.europeana.api2.web.controller.admin;
 
+import eu.europeana.api2.model.admin.ApiKeyResponse;
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
-import eu.europeana.api2.model.request.ApiKeyRegistration;
-import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.model.request.ApiKeyCreate;
+import eu.europeana.api2.model.request.ApiKeyUpdate;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
+import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.web.exception.EmailServiceException;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.security.Principal;
@@ -37,7 +37,7 @@ import java.security.Principal;
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
-@Controller
+@RestController
 @RequestMapping("/admin/apikey")
 @SwaggerIgnore
 public class ApiKeyController {
@@ -51,19 +51,24 @@ public class ApiKeyController {
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    @ResponseBody
     public ApiResponse findAll(Principal principal) {
         return new ApiNotImplementedYet(principal.getName());
     }
 
-    @RequestMapping(value = "/admin/apikey/{apikey}",
+    @RequestMapping(value = "/{apikey}",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
     public ApiResponse find(
             @PathVariable String apikey,
             Principal principal
     ) {
+        ApiResponse apiResponse = new ApiKeyResponse();
+        try {
+            ApiKey apiKey = apiKeyService.findByID(apikey);
+            // TODO Add to result
+        } catch (DatabaseException e) {
+            e.printStackTrace();
+        }
         return new ApiNotImplementedYet(principal.getName());
     }
 
@@ -72,29 +77,100 @@ public class ApiKeyController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ModelAndView createApiKey(
-            @RequestBody ApiKeyRegistration registration,
-            @RequestParam(value = "callback", required = false) String callback,
+    public ApiResponse createApiKey(
+            @RequestBody ApiKeyCreate create,
             Principal principal
     ) {
         ModificationConfirmation response = new ModificationConfirmation(principal.getName());
         try {
             apiKeyService.createApiKey(
-                    registration.getEmail(),
+                    create.getEmail(),
                     DEFAULT_USAGE_LIMIT,
-                    registration.getApplication(),
-                    registration.getCompany(),
-                    registration.getFirstName(),
-                    registration.getLastName(),
-                    registration.getWebsite(),
-                    registration.getDescription()
+                    create.getApplication(),
+                    create.getCompany(),
+                    create.getFirstName(),
+                    create.getLastName(),
+                    create.getWebsite(),
+                    create.getDescription()
             );
             response.success = true;
         } catch (DatabaseException | EmailServiceException e) {
             response.success = false;
             response.error = e.getMessage();
         }
-        return JsonUtils.toJson(response, callback);
+        return response;
+    }
+
+    @RequestMapping(
+            value = "/{apiKey}",
+            method = {RequestMethod.PUT},
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ApiResponse updateApiKey(
+            @PathVariable String apiKey,
+            @RequestBody ApiKeyUpdate update,
+            Principal principal
+    ) {
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName());
+        try {
+            apiKeyService.updateApiKey(
+                    apiKey,
+                    update.getEmail(),
+                    update.getUsageLimit() != null ? update.getUsageLimit() : DEFAULT_USAGE_LIMIT,
+                    update.getApplication(),
+                    update.getCompany(),
+                    update.getFirstName(),
+                    update.getLastName(),
+                    update.getWebsite(),
+                    update.getDescription()
+            );
+            response.success = true;
+        } catch (DatabaseException e) {
+            response.success = false;
+            response.error = e.getMessage();
+        }
+        return response;
+    }
+
+    @RequestMapping(
+            value = "/{apiKey}/limit/{limit}",
+            method = {RequestMethod.PUT},
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ApiResponse updateApiKeyUsageLimit(
+            @PathVariable String apiKey,
+            @PathVariable long limit,
+            Principal principal
+    ) {
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName());
+        try {
+            apiKeyService.changeLimit(apiKey, limit);
+            response.success = true;
+        } catch (DatabaseException e) {
+            response.success = false;
+            response.error = e.getMessage();
+        }
+        return response;
+    }
+
+    @RequestMapping(
+            value = "/{apiKey}",
+            method = {RequestMethod.DELETE},
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ApiResponse deleteApiKey(
+            @PathVariable String apiKey,
+            Principal principal
+    ) {
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName());
+        try {
+            apiKeyService.removeApiKey(apiKey);
+        } catch (DatabaseException e) {
+            response.success = false;
+            response.error = e.getMessage();
+        }
+        return response;
     }
 
 }

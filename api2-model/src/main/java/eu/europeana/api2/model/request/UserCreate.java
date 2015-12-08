@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
-public class UserRegistration {
+public class UserCreate {
 
     private String email;
 
