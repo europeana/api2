@@ -17,11 +17,12 @@
 
 package eu.europeana.api2.web.controller.admin;
 
-import eu.europeana.api2.model.admin.ApiKeyResponse;
+import eu.europeana.api2.model.entity.ApiKeyEntity;
+import eu.europeana.api2.model.response.admin.ApiKeyResponse;
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
-import eu.europeana.api2.model.request.ApiKeyCreate;
-import eu.europeana.api2.model.request.ApiKeyUpdate;
+import eu.europeana.api2.model.request.admin.ApiKeyCreate;
+import eu.europeana.api2.model.request.admin.ApiKeyUpdate;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.exception.DatabaseException;
@@ -40,7 +41,7 @@ import java.security.Principal;
 @RestController
 @RequestMapping("/admin/apikey")
 @SwaggerIgnore
-public class ApiKeyController {
+public class ApiKeyAdminController {
 
     private static final long DEFAULT_USAGE_LIMIT = 10000;
 
@@ -62,14 +63,17 @@ public class ApiKeyController {
             @PathVariable String apikey,
             Principal principal
     ) {
-        ApiResponse apiResponse = new ApiKeyResponse();
+        ApiKeyResponse response = new ApiKeyResponse(principal.getName());
         try {
             ApiKey apiKey = apiKeyService.findByID(apikey);
-            // TODO Add to result
+            if (apiKey != null) {
+                response.getApiKeys().add(toEntity(apiKey));
+            }
         } catch (DatabaseException e) {
-            e.printStackTrace();
+            response.success = false;
+            response.error = e.getMessage();
         }
-        return new ApiNotImplementedYet(principal.getName());
+        return response;
     }
 
     @RequestMapping(
@@ -117,7 +121,7 @@ public class ApiKeyController {
             apiKeyService.updateApiKey(
                     apiKey,
                     update.getEmail(),
-                    update.getUsageLimit() != null ? update.getUsageLimit() : DEFAULT_USAGE_LIMIT,
+                    update.getUsageLimit(),
                     update.getApplication(),
                     update.getCompany(),
                     update.getFirstName(),
@@ -171,6 +175,24 @@ public class ApiKeyController {
             response.error = e.getMessage();
         }
         return response;
+    }
+
+    private ApiKeyEntity toEntity(ApiKey apiKey) {
+        if (apiKey != null) {
+            ApiKeyEntity entity = new ApiKeyEntity();
+            entity.setPublicKey(apiKey.getId());
+            entity.setPrivateKey(apiKey.getPrivateKey());
+            entity.setApplication(apiKey.getApplicationName());
+            entity.setCompany(apiKey.getCompany());
+            entity.setDescription(apiKey.getDescription());
+            entity.setEmail(apiKey.getEmail());
+            entity.setFirstName(apiKey.getFirstName());
+            entity.setLastName(apiKey.getLastName());
+            entity.setWebsite(apiKey.getWebsite());
+            entity.setUsageLimit(apiKey.getUsageLimit());
+            return entity;
+        }
+        return null;
     }
 
 }

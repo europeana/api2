@@ -16,19 +16,19 @@
  */
 package eu.europeana.api2.v2.model.json.sugarcrm;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.api2.v2.model.json.abstracts.AbstractSearchResults;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Georgios Markakis (gwarkx@hotmail.com)
- *
  * @since Sep 24, 2013
- */ 
-@JsonSerialize(include = Inclusion.NON_EMPTY)
-public class SugarCRMSearchResults<T> extends AbstractSearchResults<T>{
+ */
+@JsonInclude(NON_EMPTY)
+public class SugarCRMSearchResults<T> extends AbstractSearchResults<T> {
 
-	public SugarCRMSearchResults(String apikey) {
-		super(apikey);
-	}
+    public SugarCRMSearchResults(String apikey) {
+        super(apikey);
+    }
 }

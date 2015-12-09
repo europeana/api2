@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.v2.model.json.view;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.api2.model.enums.Profile;
 import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -26,12 +27,15 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+
+@JsonInclude(NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
     protected EuropeanaUrlService urlService;

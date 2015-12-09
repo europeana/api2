@@ -17,69 +17,69 @@
 
 package eu.europeana.api2.v2.model.json.abstracts;
 
-import java.util.Date;
-
-import org.apache.commons.lang.StringUtils;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.Date;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public abstract class UserObject {
 
-	public Long id;
-	
-	public String europeanaId;
+    public Long id;
 
-	public String guid;
+    public String europeanaId;
 
-	public String link;
-	
-	public String title;
+    public String guid;
 
-	public String edmPreview;
+    public String link;
 
-	public DocType type = DocType.IMAGE;
+    public String title;
 
-	public Date dateSaved;
+    public String edmPreview;
 
-	public Long getId() {
-		return id;
-	}
-	
-	public String getEuropeanaId() {
-		return europeanaId;
-	}
-	
-	public String getGuid() {
-		return guid;
-	}
-	
-	public String getLink() {
-		return link;
-	}
+    public DocType type = DocType.IMAGE;
 
-	public String getTitle() {
-		return title;
-	}
+    public Date dateSaved;
 
-	public String getEdmPreview() {
-		if (StringUtils.isNotBlank(edmPreview)) {
-			return EuropeanaUrlServiceImpl.getBeanInstance().getThumbnailUrl(edmPreview, type).toString();
-		}
-		return null;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public DocType getType() {
-		return type;
-	}
+    public String getEuropeanaId() {
+        return europeanaId;
+    }
 
-	public Date getDateSaved() {
-		return dateSaved;
-	}
+    public String getGuid() {
+        return guid;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getEdmPreview() {
+        if (StringUtils.isNotBlank(edmPreview)) {
+            return EuropeanaUrlServiceImpl.getBeanInstance().getThumbnailUrl(edmPreview, type).toString();
+        }
+        return null;
+    }
+
+    public DocType getType() {
+        return type;
+    }
+
+    public Date getDateSaved() {
+        return dateSaved;
+    }
 }

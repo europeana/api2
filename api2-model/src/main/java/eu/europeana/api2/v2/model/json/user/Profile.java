@@ -17,130 +17,130 @@
 
 package eu.europeana.api2.v2.model.json.user;
 
-import java.util.Date;
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+import java.util.Date;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+
+@JsonInclude(NON_EMPTY)
 public class Profile extends ApiResponse {
-	
-	public String email;
 
-	public String userName;
+    public String email;
 
-	public Date registrationDate;
+    public String userName;
 
-	public Date lastLogin;
+    public Date registrationDate;
 
-	public String firstName;
+    public Date lastLogin;
 
-	public String lastName;
+    public String firstName;
 
-	public String company;
+    public String lastName;
 
-	public String country;
+    public String company;
 
-	public String phone;
+    public String country;
 
-	public String address;
+    public String phone;
 
-	public String website;
+    public String address;
 
-	public String fieldOfWork;
-	
-	public int nrOfSavedItems;
-	
-	public int nrOfSavedSearches;
-	
-	public int nrOfSocialTags;
-	
-	public Profile() {
-	}
-	
-	public Profile(String apiKey) {
-		super(apiKey);
-	}
+    public String website;
 
-	public void copyDetails(User user) {
-		email = user.getEmail();
-		userName = user.getUserName();
-		registrationDate = user.getRegistrationDate();
-		lastLogin = user.getLastLogin();
-		firstName = user.getFirstName();
-		lastName = user.getLastName();
-		company = user.getCompany();
-		country = user.getCountry();
-		phone = user.getPhone();
-		address = user.getAddress();
-		website = user.getWebsite();
-		fieldOfWork = user.getFieldOfWork();
-		nrOfSavedItems = user.getSavedItems().size();
-		nrOfSavedSearches = user.getSavedSearches().size();
-		nrOfSocialTags = user.getSocialTags().size();
-	}
+    public String fieldOfWork;
 
-	public String getEmail() {
-		return email;
-	}
+    public int nrOfSavedItems;
 
-	public String getUserName() {
-		return userName;
-	}
+    public int nrOfSavedSearches;
 
-	public Date getRegistrationDate() {
-		return registrationDate;
-	}
+    public int nrOfSocialTags;
 
-	public Date getLastLogin() {
-		return lastLogin;
-	}
+    public Profile() {
+    }
 
-	public String getFirstName() {
-		return firstName;
-	}
+    public Profile(String apiKey) {
+        super(apiKey);
+    }
 
-	public String getLastName() {
-		return lastName;
-	}
+    public void copyDetails(User user) {
+        email = user.getEmail();
+        userName = user.getUserName();
+        registrationDate = user.getRegistrationDate();
+        lastLogin = user.getLastLogin();
+        firstName = user.getFirstName();
+        lastName = user.getLastName();
+        company = user.getCompany();
+        country = user.getCountry();
+        phone = user.getPhone();
+        address = user.getAddress();
+        website = user.getWebsite();
+        fieldOfWork = user.getFieldOfWork();
+        nrOfSavedItems = user.getSavedItems().size();
+        nrOfSavedSearches = user.getSavedSearches().size();
+        nrOfSocialTags = user.getSocialTags().size();
+    }
 
-	public String getCompany() {
-		return company;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public String getCountry() {
-		return country;
-	}
+    public String getUserName() {
+        return userName;
+    }
 
-	public String getPhone() {
-		return phone;
-	}
+    public Date getRegistrationDate() {
+        return registrationDate;
+    }
 
-	public String getAddress() {
-		return address;
-	}
+    public Date getLastLogin() {
+        return lastLogin;
+    }
 
-	public String getWebsite() {
-		return website;
-	}
+    public String getFirstName() {
+        return firstName;
+    }
 
-	public String getFieldOfWork() {
-		return fieldOfWork;
-	}
+    public String getLastName() {
+        return lastName;
+    }
 
-	public int getNrOfSavedItems() {
-		return nrOfSavedItems;
-	}
+    public String getCompany() {
+        return company;
+    }
 
-	public int getNrOfSavedSearches() {
-		return nrOfSavedSearches;
-	}
+    public String getCountry() {
+        return country;
+    }
 
-	public int getNrOfSocialTags() {
-		return nrOfSocialTags;
-	}
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public String getFieldOfWork() {
+        return fieldOfWork;
+    }
+
+    public int getNrOfSavedItems() {
+        return nrOfSavedItems;
+    }
+
+    public int getNrOfSavedSearches() {
+        return nrOfSavedSearches;
+    }
+
+    public int getNrOfSocialTags() {
+        return nrOfSocialTags;
+    }
 
 }

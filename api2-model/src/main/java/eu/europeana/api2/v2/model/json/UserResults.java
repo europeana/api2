@@ -17,29 +17,29 @@
 
 package eu.europeana.api2.v2.model.json;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.api2.v2.model.json.abstracts.AbstractSearchResults;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public class UserResults<T> extends AbstractSearchResults<T> {
 
-	public String username;
+    public String username;
 
-	public UserResults() {
-		// used by Jackson
-		super();
-	}
+    public UserResults() {
+        // used by Jackson
+        super();
+    }
 
-	public UserResults(String apikey) {
-		super(apikey);
-	}
+    public UserResults(String apikey) {
+        super(apikey);
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public String getUsername() {
+        return username;
+    }
 }

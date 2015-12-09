@@ -17,38 +17,39 @@
 
 package eu.europeana.api2.v2.model.json.user;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.Date;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public class Search {
 
-	public Long id;
+    public Long id;
 
-	public String query;
+    public String query;
 
-	public String queryString;
+    public String queryString;
 
-	public Date dateSaved;
+    public Date dateSaved;
 
-	public Long getId() {
-		return id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getQuery() {
-		return query;
-	}
+    public String getQuery() {
+        return query;
+    }
 
-	public String getQueryString() {
-		return "query="+queryString;
-	}
+    public String getQueryString() {
+        return "query=" + queryString;
+    }
 
-	public Date getDateSaved() {
-		return dateSaved;
-	}
+    public Date getDateSaved() {
+        return dateSaved;
+    }
 }
