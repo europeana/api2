@@ -1,7 +1,7 @@
 package eu.europeana.api2.web.controller.admin;
 
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
-import eu.europeana.api2.model.request.UserCreate;
+import eu.europeana.api2.model.request.admin.UserCreate;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.exception.DatabaseException;

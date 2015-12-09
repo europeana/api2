@@ -18,15 +18,13 @@
 package eu.europeana.api2.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jsonldjava.utils.JSONUtils;
 import eu.europeana.corelib.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,12 +52,8 @@ public class JsonUtils {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         try {
             return toJson(objectMapper.writeValueAsString(object), callback);
-        } catch (JsonGenerationException e) {
+        } catch (JsonProcessingException e) {
             log.error("Json Generation Exception: " + e.getMessage(), e);
-        } catch (JsonMappingException e) {
-            log.error("Json Mapping Exception: " + e.getMessage(), e);
-        } catch (IOException e) {
-            log.error("I/O Exception: " + e.getMessage(), e);
         }
         // TODO report error...
         String resultPage = "json";

@@ -16,103 +16,104 @@
  */
 package eu.europeana.api2.v2.model.json.sugarcrm;
 
-import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Id;
 import com.google.code.morphia.annotations.Indexed;
 import com.google.code.morphia.annotations.NotSaved;
 
+import java.util.Map;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+
 
 /**
  * @author Georgios Markakis (gwarkx@hotmail.com)
- *
  * @since Sep 24, 2013
  */
 @Entity
-@JsonSerialize(include = Inclusion.NON_EMPTY)
-public class Provider{
+@JsonInclude(NON_EMPTY)
+public class Provider {
 
-	/**
-	 * Default constructor used by Jackson (do not remove)
-	 */
-	public Provider(){
-		//Used by both Jackson  & Morphia do not remove 
-	}
-	
-	/**
-	 * Stored in both 
-	 */
-	@Id
-	@Indexed
-	public String identifier;
-	
-	/**
-	 * Stored in both 
-	 */
-	@Indexed
-	public String country;
-	
-	/**
-	 * Used in JSON output but not stored in Mongo
-	 */
-	@NotSaved
-	public String name;
+    /**
+     * Default constructor used by Jackson (do not remove)
+     */
+    public Provider() {
+        //Used by both Jackson  & Morphia do not remove
+    }
 
-	
-	/**
-	 * Used in JSON output but not stored in Mongo
-	 */
-	@NotSaved
-	public String acronym;
-	
-	/**
-	 * Used in JSON output but not stored in Mongo
-	 */
-	@NotSaved
-	public String altname;
-	
-	/**
-	 * Used in JSON output but not stored in Mongo
-	 */
-	@NotSaved
-	public String scope;
-	
-	/**
-	 * Used in JSON output but not stored in Mongo
-	 */
-	@NotSaved
-	public String domain;
-	
-	/**
-	 * Used in JSON output but not stored in Mongo
-	 */
-	@NotSaved
-	public String sector;
-	
-	/**
-	 * Used in JSON output but not stored in Mongo
-	 */
-	@NotSaved
-	public String geolevel;
-	
-	
-	/**
-	 * Used in JSON output but not stored in Mongo
-	 */
-	@NotSaved
-	public String role;
-		
-	/**
-	 * Used in JSON output but not stored in Mongo
-	 */
-	@NotSaved
-	public String website;
-		
-	
-	@JsonIgnore
-	public Map<String,String> savedsugarcrmFields;
+    /**
+     * Stored in both
+     */
+    @Id
+    @Indexed
+    public String identifier;
+
+    /**
+     * Stored in both
+     */
+    @Indexed
+    public String country;
+
+    /**
+     * Used in JSON output but not stored in Mongo
+     */
+    @NotSaved
+    public String name;
+
+
+    /**
+     * Used in JSON output but not stored in Mongo
+     */
+    @NotSaved
+    public String acronym;
+
+    /**
+     * Used in JSON output but not stored in Mongo
+     */
+    @NotSaved
+    public String altname;
+
+    /**
+     * Used in JSON output but not stored in Mongo
+     */
+    @NotSaved
+    public String scope;
+
+    /**
+     * Used in JSON output but not stored in Mongo
+     */
+    @NotSaved
+    public String domain;
+
+    /**
+     * Used in JSON output but not stored in Mongo
+     */
+    @NotSaved
+    public String sector;
+
+    /**
+     * Used in JSON output but not stored in Mongo
+     */
+    @NotSaved
+    public String geolevel;
+
+
+    /**
+     * Used in JSON output but not stored in Mongo
+     */
+    @NotSaved
+    public String role;
+
+    /**
+     * Used in JSON output but not stored in Mongo
+     */
+    @NotSaved
+    public String website;
+
+
+    @JsonIgnore
+    public Map<String, String> savedsugarcrmFields;
 
 }

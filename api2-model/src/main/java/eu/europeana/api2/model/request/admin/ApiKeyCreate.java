@@ -15,31 +15,18 @@
  * the Licence.
  */
 
-package eu.europeana.api2.model.request;
+package eu.europeana.api2.model.request.admin;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import eu.europeana.api2.model.entity.ApiKeyEntity;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
-public class ApiKeyCreate {
-
-    private String privateKey;
-
-    private String email;
-
-    private String firstName;
-
-    private String lastName;
-
-    private String company;
-
-    private String application;
-
-    private String website;
-
-    private String description;
+@JsonInclude(NON_EMPTY)
+public class ApiKeyCreate extends ApiKeyEntity {
 
     public String getApplication() {
         return application;
@@ -63,10 +50,6 @@ public class ApiKeyCreate {
 
     public String getLastName() {
         return lastName;
-    }
-
-    public String getPrivateKey() {
-        return privateKey;
     }
 
     public String getWebsite() {

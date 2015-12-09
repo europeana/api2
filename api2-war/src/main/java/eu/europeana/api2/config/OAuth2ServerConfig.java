@@ -53,7 +53,7 @@ public class OAuth2ServerConfig {
                     .antMatchers("/user/**", "/oauth/users/**", "/oauth/clients/**")
 			        .and()
 				.authorizeRequests()
-					.antMatchers(HttpMethod.GET, "/user/**").access("#oauth2.isClient()) and #oauth2.hasScope('read')")
+					.antMatchers(HttpMethod.GET, "/user/**").access("#oauth2.isClient() and #oauth2.hasScope('read')")
 					.antMatchers(HttpMethod.GET, "/user/authorize/**").permitAll()
 					.antMatchers(HttpMethod.POST, "/user/**").access("#oauth2.hasScope('write')")
 					.antMatchers(HttpMethod.PUT, "/user/**").access("#oauth2.hasScope('write')")

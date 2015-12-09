@@ -17,20 +17,20 @@
 
 package eu.europeana.api2.v2.model.json.view.submodel;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import eu.europeana.api2.v2.model.json.common.LabelFrequency;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
-
-import eu.europeana.api2.v2.model.json.common.LabelFrequency;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public class Facet {
-	public String name;
+    public String name;
 
-	public List<LabelFrequency> fields = new ArrayList<>();
+    public List<LabelFrequency> fields = new ArrayList<>();
 }

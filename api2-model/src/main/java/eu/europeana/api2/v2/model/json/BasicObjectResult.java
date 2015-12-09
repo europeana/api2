@@ -17,26 +17,27 @@
 
 package eu.europeana.api2.v2.model.json;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import eu.europeana.api2.model.json.abstracts.ApiResponse;
+import eu.europeana.corelib.definitions.edm.beans.BriefBean;
+
 import java.util.List;
 import java.util.Map;
 
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import eu.europeana.api2.model.json.abstracts.ApiResponse;
-import eu.europeana.corelib.definitions.edm.beans.BriefBean;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public class BasicObjectResult extends ApiResponse {
 
-	public Map<String, ?> object;
+    public Map<String, ?> object;
 
-	public List<? extends BriefBean> similarItems;
+    public List<? extends BriefBean> similarItems;
 
-	public BasicObjectResult(String apikey, long requestNumber) {
-		super(apikey);
-		this.requestNumber = requestNumber;
-	}
+    public BasicObjectResult(String apikey, long requestNumber) {
+        super(apikey);
+        this.requestNumber = requestNumber;
+    }
 }

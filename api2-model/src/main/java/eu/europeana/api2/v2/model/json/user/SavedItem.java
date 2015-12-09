@@ -17,20 +17,20 @@
 
 package eu.europeana.api2.v2.model.json.user;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.api2.v2.model.json.abstracts.UserObject;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public class SavedItem extends UserObject {
 
-	public String author;
+    public String author;
 
-	public String getAuthor() {
-		return author;
-	}
+    public String getAuthor() {
+        return author;
+    }
 }

@@ -1,11 +1,13 @@
-package eu.europeana.api2.model.request;
+package eu.europeana.api2.model.request.admin;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public class UserCreate {
 
     private String email;

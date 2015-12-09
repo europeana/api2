@@ -16,92 +16,93 @@
  */
 package eu.europeana.api2.v2.model.json.sugarcrm;
 
-import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Id;
 import com.google.code.morphia.annotations.Indexed;
 import com.google.code.morphia.annotations.NotSaved;
 
+import java.util.Map;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+
 /**
  * @author Georgios Markakis (gwarkx@hotmail.com)
- *
  * @since Sep 24, 2013
  */
 @Entity
-@JsonSerialize(include = Inclusion.NON_EMPTY)
-public class DataSet{
+@JsonInclude(NON_EMPTY)
+public class DataSet {
 
-	/**
-	 * Default constructor used by Jackson & Morphia (do not remove)
-	 */
-	public DataSet() {
-		// Used by Jackson
-	}
+    /**
+     * Default constructor used by Jackson & Morphia (do not remove)
+     */
+    public DataSet() {
+        // Used by Jackson
+    }
 
-	/**
-	 * The identifier of the dataset
-	 */
-	@Id
-	@Indexed
-	public String identifier;
+    /**
+     * The identifier of the dataset
+     */
+    @Id
+    @Indexed
+    public String identifier;
 
-	/**
-	 * The identifier of the provider
-	 */
-	@Indexed
-	public String provIdentifier;
+    /**
+     * The identifier of the provider
+     */
+    @Indexed
+    public String provIdentifier;
 
-	/**
-	 * The name of provider
-	 */
-	public String providerName;
+    /**
+     * The name of provider
+     */
+    public String providerName;
 
-	/**
-	 * edm:datasetName (same as europeana_collectionName)
-	 */
-	@NotSaved
-	public String edmDatasetName;
+    /**
+     * edm:datasetName (same as europeana_collectionName)
+     */
+    @NotSaved
+    public String edmDatasetName;
 
-	/**
-	 * Status
-	 * 
-	 * Possible values: 'Ingestion complete', 'Ready for Harvesting', 'Disabled and Replaced',
-	 * 'Ongoing scheduled updates', 'OAI-PHM testing', 'Ready for Replication',
-	 * 'Mapping and Normalization'
-	 */
-	@NotSaved
-	public String status;
+    /**
+     * Status
+     * <p/>
+     * Possible values: 'Ingestion complete', 'Ready for Harvesting', 'Disabled and Replaced',
+     * 'Ongoing scheduled updates', 'OAI-PHM testing', 'Ready for Replication',
+     * 'Mapping and Normalization'
+     */
+    @NotSaved
+    public String status;
 
-	/**
-	 * The number of published records
-	 */
-	@NotSaved
-	public long publishedRecords;
+    /**
+     * The number of published records
+     */
+    @NotSaved
+    public long publishedRecords;
 
-	/**
-	 * The number of deleted records
-	 */
-	@NotSaved
-	public long deletedRecords;
+    /**
+     * The number of deleted records
+     */
+    @NotSaved
+    public long deletedRecords;
 
-	/**
-	 * Date of dataset creation
-	 */
-	@NotSaved
-	public String creationDate;
+    /**
+     * Date of dataset creation
+     */
+    @NotSaved
+    public String creationDate;
 
-	/**
-	 * Date of dataset publication
-	 */
-	@NotSaved
-	public String publicationDate;
+    /**
+     * Date of dataset publication
+     */
+    @NotSaved
+    public String publicationDate;
 
-	/**
-	 * 
-	 */
-	@JsonIgnore
-	public Map<String, String> savedsugarcrmFields;
+    /**
+     *
+     */
+    @JsonIgnore
+    public Map<String, String> savedsugarcrmFields;
 }

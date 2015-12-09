@@ -18,9 +18,11 @@
 package eu.europeana.api2demo.web.model;
 
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+
+@JsonInclude(NON_EMPTY)
 public class TagCloudItem {
 
     private String label;
