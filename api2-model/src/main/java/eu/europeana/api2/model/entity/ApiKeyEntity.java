@@ -8,7 +8,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @JsonInclude(NON_EMPTY)
-public class ApiKeyEntity {
+public abstract class ApiKeyEntity {
 
     protected String publicKey;
 
@@ -69,4 +69,5 @@ public class ApiKeyEntity {
     public void setWebsite(String website) {
         this.website = website;
     }
+
 }

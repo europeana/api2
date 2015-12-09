@@ -17,18 +17,18 @@
 
 package eu.europeana.api2.web.controller.admin;
 
-import eu.europeana.api2.model.entity.ApiKeyEntity;
-import eu.europeana.api2.model.response.admin.ApiKeyResponse;
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.model.request.admin.ApiKeyCreate;
 import eu.europeana.api2.model.request.admin.ApiKeyUpdate;
+import eu.europeana.api2.model.response.admin.ApiKeyResponse;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.web.exception.EmailServiceException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,18 +56,24 @@ public class ApiKeyAdminController {
         return new ApiNotImplementedYet(principal.getName());
     }
 
-    @RequestMapping(value = "/{apikey}",
+    @RequestMapping(value = "/{term:.+}",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse find(
-            @PathVariable String apikey,
+            @PathVariable String term,
             Principal principal
     ) {
         ApiKeyResponse response = new ApiKeyResponse(principal.getName());
         try {
-            ApiKey apiKey = apiKeyService.findByID(apikey);
-            if (apiKey != null) {
-                response.getApiKeys().add(toEntity(apiKey));
+            if (StringUtils.contains(term, "@")) {
+                for (ApiKey apiKey : apiKeyService.findByEmail(term)) {
+                    response.getApiKeys().add(toEntity(apiKey));
+                }
+            } else {
+                ApiKey apiKey = apiKeyService.findByID(term);
+                if (apiKey != null) {
+                    response.getApiKeys().add(toEntity(apiKey));
+                }
             }
         } catch (DatabaseException e) {
             response.success = false;
@@ -177,9 +183,9 @@ public class ApiKeyAdminController {
         return response;
     }
 
-    private ApiKeyEntity toEntity(ApiKey apiKey) {
+    private ApiKeyResponse.ApiKey toEntity(ApiKey apiKey) {
         if (apiKey != null) {
-            ApiKeyEntity entity = new ApiKeyEntity();
+            ApiKeyResponse.ApiKey entity = new ApiKeyResponse().new ApiKey();
             entity.setPublicKey(apiKey.getId());
             entity.setPrivateKey(apiKey.getPrivateKey());
             entity.setApplication(apiKey.getApplicationName());
