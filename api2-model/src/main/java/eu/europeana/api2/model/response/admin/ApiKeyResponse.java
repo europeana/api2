@@ -1,7 +1,7 @@
 package eu.europeana.api2.model.response.admin;
 
-import eu.europeana.api2.model.entity.ApiKeyEntity;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
+import eu.europeana.api2.model.request.admin.ApiKeyUpdate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class ApiKeyResponse extends ApiResponse {
 
-    List<ApiKeyEntity> apiKeys = new ArrayList<>();
+    List<ApiKey> apiKeys = new ArrayList<>();
 
     public ApiKeyResponse() {
         // used by Jackson
@@ -22,7 +22,18 @@ public class ApiKeyResponse extends ApiResponse {
         super(apikey);
     }
 
-    public List<ApiKeyEntity> getApiKeys() {
+    public List<ApiKey> getApiKeys() {
         return apiKeys;
+    }
+
+    public class ApiKey extends ApiKeyUpdate {
+
+        public String getPrivateKey() {
+            return privateKey;
+        }
+
+        public String getPublicKey() {
+            return publicKey;
+        }
     }
 }
