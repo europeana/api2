@@ -204,7 +204,7 @@ public class HierarchicalController {
             , String callback, String exceptionType){
                 return JsonUtils.toJson(new ApiError(wskey,
                 String.format(exceptionType + " thrown when processing record %s", rdfAbout),
-                -1l), callback);
+                -1L), callback);
 
             }
 
