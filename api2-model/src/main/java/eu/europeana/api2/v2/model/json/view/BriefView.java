@@ -17,8 +17,12 @@
 
 package eu.europeana.api2.v2.model.json.view;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.api2.model.enums.Profile;
+=======
+import eu.europeana.api2.v2.model.enums.Profile;
+>>>>>>> develop
 import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.DocType;

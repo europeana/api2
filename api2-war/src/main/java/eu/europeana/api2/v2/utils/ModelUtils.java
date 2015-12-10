@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.v2.utils;
 
+import eu.europeana.api2.v2.model.enums.FacetNames;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
