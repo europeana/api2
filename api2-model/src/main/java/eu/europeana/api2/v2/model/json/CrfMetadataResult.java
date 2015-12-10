@@ -17,16 +17,16 @@
 
 package eu.europeana.api2.v2.model.json;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.harvester.domain.ImageMetaInfo;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public class CrfMetadataResult extends ApiResponse {
 
 	public ImageMetaInfo imageMetaInfo;
