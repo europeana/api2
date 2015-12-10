@@ -44,7 +44,7 @@ public class UserAdminController {
             User user = StringUtils.contains(term, "@") ?
                     userService.findByEmail(term) :
                     NumberUtils.isNumber(term) ?
-                            userService.findByID(NumberUtils.toLong(term)) :
+                            userService.findByID(NumberUtils.createLong(term)) :
                             userService.findByName(term);
             if (user != null) {
                 response.getUsers().add(toEntity(user));
