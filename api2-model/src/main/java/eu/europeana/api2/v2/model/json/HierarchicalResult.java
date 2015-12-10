@@ -17,19 +17,19 @@
 
 package eu.europeana.api2.v2.model.json;
 
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
-
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
+
+import java.util.List;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Peter Kiraly <peter.kiraly@europeana.eu>
  */
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public class HierarchicalResult extends ApiResponse {
 
 	public Neo4jBean self;

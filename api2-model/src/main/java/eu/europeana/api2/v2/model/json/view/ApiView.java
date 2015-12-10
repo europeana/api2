@@ -1,19 +1,18 @@
 package eu.europeana.api2.v2.model.json.view;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import eu.europeana.api2.v2.model.enums.Profile;
+import eu.europeana.corelib.definitions.edm.beans.ApiBean;
+import eu.europeana.corelib.utils.DateUtils;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
-import eu.europeana.api2.v2.model.enums.Profile;
-import eu.europeana.corelib.definitions.edm.beans.ApiBean;
-import eu.europeana.corelib.definitions.edm.beans.BriefBean;
-import eu.europeana.corelib.utils.DateUtils;
-
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public class ApiView extends BriefView implements ApiBean {
 
     private String[] edmConceptTerm;

@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.v2.model.json.view;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.*;
@@ -27,13 +28,13 @@ import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import java.util.Date;
 import java.util.List;
 
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+
+@JsonInclude(NON_EMPTY)
 public class FullView implements FullBean {
 
 	private FullBean bean;

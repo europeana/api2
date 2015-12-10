@@ -17,17 +17,17 @@
 
 package eu.europeana.api2.v2.model.json.abstracts;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import eu.europeana.api2.model.json.abstracts.ApiResponse;
+
 import java.util.List;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize.Inclusion;
-
-import eu.europeana.api2.model.json.abstracts.ApiResponse;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+@JsonInclude(NON_EMPTY)
 public class AbstractSearchResults<T> extends ApiResponse {
 
 	public long itemsCount;
