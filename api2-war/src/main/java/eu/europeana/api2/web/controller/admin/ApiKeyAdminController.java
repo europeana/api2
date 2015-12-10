@@ -48,14 +48,6 @@ public class ApiKeyAdminController {
     @Resource
     private ApiKeyService apiKeyService;
 
-    @RequestMapping(
-            method = {RequestMethod.GET},
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public ApiResponse findAll(Principal principal) {
-        return new ApiNotImplementedYet(principal.getName());
-    }
-
     @RequestMapping(value = "/{term:.+}",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
