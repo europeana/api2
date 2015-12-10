@@ -1,6 +1,7 @@
 package eu.europeana.api2.model.request.admin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import eu.europeana.api2.model.entity.UserEntity;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
@@ -8,29 +9,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @JsonInclude(NON_EMPTY)
-public class UserCreate {
-
-    private String email;
-
-    private String username;
-
-    private String password;
-
-    private String firstName;
-
-    private String lastName;
-
-    private String company;
-
-    private String country;
-
-    private String phone;
-
-    private String address;
-
-    private String website;
-
-    private String fieldOfWork;
+public class UserCreate extends UserEntity {
 
     public String getAddress() {
         return address;
