@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.model.json.view;
 
-import eu.europeana.api2.model.enums.Profile;
+import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.DocType;
