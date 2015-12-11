@@ -23,6 +23,7 @@ import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import com.google.common.collect.Lists;
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
@@ -465,7 +466,7 @@ public class SugarCRMImporter {
             if (mongo == null) {
                 log.info("SugarCRMCache mongo is null");
                 try {
-                    mongo = new Mongo();
+                    mongo = new MongoClient();
                 } catch (UnknownHostException | MongoException e) {
                     e.printStackTrace();
                 }
