@@ -2,14 +2,11 @@ package eu.europeana.api2.config;
 
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
-import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler;
 import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.api2.v2.utils.ControllerUtils;
-import eu.europeana.corelib.web.support.ReportingMessageSource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
