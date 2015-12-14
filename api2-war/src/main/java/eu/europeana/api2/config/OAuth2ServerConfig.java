@@ -28,7 +28,7 @@ import javax.annotation.Resource;
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
-@Configuration
+//@Configuration
 public class OAuth2ServerConfig {
 
     @Configuration
