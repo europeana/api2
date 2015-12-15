@@ -1,10 +1,10 @@
 package eu.europeana.api2.v2.model.json.view;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.utils.DateUtils;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.Date;
 import java.util.List;
