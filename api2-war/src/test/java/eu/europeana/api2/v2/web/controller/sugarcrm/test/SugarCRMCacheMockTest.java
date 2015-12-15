@@ -1,18 +1,18 @@
 /*
- * Copyright 2007-2012 The Europeana Foundation
+ * Copyright 2007-2015 The Europeana Foundation
  *
- *  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved 
- *  by the European Commission;
- *  You may not use this work except in compliance with the Licence.
- *  
- *  You may obtain a copy of the Licence at:
- *  http://joinup.ec.europa.eu/software/page/eupl
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
  *
- *  Unless required by applicable law or agreed to in writing, software distributed under 
- *  the Licence is distributed on an "AS IS" basis, without warranties or conditions of 
- *  any kind, either express or implied.
- *  See the Licence for the specific language governing permissions and limitations under 
- *  the Licence.
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
  */
 package eu.europeana.api2.v2.web.controller.sugarcrm.test;
 
@@ -63,16 +63,16 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 		cacheInstance = mock(SugarCRMCache.class);
 		importerInstance = mock(SugarCRMImporter.class);
 		final ArgumentCaptor<String> providercaptor = ArgumentCaptor.forClass(String.class);
-		final SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<Provider>(
-				null, null);
+		final SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<>(
+				null);
 		Provider provider = new Provider();
 		provider.identifier = "mockid";
 		provider.name = "mockname";
-		provider.savedsugarcrmFields = new HashMap<String, String>();
-		providerres.items = new ArrayList<Provider>();
+		provider.savedsugarcrmFields = new HashMap<>();
+		providerres.items = new ArrayList<>();
 		providerres.items.add(provider);
-		final SugarCRMSearchResults<DataSet> collectionres = new SugarCRMSearchResults<DataSet>(
-				null, null);
+		final SugarCRMSearchResults<DataSet> collectionres = new SugarCRMSearchResults<>(
+				null);
 		DataSet ds = new DataSet();
 		ds.identifier = "mockid";
 		ds.edmDatasetName = "mockname";
@@ -80,8 +80,8 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 		ds.publishedRecords = 0;
 		ds.provIdentifier = "mockprovID";
 		ds.status = "mockstatus";
-		ds.savedsugarcrmFields = new HashMap<String, String>();
-		collectionres.items = new ArrayList<DataSet>();
+		ds.savedsugarcrmFields = new HashMap<>();
+		collectionres.items = new ArrayList<>();
 		collectionres.items.add(ds);
 
 		when(cacheInstance.getProviders()).thenAnswer(
@@ -98,15 +98,15 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 					@Override
 					public SugarCRMSearchResults<Provider> answer(
 							InvocationOnMock invocation) throws Throwable {
-						SugarCRMSearchResults<Provider> providerres = new SugarCRMSearchResults<Provider>(
-								null, null);
+						SugarCRMSearchResults<Provider> providerRes = new SugarCRMSearchResults<>(
+								null);
 						Provider provider = new Provider();
 						provider.identifier = providercaptor.getValue();
 						provider.name = "mockname";
-						provider.savedsugarcrmFields = new HashMap<String, String>();
-						providerres.items = new ArrayList<Provider>();
-						providerres.items.add(provider);
-						return providerres;
+						provider.savedsugarcrmFields = new HashMap<>();
+						providerRes.items = new ArrayList<>();
+						providerRes.items.add(provider);
+						return providerRes;
 					}
 				});
 

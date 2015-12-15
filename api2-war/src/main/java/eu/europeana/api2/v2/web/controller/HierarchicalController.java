@@ -1,40 +1,33 @@
 /*
- * Copyright 2007-2012 The Europeana Foundation
+ * Copyright 2007-2015 The Europeana Foundation
  *
- *  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved 
- *  by the European Commission;
- *  You may not use this work except in compliance with the Licence.
- *  
- *  You may obtain a copy of the Licence at:
- *  http://joinup.ec.europa.eu/software/page/eupl
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
  *
- *  Unless required by applicable law or agreed to in writing, software distributed under 
- *  the Licence is distributed on an "AS IS" basis, without warranties or conditions of 
- *  any kind, either express or implied.
- *  See the Licence for the specific language governing permissions and limitations under 
- *  the Licence.
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
  */
 
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.LimitResponse;
-import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
-import eu.europeana.corelib.neo4j.entity.Neo4jBean;
-import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.search.SearchService;
-import eu.europeana.corelib.web.utils.RequestUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -209,9 +202,9 @@ public class HierarchicalController {
 
     private ModelAndView generateErrorHierarchy(RecordType recordType, String rdfAbout, String wskey
             , String callback, String exceptionType){
-                return JsonUtils.toJson(new ApiError(wskey, getAction(recordType),
+                return JsonUtils.toJson(new ApiError(wskey,
                 String.format(exceptionType + " thrown when processing record %s", rdfAbout),
-                -1l), callback);
+                -1L), callback);
 
             }
 

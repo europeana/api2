@@ -18,9 +18,8 @@ public class RichView extends ApiView implements RichBean {
     private Map<String, List<String>> dcSubjectLangAware;
     private Map<String, List<String>> dcTypeLangAware;
 
-    public RichView(RichBean bean, String profile, String wskey, long uid,
-                    boolean optOut) {
-        super(bean, profile, wskey, uid, optOut);
+    public RichView(RichBean bean, String profile, String wskey, boolean optOut) {
+        super(bean, profile, wskey, optOut);
         dcDescription = bean.getDcDescription();
         isShownBy = bean.getEdmIsShownBy();
         edmLandingPage = bean.getEdmLandingPage();

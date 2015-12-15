@@ -1,12 +1,20 @@
 <?xml version="1.0"?>
-<!-- Copyright 2007-2013 The Europeana Foundation Licenced under the EUPL,
-	Version 1.1 (the "Licence") and subsequent versions as approved by the European 
-	Commission; You may not use this work except in compliance with the Licence. 
-	You may obtain a copy of the Licence at: http://joinup.ec.europa.eu/software/page/eupl 
-	Unless required by applicable law or agreed to in writing, software distributed 
-	under the Licence is distributed on an "AS IS" basis, without warranties 
-	or conditions of any kind, either express or implied. See the Licence for 
-	the specific language governing permissions and limitations under the Licence. -->
+<!--
+  ~ Copyright 2007-2015 The Europeana Foundation
+  ~
+  ~ Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+  ~ by the European Commission;
+  ~ You may not use this work except in compliance with the Licence.
+  ~
+  ~ You may obtain a copy of the Licence at:
+  ~ http://joinup.ec.europa.eu/software/page/eupl
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software distributed under
+  ~ the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+  ~ any kind, either express or implied.
+  ~ See the Licence for the specific language governing permissions and limitations under
+  ~ the Licence.
+  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -242,8 +250,8 @@
 
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -258,6 +266,12 @@
             <groupId>com.github.jsonld-java</groupId>
             <artifactId>jsonld-java</artifactId>
             <version>0.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -348,6 +362,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
+                <version>2.6</version>
                 <configuration>
                     <webResources>
                         <resource>
@@ -358,6 +373,7 @@
                             </includes>
                         </resource>
                     </webResources>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
 

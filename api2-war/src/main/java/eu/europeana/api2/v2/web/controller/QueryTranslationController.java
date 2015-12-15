@@ -1,3 +1,20 @@
+/*
+ * Copyright 2007-2015 The Europeana Foundation
+ *
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
+ *
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
+ */
+
 package eu.europeana.api2.v2.web.controller;
 
 import java.util.Arrays;
@@ -57,20 +74,20 @@ public class QueryTranslationController {
 		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"translateQuery.json", RecordType.TRANSLATE_QUERY, null);
+					RecordType.TRANSLATE_QUERY, null);
 		} catch (ApiLimitException e) {
 			response.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
 		if (StringUtils.isBlank(term)) {
-			return JsonUtils.toJson(new ApiError(wskey, "translateQuery", ERROR_TERM, limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, ERROR_TERM, limitResponse.getRequestNumber()), callback);
 		} else if (StringArrayUtils.isBlank(languageCodes)) {
-			return JsonUtils.toJson(new ApiError(wskey, "translateQuery", ERROR_LANGUAGE, limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, ERROR_LANGUAGE, limitResponse.getRequestNumber()), callback);
 		}
 
 		QueryTranslationResult queryTranslationResult = 
-				new QueryTranslationResult(wskey, "translateQuery.json", limitResponse.getRequestNumber());
+				new QueryTranslationResult(wskey, limitResponse.getRequestNumber());
 
 		QueryTranslation queryTranslation = SearchUtils.translateQuery(term, Arrays.asList(languageCodes));
 		queryTranslationResult.translations = queryTranslation.getLanguageVersions();

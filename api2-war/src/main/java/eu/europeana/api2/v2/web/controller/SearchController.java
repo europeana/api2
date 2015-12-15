@@ -70,11 +70,12 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
-import org.springframework.context.support.AbstractMessageSource;
+import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -121,7 +122,7 @@ public class SearchController {
     private XmlUtils xmlUtils;
 
     @Resource
-    private AbstractMessageSource messageSource;
+    private MessageSource messageSource;
 
 	/**
 	 * Limits the number of facets
@@ -195,7 +196,7 @@ public class SearchController {
         LimitResponse limitResponse;
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    "search.json", RecordType.SEARCH, profile);
+                    RecordType.SEARCH, profile);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
@@ -203,7 +204,7 @@ public class SearchController {
 
         if (StringUtils.isBlank(queryString)) {
             response.setStatus(400);
-            return JsonUtils.toJson(new ApiError("", "search.json", (queryString == null ? "Missing" : "Invalid") + " query parameter"), callback);
+            return JsonUtils.toJson(new ApiError("", (queryString == null ? "Missing" : "Invalid") + " query parameter"), callback);
         }
         queryString = queryString.trim();
         log.info("QUERY: |" + queryString + "|");
@@ -236,7 +237,7 @@ public class SearchController {
         if (cursorMark != null) {
             if (start > 1) {
                 response.setStatus(400);
-                return JsonUtils.toJson(new ApiError("", "search.json", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
+                return JsonUtils.toJson(new ApiError("", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
             }
         }
         // exclude sorting on timestamp, #238
@@ -504,7 +505,7 @@ public class SearchController {
 
         try {
             SearchResults<? extends IdBean> result = createResults(wskey, profile,
-                    query, clazz, limitResponse.getApiKey().getUser().getId());
+                    query, clazz);
             result.requestNumber = limitResponse.getRequestNumber();
             if (StringUtils.containsIgnoreCase(profile, "params")) {
                 result.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -525,11 +526,11 @@ public class SearchController {
                 log.error(wskey + " [search.json] ", e);
             }
             response.setStatus(400);
-            return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
+            return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
         } catch (Exception e) {
             log.error(wskey + " [search.json] " + e.getClass().getSimpleName(), e);
             response.setStatus(400);
-            return JsonUtils.toJson(new ApiError(wskey, "search.json", e.getMessage()), callback);
+            return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
         }
     }
 
@@ -567,12 +568,12 @@ public class SearchController {
         if (log.isInfoEnabled()) {
             log.info("phrases: " + phrases);
         }
-        Suggestions apiResponse = new Suggestions(null, "suggestions.json");
+        Suggestions apiResponse = new Suggestions(null);
         try {
             apiResponse.items = searchService.suggestions(query, count);
             apiResponse.itemsCount = apiResponse.items.size();
         } catch (SolrTypeException e) {
-            return JsonUtils.toJson(new ApiError(null, "suggestions.json", e.getMessage()), callback);
+            return JsonUtils.toJson(new ApiError(null, e.getMessage()), callback);
         }
         return JsonUtils.toJson(apiResponse, callback);
     }
@@ -582,10 +583,9 @@ public class SearchController {
             String apiKey,
             String profile,
             Query query,
-            Class<T> clazz,
-            long uid)
+            Class<T> clazz)
             throws SolrTypeException {
-        SearchResults<T> response = new SearchResults<>(apiKey, "search.json");
+        SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T> resultSet = searchService.search(clazz, query);
         response.totalResults = resultSet.getResultSize();
         if (StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) && StringUtils.isNotBlank(resultSet.getNextCursorMark())
@@ -601,13 +601,13 @@ public class SearchController {
 			if (b instanceof RichBean) {
 				Boolean optOut = ((RichBean) b).getPreviewNoDistribute();
 
-				beans.add((T) new RichView((RichBean) b, profile, apiKey, uid, optOut));
+				beans.add((T) new RichView((RichBean) b, profile, apiKey, optOut));
 			} else if (b instanceof ApiBean) {
 				Boolean optOut = ((ApiBean) b).getPreviewNoDistribute();
-				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, uid, optOut));
+				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, optOut));
 			} else if (b instanceof BriefBean) {
 				Boolean optOut = ((BriefBean) b).getPreviewNoDistribute();
-				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, uid, optOut));
+				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, optOut));
 			}
 		}
 
@@ -697,13 +697,6 @@ public class SearchController {
         return kmlResponse;
     }
 
-	/**
-	 * @param queryString
-	 * @param start
-	 * @param count
-	 *
-	 * @return the JSON response
-	 */
 	@ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "suggestions")
 	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
     @ResponseBody
@@ -983,17 +976,6 @@ public class SearchController {
             }
         }
         return translatedEdmIsShownAtLabel;
-    }
-
-    /**
-     * Gives the translation of the 'EdmIsShownAt' label in the language that
-     * the provided String specifies
-     *
-     * @param language containing language code
-     * @return String containing the label translation
-     */
-    private String getEdmIsShownAtLabelTranslation(String language) {
-        return messageSource.getMessage("edm_isShownAtLabel_t", null, new Locale(language));
     }
 
     /**
