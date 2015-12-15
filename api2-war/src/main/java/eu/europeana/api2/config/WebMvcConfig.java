@@ -72,6 +72,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         source.setCacheSeconds(messageCacheSeconds);
         source.setDefaultEncoding("UTF-8");
         source.setFallbackToSystemLocale(true);
+        source.setUseCodeAsDefaultMessage(true);
         return source;
     }
 
