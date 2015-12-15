@@ -6,6 +6,7 @@ import eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler;
 import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.corelib.web.context.VcapPropertyLoaderListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -19,7 +20,7 @@ import java.net.UnknownHostException;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @Configuration
-@ComponentScan(basePackages = {"eu.europeana.api2.web.controller, eu.europeana.api2.v2.web.controller"})
+@ComponentScan(basePackageClasses = VcapPropertyLoaderListener.class)
 @ImportResource({
         "classpath:corelib-logging-context.xml",
         "classpath:corelib-db-context.xml",
