@@ -39,12 +39,6 @@ public class AppConfig {
     @Value("${cachemongodb.port}")
     private int cachePort;
 
-    @Value("${message.resource}")
-    private String messageResource;
-
-    @Value("${message.cache.seconds}")
-    private int messageCacheSeconds;
-
     @Bean
     public static PropertySourcesPlaceholderConfigurer properties() {
         PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
@@ -77,13 +71,4 @@ public class AppConfig {
         return new MongoClient(cacheHost, cachePort);
     }
 
-//    @Bean
-//    public MessageSource messageSource() {
-//        ReportingMessageSource source = new ReportingMessageSource();
-//        source.setBasename(messageResource);
-//        source.setCacheSeconds(messageCacheSeconds);
-//        source.setDefaultEncoding("UTF-8");
-//        source.setFallbackToSystemLocale(true);
-//        return source;
-//    }
 }
