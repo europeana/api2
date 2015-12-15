@@ -1,5 +1,6 @@
 package eu.europeana.api2.config;
 
+import eu.europeana.corelib.web.context.VcapPropertyLoaderListener;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -18,6 +19,7 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     protected WebApplicationContext createServletApplicationContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         context.scan(ClassUtils.getPackageName(getClass()));
+        context.addApplicationListener(new VcapPropertyLoaderListener());
         return context;
     }
 
@@ -34,6 +36,7 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
         super.onStartup(servletContext);
+//        servletContext.addListener(VcapPropertyLoaderListener.class);
         registerProxyFilter(servletContext, "springSecurityFilterChain");
     }
 

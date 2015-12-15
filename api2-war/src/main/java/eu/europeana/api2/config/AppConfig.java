@@ -20,7 +20,6 @@ import java.net.UnknownHostException;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @Configuration
-@ComponentScan(basePackageClasses = VcapPropertyLoaderListener.class)
 @ImportResource({
         "classpath:corelib-logging-context.xml",
         "classpath:corelib-db-context.xml",
