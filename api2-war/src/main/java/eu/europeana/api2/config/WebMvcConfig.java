@@ -6,6 +6,9 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.web.controller.SearchController;
 import eu.europeana.api2.web.controller.ExceptionController;
+import eu.europeana.corelib.web.support.ReportingMessageSource;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +31,12 @@ import java.util.Collections;
 @ComponentScan(basePackageClasses = {SearchController.class, ExceptionController.class})
 @Import(SwaggerConfig.class)
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
+
+    @Value("${message.resource}")
+    private String messageResource;
+
+    @Value("${message.cache.seconds}")
+    private int messageCacheSeconds;
 
     @Bean
     public ViewResolver contentViewResolver() throws Exception {
@@ -53,6 +62,17 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "api2_mvc_xmlUtils")
     public XmlUtils xmlUtils() {
         return new XmlUtils();
+    }
+
+
+    @Bean
+    public MessageSource messageSource() {
+        ReportingMessageSource source = new ReportingMessageSource();
+        source.setBasename(messageResource);
+        source.setCacheSeconds(messageCacheSeconds);
+        source.setDefaultEncoding("UTF-8");
+        source.setFallbackToSystemLocale(true);
+        return source;
     }
 
     @Override
