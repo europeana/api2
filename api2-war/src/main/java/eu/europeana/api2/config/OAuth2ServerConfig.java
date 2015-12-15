@@ -83,15 +83,12 @@ public class OAuth2ServerConfig {
     protected static class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
 
         @Resource
-        private TokenStore tokenStore;
-
-        @Resource
         private UserApprovalHandler userApprovalHandler;
 
         @Resource(name = "api2_oauth2_clientDetailsService")
         private ClientDetailsService clientDetailsService;
 
-        @Resource(name = "authenticationManagerBean")
+        @Resource(name = "api2_oauth2_authenticationManagerBean")
         private AuthenticationManager authenticationManager;
 
         @Override
@@ -103,7 +100,7 @@ public class OAuth2ServerConfig {
         @Override
         public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
             endpoints
-                    .tokenStore(tokenStore)
+                    .tokenStore(tokenStore())
                     .userApprovalHandler(userApprovalHandler)
                     .authenticationManager(authenticationManager);
         }

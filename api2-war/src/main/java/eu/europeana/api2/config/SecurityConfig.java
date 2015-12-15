@@ -41,7 +41,7 @@ public class SecurityConfig {
     public static class BasicLoginConfig extends WebSecurityConfigurerAdapter {
 
         @Override
-        @Bean
+        @Bean(name = "api2_oauth2_authenticationManagerBean")
         public AuthenticationManager authenticationManagerBean() throws Exception {
             return super.authenticationManagerBean();
         }
