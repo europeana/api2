@@ -18,6 +18,7 @@
 package eu.europeana.api2.v2.model.json.view;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.*;
@@ -27,7 +28,6 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.Date;
 import java.util.List;
