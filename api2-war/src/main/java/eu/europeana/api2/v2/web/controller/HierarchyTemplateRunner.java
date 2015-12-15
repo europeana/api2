@@ -24,7 +24,6 @@ import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
@@ -93,7 +92,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
 
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    HierarchicalController.getAction(recordType), recordType, profile);
+                    recordType, profile);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
@@ -102,7 +101,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
         log.info("Limit: " + (System.currentTimeMillis() - t1));
         t1 = System.currentTimeMillis();
 
-        HierarchicalResult hierarchicalResult = new HierarchicalResult(wskey, HierarchicalController.getAction(recordType), limitResponse.getRequestNumber());
+        HierarchicalResult hierarchicalResult = new HierarchicalResult(wskey, limitResponse.getRequestNumber());
         if (StringUtils.containsIgnoreCase(profile, "params")) {
             hierarchicalResult.addParams(RequestUtils.getParameterMap(request), "wskey");
             hierarchicalResult.addParam("profile", profile);
@@ -118,7 +117,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
                         searchService.getChildrenCount(hierarchicalResult.self.getId()));
             } else {
                 response.setStatus(404);
-                return JsonUtils.toJson(new ApiError(wskey, HierarchicalController.getAction(recordType),
+                return JsonUtils.toJson(new ApiError(wskey,
                         String.format("Invalid record identifier: %s", rdfAbout),
                         limitResponse.getRequestNumber()), callback);
             }
@@ -141,7 +140,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
             if (hierarchicalResult.self == null) {
                 hierarchicalResult.success = false;
                 response.setStatus(404);
-                return JsonUtils.toJson(new ApiError(wskey, HierarchicalController.getAction(recordType),
+                return JsonUtils.toJson(new ApiError(wskey,
                         String.format("Invalid record identifier: %s", rdfAbout),
                         limitResponse.getRequestNumber()), callback);
             } else {

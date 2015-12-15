@@ -1,4 +1,21 @@
 /*
+ * Copyright 2007-2015 The Europeana Foundation
+ *
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
+ *
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
+ */
+
+/*
  * Copyright 2007 EDL FOUNDATION
  *
  * Licensed under the EUPL, Version 1.1 or - as soon they
@@ -74,12 +91,6 @@ public class SugarCRMController {
 	 * Returns the list of Europeana providers. The response is an Array of JSON
 	 * objects, each one containing the identifier and the name of a provider.
 	 *
-	 * @param wskey
-	 * @param callback
-	 * @param countryCode
-	 * @param offset
-	 * @param pagesize
-	 *
 	 * @return the JSON response
 	 */
 
@@ -102,19 +113,17 @@ public class SugarCRMController {
 		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"providers.json", RecordType.PROVIDERS, null);
+					RecordType.PROVIDERS, null);
 		} catch (ApiLimitException e) {
 			httpResponse.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
-		String action = "/v2/providers.json";
 		try {
 			int intOffset = offset == null ? 0 : Integer.parseInt(offset);
 			int intPagesize = pagesize == null ? 0 : Integer.parseInt(pagesize);
 
 			response = sugarCRMCache.getProviders(countryCode, intOffset, intPagesize);
-			response.action = action;
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
@@ -124,7 +133,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching all providers";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -134,11 +143,6 @@ public class SugarCRMController {
 	 * Returns information about a single Europeana provider identified by
 	 * provider_id. The response contains the following fields: identifier,
 	 * name, description, website, country.
-	 *
-	 * @param id
-	 * @param wskey
-	 * @param callback
-	 * @return the JSON response
 	 */
 	@ApiOperation(value = "get information about a specific Europeana provider", nickname = "getProvider")
 	@RequestMapping(value = "/v2/provider/{id}.json", produces = MediaType.APPLICATION_JSON_VALUE,
@@ -157,16 +161,14 @@ public class SugarCRMController {
 		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"provider.json", RecordType.PROVIDER, null);
+					RecordType.PROVIDER, null);
 		} catch (ApiLimitException e) {
 			httpResponse.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
-		String action = "/v2/provider/" + id + ".json";
 		try {
 			response = sugarCRMCache.getProviderbyID(id);
-			response.action = action;
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
@@ -178,7 +180,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching all providers";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -189,10 +191,6 @@ public class SugarCRMController {
 	 * Array of JSON objects, each one containing the identifier, the name, and
 	 * the full id (composed of the identifier and the name) of a dataset.
 	 *
-	 * @param id
-	 * @param wskey
-	 * @param callback
-	 * @return the JSON response
 	 */
 	@ApiOperation(value = "get the list of datasets provided by a specific provider", nickname = "listProviderDatasets")
 	@RequestMapping(value = "/v2/provider/{id}/datasets.json", produces = MediaType.APPLICATION_JSON_VALUE, method = {
@@ -211,16 +209,14 @@ public class SugarCRMController {
 		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"provider/datasets.json", RecordType.PROVIDER_DATASETS, null);
+					RecordType.PROVIDER_DATASETS, null);
 		} catch (ApiLimitException e) {
 			httpResponse.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
-		String action = "/v2/provider/" + id + "/datasets.json";
 		try {
 			response = sugarCRMCache.getCollectionByProviderID(id);
-			response.action = action;
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
@@ -232,7 +228,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching datasets by provider id";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -242,14 +238,6 @@ public class SugarCRMController {
 	/**
 	 * Returns the list of Europeana datasets. The response is an Array of JSON
 	 * objects, each one containing the identifier and the name of a dataset.
-	 *
-	 * @param wskey
-	 * @param callback
-	 * @param name
-	 * @param country
-	 * @param status
-	 * @param offset
-	 * @param pagesize
 	 *
 	 * @return the JSON response
 	 */
@@ -274,19 +262,17 @@ public class SugarCRMController {
 		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"datasets.json", RecordType.DATASETS, null);
+					RecordType.DATASETS, null);
 		} catch (ApiLimitException e) {
 			httpResponse.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
-		String action = "/v2/datasets.json";
 		try {
 			int intOffset = offset == null ? 0 : Integer.parseInt(offset);
 			int intPagesize = pagesize == null ? 0 : Integer.parseInt(pagesize);
 
 			response = sugarCRMCache.getCollections(intOffset, intPagesize, name, country, status);
-			response.action = action;
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
@@ -297,7 +283,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching all datasets";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);
@@ -308,9 +294,6 @@ public class SugarCRMController {
 	 * response contains the following fields: identifier, name, description,
 	 * status,
 	 *
-	 * @param id
-	 * @param wskey
-	 * @param callback
 	 * @return the JSON response
 	 */
 	@ApiOperation(value = "get information about a specific dataset", nickname = "getDataset")
@@ -330,16 +313,14 @@ public class SugarCRMController {
 		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"datasets.json", RecordType.DATASETS, null);
+					RecordType.DATASETS, null);
 		} catch (ApiLimitException e) {
 			httpResponse.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
-		String action = "/v2/dataset/" + id + ".json";
 		try {
 			response = sugarCRMCache.getCollectionByID(id);
-			response.action = action;
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
@@ -351,7 +332,7 @@ public class SugarCRMController {
 		} catch (Exception e) {
 			String error = "Error fetching datasets by dataset id";
 			log.error(error, e);
-			return JsonUtils.toJson(new ApiError(wskey, action, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, error + " " + e.getMessage(), limitResponse.getRequestNumber()), callback);
 		}
 
 		return JsonUtils.toJson(response, callback);

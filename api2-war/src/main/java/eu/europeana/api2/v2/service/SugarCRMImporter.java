@@ -1,3 +1,20 @@
+/*
+ * Copyright 2007-2015 The Europeana Foundation
+ *
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
+ *
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
+ */
+
 package eu.europeana.api2.v2.service;
 
 import com.google.code.morphia.Datastore;
@@ -6,6 +23,7 @@ import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import com.google.common.collect.Lists;
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
@@ -108,7 +126,7 @@ public class SugarCRMImporter {
             throws JIXBQueryResultException {
 
         GetEntryList request = new GetEntryList();
-        SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<>("", "");
+        SugarCRMSearchResults<Provider> results = new SugarCRMSearchResults<>("");
         results.items = new ArrayList<>();
         request.setSelectFields(new SelectFields());
         request.setModuleName(EuropeanaDatasets.ORGANIZATIONS.getSysId());
@@ -285,7 +303,7 @@ public class SugarCRMImporter {
      */
     private SugarCRMSearchResults<DataSet> retrieveDataset(String query, String providerID)
             throws JIXBQueryResultException {
-        SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("", "");
+        SugarCRMSearchResults<DataSet> results = new SugarCRMSearchResults<>("");
         results.items = new ArrayList<>();
 
         GetEntryList request = new GetEntryList();
@@ -448,7 +466,7 @@ public class SugarCRMImporter {
             if (mongo == null) {
                 log.info("SugarCRMCache mongo is null");
                 try {
-                    mongo = new Mongo();
+                    mongo = new MongoClient();
                 } catch (UnknownHostException | MongoException e) {
                     e.printStackTrace();
                 }
