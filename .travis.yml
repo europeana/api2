@@ -5,7 +5,7 @@ notifications:
 sudo: false
 language: java
 before_install:
-  - git clone https://github.com/europeana/corelib.git
+  - git clone https://github.com/europeana/corelib.git --branch $TRAVIS_BRANCH
   - mvn install -f corelib/pom.xml -DskipTests
 after_success:
   - mvn clean cobertura:cobertura coveralls:report
