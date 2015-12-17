@@ -30,6 +30,8 @@ public abstract class ApiKeyEntity {
 
     protected Long usageLimit;
 
+    protected String level;
+
     public void setApplication(String application) {
         this.application = application;
     }
@@ -70,4 +72,7 @@ public abstract class ApiKeyEntity {
         this.website = website;
     }
 
+    public void setLevel(String level) {
+        this.level = level;
+    }
 }

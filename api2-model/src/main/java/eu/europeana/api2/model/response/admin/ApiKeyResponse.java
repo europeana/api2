@@ -35,5 +35,9 @@ public class ApiKeyResponse extends ApiResponse {
         public String getPublicKey() {
             return publicKey;
         }
+
+        public String getLevel() {
+            return level;
+        }
     }
 }
