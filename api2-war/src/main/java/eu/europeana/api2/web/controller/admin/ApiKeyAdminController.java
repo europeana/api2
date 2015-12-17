@@ -188,6 +188,7 @@ public class ApiKeyAdminController {
             entity.setLastName(apiKey.getLastName());
             entity.setWebsite(apiKey.getWebsite());
             entity.setUsageLimit(apiKey.getUsageLimit());
+            entity.setLevel(apiKey.getLevel().toString());
             return entity;
         }
         return null;
