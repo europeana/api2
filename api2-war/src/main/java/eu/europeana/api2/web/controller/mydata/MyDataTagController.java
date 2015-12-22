@@ -47,7 +47,7 @@ import java.util.List;
  */
 @Controller
 @Api(value = "my_data", description = " ")
-@SwaggerSelect
+//@SwaggerSelect
 public class MyDataTagController extends AbstractUserController {
 
     @SwaggerIgnore

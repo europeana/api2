@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Controller
 @RequestMapping(value = "/user/activate")
-@SwaggerIgnore
+//@SwaggerIgnore - note that classes are not included by default, so it's not necessary to explicitly tag them
 public class UserActivateController {
 
     @Resource

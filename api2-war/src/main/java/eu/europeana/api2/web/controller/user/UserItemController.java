@@ -49,7 +49,7 @@ import static eu.europeana.corelib.utils.EuropeanaUriUtils.createEuropeanaId;
  */
 @Controller
 @RequestMapping(value = "/user/saveditem")
-@SwaggerSelect
+//@SwaggerSelect
 @Api(value = "my_europeana", description = " ")
 public class UserItemController extends AbstractUserController {
 

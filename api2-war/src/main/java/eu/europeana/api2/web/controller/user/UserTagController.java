@@ -50,7 +50,7 @@ import static eu.europeana.corelib.utils.EuropeanaUriUtils.createEuropeanaId;
 @Controller
 @RequestMapping(value = "/user/tag")
 @Api(value = "my_europeana", description = " ")
-@SwaggerSelect
+//@SwaggerSelect
 public class UserTagController extends AbstractUserController {
 
     @ApiOperation(value = "lists a user's data tags", nickname = "listUserTags")
