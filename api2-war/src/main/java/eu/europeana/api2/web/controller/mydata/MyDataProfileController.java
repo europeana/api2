@@ -36,7 +36,7 @@ import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 
 @Controller
 @Api(value = "my_data", description = " ")
-@SwaggerSelect
+//@SwaggerSelect
 public class MyDataProfileController extends AbstractUserController {
 
 	@ApiOperation(value = "lets the user fetch their profile", nickname = "fetchMyDataProfile")

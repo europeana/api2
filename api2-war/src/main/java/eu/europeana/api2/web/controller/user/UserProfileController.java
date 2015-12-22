@@ -36,7 +36,7 @@ import java.security.Principal;
 @Controller
 @RequestMapping(value = "/user/profile")
 @Api(value = "my_europeana", description = " ")
-@SwaggerSelect
+//@SwaggerSelect
 public class UserProfileController extends AbstractUserController {
 
     @ApiOperation(value = "fetch a user's profile", nickname = "fetchUserProfile")

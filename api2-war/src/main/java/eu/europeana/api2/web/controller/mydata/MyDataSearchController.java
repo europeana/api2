@@ -46,7 +46,7 @@ import java.util.ArrayList;
  */
 @Controller
 @Api(value = "my_data", description = " ")
-@SwaggerSelect
+//@SwaggerSelect
 public class MyDataSearchController extends AbstractUserController {
 
     @ApiOperation(value = "lets the user list their saved searches", nickname = "listMySavedSearches")

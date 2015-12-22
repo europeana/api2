@@ -47,7 +47,7 @@ import java.util.ArrayList;
 @Controller
 @RequestMapping(value = "/user/savedsearch")
 @Api(value = "my_europeana", description = " ")
-@SwaggerSelect
+//@SwaggerSelect
 public class UserSearchController extends AbstractUserController {
 
     @ApiOperation(value = "list a user's saved searches", nickname = "listUserSearches")

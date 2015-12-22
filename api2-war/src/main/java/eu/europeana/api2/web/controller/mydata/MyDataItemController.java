@@ -44,7 +44,7 @@ import java.util.Set;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@SwaggerSelect
+//@SwaggerSelect
 @Api(value = "my_data", description = " ")
 public class MyDataItemController extends AbstractUserController {
 
