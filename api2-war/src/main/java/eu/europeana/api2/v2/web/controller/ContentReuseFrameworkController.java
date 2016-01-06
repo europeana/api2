@@ -113,7 +113,7 @@ public class ContentReuseFrameworkController {
             mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
         }
 
-        return new ResponseEntity<>(mediaResponse, headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(mediaResponse, headers, HttpStatus.OK);
     }
 
 
