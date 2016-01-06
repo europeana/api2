@@ -92,12 +92,12 @@ public class ContentReuseFrameworkController {
 
     @RequestMapping(value = "/v2/thumbnail-by-url.json", method = RequestMethod.GET)
     public ResponseEntity<byte[]> thumbnailByUrl(
-            @RequestParam(value = "uri", required = true) String url,
+            @RequestParam(value = "uri", required = false) String url,
             @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
             HttpServletResponse response) {
         controllerUtils.addResponseHeaders(response);
-
+        url = (url == null ? "": url);
         final HttpHeaders headers = new HttpHeaders();
         final String mediaFileId = computeResourceUrl(url, size);
         final MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, true);
