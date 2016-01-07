@@ -172,7 +172,7 @@ public class SugarCRMController {
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
-			response.totalResults = response.items.size();
+			response.totalResults = Long.valueOf(response.items.size());
 			response.statsStartTime = starttime;
 			Date endtime = new Date();
 			response.statsDuration = endtime.getTime() - starttime.getTime();
@@ -220,7 +220,7 @@ public class SugarCRMController {
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
-			response.totalResults = response.items.size();
+			response.totalResults = Long.valueOf(response.items.size());
 			response.statsStartTime = starttime;
 			Date endtime = new Date();
 			response.statsDuration = endtime.getTime() - starttime.getTime();
@@ -324,7 +324,7 @@ public class SugarCRMController {
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
-			response.totalResults = response.items.size();
+			response.totalResults = Long.valueOf(response.items.size());
 			response.statsStartTime = starttime;
 			Date endtime = new Date();
 			response.statsDuration = endtime.getTime() - starttime.getTime();

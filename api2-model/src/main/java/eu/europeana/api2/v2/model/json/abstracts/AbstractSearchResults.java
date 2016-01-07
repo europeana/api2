@@ -23,6 +23,7 @@ import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -32,10 +33,12 @@ public class AbstractSearchResults<T> extends ApiResponse {
 
 	public long itemsCount;
 
-	public long totalResults;
+	@JsonInclude(NON_NULL)
+	public Long totalResults;
 
 	public String nextCursor;
 
+	@JsonInclude(NON_NULL)
 	public List<T> items;
 
 	public AbstractSearchResults(String apikey) {
@@ -47,7 +50,7 @@ public class AbstractSearchResults<T> extends ApiResponse {
 		super();
 	}
 
-	public long getTotalResults() {
+	public Long getTotalResults() {
 		if (totalResults < itemsCount) {
 			return itemsCount;
 		}
