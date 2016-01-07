@@ -110,6 +110,7 @@ public class BasicObjectController {
 			if (bean == null) {
 	          // Disabled while awaiting better implementation (ticket #1742)
 			  // apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
+				response.setStatus(404);
 				return JsonUtils.toJson(new ApiError(wskey,
 						"Invalid record identifier: " + europeanaObjectId,
 						requestNumber), callback);
