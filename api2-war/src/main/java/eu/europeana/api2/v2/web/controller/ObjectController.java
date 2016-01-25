@@ -86,7 +86,7 @@ import java.util.*;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@Api(value = "record", description = " ")
+@Api(tags = {"Record"}, description = " ")
 @RequestMapping(value = "/v2/record")
 @SwaggerSelect
 public class ObjectController {
