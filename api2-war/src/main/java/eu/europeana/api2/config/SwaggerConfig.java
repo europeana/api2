@@ -57,8 +57,7 @@ public class SwaggerConfig {
                         withClassAnnotation(SwaggerIgnore.class)
                 ))) //Selection by RequestHandler
                 .build()
-                .host(StringUtils.isNotBlank(apiUrl) ? apiUrl : (
-                        StringUtils.isNotBlank(apiCanonicalUrl) ? apiCanonicalUrl : "http://europeana.eu"))
+                .host(hostUrl())
                 .apiInfo(apiInfo());
     }
     
@@ -76,4 +75,13 @@ public class SwaggerConfig {
         "http://www.europeana.eu/portal/rights/api-terms-of-use.html" );
     }
 
+    private String hostUrl(){
+        String hostUrl = StringUtils.isNotBlank(apiUrl) ? apiUrl : (
+                StringUtils.isNotBlank(apiCanonicalUrl) ? apiCanonicalUrl : "http://europeana.eu");
+        if (hostUrl.toLowerCase().indexOf("/api") != -1){
+            return hostUrl.substring(0, hostUrl.toLowerCase().indexOf("/api"));
+        } else {
+            return hostUrl;
+        }
+    }
 }
