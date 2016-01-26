@@ -95,22 +95,23 @@ public class ContentReuseFrameworkController {
             @RequestParam(value = "uri", required = false) String url,
             @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws IOException {
         controllerUtils.addResponseHeaders(response);
         url = (url == null ? "": url);
         final HttpHeaders headers = new HttpHeaders();
         final String mediaFileId = computeResourceUrl(url, size);
         final MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, true);
 
-        byte[] mediaResponse;
+        byte[] mediaResponse = null;
         if (mediaFile != null) {
             mediaResponse = mediaFile.getContent();
             // All stored thumbnails are JPEG.
             headers.setContentType(MediaType.IMAGE_JPEG);
         } else {
-            headers.setContentType(MediaType.IMAGE_GIF);
+            response.sendRedirect("http://legacy.europeanastatic.eu/api/image?size=w200&type=" + type + "&uri=" + url);
+//            headers.setContentType(MediaType.IMAGE_GIF);
             // All default not found thumbnails are GIF.
-            mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
+//            mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
         }
 
         return new ResponseEntity<>(mediaResponse, headers, HttpStatus.OK);
@@ -183,22 +184,22 @@ public class ContentReuseFrameworkController {
         return temp;
     }
 
-    private byte[] getDefaultThumbnailForNotFoundResourceByType(final String type) {
-        switch (StringUtils.upperCase(type)) {
-            case "IMAGE":
-                return getImage("/images/item-image-large.gif");
-            case "SOUND":
-                return getImage("/images/item-sound-large.gif");
-            case "VIDEO":
-                return getImage("/images/item-video-large.gif");
-            case "TEXT":
-                return getImage("/images/item-text-large.gif");
-            case "3D":
-                return getImage("/images/item-3d-large.gif");
-            default:
-                return getImage("/images/item-image-large.gif");
-        }
-    }
+//    private byte[] getDefaultThumbnailForNotFoundResourceByType(final String type) {
+//        switch (StringUtils.upperCase(type)) {
+//            case "IMAGE":
+//                return getImage("/images/item-image-large.gif");
+//            case "SOUND":
+//                return getImage("/images/item-sound-large.gif");
+//            case "VIDEO":
+//                return getImage("/images/item-video-large.gif");
+//            case "TEXT":
+//                return getImage("/images/item-text-large.gif");
+//            case "3D":
+//                return getImage("/images/item-3d-large.gif");
+//            default:
+//                return getImage("/images/item-image-large.gif");
+//        }
+//    }
 
     private String computeResourceUrl(final String resourceUrl, final String resourceSize) {
         return getMD5(resourceUrl) + "-" + (StringUtils.equalsIgnoreCase(resourceSize, "w400") ? "LARGE" : "MEDIUM");
