@@ -108,6 +108,7 @@ public class ContentReuseFrameworkController {
             // All stored thumbnails are JPEG.
             headers.setContentType(MediaType.IMAGE_JPEG);
         } else {
+            response.setStatus(302);
             response.sendRedirect("http://legacy.europeanastatic.eu/api/image?size=w200&type=" + type + "&uri=" + url);
 //            headers.setContentType(MediaType.IMAGE_GIF);
             // All default not found thumbnails are GIF.
