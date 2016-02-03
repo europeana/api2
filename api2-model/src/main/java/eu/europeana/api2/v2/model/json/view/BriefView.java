@@ -44,13 +44,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     protected String wskey;
     protected BriefBean bean;
     private String[] thumbnails;
-    private boolean isOptedOut;
 
-    public BriefView(BriefBean bean, String profile, String wskey, boolean optOut) {
+    public BriefView(BriefBean bean, String profile, String wskey) {
         this.bean = bean;
         this.profile = profile;
         this.wskey = wskey;
-        this.isOptedOut = optOut;
         urlService = EuropeanaUrlServiceImpl.getBeanInstance();
     }
 
@@ -227,16 +225,16 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return bean.getId();
     }
 
-    @Override
-    public Boolean isOptedOut() {
-        return bean.isOptedOut();
-    }
+//    @Override
+//    public Boolean isOptedOut() {
+//        return bean.isOptedOut();
+//    }
 
     private String[] getThumbnails() {
         if (thumbnails == null) {
             List<String> thumbs = new ArrayList<>();
 
-            if (!isOptedOut && bean.getEdmObject() != null) {
+            if (bean.getEdmObject() != null) {
                 for (String object : bean.getEdmObject()) {
                     String tn = StringUtils.defaultIfBlank(object, "");
                     final String url = urlService.getThumbnailUrl(tn, getType()).toString();

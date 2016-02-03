@@ -599,15 +599,11 @@ public class SearchController {
 		for (T b : resultSet.getResults()) {
 
 			if (b instanceof RichBean) {
-				Boolean optOut = ((RichBean) b).getPreviewNoDistribute();
-
-				beans.add((T) new RichView((RichBean) b, profile, apiKey, optOut));
+                beans.add((T) new RichView((RichBean) b, profile, apiKey));
 			} else if (b instanceof ApiBean) {
-				Boolean optOut = ((ApiBean) b).getPreviewNoDistribute();
-				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, optOut));
+                beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
 			} else if (b instanceof BriefBean) {
-				Boolean optOut = ((BriefBean) b).getPreviewNoDistribute();
-				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, optOut));
+                beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
 			}
 		}
 
