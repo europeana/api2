@@ -52,6 +52,7 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.logging.Log;
 import eu.europeana.corelib.logging.Logger;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -74,7 +75,7 @@ import java.util.Date;
  * @since Sep 24, 2013
  */
 @Controller
-@Api(value = "provider-and_datasets", description = " ")
+@Api(tags = {"Providers and Datasets"}, description = " ")
 @SwaggerSelect
 public class SugarCRMController {
 
@@ -172,7 +173,7 @@ public class SugarCRMController {
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
-			response.totalResults = response.items.size();
+			response.totalResults = Long.valueOf(response.items.size());
 			response.statsStartTime = starttime;
 			Date endtime = new Date();
 			response.statsDuration = endtime.getTime() - starttime.getTime();
@@ -220,7 +221,7 @@ public class SugarCRMController {
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
-			response.totalResults = response.items.size();
+			response.totalResults = Long.valueOf(response.items.size());
 			response.statsStartTime = starttime;
 			Date endtime = new Date();
 			response.statsDuration = endtime.getTime() - starttime.getTime();
@@ -324,7 +325,7 @@ public class SugarCRMController {
 			response.apikey = wskey;
 			response.requestNumber = limitResponse.getRequestNumber();
 			response.itemsCount = response.items.size();
-			response.totalResults = response.items.size();
+			response.totalResults = Long.valueOf(response.items.size());
 			response.statsStartTime = starttime;
 			Date endtime = new Date();
 			response.statsDuration = endtime.getTime() - starttime.getTime();

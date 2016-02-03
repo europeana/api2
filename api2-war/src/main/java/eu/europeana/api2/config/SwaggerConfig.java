@@ -19,6 +19,8 @@ package eu.europeana.api2.config;
 
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import springfox.documentation.service.ApiInfo;
@@ -38,6 +40,12 @@ import static springfox.documentation.builders.RequestHandlerSelectors.withMetho
 @PropertySource("classpath:swagger.properties")
 public class SwaggerConfig {
 
+    @Value("${api2.url}")
+    private String apiUrl;
+
+    @Value("${api2.canonical.url}")
+    private String apiCanonicalUrl;
+
     @Bean
     public Docket customImplementation() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -49,6 +57,7 @@ public class SwaggerConfig {
                         withClassAnnotation(SwaggerIgnore.class)
                 ))) //Selection by RequestHandler
                 .build()
+                .host(hostUrl())
                 .apiInfo(apiInfo());
     }
     
@@ -66,4 +75,13 @@ public class SwaggerConfig {
         "http://www.europeana.eu/portal/rights/api-terms-of-use.html" );
     }
 
+    private String hostUrl(){
+        String hostUrl = StringUtils.isNotBlank(apiUrl) ? apiUrl : (
+                StringUtils.isNotBlank(apiCanonicalUrl) ? apiCanonicalUrl : "http://europeana.eu");
+        if (hostUrl.toLowerCase().indexOf("/api") != -1){
+            return hostUrl.substring(0, hostUrl.toLowerCase().indexOf("/api"));
+        } else {
+            return hostUrl;
+        }
+    }
 }

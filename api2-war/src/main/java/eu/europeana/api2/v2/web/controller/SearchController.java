@@ -94,7 +94,7 @@ import java.util.*;
  */
 @Controller
 @SwaggerSelect
-@Api(value = "search", description = " ")
+@Api(tags = {"Search"}, description = " ")
 public class SearchController {
 
 	final static public int FACET_LIMIT = 16;
