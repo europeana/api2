@@ -81,7 +81,7 @@ public class UserItemController extends AbstractUserController {
     private ModelAndView list(String europeanaId, String callback, Principal principal) {
         UserResults<SavedItem> response = new UserResults<>(getApiId(principal));
         try {
-            User user = userService.findByEmail(principal.getName());
+            User user = getUserByPrincipal(principal);
             if (user != null) {
                 response.items = new ArrayList<>();
                 response.username = user.getUserName();
@@ -123,7 +123,7 @@ public class UserItemController extends AbstractUserController {
             Principal principal) {
         ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
         try {
-            User user = userService.findByEmail(principal.getName());
+            User user = getUserByPrincipal(principal);
             userService.createSavedItem(user.getId(), createEuropeanaId(collectionId, recordId));
             response.success = true;
         } catch (DatabaseException e) {
@@ -163,7 +163,7 @@ public class UserItemController extends AbstractUserController {
     private ModelAndView delete(Long itemId, String europeanaId, String callback, Principal principal) {
         ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
         try {
-            User user = userService.findByEmail(principal.getName());
+            User user = getUserByPrincipal(principal);
             if (user != null) {
                 response.success = true;
                 if (itemId != null) {

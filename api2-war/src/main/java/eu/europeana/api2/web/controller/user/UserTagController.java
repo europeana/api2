@@ -87,7 +87,7 @@ public class UserTagController extends AbstractUserController {
             Principal principal) {
         UserResults<Tag> response = new UserResults<>(getApiId(principal));
         try {
-            User user = userService.findByEmail(principal.getName());
+            User user = getUserByPrincipal(principal);
             if (user != null) {
                 response.items = new ArrayList<>();
                 response.username = user.getUserName();
@@ -128,7 +128,7 @@ public class UserTagController extends AbstractUserController {
             Principal principal) {
         UserResults<TagCloudItem> response = new UserResults<>(getApiId(principal));
         try {
-            User user = userService.findByEmail(principal.getName());
+            User user = getUserByPrincipal(principal);
             if (user != null) {
                 response.items = userService.createSocialTagCloud(user.getId());
                 response.itemsCount = (long) response.items.size();
@@ -157,7 +157,7 @@ public class UserTagController extends AbstractUserController {
             @RequestParam(value = "tag", required = true) String tag,
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
-        User user = userService.findByEmail(principal.getName());
+        User user = getUserByPrincipal(principal);
         ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
         if (user != null) {
             try {
@@ -219,7 +219,7 @@ public class UserTagController extends AbstractUserController {
                                 String europeanaId,
                                 String callback,
                                 Principal principal) {
-        User user = userService.findByEmail(principal.getName());
+        User user = getUserByPrincipal(principal);
         ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
         if (user != null) {
             try {

@@ -1,0 +1,19 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title th:text="|API2 DEMO - ${profile.userName}|">API2 DEMO - Username</title>
+</head>
+
+<body>
+<h1>Welcome <span th:text="|${profile.firstName} ${profile.lastName}|">firstName lastName</span></h1>
+<p>Is your email address still <span th:text="${profile.email}">your@email.com</span>?</p>
+<p/>
+<p>Saved Items: <span th:text="${profile.nrOfSavedItems}">nn</span></p>
+<p>Saved Searches: <span th:text="${profile.nrOfSavedSearches}">nn</span></p>
+<p>Social Tags: <span th:text="${profile.nrOfSocialTags}">nn</span></p>
+<p/>
+<div th:include="links :: links"/>
+
+</body>
+</html>

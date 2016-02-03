@@ -25,10 +25,13 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import javax.annotation.Resource;
 
+import static org.springframework.http.HttpMethod.*;
+import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
+
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
-//@Configuration
+@Configuration
 public class OAuth2ServerConfig {
 
     @Configuration
@@ -47,32 +50,25 @@ public class OAuth2ServerConfig {
             // @formatter:off
 			http
 				.sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                    .sessionCreationPolicy(IF_REQUIRED)
 			        .and()
 				.requestMatchers()
                     .antMatchers("/user/**", "/oauth/users/**", "/oauth/clients/**")
 			        .and()
 				.authorizeRequests()
-					.antMatchers(HttpMethod.GET, "/user/**").access("#oauth2.isClient() and #oauth2.hasScope('read')")
-					.antMatchers(HttpMethod.GET, "/user/authorize/**").permitAll()
-					.antMatchers(HttpMethod.POST, "/user/**").access("#oauth2.hasScope('write')")
-					.antMatchers(HttpMethod.PUT, "/user/**").access("#oauth2.hasScope('write')")
-					.antMatchers(HttpMethod.DELETE, "/user/**").access("#oauth2.hasScope('write')")
+//                    .antMatchers("/login/user").permitAll()
+					.antMatchers(GET, "/user/**").access("#oauth2.isClient() and #oauth2.hasScope('read')")
+//					.antMatchers(GET, "/user/authorize/**").permitAll()
+					.antMatchers(POST, "/user/**").access("#oauth2.hasScope('write')")
+					.antMatchers(PUT, "/user/**").access("#oauth2.hasScope('write')")
+					.antMatchers(DELETE, "/user/**").access("#oauth2.hasScope('write')")
                     // Authentication
-					.regexMatchers(HttpMethod.DELETE, "/oauth/users/([^/].*?)/tokens/.*")
+					.regexMatchers(DELETE, "/oauth/users/([^/].*?)/tokens/.*")
 						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('write')")
-					.regexMatchers(HttpMethod.GET, "/oauth/clients/([^/].*?)/users/.*")
+					.regexMatchers(GET, "/oauth/clients/([^/].*?)/users/.*")
 						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('read')")
-					.regexMatchers(HttpMethod.GET, "/oauth/clients/.*")
+					.regexMatchers(GET, "/oauth/clients/.*")
 						.access("#oauth2.clientHasRole('ROLE_CLIENT') and #oauth2.isClient() and #oauth2.hasScope('read')")
-                    .and()
-                .formLogin()
-                    .loginProcessingUrl("/login")
-                    .loginPage("/login/user")
-                    .and()
-                .logout()
-                    .logoutSuccessUrl("/")
-                    .logoutUrl("/logout")
             ;
 			// @formatter:on
         }
