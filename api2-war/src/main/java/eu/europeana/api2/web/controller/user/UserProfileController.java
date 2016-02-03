@@ -48,7 +48,7 @@ public class UserProfileController extends AbstractUserController {
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
         Profile response = new Profile(getApiId(principal));
-        User user = userService.findByEmail(principal.getName());
+        User user = getUserByPrincipal(principal);
         if (user != null) {
             response.copyDetails(user);
         } else {

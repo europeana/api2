@@ -33,6 +33,53 @@
 
     <dependencies>
         <dependency>
+            <groupId>eu.europeana.api2</groupId>
+            <artifactId>api2-model</artifactId>
+        </dependency>
+        <!-- CORELIB -->
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-sugarcrm-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-sugarcrm-bindings</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-db</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-logging</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-media-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-hierarchies</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-common-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-search</artifactId>
+        </dependency>
+
+        <!-- OTHER -->
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>18.0</version>
@@ -81,86 +128,6 @@
                     <artifactId>spring-xml</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-sugarcrm-client</artifactId>
-            <version>${version.europeanaCorelib}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-definitions</artifactId>
-            <version>${version.europeanaCorelib}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-sugarcrm-bindings</artifactId>
-            <version>${version.europeanaCorelib}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.api2</groupId>
-            <artifactId>api2-model</artifactId>
-            <version>${parent.version}</version>
-        </dependency>
-
-        <dependency>
-            <!-- will also include SOLR, DEF, UTILS -->
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-db</artifactId>
-            <version>${version.europeanaCorelib}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-logging</artifactId>
-            <version>${version.europeanaCorelib}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-media-storage</artifactId>
-            <version>${version.europeanaCorelib}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-hierarchies</artifactId>
-            <version>${version.europeanaCorelib}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>google-collections</artifactId>
-                    <groupId>com.google.collections</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-web</artifactId>
-            <version>${version.europeanaCorelib}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-storage</artifactId>
-            <version>${version.europeanaCorelib}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-common-storage</artifactId>
-            <version>${version.europeanaCorelib}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-search</artifactId>
-            <version>${version.europeanaCorelib}</version>
         </dependency>
 
         <dependency>

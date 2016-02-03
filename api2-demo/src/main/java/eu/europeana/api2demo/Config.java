@@ -22,26 +22,26 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class Config {
 
-    @Value("${api2.url}")
+    @Value("${api2.url.host}")
     private String apiUrl;
 
     private static final String URI_PROFILE = "/user/profile";
 
     private static final String URI_SAVEDITEM_GET = "/user/saveditem";
 
-    private static final String URI_SAVEDITEM_CREATE = "/user/saveditem?europeanaid=";
+    private static final String URI_SAVEDITEM_CREATE = "/user/saveditem/";
 
-    private static final String URI_SAVEDITEM_DELETE = "/user/saveditem?itemid=";
+    private static final String URI_SAVEDITEM_DELETE = "/user/saveditem/";
 
     private static final String URI_TAGS_GET = "/user/tag";
 
     private static final String URI_TAGS_TAGCLOUD = "/user/tag/cloud";
 
-    private static final String URI_TAGS_DELETE = "/user/tag?tagid=";
+    private static final String URI_TAGS_DELETE = "/user/tag/";
 
     private static final String URI_SEARCHES_GET = "/user/savedsearch";
 
-    private static final String URI_SEARCHES_DELETE = "/user/savedsearch?searchid=";
+    private static final String URI_SEARCHES_DELETE = "/user/savedsearch/";
 
     public String getApiUrl() {
         return StringUtils.stripEnd(apiUrl, "/");
@@ -82,4 +82,5 @@ public class Config {
     public String getUriSearchesDelete() {
         return getApiUrl() + URI_SEARCHES_DELETE;
     }
+
 }

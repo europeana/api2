@@ -58,17 +58,14 @@ public class FieldTripUtils {
          * publication date and link retrieved from the provided Bean instance and
          * the translatedEdmIsShownAtLabel parameter
 	 * @param bean containing the Solr query data
-	 * @param translatedEdmIsShownAtLabel containing the EdmIsShownAt label 
-         * text, translated in the appropriate language
 	 * @return FieldTripItem instance
 	 *   
 	 */
-	public FieldTripItem createItem(RichBean bean, String translatedEdmIsShownAtLabel) {
+	public FieldTripItem createItem(RichBean bean) {
 		FieldTripItem item = new FieldTripItem();
 		item.guid = urlService.getPortalRecord(false, bean.getId()).toString();
 		item.title = getTitle(bean);
 		item.description = extractDescription(bean.getDcDescription());
-        //        item.description = addShownAt(item.description, translatedEdmIsShownAtLabel, bean.getEdmIsShownAt());
 		item.images = getThumbnail(bean);
 		item.point = getPoint(bean);
 		item.pubDate = getPublicationDate(bean.getTimestampCreated());

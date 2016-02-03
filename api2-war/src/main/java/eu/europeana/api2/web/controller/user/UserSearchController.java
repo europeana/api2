@@ -59,7 +59,7 @@ public class UserSearchController extends AbstractUserController {
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
         UserResults<Search> response = new UserResults<>(getApiId(principal));
-        User user = userService.findByEmail(principal.getName());
+        User user = getUserByPrincipal(principal);
         if (user != null) {
             response.items = new ArrayList<>();
             response.username = user.getUserName();
@@ -92,7 +92,7 @@ public class UserSearchController extends AbstractUserController {
             Principal principal) {
         ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
         try {
-            User user = userService.findByEmail(principal.getName());
+            User user = getUserByPrincipal(principal);
             if (user != null) {
                 UrlBuilder ub = new UrlBuilder(query);
                 ub.addParam("qf", refinements, true);
@@ -123,7 +123,7 @@ public class UserSearchController extends AbstractUserController {
             Principal principal) {
         ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
         try {
-            User user = userService.findByEmail(principal.getName());
+            User user = getUserByPrincipal(principal);
             if (user != null) {
                 userService.removeSavedSearch(user.getId(), searchId);
                 response.success = true;

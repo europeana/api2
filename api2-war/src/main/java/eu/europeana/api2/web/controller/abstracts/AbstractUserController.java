@@ -64,6 +64,13 @@ public abstract class AbstractUserController {
 		return user;
 	}
 
+	protected User getUserByPrincipal(Principal principal) {
+		if (principal != null) {
+			return userService.findByEmail(principal.getName());
+		}
+		return null;
+	}
+
 	protected void copyUserObjectData(String wskey, UserObject to, EuropeanaUserObject from) {
 		to.id = from.getId();
 		to.europeanaId = from.getEuropeanaUri();

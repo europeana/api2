@@ -1,13 +1,11 @@
 package eu.europeana.api2demo.config;
 
 import eu.europeana.api2demo.Config;
+import eu.europeana.api2demo.web.service.impl.Api2UserServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
@@ -18,8 +16,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableOAuth2Client
-@PropertySource("classpath:api2demo.properties")
-@ComponentScan("eu.europeana.api2demo.web.service")
+@ComponentScan(basePackageClasses = Api2UserServiceImpl.class)
 public class OAuth2Config {
 
     @Value("${api2.key}")
@@ -52,12 +49,12 @@ public class OAuth2Config {
     }
 
 
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer properties() {
-        PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-        propertySourcesPlaceholderConfigurer.setLocation(new ClassPathResource("api2demo.properties"));
-        return propertySourcesPlaceholderConfigurer;
-    }
+//    @Bean
+//    public static PropertySourcesPlaceholderConfigurer properties() {
+//        PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+//        propertySourcesPlaceholderConfigurer.setLocation(new ClassPathResource("api2demo.properties"));
+//        return propertySourcesPlaceholderConfigurer;
+//    }
 
     @Bean
     public Config config() {

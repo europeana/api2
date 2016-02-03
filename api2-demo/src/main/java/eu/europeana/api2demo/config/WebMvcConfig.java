@@ -1,5 +1,6 @@
 package eu.europeana.api2demo.config;
 
+import eu.europeana.api2demo.web.controller.UserController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +21,7 @@ import java.util.Collections;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = {"eu.europeana.api2demo.web.controller"})
+@ComponentScan(basePackageClasses = UserController.class)
 @Import(OAuth2Config.class)
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
