@@ -47,7 +47,7 @@ import eu.europeana.corelib.utils.StringArrayUtils;
 
 @Controller
 @SwaggerSelect
-@Api(value = "search", description = " ")
+@Api(tags = {"Search"}, description = " ")
 public class QueryTranslationController {
 
 	@Resource

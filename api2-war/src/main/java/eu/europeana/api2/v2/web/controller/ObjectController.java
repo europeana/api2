@@ -86,7 +86,7 @@ import java.util.*;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@Api(value = "record", description = " ")
+@Api(tags = {"Record"}, description = " ")
 @RequestMapping(value = "/v2/record")
 @SwaggerSelect
 public class ObjectController {
@@ -139,6 +139,7 @@ public class ObjectController {
         }
 
         String europeanaObjectId = EuropeanaUriUtils.createResolveEuropeanaId(collectionId, recordId);
+        String originalObjectId = europeanaObjectId;
         try {
             long t0 = (new Date()).getTime();
             FullBean bean = searchService.findById(europeanaObjectId, false);
@@ -150,8 +151,9 @@ public class ObjectController {
                 bean.getAggregations().get(0).setEdmObject("");
             }
             if (bean == null) {
+                response.setStatus(404);
                 return JsonUtils.toJson(new ApiError(wskey, "Invalid record identifier: "
-                        + europeanaObjectId, limitResponse.getRequestNumber()), callback);
+                        + originalObjectId, limitResponse.getRequestNumber()), callback);
             }
 
             if (StringUtils.containsIgnoreCase(profile, Profile.SIMILAR.getName())) {
