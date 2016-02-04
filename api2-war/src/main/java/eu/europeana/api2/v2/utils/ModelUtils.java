@@ -17,18 +17,28 @@
 
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api2.v2.model.enums.FacetNames;
-import eu.europeana.api2.v2.model.json.common.LabelFrequency;
-import eu.europeana.api2.v2.model.json.view.submodel.Facet;
-import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
-import eu.europeana.corelib.definitions.model.facets.inverseLogic.*;
-import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
 
-import java.util.*;
+import eu.europeana.api2.v2.model.enums.FacetNames;
+import eu.europeana.api2.v2.model.json.common.LabelFrequency;
+import eu.europeana.api2.v2.model.json.view.submodel.Facet;
+import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
+import eu.europeana.corelib.definitions.model.facets.inverseLogic.CommonPropertyExtractor;
+import eu.europeana.corelib.definitions.model.facets.inverseLogic.ImagePropertyExtractor;
+import eu.europeana.corelib.definitions.model.facets.inverseLogic.SoundPropertyExtractor;
+import eu.europeana.corelib.definitions.model.facets.inverseLogic.VideoPropertyExtractor;
+import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
+import eu.europeana.crf_faketags.extractor.MediaTypeEncoding;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -67,16 +77,17 @@ public class ModelUtils {
                     return "IMAGE_SIZE";
                 }
                 return label;
-            case SOUND:
-                label = SoundPropertyExtractor.getDuration(tag);
-                if (StringUtils.isNotBlank(label)) {
-                    return "SOUND_DURATION";
-                }
-                label = SoundPropertyExtractor.getQuality(tag);
-                if (StringUtils.isNotBlank(label)) {
-                    return "SOUND_HQ";
-                }
-                return "";
+// FIXME: no such enum in crf-fake-tags                  
+//            case SOUND:
+//                label = SoundPropertyExtractor.getDuration(tag);
+//                if (StringUtils.isNotBlank(label)) {
+//                    return "SOUND_DURATION";
+//                }
+//                label = SoundPropertyExtractor.getQuality(tag);
+//                if (StringUtils.isNotBlank(label)) {
+//                    return "SOUND_HQ";
+//                }
+//                return "";
             case VIDEO:
                 label = VideoPropertyExtractor.getDuration(tag);
                 if (StringUtils.isNotBlank(label)) {
