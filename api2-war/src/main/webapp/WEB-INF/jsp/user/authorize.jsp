@@ -44,7 +44,7 @@
     <% } %>
     <c:remove scope="session" var="SPRING_SECURITY_LAST_EXCEPTION"/>
 
-    <authz:authorize ifAllGranted="ROLE_USER">
+    <authz:authorize access="hasRole('ROLE_USER')">
         <h2>Please Confirm</h2>
 
         <p>You hereby authorize "<c:out value="${appName}"/>" to access your:</p>
@@ -64,14 +64,14 @@
             </c:forEach>
             <label><input name="authorize" value="Authorize" type="submit"></label>
         </form>
-        <form id="denialForm" name="denialForm" action="<%=request.getContextPath()%>/oauth/authorize" method="post">
-            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-            <input name="user_oauth_approval" value="true" type="hidden"/>
-            <c:forEach items="${scopes}" var="scope">
-                <input name="${scope.key}" value="false" type="hidden"/>
-            </c:forEach>
-            <label><input name="deny" value="Deny" type="submit"></label>
-        </form>
+        <%--<form id="denialForm" name="denialForm" action="<%=request.getContextPath()%>/oauth/authorize" method="post">--%>
+            <%--<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>--%>
+            <%--<input name="user_oauth_approval" value="true" type="hidden"/>--%>
+            <%--<c:forEach items="${scopes}" var="scope">--%>
+                <%--<input name="${scope.key}" value="false" type="hidden"/>--%>
+            <%--</c:forEach>--%>
+            <%--<label><input name="deny" value="Deny" type="submit"></label>--%>
+        <%--</form>--%>
     </authz:authorize>
 </div>
 

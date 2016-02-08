@@ -66,7 +66,7 @@ public class SecurityConfig {
                     .anyRequest().hasRole("USER")
                     .and()
                 .csrf()
-                    .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/authorize"))
+//                    .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/authorize"))
                     .disable()
                 .formLogin()
                     .loginProcessingUrl("/oAuthLogin.do")
