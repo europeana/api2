@@ -205,8 +205,8 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
                 } else {
                     hasFollowing = false;
                 }
-                if (struct.getPrecedingSiblings() != null && !struct.getPrecedingSiblings().isEmpty()) {
-                    hierarchicalResult.precedingSiblings = struct.getPrecedingSiblings();
+                if (struct.getPreceedingSiblings() != null && !struct.getPreceedingSiblings().isEmpty()) {
+                    hierarchicalResult.precedingSiblings = struct.getPreceedingSiblings();
                 } else {
                     hasPreceding = false;
                 }
