@@ -236,11 +236,12 @@ public class SearchController {
         final List<String> soundDurations = new ArrayList<>();
         final List<Boolean> videoHDs = new ArrayList<>();
         final List<String> videoDurations = new ArrayList<>();
-        final Integer imageFilterTag =
-                FakeTagsUtils.imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios)
-                        .get(0);
-        final Integer soundFilterTag = FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
-        final Integer videoFilterTag = FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations).get(0);
+        List<Integer> imageFilterTags = FakeTagsUtils.imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios);
+        final Integer imageFilterTag = imageFilterTags.isEmpty() ? null : imageFilterTags.get(0);
+        List<Integer> soundFilterTags = FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations);
+        final Integer soundFilterTag = soundFilterTags.isEmpty() ? null : soundFilterTags.get(0);
+        List<Integer> videoFilterTags = FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations);
+        final Integer videoFilterTag = videoFilterTags.isEmpty() ? null : videoFilterTags.get(0);
 
         if (cursorMark != null) {
             if (start > 1) {
