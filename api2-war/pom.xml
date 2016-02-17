@@ -330,13 +330,6 @@
 
     </dependencies>
 
-    <scm>
-        <connection>scm:git:git@github.com:europeana/api2.git</connection>
-        <developerConnection>scm:git:git@github.com:europeana/api2.git</developerConnection>
-        <tag>HEAD</tag>
-        <url>https://github.com/europeana/api2</url>
-    </scm>
-
     <build>
         <finalName>api</finalName>
         <plugins>
