@@ -93,7 +93,7 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import eu.europeana.crf_faketags.utils.FakeTagsUtils;
+import eu.europeana.corelib.search.utils.FakeTagsUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
