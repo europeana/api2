@@ -40,8 +40,8 @@ public class ApiView extends BriefView implements ApiBean {
     private Map<String, List<String>> edmConceptBroaderLabelLangAware;
     private Map<String, List<String>> edmPlaceAltLabelLangAware;
 
-    public ApiView(ApiBean bean, String profile, String wskey, boolean optOut) {
-        super(bean, profile, wskey, optOut);
+    public ApiView(ApiBean bean, String profile, String wskey) {
+        super(bean, profile, wskey);
 
         edmConceptTerm = bean.getEdmConcept();
         if (bean.getEdmConceptLabel() != null) {

@@ -27,7 +27,7 @@
     <parent>
         <artifactId>api2</artifactId>
         <groupId>eu.europeana</groupId>
-        <version>2.2.0-SNAPSHOT</version>
+        <version>2.3.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -306,13 +306,6 @@
         </dependency>
 
     </dependencies>
-
-    <scm>
-        <connection>scm:git:git@github.com:europeana/api2.git</connection>
-        <developerConnection>scm:git:git@github.com:europeana/api2.git</developerConnection>
-        <tag>HEAD</tag>
-        <url>https://github.com/europeana/api2</url>
-    </scm>
 
     <build>
         <finalName>api</finalName>

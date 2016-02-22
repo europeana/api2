@@ -75,6 +75,7 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -224,11 +225,12 @@ public class SearchController {
         final List<String> soundDurations = new ArrayList<>();
         final List<Boolean> videoHDs = new ArrayList<>();
         final List<String> videoDurations = new ArrayList<>();
-        final Integer imageFilterTag =
-                FakeTagsUtils.imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios)
-                        .get(0);
-        final Integer soundFilterTag = FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations).get(0);
-        final Integer videoFilterTag = FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations).get(0);
+        List<Integer> imageFilterTags = FakeTagsUtils.imageFilterTags(mimeTypes, imageSizes, imageColors, imageGrayScales, imageAspectRatios);
+        final Integer imageFilterTag = imageFilterTags.isEmpty() ? null : imageFilterTags.get(0);
+        List<Integer> soundFilterTags = FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations);
+        final Integer soundFilterTag = soundFilterTags.isEmpty() ? null : soundFilterTags.get(0);
+        List<Integer> videoFilterTags = FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations);
+        final Integer videoFilterTag = videoFilterTags.isEmpty() ? null : videoFilterTags.get(0);
 
         if (cursorMark != null) {
             if (start > 1) {
@@ -595,15 +597,11 @@ public class SearchController {
 		for (T b : resultSet.getResults()) {
 
 			if (b instanceof RichBean) {
-				Boolean optOut = ((RichBean) b).getPreviewNoDistribute();
-
-				beans.add((T) new RichView((RichBean) b, profile, apiKey, optOut));
+                beans.add((T) new RichView((RichBean) b, profile, apiKey));
 			} else if (b instanceof ApiBean) {
-				Boolean optOut = ((ApiBean) b).getPreviewNoDistribute();
-				beans.add((T) new ApiView((ApiBean) b, profile, apiKey, optOut));
+                beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
 			} else if (b instanceof BriefBean) {
-				Boolean optOut = ((BriefBean) b).getPreviewNoDistribute();
-				beans.add((T) new BriefView((BriefBean) b, profile, apiKey, optOut));
+                beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
 			}
 		}
 

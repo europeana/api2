@@ -39,16 +39,14 @@ public class FullView implements FullBean {
 
 	private FullBean bean;
 	private String profile;
-	private boolean optOut;
 	private String apiKey;
 	private EuropeanaUrlService europeanaUrlService;
 	private Date timestampCreated;
 	private Date timestampUpdated;
 	private boolean urlified = false;
 
-	public FullView(FullBean bean, String profile, String apiKey, boolean optOut) {
+	public FullView(FullBean bean, String profile, String apiKey) {
 		this.bean = bean;
-		this.optOut = optOut;
 		this.profile = profile;
 		this.apiKey = apiKey;
 		europeanaUrlService = EuropeanaUrlServiceImpl.getBeanInstance();
@@ -59,11 +57,6 @@ public class FullView implements FullBean {
 	@Override
 	public String getId() {
 		return null; // bean.getId();
-	}
-
-	@Override
-	public Boolean isOptedOut() {
-		return null;
 	}
 
 	@Override
@@ -157,11 +150,6 @@ public class FullView implements FullBean {
 						profile).toString();
 				item.setEdmIsShownAt(isShownAtLink);
 				urlified = true; // do this ONLY ONCE
-			}
-
-			// remove edm:object if it is a opted out record
-			if (optOut) {
-				item.setEdmObject(null);
 			}
 
 			// remove webresources IDs
@@ -314,10 +302,6 @@ public class FullView implements FullBean {
 
 	@Override
 	public void setEuropeanaCollectionName(String[] europeanaCollectionName) {
-	}
-
-	@Override
-	public void setOptOut(boolean optOut) {
 	}
 
 	public void extractTimestampCreated() {

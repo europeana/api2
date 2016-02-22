@@ -17,7 +17,18 @@
 
 package eu.europeana.api2.v2.model.json.view;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -25,15 +36,6 @@ import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 @JsonInclude(NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
@@ -44,13 +46,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     protected String wskey;
     protected BriefBean bean;
     private String[] thumbnails;
-    private boolean isOptedOut;
 
-    public BriefView(BriefBean bean, String profile, String wskey, boolean optOut) {
+    public BriefView(BriefBean bean, String profile, String wskey) {
         this.bean = bean;
         this.profile = profile;
         this.wskey = wskey;
-        this.isOptedOut = optOut;
         urlService = EuropeanaUrlServiceImpl.getBeanInstance();
     }
 
@@ -227,16 +227,16 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return bean.getId();
     }
 
-    @Override
-    public Boolean isOptedOut() {
-        return bean.isOptedOut();
-    }
+//    @Override
+//    public Boolean isOptedOut() {
+//        return bean.isOptedOut();
+//    }
 
     private String[] getThumbnails() {
         if (thumbnails == null) {
             List<String> thumbs = new ArrayList<>();
 
-            if (!isOptedOut && bean.getEdmObject() != null) {
+            if (bean.getEdmObject() != null) {
                 for (String object : bean.getEdmObject()) {
                     String tn = StringUtils.defaultIfBlank(object, "");
                     final String url = urlService.getThumbnailUrl(tn, getType()).toString();
