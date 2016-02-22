@@ -147,9 +147,9 @@ public class ObjectController {
                 europeanaObjectId = searchService.resolveId(europeanaObjectId);
                 bean = searchService.findById(europeanaObjectId, false);
             }
-            if (bean != null && bean.isOptedOut()) {
-                bean.getAggregations().get(0).setEdmObject("");
-            }
+//            if (bean != null && bean.isOptedOut()) {
+//                bean.getAggregations().get(0).setEdmObject("");
+//            }
             if (bean == null) {
                 response.setStatus(404);
                 return JsonUtils.toJson(new ApiError(wskey, "Invalid record identifier: "
@@ -162,9 +162,8 @@ public class ObjectController {
                 try {
                     similarItems = searchService.findMoreLikeThis(europeanaObjectId);
                     for (BriefBean b : similarItems) {
-                        Boolean optOut = b.getPreviewNoDistribute();
                         String similarItemsProfile = "minimal";
-                        BriefView view = new BriefView(b, similarItemsProfile, wskey, optOut == null ? false : optOut);
+                        BriefView view = new BriefView(b, similarItemsProfile, wskey);
 
                         beans.add(view);
                     }
@@ -173,8 +172,7 @@ public class ObjectController {
                 }
                 objectResult.similarItems = beans;
             }
-            Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
-            objectResult.object = new FullView(bean, profile, wskey, optOut == null ? false : optOut);
+            objectResult.object = new FullView(bean, profile, wskey);
             long t1 = (new Date()).getTime();
             objectResult.statsDuration = (t1 - t0);
         } catch (MongoDBException e) {
@@ -259,11 +257,6 @@ public class ObjectController {
         }
 
         if (bean != null) {
-            Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
-            if (optOut != null && optOut) {
-                bean.getAggregations().get(0).setEdmObject("");
-
-            }
             String rdf = EdmUtils.toEDM(bean, false);
             try {
                 Model modelResult = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(rdf), "", "RDF/XML");
@@ -339,11 +332,6 @@ public class ObjectController {
         }
 
         if (bean != null) {
-            Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
-            if (optOut != null && optOut) {
-                bean.getAggregations().get(0).setEdmObject("");
-
-            }
             model.put("record", EdmUtils.toEDM(bean, false));
         } else {
             response.setStatus(404);
@@ -399,11 +387,6 @@ public class ObjectController {
         SrwResponse srwResponse = new SrwResponse();
         FullDoc doc;
         if (bean != null) {
-            Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
-            if (optOut != null && optOut) {
-                bean.getAggregations().get(0).setEdmObject("");
-
-            }
             doc = new FullDoc(bean);
             Record record = new Record();
             record.recordData.dc = doc;
