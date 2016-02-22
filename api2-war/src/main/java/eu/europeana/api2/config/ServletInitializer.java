@@ -36,7 +36,6 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
         super.onStartup(servletContext);
-//        servletContext.addListener(VcapPropertyLoaderListener.class);
         registerProxyFilter(servletContext, "springSecurityFilterChain");
     }
 

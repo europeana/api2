@@ -35,7 +35,7 @@ import java.util.List;
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackageClasses = {SearchController.class, ExceptionController.class})
-@Import(SwaggerConfig.class)
+@Import(SwaggerConfig.class) // make sure WebMVC is started before swagger initiates
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
     @Bean
