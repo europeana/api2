@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import eu.europeana.corelib.definitions.model.facets.inverseLogic.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
@@ -33,12 +34,8 @@ import eu.europeana.api2.v2.model.enums.FacetNames;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
-import eu.europeana.corelib.definitions.model.facets.inverseLogic.CommonPropertyExtractor;
-import eu.europeana.corelib.definitions.model.facets.inverseLogic.ImagePropertyExtractor;
-import eu.europeana.corelib.definitions.model.facets.inverseLogic.SoundPropertyExtractor;
-import eu.europeana.corelib.definitions.model.facets.inverseLogic.VideoPropertyExtractor;
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
-import eu.europeana.crf_faketags.extractor.MediaTypeEncoding;
+
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -51,7 +48,7 @@ public class ModelUtils {
 
     public static String getFacetName(Integer tag) {
         final MediaTypeEncoding mediaType = CommonPropertyExtractor.getType(tag);
-        final String mimeType = CommonPropertyExtractor.getMimeType(tag);
+        final String            mimeType  = CommonPropertyExtractor.getMimeType(tag);
 
         if (StringUtils.isNotBlank(mimeType)) {
             return "MIME_TYPE";
