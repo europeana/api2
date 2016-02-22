@@ -55,6 +55,8 @@ public class OAuth2ServerConfig {
 				.requestMatchers()
                     .antMatchers("/user/**", "/oauth/users/**", "/oauth/clients/**")
 			        .and()
+                .csrf()
+                    .disable()
 				.authorizeRequests()
 //                    .antMatchers("/login/user").permitAll()
 					.antMatchers(GET, "/user/**").access("#oauth2.isClient() and #oauth2.hasScope('read')")
@@ -62,7 +64,7 @@ public class OAuth2ServerConfig {
 					.antMatchers(POST, "/user/**").access("#oauth2.hasScope('write')")
 					.antMatchers(PUT, "/user/**").access("#oauth2.hasScope('write')")
 					.antMatchers(DELETE, "/user/**").access("#oauth2.hasScope('write')")
-                    // Authentication
+                    // Authentication,
 					.regexMatchers(DELETE, "/oauth/users/([^/].*?)/tokens/.*")
 						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('write')")
 					.regexMatchers(GET, "/oauth/clients/([^/].*?)/users/.*")
@@ -111,14 +113,13 @@ public class OAuth2ServerConfig {
             return new ApiTokenStore();
         }
 
-        @Bean(name = "api2_oauth2_clientDetailsService")
-        public ClientDetailsService clientDetailsService() {
-            return new OAuth2ClientDetailsService();
-        }
+//        @Bean(name = "api2_oauth2_clientDetailsService")
+//        public ClientDetailsService clientDetailsService() {
+//            return new OAuth2ClientDetailsService();
+//        }
     }
 
     @Configuration
-    @SuppressWarnings("unused")
     protected static class Stuff {
 
         @Resource(name = "api2_oauth2_clientDetailsService")

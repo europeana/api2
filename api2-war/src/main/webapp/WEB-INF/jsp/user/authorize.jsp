@@ -3,6 +3,7 @@
 <%@ page import="org.springframework.security.web.WebAttributes" %>
 <%@ taglib prefix="authz" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%--
   ~ Copyright 2007-2015 The Europeana Foundation
   ~
@@ -55,7 +56,7 @@
             <li>Saved searches</li>
         </ul>
 
-        <form id="confirmationForm" name="confirmationForm" action="<%=request.getContextPath()%>/oauth/authorize"
+        <form:form id="confirmationForm" name="confirmationForm" action="/oauth/authorize"
               method="post">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
             <input name="user_oauth_approval" value="true" type="hidden"/>
@@ -63,7 +64,7 @@
                 <input name="${scope.key}" value="true" type="hidden"/>
             </c:forEach>
             <label><input name="authorize" value="Authorize" type="submit"></label>
-        </form>
+        </form:form>
         <%--<form id="denialForm" name="denialForm" action="<%=request.getContextPath()%>/oauth/authorize" method="post">--%>
             <%--<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>--%>
             <%--<input name="user_oauth_approval" value="true" type="hidden"/>--%>

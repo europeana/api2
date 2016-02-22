@@ -50,7 +50,8 @@ public class SecurityConfig {
         public void configure(WebSecurity web) throws Exception {
             web.ignoring().antMatchers(
                     "/oauth/uncache_approvals",
-                    "/oauth/cache_approvals"
+                    "/oauth/cache_approvals",
+                    "/user/activate/**"
             );
         }
 
@@ -108,6 +109,8 @@ public class SecurityConfig {
                 .httpBasic()
                     .realmName("Europeana API2")
                     .and()
+                .csrf()
+                    .disable()
                 .logout()
                     .logoutSuccessUrl("/")
                     .logoutUrl("/logout")

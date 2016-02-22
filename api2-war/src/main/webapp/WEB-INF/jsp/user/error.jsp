@@ -22,13 +22,6 @@
     <p>Please go back to your client application and try again, or
         contact the owner and ask for support</p>
 
-    <div class="footer">
-        Sample application for <a
-            href="http://github.com/spring-projects/spring-security-oauth"
-            target="_blank">Spring Security OAuth</a>
-    </div>
-
-
 </div>
 
 </body>
