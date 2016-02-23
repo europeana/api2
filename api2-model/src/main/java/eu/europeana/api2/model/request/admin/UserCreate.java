@@ -11,6 +11,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @JsonInclude(NON_EMPTY)
 public class UserCreate extends UserEntity {
 
+    // TODO default url?
+    private String redirect;
+
     public String getAddress() {
         return address;
     }
@@ -53,5 +56,13 @@ public class UserCreate extends UserEntity {
 
     public String getWebsite() {
         return website;
+    }
+
+    public void setRedirect(String redirect) {
+        this.redirect = redirect;
+    }
+
+    public String getRedirect() {
+        return redirect;
     }
 }

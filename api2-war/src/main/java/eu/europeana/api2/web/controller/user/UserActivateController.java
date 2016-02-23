@@ -2,6 +2,7 @@ package eu.europeana.api2.web.controller.user;
 
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.UserService;
+import eu.europeana.corelib.definitions.db.entity.relational.Token;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,7 +32,9 @@ public class UserActivateController {
             HttpServletRequest request
     ) {
         try {
-            userService.activate(email, token);
+            Token tokenEntity = userService.activate(email, token);
+            return "redirect:" + tokenEntity.getRedirect();
+            //request.getScheme() + "://www.europeana.eu"
         } catch (DatabaseException ignore) {
         }
         return "redirect:" + request.getScheme() + "://www.europeana.eu";
