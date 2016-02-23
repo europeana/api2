@@ -110,42 +110,35 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
         log.info("Init object: " + (System.currentTimeMillis() - t1));
         t1 = System.currentTimeMillis();
 
-        if (!recordType.equals(RecordType.HIERARCHY_SELF)) {
-            hierarchicalResult.self = searchService.getHierarchicalBean(rdfAbout);
-            if (hierarchicalResult.self != null) {
-                hierarchicalResult.self.setChildrenCount(
-                        searchService.getChildrenCount(hierarchicalResult.self.getId()));
-            } else {
-                response.setStatus(404);
-                return JsonUtils.toJson(new ApiError(wskey,
-                        String.format("Invalid record identifier: %s", rdfAbout),
-                        limitResponse.getRequestNumber()), callback);
-            }
+        hierarchicalResult.self = searchService.getHierarchicalBean(rdfAbout);
+        if (hierarchicalResult.self != null) {
+            hierarchicalResult.self.setChildrenCount(
+                    searchService.getChildrenCount(rdfAbout));
+        } else {
+            hierarchicalResult.success = false;
+            response.setStatus(404);
+            return JsonUtils.toJson(new ApiError(wskey,
+                    String.format("Invalid record identifier: %s", rdfAbout),
+                    limitResponse.getRequestNumber()), callback);
         }
 
         log.info("get self: " + (System.currentTimeMillis() - t1));
         t1 = System.currentTimeMillis();
 
         if (recordType.equals(RecordType.HIERARCHY_CHILDREN)) {
-            hierarchicalResult.children = searchService.getChildren(rdfAbout, offset, limit);
-            if (hierarchicalResult.children == null || hierarchicalResult.children.isEmpty()) {
+            if (hierarchicalResult.self.getChildrenCount() > 0) {
+                hierarchicalResult.children = searchService.getChildren(rdfAbout, offset, limit);
+                if (hierarchicalResult.children == null || hierarchicalResult.children.isEmpty()) {
+                    hierarchicalResult.message = "This record has no children";
+                    hierarchicalResult.success = false;
+                    response.setStatus(404);
+                } else {
+                    addChildrenCount(hierarchicalResult.children);
+                }
+            } else {
                 hierarchicalResult.message = "This record has no children";
                 hierarchicalResult.success = false;
                 response.setStatus(404);
-            } else {
-                addChildrenCount(hierarchicalResult.children);
-            }
-        } else if (recordType.equals(RecordType.HIERARCHY_SELF)) {
-            hierarchicalResult.self = searchService.getHierarchicalBean(rdfAbout);
-            if (hierarchicalResult.self == null) {
-                hierarchicalResult.success = false;
-                response.setStatus(404);
-                return JsonUtils.toJson(new ApiError(wskey,
-                        String.format("Invalid record identifier: %s", rdfAbout),
-                        limitResponse.getRequestNumber()), callback);
-            } else {
-                hierarchicalResult.self.setChildrenCount(
-                        searchService.getChildrenCount(rdfAbout));
             }
         } else if (recordType.equals(RecordType.HIERARCHY_PARENT)) {
             if (hierarchicalResult.self == null || StringUtils.isBlank(hierarchicalResult.self.getParent())) {
