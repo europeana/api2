@@ -103,9 +103,6 @@ public class ObjectController {
     @Resource
     private EuropeanaUrlService urlService;
 
-    @Resource(name = "corelib_db_userService")
-    private UserService userService;
-
     @Resource
     private ControllerUtils controllerUtils;
 
