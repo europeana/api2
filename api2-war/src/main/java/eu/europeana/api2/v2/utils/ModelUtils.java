@@ -74,17 +74,16 @@ public class ModelUtils {
                     return "IMAGE_SIZE";
                 }
                 return label;
-// FIXME: no such enum in crf-fake-tags                  
-//            case SOUND:
-//                label = SoundPropertyExtractor.getDuration(tag);
-//                if (StringUtils.isNotBlank(label)) {
-//                    return "SOUND_DURATION";
-//                }
-//                label = SoundPropertyExtractor.getQuality(tag);
-//                if (StringUtils.isNotBlank(label)) {
-//                    return "SOUND_HQ";
-//                }
-//                return "";
+            case AUDIO:
+                label = SoundPropertyExtractor.getDuration(tag);
+                if (StringUtils.isNotBlank(label)) {
+                    return "SOUND_DURATION";
+                }
+                label = SoundPropertyExtractor.getQuality(tag);
+                if (StringUtils.isNotBlank(label)) {
+                    return "SOUND_HQ";
+                }
+                return "";
             case VIDEO:
                 label = VideoPropertyExtractor.getDuration(tag);
                 if (StringUtils.isNotBlank(label)) {
