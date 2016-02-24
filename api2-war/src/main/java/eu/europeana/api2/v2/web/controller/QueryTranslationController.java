@@ -1,3 +1,20 @@
+/*
+ * Copyright 2007-2015 The Europeana Foundation
+ *
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
+ *
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
+ */
+
 package eu.europeana.api2.v2.web.controller;
 
 import java.util.Arrays;
@@ -6,6 +23,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -20,12 +39,15 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.QueryTranslationResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.solr.model.QueryTranslation;
 import eu.europeana.corelib.search.utils.SearchUtils;
 import eu.europeana.corelib.utils.StringArrayUtils;
 
 @Controller
+@SwaggerSelect
+@Api(tags = {"Search"}, description = " ")
 public class QueryTranslationController {
 
 	@Resource
@@ -34,6 +56,7 @@ public class QueryTranslationController {
 	private static final String ERROR_TERM = "Invalid parameter: term can not be empty";
 	private static final String ERROR_LANGUAGE = "Invalid parameter: languageCodes can not be empty";
 
+	@ApiOperation(value = "translate a term to different languages")
 	@RequestMapping(value = "/v2/translateQuery.json", method = RequestMethod.GET,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView translateQuery(
@@ -51,20 +74,20 @@ public class QueryTranslationController {
 		LimitResponse limitResponse;
 		try {
 			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-					"translateQuery.json", RecordType.TRANSLATE_QUERY, null);
+					RecordType.TRANSLATE_QUERY, null);
 		} catch (ApiLimitException e) {
 			response.setStatus(e.getHttpStatus());
 			return JsonUtils.toJson(new ApiError(e), callback);
 		}
 
 		if (StringUtils.isBlank(term)) {
-			return JsonUtils.toJson(new ApiError(wskey, "translateQuery", ERROR_TERM, limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, ERROR_TERM, limitResponse.getRequestNumber()), callback);
 		} else if (StringArrayUtils.isBlank(languageCodes)) {
-			return JsonUtils.toJson(new ApiError(wskey, "translateQuery", ERROR_LANGUAGE, limitResponse.getRequestNumber()), callback);
+			return JsonUtils.toJson(new ApiError(wskey, ERROR_LANGUAGE, limitResponse.getRequestNumber()), callback);
 		}
 
 		QueryTranslationResult queryTranslationResult = 
-				new QueryTranslationResult(wskey, "translateQuery.json", limitResponse.getRequestNumber());
+				new QueryTranslationResult(wskey, limitResponse.getRequestNumber());
 
 		QueryTranslation queryTranslation = SearchUtils.translateQuery(term, Arrays.asList(languageCodes));
 		queryTranslationResult.translations = queryTranslation.getLanguageVersions();

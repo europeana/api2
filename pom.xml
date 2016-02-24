@@ -1,36 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2007-2013 The Europeana Foundation Licenced under the EUPL, 
-	Version 1.1 (the "Licence") and subsequent versions as approved by the European 
-	Commission; You may not use this work except in compliance with the Licence. 
-	You may obtain a copy of the Licence at: http://joinup.ec.europa.eu/software/page/eupl 
-	Unless required by applicable law or agreed to in writing, software distributed 
-	under the Licence is distributed on an "AS IS" basis, without warranties 
-	or conditions of any kind, either express or implied. See the Licence for 
-	the specific language governing permissions and limitations under the Licence. -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<!--
+  ~ Copyright 2007-2015 The Europeana Foundation
+  ~
+  ~ Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+  ~ by the European Commission;
+  ~ You may not use this work except in compliance with the Licence.
+  ~
+  ~ You may obtain a copy of the Licence at:
+  ~ http://joinup.ec.europa.eu/software/page/eupl
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software distributed under
+  ~ the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+  ~ any kind, either express or implied.
+  ~ See the Licence for the specific language governing permissions and limitations under
+  ~ the Licence.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>api2</artifactId>
-	<version>${version.europeanaApi2}</version>
-	<packaging>pom</packaging>
-	<name>Europeana API2 parent</name>
-	<url>http://www.europeana.eu</url>
+    <artifactId>api2</artifactId>
+    <version>2.3.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Europeana API2 parent</name>
+    <url>http://www.europeana.eu</url>
 
-	<parent>
-		<artifactId>corelib</artifactId>
-		<groupId>eu.europeana</groupId>
-		<version>2.2-SNAPSHOT</version>
-		<relativePath>../corelib/pom.xml</relativePath>
-	</parent>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<version.europeanaCorelib>2.2-SNAPSHOT</version.europeanaCorelib>
-	</properties>
-	<modules>
-		<module>api2-model</module>
-		<module>api2-war</module>
-		<module>api2-demo</module>
-	</modules>
+    <parent>
+        <artifactId>corelib</artifactId>
+        <groupId>eu.europeana</groupId>
+        <version>2.3-SNAPSHOT</version>
+        <relativePath>../corelib/pom.xml</relativePath>
+    </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <version.europeanaCorelib>2.3-SNAPSHOT</version.europeanaCorelib>
+    </properties>
+
+    <modules>
+        <module>api2-demo</module>
+        <module>api2-model</module>
+        <module>api2-war</module>
+    </modules>
+
+    <scm>
+        <connection>scm:git:git@github.com:europeana/api2.git</connection>
+        <developerConnection>scm:git:git@github.com:europeana/api2.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/europeana/api2</url>
+    </scm>
+
 </project>

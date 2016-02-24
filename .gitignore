@@ -3,7 +3,6 @@
 .project
 .settings/
 .externalToolBuilders/
-.idea/*
 
 #IntelliJ project files
 .idea
@@ -20,7 +19,6 @@
 api2-war/src/main/resources/europeana.properties
 
 # Also avoid pushing the production property file
-properties/production
+properties/personal
 
-# Prevent commit IDEA files
-*.iml
+_attic

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>Europeana Search</ShortName>
+  <Description>Search europeana.eu</Description>
+  <Tags>culture heritage artworks artefacts books videos sounds europe music</Tags>
+  <Contact>development-core@europeanalabs.eu</Contact>
+  <Url type="application/rss+xml" template="http://europeana.eu/api/v2/opensearch.rss?searchTerms={searchTerms}&amp;startIndex={startIndex?}&amp;count={count?}"/>
+  <LongName>Europeana Search</LongName>
+  <Image height="123" width="206" type="image/png">http://styleguide.europeana.eu/images/logo.png</Image>
+  <Image height="16" width="16" type="image/x-icon">http://styleguide.europeana.eu/images/favicon_16x16.jpg</Image>
+  <Query role="example" searchTerms="paris" />
+  <Developer>europeana.eu development team</Developer>
+  <Attribution>please see at http://www.europeana.eu/portal/rights.html</Attribution>
+  <SyndicationRight>open</SyndicationRight>
+</OpenSearchDescription>
