@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import eu.europeana.corelib.definitions.model.facets.inverseLogic.*;
+import eu.europeana.crf_faketags.extractor.MediaTypeEncoding;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
