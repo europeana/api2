@@ -1,23 +1,43 @@
+/*
+ * Copyright 2007-2015 The Europeana Foundation
+ *
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
+ *
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
+ */
+
 package eu.europeana.api2.v2.model.json.view;
 
-import eu.europeana.api2.model.enums.Profile;
-import eu.europeana.api2.model.utils.LinkUtils;
-import eu.europeana.corelib.definitions.edm.beans.BriefBean;
-import eu.europeana.corelib.definitions.solr.DocType;
-import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
-import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-@JsonSerialize(include = Inclusion.NON_EMPTY)
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import eu.europeana.api2.model.utils.LinkUtils;
+import eu.europeana.api2.v2.model.enums.Profile;
+import eu.europeana.corelib.definitions.edm.beans.BriefBean;
+import eu.europeana.corelib.definitions.solr.DocType;
+import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
+import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
+
+@JsonInclude(NON_EMPTY)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
     protected EuropeanaUrlService urlService;
@@ -25,16 +45,12 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     protected String profile;
     protected String wskey;
     protected BriefBean bean;
-    protected long uid;
     private String[] thumbnails;
-    private boolean isOptedOut;
 
-    public BriefView(BriefBean bean, String profile, String wskey, long uid, boolean optOut) {
+    public BriefView(BriefBean bean, String profile, String wskey) {
         this.bean = bean;
         this.profile = profile;
         this.wskey = wskey;
-        this.uid = uid;
-        this.isOptedOut = optOut;
         urlService = EuropeanaUrlServiceImpl.getBeanInstance();
     }
 
@@ -211,19 +227,22 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return bean.getId();
     }
 
-    @Override
-    public Boolean isOptedOut() {
-        return bean.isOptedOut();
-    }
+//    @Override
+//    public Boolean isOptedOut() {
+//        return bean.isOptedOut();
+//    }
 
     private String[] getThumbnails() {
         if (thumbnails == null) {
             List<String> thumbs = new ArrayList<>();
 
-            if (!isOptedOut && bean.getEdmObject() != null) {
+            if (bean.getEdmObject() != null) {
                 for (String object : bean.getEdmObject()) {
                     String tn = StringUtils.defaultIfBlank(object, "");
-                    thumbs.add(urlService.getThumbnailUrl(tn, getType()).toString());
+                    final String url = urlService.getThumbnailUrl(tn, getType()).toString();
+                    if (StringUtils.isNotBlank(url)) {
+                        thumbs.add(url.trim());
+                    }
                 }
             }
             thumbnails = thumbs.toArray(new String[thumbs.size()]);
@@ -235,6 +254,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return urlService.getApi2RecordJson(wskey, getId()).toString();
     }
 
+    @SuppressWarnings("unused")
     public String getGuid() {
         return LinkUtils.addCampaignCodes(urlService.getPortalRecord(false, getId()), wskey);
     }
@@ -268,11 +288,8 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             if (StringUtils.isBlank(bean.getEdmIsShownAt()[0])) {
                 continue;
             }
-            isShownAt = isShownAt
-                    + (isShownAt.contains("?") ? "&" : "?")
-                    + "bt=europeanaapi";
             String isShownAtLink = urlService.getApi2Redirect(
-                    uid, isShownAt, provider, bean.getId(), profile)
+                    wskey, isShownAt, provider, bean.getId(), profile)
                     .toString();
 
             isShownAtLinks.add(isShownAtLink);

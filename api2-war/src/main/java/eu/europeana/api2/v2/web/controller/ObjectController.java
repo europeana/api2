@@ -1,18 +1,18 @@
 /*
- * Copyright 2007-2012 The Europeana Foundation
+ * Copyright 2007-2015 The Europeana Foundation
  *
- *  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved 
- *  by the European Commission;
- *  You may not use this work except in compliance with the Licence.
- *  
- *  You may obtain a copy of the Licence at:
- *  http://joinup.ec.europa.eu/software/page/eupl
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
  *
- *  Unless required by applicable law or agreed to in writing, software distributed under 
- *  the Licence is distributed on an "AS IS" basis, without warranties or conditions of 
- *  any kind, either express or implied.
- *  See the Licence for the specific language governing permissions and limitations under 
- *  the Licence.
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
  */
 
 package eu.europeana.api2.v2.web.controller;
@@ -25,7 +25,7 @@ import com.github.jsonldjava.utils.JSONUtils;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import eu.europeana.api2.ApiLimitException;
-import eu.europeana.api2.model.enums.Profile;
+import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
@@ -38,6 +38,8 @@ import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
 import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.exception.LimitReachedException;
@@ -58,6 +60,8 @@ import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -82,7 +86,9 @@ import java.util.*;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
+@Api(tags = {"Record"}, description = " ")
 @RequestMapping(value = "/v2/record")
+@SwaggerSelect
 public class ObjectController {
 
     @Log
@@ -103,8 +109,7 @@ public class ObjectController {
     @Resource
     private ControllerUtils controllerUtils;
 
-    private String similarItemsProfile = "minimal";
-
+    @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
     @RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView record(
@@ -120,20 +125,21 @@ public class ObjectController {
         LimitResponse limitResponse;
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    "record.json", RecordType.OBJECT, profile);
+                    RecordType.OBJECT, profile);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
         }
 
         log.info("record");
-        ObjectResult objectResult = new ObjectResult(wskey, "record.json", limitResponse.getRequestNumber());
+        ObjectResult objectResult = new ObjectResult(wskey, limitResponse.getRequestNumber());
         if (StringUtils.containsIgnoreCase(profile, "params")) {
             objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
             objectResult.addParam("profile", profile);
         }
 
         String europeanaObjectId = EuropeanaUriUtils.createResolveEuropeanaId(collectionId, recordId);
+        String originalObjectId = europeanaObjectId;
         try {
             long t0 = (new Date()).getTime();
             FullBean bean = searchService.findById(europeanaObjectId, false);
@@ -141,12 +147,13 @@ public class ObjectController {
                 europeanaObjectId = searchService.resolveId(europeanaObjectId);
                 bean = searchService.findById(europeanaObjectId, false);
             }
-            if (bean != null && bean.isOptedOut()) {
-                bean.getAggregations().get(0).setEdmObject("");
-            }
+//            if (bean != null && bean.isOptedOut()) {
+//                bean.getAggregations().get(0).setEdmObject("");
+//            }
             if (bean == null) {
-                return JsonUtils.toJson(new ApiError(wskey, "record.json", "Invalid record identifier: "
-                        + europeanaObjectId, limitResponse.getRequestNumber()), callback);
+                response.setStatus(404);
+                return JsonUtils.toJson(new ApiError(wskey, "Invalid record identifier: "
+                        + originalObjectId, limitResponse.getRequestNumber()), callback);
             }
 
             if (StringUtils.containsIgnoreCase(profile, Profile.SIMILAR.getName())) {
@@ -155,8 +162,8 @@ public class ObjectController {
                 try {
                     similarItems = searchService.findMoreLikeThis(europeanaObjectId);
                     for (BriefBean b : similarItems) {
-                        Boolean optOut = b.getPreviewNoDistribute();
-                        BriefView view = new BriefView(b, similarItemsProfile, wskey, limitResponse.getApiKey().getUser().getId(), optOut == null ? false : optOut);
+                        String similarItemsProfile = "minimal";
+                        BriefView view = new BriefView(b, similarItemsProfile, wskey);
 
                         beans.add(view);
                     }
@@ -165,12 +172,11 @@ public class ObjectController {
                 }
                 objectResult.similarItems = beans;
             }
-            Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
-            objectResult.object = new FullView(bean, profile, limitResponse.getApiKey().getUser().getId(), optOut == null ? false : optOut);
+            objectResult.object = new FullView(bean, profile, wskey);
             long t1 = (new Date()).getTime();
             objectResult.statsDuration = (t1 - t0);
         } catch (MongoDBException e) {
-            return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), limitResponse.getRequestNumber()), callback);
+            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), limitResponse.getRequestNumber()), callback);
         }
 
 //        final ObjectMapper objectMapper = new ObjectMapper();
@@ -181,16 +187,18 @@ public class ObjectController {
     }
 
     @SuppressWarnings("unused")
-    @RequestMapping(value = "/{collectionId}/{recordId}.kml", produces = "application/vnd.google-earth.kml+xml")
-    public
+    @SwaggerIgnore
+    @RequestMapping(value = "/{collectionId}/{recordId}.kml", method = RequestMethod.GET, produces = "application/vnd.google-earth.kml+xml")
     @ResponseBody
-    ApiResponse searchKml(
-            @PathVariable String collectionId, @PathVariable String recordId,
+    public ApiResponse searchKml(
+            @PathVariable String collectionId,
+            @PathVariable String recordId,
             @RequestParam(value = "apikey", required = true) String apiKey,
             @RequestParam(value = "sessionhash", required = true) String sessionHash) {
-        return new ApiNotImplementedYet(apiKey, "record.kml");
+        return new ApiNotImplementedYet(apiKey);
     }
 
+    @SwaggerIgnore
     @RequestMapping(value = {"/context.jsonld", "/context.json-ld"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView contextJSONLD(
             @RequestParam(value = "callback", required = false) String callback
@@ -199,7 +207,23 @@ public class ObjectController {
         return JsonUtils.toJson(jsonld, callback);
     }
 
-    @RequestMapping(value = {"/{collectionId}/{recordId}.jsonld", "/{collectionId}/{recordId}.json-ld"},
+    @SwaggerIgnore
+    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld",
+            method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView recordJSON_LD(
+            @PathVariable String collectionId,
+            @PathVariable String recordId,
+            @RequestParam(value = "wskey", required = true) String wskey,
+            @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
+            @RequestParam(value = "callback", required = false) String callback,
+            HttpServletRequest request, HttpServletResponse response) {
+        response.setCharacterEncoding("UTF-8");
+        return recordJSONLD(collectionId, recordId, wskey, format, callback, request, response);
+    }
+
+
+    @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
+    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld",
             method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSONLD(
             @PathVariable String collectionId,
@@ -212,7 +236,7 @@ public class ObjectController {
 
         try {
             controllerUtils.checkLimit(wskey,
-                    request.getRequestURL().toString(), "record.jsonld", RecordType.OBJECT_JSONLD, null);
+                    request.getRequestURL().toString(), RecordType.OBJECT_JSONLD, null);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
@@ -233,11 +257,6 @@ public class ObjectController {
         }
 
         if (bean != null) {
-            Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
-            if (optOut != null && optOut) {
-                bean.getAggregations().get(0).setEdmObject("");
-
-            }
             String rdf = EdmUtils.toEDM(bean, false);
             try {
                 Model modelResult = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(rdf), "", "RDF/XML");
@@ -262,9 +281,12 @@ public class ObjectController {
         return JsonUtils.toJson(jsonld, callback);
     }
 
-    @RequestMapping(value = "/{collectionId}/{recordId}.rdf", produces = "application/rdf+xml")
-    public ModelAndView recordRdf(@PathVariable String collectionId, @PathVariable String recordId,
-                                  @RequestParam(value = "wskey", required = true) String wskey, HttpServletResponse response) {
+    @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
+    @RequestMapping(value = "/{collectionId}/{recordId}.rdf", method = RequestMethod.GET, produces = "application/rdf+xml")
+    public ModelAndView recordRdf(@PathVariable String collectionId,
+                                  @PathVariable String recordId,
+                                  @RequestParam(value = "wskey", required = true) String wskey,
+                                  HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
 
         Map<String, Object> model = new HashMap<>();
@@ -277,7 +299,7 @@ public class ObjectController {
             apiKey = apiService.findByID(wskey);
             if (apiKey == null) {
                 response.setStatus(401);
-                model.put("error", "Unregistered user");
+                model.put("error", "Unregistered API key");
                 return new ModelAndView("rdf", model);
             }
             apiKey.getUsageLimit();
@@ -310,11 +332,6 @@ public class ObjectController {
         }
 
         if (bean != null) {
-            Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
-            if (optOut != null && optOut) {
-                bean.getAggregations().get(0).setEdmObject("");
-
-            }
             model.put("record", EdmUtils.toEDM(bean, false));
         } else {
             response.setStatus(404);
@@ -339,11 +356,13 @@ public class ObjectController {
         return null;
     }
 
-    @RequestMapping(value = "/{collectionId}/{recordId}.srw", produces = MediaType.TEXT_XML_VALUE)
-    public
-    @ResponseBody
-    SrwResponse recordSrw(@PathVariable String collectionId, @PathVariable String recordId,
-                          @RequestParam(value = "wskey", required = false) String wskey, HttpServletResponse response)
+    @SwaggerIgnore
+    @RequestMapping(value = "/{collectionId}/{recordId}.srw", method = RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
+    public @ResponseBody SrwResponse recordSrw(
+            @PathVariable String collectionId,
+          @PathVariable String recordId,
+          @RequestParam(value = "wskey", required = false) String wskey,
+          HttpServletResponse response)
             throws Exception {
         log.info("====== /v2/record/{collectionId}/{recordId}.srw ======");
 
@@ -352,7 +371,8 @@ public class ObjectController {
             throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
         }
 
-        if ((userService.findByApiKey(wskey) == null && apiService.findByID(wskey) == null)) {
+        ApiKey apiKey = apiService.findByID(wskey);
+        if (apiKey == null) {
             // model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Unregistered user")));
             throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
             // hasResult = true;
@@ -367,11 +387,6 @@ public class ObjectController {
         SrwResponse srwResponse = new SrwResponse();
         FullDoc doc;
         if (bean != null) {
-            Boolean optOut = bean.getAggregations().get(0).getEdmPreviewNoDistribute();
-            if (optOut != null && optOut) {
-                bean.getAggregations().get(0).setEdmObject("");
-
-            }
             doc = new FullDoc(bean);
             Record record = new Record();
             record.recordData.dc = doc;

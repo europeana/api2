@@ -1,18 +1,18 @@
 /*
- * Copyright 2007-2012 The Europeana Foundation
+ * Copyright 2007-2015 The Europeana Foundation
  *
- *  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved 
- *  by the European Commission;
- *  You may not use this work except in compliance with the Licence.
- *  
- *  You may obtain a copy of the Licence at:
- *  http://joinup.ec.europa.eu/software/page/eupl
+ * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ * by the European Commission;
+ * You may not use this work except in compliance with the Licence.
  *
- *  Unless required by applicable law or agreed to in writing, software distributed under 
- *  the Licence is distributed on an "AS IS" basis, without warranties or conditions of 
- *  any kind, either express or implied.
- *  See the Licence for the specific language governing permissions and limitations under 
- *  the Licence.
+ * You may obtain a copy of the Licence at:
+ * http://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ * any kind, either express or implied.
+ * See the Licence for the specific language governing permissions and limitations under
+ * the Licence.
  */
 
 package eu.europeana.api2.v2.model.json.view;
@@ -43,7 +43,7 @@ import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 public class FullDoc {
 
 	private Map<String, Object> map;
-	boolean isOptedOut = false;
+//	boolean isOptedOut = false;
 
 	private String id;
 	private String[] europeanaCollectionName;
@@ -291,9 +291,9 @@ public class FullDoc {
 			addValue("edm:datasetName", getEuropeanaCollectionName());
 			addValue("europeana:isShownAt", getEuropeanaIsShownAt());
 			addValue("europeana:isShownBy", getEuropeanaIsShownBy());
-			if (!isOptedOut) {
+//			if (!isOptedOut) {
 				addValue("europeana:object", getThumbnails());
-			}
+//			}
 
 			addValue("europeana:language", getEuropeanaLanguage());
 			addValue("europeana:type", getType());
@@ -499,9 +499,9 @@ public class FullDoc {
 
 	@XmlElement(name = "object", namespace = SrwResponse.NS_EUROPEANA)
 	public String[] getThumbnails() {
-		if (isOptedOut) {
-			return null;
-		}
+//		if (isOptedOut) {
+//			return null;
+//		}
 		return thumbnails;
 	}
 
@@ -1073,7 +1073,7 @@ public class FullDoc {
 		this.enrichmentAgentLabel = enrichmentAgentLabel;
 	}
 
-	public void setOptedOut(boolean isOptedOut) {
-		this.isOptedOut = isOptedOut;
-	}
+//	public void setOptedOut(boolean isOptedOut) {
+//		this.isOptedOut = isOptedOut;
+//	}
 }
