@@ -50,7 +50,7 @@ public class AppConfig {
         return new ControllerUtils();
     }
 
-    @Bean(name = "sugarCRMPoller")
+    @Bean
     public SugarCRMPollingScheduler sugarCRMPollingScheduler() {
         return new SugarCRMPollingScheduler();
     }

@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.web.controller.user;
 
+import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.user.Profile;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
@@ -44,7 +46,8 @@ public class UserProfileController extends AbstractUserController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             method = RequestMethod.GET
     )
-    public ModelAndView get(
+    @ResponseBody
+    public ApiResponse get(
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
         Profile response = new Profile(getApiId(principal));
@@ -55,7 +58,8 @@ public class UserProfileController extends AbstractUserController {
             response.success = false;
             response.error = "User Profile not retrievable...";
         }
-        return JsonUtils.toJson(response, callback);
+        return response;
+//        return JsonUtils.toJson(response, callback);
     }
 
 }

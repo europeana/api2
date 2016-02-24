@@ -478,11 +478,11 @@ public class SugarCRMImporter {
             datastore = morphia.createDatastore(mongo, CACHEDB);
         }
 
-        datastore.getDB().getCollection("DataSet").ensureIndex("identifier");
-        datastore.getDB().getCollection("DataSet").ensureIndex("savedsugarcrmFields.name");
-        datastore.getDB().getCollection("DataSet").ensureIndex("savedsugarcrmFields.country_c");
-        datastore.getDB().getCollection("DataSet").ensureIndex("savedsugarcrmFields.sales_stage");
-        datastore.getDB().getCollection("Provider").ensureIndex("identifier");
+        datastore.getDB().getCollection("DataSet").createIndex("identifier");
+        datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.name");
+        datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.country_c");
+        datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.sales_stage");
+        datastore.getDB().getCollection("Provider").createIndex("identifier");
     }
 
 }
