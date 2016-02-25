@@ -54,8 +54,6 @@ import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.definitions.solr.Facet;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
-import eu.europeana.corelib.logging.Log;
-import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.search.utils.SearchUtils;
@@ -74,6 +72,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -99,8 +98,7 @@ public class SearchController {
 
 	final static public int FACET_LIMIT = 16;
 
-	@Log
-	private Logger log;
+	private Logger log = Logger.getLogger(SearchController.class);
 
     @Resource
     private SearchService searchService;

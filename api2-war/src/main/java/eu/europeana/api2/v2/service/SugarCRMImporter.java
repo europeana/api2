@@ -28,8 +28,6 @@ import com.mongodb.MongoException;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
-import eu.europeana.corelib.logging.Log;
-import eu.europeana.corelib.logging.Logger;
 import eu.europeana.uim.sugarcrmclient.enums.EuropeanaDatasets;
 import eu.europeana.uim.sugarcrmclient.enums.EuropeanaRetrievableField;
 import eu.europeana.uim.sugarcrmclient.enums.EuropeanaUpdatableField;
@@ -38,6 +36,7 @@ import eu.europeana.uim.sugarcrmclient.jibxbindings.*;
 import eu.europeana.uim.sugarcrmclient.ws.SugarWsClient;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
 import javax.annotation.PostConstruct;
@@ -54,8 +53,9 @@ public class SugarCRMImporter {
     private final static String CONTENT_PROVIDER_QUERY = "(accounts_cstm.agg_status_c LIKE '%P')";
     private final static String ALL_PROVIDER_QUERY = String.format("(%s OR %s)",
             DATA_AGGREGATOR_QUERY, CONTENT_PROVIDER_QUERY);
-    @Log
-    private Logger log;
+
+    private Logger log = Logger.getLogger(this.getClass());
+
     @Resource(name = "api_db_mongo_cache")
     private Mongo mongo;
     @Resource
