@@ -17,18 +17,6 @@
 
 package eu.europeana.api2.v2.utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.solr.client.solrj.response.SpellCheckResponse;
-import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
-
 import eu.europeana.api2.v2.model.enums.FacetNames;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
@@ -39,6 +27,12 @@ import eu.europeana.corelib.definitions.model.facets.inverseLogic.SoundPropertyE
 import eu.europeana.corelib.definitions.model.facets.inverseLogic.VideoPropertyExtractor;
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
 import eu.europeana.crf_faketags.extractor.MediaTypeEncoding;
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.SpellCheckResponse;
+import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
+
+import java.util.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -116,7 +110,7 @@ public class ModelUtils {
          * init to make thing easier :)
          */
         for (final FacetNames facetName : FacetNames.values()) {
-            mediaTypeFacets.put(facetName, new HashMap<String, Long>());
+            mediaTypeFacets.put(facetName, new HashMap<>());
         }
 
         for (FacetField facetField : facetFields) {
@@ -197,12 +191,7 @@ public class ModelUtils {
          * sort the label of each facet
          */
         for (final Facet facet : facets) {
-            Collections.sort(facet.fields, new Comparator<LabelFrequency>() {
-                @Override
-                public int compare(LabelFrequency o1, LabelFrequency o2) {
-                    return Long.compare(o2.count, o1.count);
-                }
-            });
+            Collections.sort(facet.fields, (o1, o2) -> Long.compare(o2.count, o1.count));
         }
 
         return facets;

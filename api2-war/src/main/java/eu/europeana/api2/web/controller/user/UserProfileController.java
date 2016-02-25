@@ -18,9 +18,7 @@
 package eu.europeana.api2.web.controller.user;
 
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
-import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.user.Profile;
-import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
 import io.swagger.annotations.Api;
@@ -31,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
 

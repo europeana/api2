@@ -24,12 +24,12 @@ import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -213,7 +213,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
                     partialErrorMsg += " siblings";
                 } else if (hasFollowing && !hasPreceding){
                     partialErrorMsg += " preceding siblings";
-                } else if (!hasFollowing && hasPreceding){
+                } else if (!hasFollowing){
                     partialErrorMsg += " following siblings";
                 }
                 if (!hasParent || !hasFollowing || !hasPreceding) {

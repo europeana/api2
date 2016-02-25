@@ -34,7 +34,6 @@ public class UserActivateController {
         try {
             Token tokenEntity = userService.activate(email, token);
             return "redirect:" + tokenEntity.getRedirect();
-            //request.getScheme() + "://www.europeana.eu"
         } catch (DatabaseException ignore) {
         }
         return "redirect:" + request.getScheme() + "://www.europeana.eu";
