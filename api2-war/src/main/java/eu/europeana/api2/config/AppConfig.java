@@ -21,7 +21,6 @@ import java.net.UnknownHostException;
  */
 @Configuration
 @ImportResource({
-        "classpath:corelib-logging-context.xml",
         "classpath:corelib-db-context.xml",
         "classpath:corelib-solr-context.xml",
         "classpath:corelib-utils-context.xml",
