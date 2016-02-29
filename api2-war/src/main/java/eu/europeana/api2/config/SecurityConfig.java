@@ -63,19 +63,20 @@ public class SecurityConfig {
                     .antMatchers("/user/**","/oauth/**","/oAuthLogin*")
                     .and()
                 .authorizeRequests()
-                    .antMatchers("/oAuthLogin").permitAll()
                     .anyRequest().hasRole("USER")
                     .and()
                 .csrf()
-//                    .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/authorize"))
+                    .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/authorize"))
                     .disable()
                 .formLogin()
                     .loginProcessingUrl("/oAuthLogin.do")
                     .loginPage("/oAuthLogin")
+                    .permitAll()
                     .and()
                 .logout()
                     .logoutSuccessUrl("/")
                     .logoutUrl("/logout")
+                    .permitAll()
             ;
             // @formatter:on
         }
