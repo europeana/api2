@@ -55,12 +55,10 @@ public class OAuth2ServerConfig {
 				.requestMatchers()
                     .antMatchers("/user/**", "/oauth/users/**", "/oauth/clients/**")
 			        .and()
-                .csrf()
-                    .disable()
+//                .csrf()
+//                    .disable()
 				.authorizeRequests()
-//                    .antMatchers("/login/user").permitAll()
-					.antMatchers(GET, "/user/**").access("#oauth2.isClient() and #oauth2.hasScope('read')")
-//					.antMatchers(GET, "/user/authorize/**").permitAll()
+					.antMatchers(GET, "/user/**").access("#oauth2.hasScope('read')")
 					.antMatchers(POST, "/user/**").access("#oauth2.hasScope('write')")
 					.antMatchers(PUT, "/user/**").access("#oauth2.hasScope('write')")
 					.antMatchers(DELETE, "/user/**").access("#oauth2.hasScope('write')")
@@ -143,7 +141,7 @@ public class OAuth2ServerConfig {
             handler.setApprovalStore(approvalStore());
             handler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService));
             handler.setClientDetailsService(clientDetailsService);
-            handler.setUseApprovalStore(true);
+            handler.setUseApprovalStore(false);
             return handler;
         }
     }
