@@ -17,30 +17,6 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.MissingResourceException;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.response.FacetField;
-import org.springframework.context.MessageSource;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
-
 import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.FieldTripUtils;
@@ -78,8 +54,6 @@ import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.definitions.solr.Facet;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
-import eu.europeana.corelib.logging.Log;
-import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.search.utils.SearchUtils;
@@ -96,6 +70,22 @@ import eu.europeana.corelib.web.utils.RequestUtils;
 import eu.europeana.crf_faketags.utils.FakeTagsUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -108,8 +98,7 @@ public class SearchController {
 
 	final static public int FACET_LIMIT = 16;
 
-	@Log
-	private Logger log;
+	private Logger log = Logger.getLogger(SearchController.class);
 
     @Resource
     private SearchService searchService;
@@ -128,9 +117,6 @@ public class SearchController {
 
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
-
-    @Resource
-    private MessageSource messageSource;
 
 	/**
 	 * Limits the number of facets
@@ -818,7 +804,7 @@ public class SearchController {
 				ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
 				for (RichBean bean : resultSet.getResults()) {
 					if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
-						channel.items.add(fieldTripUtils.createItem(bean, getTranslatedEdmIsShownAtLabel(bean, reqLanguage == null ? channel.language : reqLanguage)));
+						channel.items.add(fieldTripUtils.createItem(bean));
 					}
 				}
 			} catch (SolrTypeException|MissingResourceException e) {
@@ -921,135 +907,6 @@ public class SearchController {
 				));
 	}
 
-    /**
-     * Gives a translation of the 'EdmIsShownAt' label in the appropriate language.
-     * <p/>
-     * The 'appropriate language' is arrived at as follows: first it tries to retrieve the language
-     * code from the bean and look up the translation in this language.
-     * <p/>
-     * If this doesn't yield a string (either because the bean contains no language settings or there
-     * is no translation provided for that language), it tries to retrieve the translation based on
-     * the language code provided in the 'language' parameter - which has the value of the 'language'
-     * GET parameter if provided, or else the channel language code.
-     * <p/>
-     * If that fails as well, it looks up the English translation of the label. And if that fails too,
-     * it returns a hardcoded error message.
-     *
-     * @param bean     containing language code
-     * @param language String containing the channel's language code
-     * @return String containing the label translation
-     */
-    private String getTranslatedEdmIsShownAtLabel(BriefBean bean, String language) {
-        String translatedEdmIsShownAtLabel;
-        // first try with the bean language
-        try {
-            translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getBeanLocale(bean.getLanguage()));
-        } catch (MissingResourceException e) {
-            log.error("error: 'edmIsShownAtLabel' translation for bean language '" + getBeanLocale(bean.getLanguage()) + "' unavailable: " + e.getMessage());
-            translatedEdmIsShownAtLabel = "";
-        }
-        // check if retrieving translation for bean language failed
-        if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
-            // if so, and bean language != channel language, try channel language
-            if (!isLanguageEqual(bean.getLanguage(), language)) {
-                log.error("falling back on channel language ('" + language + "')");
-                try {
-                    translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getLocale(language));
-                } catch (MissingResourceException e) {
-                    log.error("error: 'edmIsShownAtLabel' translation for channel language '" + getBeanLocale(bean.getLanguage()) + "' unavailable: " + e.getMessage());
-                    translatedEdmIsShownAtLabel = "";
-                }
-            } else {
-                log.error("channel language ('" + language + "') is identical to bean language, skipping ...");
-            }
-            // check if translation is still empty
-            if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
-                log.error("falling back on default English translation ...");
-                // if so, try English translation
-                try {
-                    translatedEdmIsShownAtLabel = getEdmIsShownAtLabelTranslation(getLocale("en"));
-                } catch (MissingResourceException e) {
-                    log.error("error: 'edmIsShownAtLabel' English translation unavailable: " + e.getMessage());
-                    translatedEdmIsShownAtLabel = "";
-                }
-                // check if retrieving English translation failed
-                if (StringUtils.isBlank(translatedEdmIsShownAtLabel)) {
-                    log.error("No translation for 'edmIsShownAtLabel' available.");
-                    // if so, return hardcoded message
-                    return "error: translations for 'edmIsShownAtLabel' unavailable";
-                }
-            }
-        }
-        return translatedEdmIsShownAtLabel;
-    }
-
-    /**
-     * Gives the translation of the 'EdmIsShownAt' label in the language of
-     * the provided Locale
-     *
-     * @param locale Locale instance initiated with the desired language
-     * @return String containing the label translation
-     */
-    private String getEdmIsShownAtLabelTranslation(Locale locale) {
-        return messageSource.getMessage("edm_isShownAtLabel_t", null, locale);
-    }
-
-    /**
-     * Initiates and returns a Locale instance for the language specified by the language code found
-     * in the input.
-     * <p/>
-     * Checks for NULL values, and whether or not the found code is two characters long; if not, it
-     * returns a locale initiated to English
-     *
-     * @param beanLanguage String Array containing language code
-     * @return Locale instance
-     */
-    private Locale getBeanLocale(String[] beanLanguage) {
-        if (!ArrayUtils.isEmpty(beanLanguage) && !StringUtils.isBlank(beanLanguage[0])
-                && beanLanguage[0].length() == 2) {
-            return new Locale(beanLanguage[0]);
-        } else {
-            log.error("error: language code unavailable or malformed (e.g. not two characters long)");
-            return new Locale("en");
-        }
-    }
-
-    /**
-     * Initiates and returns a Locale instance for the language specified by
-     * the language code found in the input.
-     * <p>Checks for NULL values, and whether or not the found code is two
-     * characters long; if not, it returns a locale initiated to English
-     *
-     * @param language String containing language code
-     * @return Locale instance
-     */
-    private Locale getLocale(String language) {
-        if (!StringUtils.isBlank(language)
-                && language.length() == 2) {
-            return new Locale(language);
-        } else {
-            log.error("error: language code unavailable or malformed (e.g. not two characters long)");
-            return new Locale("en");
-        }
-    }
-
-
-    /**
-     * simple utility method to compare the language code contained in a String array
-     * with another contained in a String. Also checks for well-formedness, i.e. if they're two characters long
-     *
-     * @param languageArray String[]
-     * @param language String
-     * @return boolean TRUE if equal, else FALSE
-     */
-    private boolean isLanguageEqual(String[] languageArray, String language){
-        return (!ArrayUtils.isEmpty(languageArray)
-                && !StringUtils.isBlank(languageArray[0])
-                && languageArray[0].length() == 2
-                && !StringUtils.isBlank(language)
-                && language.length() == 2
-                && language.equalsIgnoreCase(languageArray[0]));
-    }
 
     /**
      * retrieves the numerical part of the substring between the ':' and '*'

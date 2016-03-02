@@ -21,13 +21,10 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
-import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.logging.Log;
-import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.search.SearchService;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,8 +51,7 @@ import java.util.concurrent.Future;
 @RequestMapping(value = "/v2/record")
 public class HierarchicalController {
 
-    @Log
-    private Logger log;
+    private static Logger log = Logger.getLogger(HierarchicalController.class);
 
     @Resource
     private SearchService searchService;

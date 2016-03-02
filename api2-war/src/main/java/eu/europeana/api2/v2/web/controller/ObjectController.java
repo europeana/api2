@@ -25,13 +25,13 @@ import com.github.jsonldjava.utils.JSONUtils;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import eu.europeana.api2.ApiLimitException;
-import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.model.xml.srw.SrwResponse;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
+import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.FullDoc;
@@ -44,7 +44,6 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
-import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -53,8 +52,6 @@ import eu.europeana.corelib.edm.exceptions.EuropeanaQueryException;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
-import eu.europeana.corelib.logging.Log;
-import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
@@ -65,6 +62,8 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Priority;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -91,8 +90,7 @@ import java.util.*;
 @SwaggerSelect
 public class ObjectController {
 
-    @Log
-    private Logger log;
+    private Logger log = Logger.getLogger(ObjectController.class);
 
     @Resource
     private SearchService searchService;
@@ -102,9 +100,6 @@ public class ObjectController {
 
     @Resource
     private EuropeanaUrlService urlService;
-
-    @Resource(name = "corelib_db_userService")
-    private UserService userService;
 
     @Resource
     private ControllerUtils controllerUtils;
@@ -413,7 +408,7 @@ public class ObjectController {
                 log.info("result: " + stringWriter.toString());
             }
         } catch (JAXBException e) {
-            if (log.isErrorEnabled()) {
+            if (log.isEnabledFor(Priority.ERROR)) {
                 log.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
             }
         }

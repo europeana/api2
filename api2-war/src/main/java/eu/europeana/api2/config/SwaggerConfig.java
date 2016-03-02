@@ -78,7 +78,7 @@ public class SwaggerConfig {
     private String hostUrl(){
         String hostUrl = StringUtils.isNotBlank(apiUrl) ? apiUrl : (
                 StringUtils.isNotBlank(apiCanonicalUrl) ? apiCanonicalUrl : "http://europeana.eu");
-        if (hostUrl.toLowerCase().indexOf("/api") != -1){
+        if (hostUrl.toLowerCase().contains("/api")){
             return hostUrl.substring(0, hostUrl.toLowerCase().indexOf("/api"));
         } else {
             return hostUrl;
