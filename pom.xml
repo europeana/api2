@@ -15,7 +15,9 @@
   ~ See the Licence for the specific language governing permissions and limitations under
   ~ the Licence.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>api2</artifactId>
@@ -30,15 +32,11 @@
         <version>2.3-SNAPSHOT</version>
         <relativePath>../corelib/pom.xml</relativePath>
     </parent>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <version.europeanaCorelib>2.3-SNAPSHOT</version.europeanaCorelib>
     </properties>
-
     <modules>
-        <module>api2-demo</module>
         <module>api2-model</module>
         <module>api2-war</module>
     </modules>
@@ -49,5 +47,15 @@
         <tag>HEAD</tag>
         <url>https://github.com/europeana/api2</url>
     </scm>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>eu.europeana.api2</groupId>
+                <artifactId>api2-model</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 </project>

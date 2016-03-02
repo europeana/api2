@@ -17,9 +17,8 @@
 package eu.europeana.api2.v2.schedule;
 
 import eu.europeana.api2.v2.service.SugarCRMImporter;
-import eu.europeana.corelib.logging.Log;
-import eu.europeana.corelib.logging.Logger;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
+import org.apache.log4j.Logger;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
@@ -34,8 +33,7 @@ import javax.annotation.Resource;
  */
 public class SugarCRMPollingScheduler {
 
-    @Log
-    private Logger log;
+    private Logger log = Logger.getLogger(this.getClass());
 
     @Resource
     private SugarCRMImporter sugarCRMImporter;

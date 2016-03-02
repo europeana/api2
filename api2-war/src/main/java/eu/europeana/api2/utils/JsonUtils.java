@@ -20,9 +20,8 @@ package eu.europeana.api2.utils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.jsonldjava.utils.JSONUtils;
-import eu.europeana.corelib.logging.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
@@ -30,7 +29,7 @@ import java.util.Map;
 
 public class JsonUtils {
 
-    private static final Logger log = Logger.getLogger(JSONUtils.class);
+    private static final Logger log = Logger.getLogger(JsonUtils.class);
 
     public static ModelAndView toJson(Object object) {
         return toJson(object, null);

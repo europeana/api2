@@ -21,7 +21,6 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Search;
-import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.SavedSearch;
@@ -59,7 +58,7 @@ public class UserSearchController extends AbstractUserController {
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
         UserResults<Search> response = new UserResults<>(getApiId(principal));
-        User user = userService.findByEmail(principal.getName());
+        User user = getUserByPrincipal(principal);
         if (user != null) {
             response.items = new ArrayList<>();
             response.username = user.getUserName();
@@ -92,7 +91,7 @@ public class UserSearchController extends AbstractUserController {
             Principal principal) {
         ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
         try {
-            User user = userService.findByEmail(principal.getName());
+            User user = getUserByPrincipal(principal);
             if (user != null) {
                 UrlBuilder ub = new UrlBuilder(query);
                 ub.addParam("qf", refinements, true);
@@ -123,7 +122,7 @@ public class UserSearchController extends AbstractUserController {
             Principal principal) {
         ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
         try {
-            User user = userService.findByEmail(principal.getName());
+            User user = getUserByPrincipal(principal);
             if (user != null) {
                 userService.removeSavedSearch(user.getId(), searchId);
                 response.success = true;

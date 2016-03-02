@@ -256,9 +256,9 @@ public class ApiTokenStore implements TokenStore {
 
 	@Override
 	public Collection<OAuth2AccessToken> findTokensByClientIdAndUserName(
-			String arg0, String userName) {
+			String clientId, String userName) {
 		List<OAuth2AccessToken> accessTokens = new ArrayList<>();
-		List<AccessToken> entities = oAuth2TokenService.findByUserName(userName);
+		List<AccessToken> entities = oAuth2TokenService.findByClientIdAndUserName(clientId, userName);
 		if (entities != null) {
 			for (RefreshToken entity : entities) {
 				accessTokens.add(deserializeAccessToken(entity.getToken()));

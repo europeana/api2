@@ -1,5 +1,6 @@
 package eu.europeana.api2.config;
 
+import eu.europeana.api2.web.security.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -22,12 +23,10 @@ import static eu.europeana.corelib.db.util.UserUtils.getPasswordEncoder;
  */
 @Configuration
 @EnableWebSecurity
-@ComponentScan("eu.europeana.api2.web.security")
 public class SecurityConfig {
 
     @Resource(name = "api2_userDetailsService")
     private UserDetailsService userDetailsService;
-
 
     @Resource
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -38,13 +37,53 @@ public class SecurityConfig {
 
     @Configuration
     @Order(1)
-    public static class BasicLoginConfig extends WebSecurityConfigurerAdapter {
+    @ComponentScan(basePackageClasses = UserDetailsServiceImpl.class)
+    public static class OAuthLoginConfig extends WebSecurityConfigurerAdapter {
 
         @Override
         @Bean(name = "api2_oauth2_authenticationManagerBean")
         public AuthenticationManager authenticationManagerBean() throws Exception {
             return super.authenticationManagerBean();
         }
+
+        @Override
+        public void configure(WebSecurity web) throws Exception {
+            web.ignoring().antMatchers(
+                    "/oauth/uncache_approvals",
+                    "/oauth/cache_approvals",
+                    "/user/activate/**"
+            );
+        }
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            // @formatter:off
+            http
+                .requestMatchers()
+                    .antMatchers("/user/**","/oauth/**","/oAuthLogin*")
+                    .and()
+                .authorizeRequests()
+                    .anyRequest().hasRole("USER")
+                    .and()
+                .csrf()
+                    .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/authorize"))
+                    .disable()
+                .formLogin()
+                    .loginProcessingUrl("/oAuthLogin.do")
+                    .loginPage("/oAuthLogin")
+                    .permitAll()
+                    .and()
+                .logout()
+                    .logoutSuccessUrl("/")
+                    .logoutUrl("/logout")
+                    .permitAll()
+            ;
+            // @formatter:on
+        }
+    }
+
+    @Configuration
+    public static class BasicLoginConfig extends WebSecurityConfigurerAdapter {
 
         @Override
         public void configure(WebSecurity web) throws Exception {
@@ -68,12 +107,11 @@ public class SecurityConfig {
                     .antMatchers("/mydata", "/mydata/**").hasAnyRole("CLIENT", "ADMIN_CLIENT")
                     .antMatchers("/admin", "/admin/**").hasRole("ADMIN_CLIENT")
                     .and()
-                .csrf()
-                    .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/authorize"))
-                    .disable()
                 .httpBasic()
                     .realmName("Europeana API2")
                     .and()
+                .csrf()
+                    .disable()
                 .logout()
                     .logoutSuccessUrl("/")
                     .logoutUrl("/logout")

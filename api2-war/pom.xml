@@ -15,7 +15,8 @@
   ~ See the Licence for the specific language governing permissions and limitations under
   ~ the Licence.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>eu.europeana.api2</groupId>
     <artifactId>api2-war</artifactId>
@@ -31,6 +32,49 @@
     </parent>
 
     <dependencies>
+        <dependency>
+            <groupId>eu.europeana.api2</groupId>
+            <artifactId>api2-model</artifactId>
+        </dependency>
+        <!-- CORELIB -->
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-sugarcrm-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-sugarcrm-bindings</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-db</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-media-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-hierarchies</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-common-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-search</artifactId>
+        </dependency>
+
+        <!-- OTHER -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -51,6 +95,10 @@
             <artifactId>spring-ws-core</artifactId>
             <version>${version.springWebService}</version>
             <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                </exclusion>
                 <exclusion>
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-core</artifactId>
@@ -83,86 +131,6 @@
         </dependency>
 
         <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-sugarcrm-client</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-definitions</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-sugarcrm-bindings</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.api2</groupId>
-            <artifactId>api2-model</artifactId>
-            <version>${parent.version}</version>
-        </dependency>
-
-        <dependency>
-            <!-- will also include SOLR, DEF, UTILS -->
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-db</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-logging</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-media-storage</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-hierarchies</artifactId>
-            <version>2.3-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>google-collections</artifactId>
-                    <groupId>com.google.collections</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-web</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-storage</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-common-storage</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-search</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
             <version>${version.slf4j}</version>
@@ -172,12 +140,18 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
             <version>${version.springCore}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>${version.springCore}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${version.springCore}</version>
         </dependency>
 
         <dependency>
@@ -221,24 +195,24 @@
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>
             <version>${version.springSecurityOauth}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-taglibs</artifactId>
             <version>${version.springSecurity}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${version.springSecurity}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${version.springSecurity}</version>
         </dependency>
 
         <dependency>

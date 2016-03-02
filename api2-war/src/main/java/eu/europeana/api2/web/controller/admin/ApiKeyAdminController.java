@@ -17,7 +17,6 @@
 
 package eu.europeana.api2.web.controller.admin;
 
-import eu.europeana.api2.model.json.ApiNotImplementedYet;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.model.request.admin.ApiKeyCreate;
 import eu.europeana.api2.model.request.admin.ApiKeyUpdate;

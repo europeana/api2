@@ -80,6 +80,7 @@ public class UserAdminController {
                     registration.getAddress(),
                     registration.getPhone(),
                     registration.getFieldOfWork(),
+                    registration.getRedirect(),
                     apiUrl
             );
             response.success = true;
