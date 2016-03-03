@@ -51,7 +51,8 @@ public class SecurityConfig {
             web.ignoring().antMatchers(
                     "/oauth/uncache_approvals",
                     "/oauth/cache_approvals",
-                    "/user/activate/**"
+                    "/user/activate/**",
+                    "/user/password/**"
             );
         }
 

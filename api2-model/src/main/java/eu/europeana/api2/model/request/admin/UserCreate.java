@@ -14,6 +14,8 @@ public class UserCreate extends UserEntity {
     // TODO default url?
     private String redirect;
 
+    private final String DEFAULTREDIRECTURL = "http://europeana.eu";
+
     public String getAddress() {
         return address;
     }
@@ -63,6 +65,6 @@ public class UserCreate extends UserEntity {
     }
 
     public String getRedirect() {
-        return redirect;
+        return redirect == null ? DEFAULTREDIRECTURL : redirect;
     }
 }
