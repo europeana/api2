@@ -11,7 +11,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.annotation.Resource;
@@ -38,6 +41,7 @@ public class SecurityConfig {
     @Configuration
     @Order(1)
     @ComponentScan(basePackageClasses = UserDetailsServiceImpl.class)
+
     public static class OAuthLoginConfig extends WebSecurityConfigurerAdapter {
 
         @Override
@@ -57,27 +61,33 @@ public class SecurityConfig {
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
+
             // @formatter:off
-            http
-                .requestMatchers()
-                    .antMatchers("/user/**","/oauth/**","/oAuthLogin*")
+            http.sessionManagement()
+                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                     .and()
-                .authorizeRequests()
-                    .anyRequest().hasRole("USER")
+                    .httpBasic().disable()
+                    .requestMatchers()
+                    .antMatchers("/oauth/authorize","/oauth/token","/oauth/confirm_access","/oauth/error","/oauth/check_token","/oauth/token_key", "/oAuthLogin*")
                     .and()
-                .csrf()
+                    .authorizeRequests()
+                    .anyRequest().hasAnyRole("USER")
+                    .and()
+                    .csrf()
                     .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/authorize"))
+                    .requireCsrfProtectionMatcher(new AntPathRequestMatcher("/oauth/token"))
                     .disable()
-                .formLogin()
+                    .formLogin()
                     .loginProcessingUrl("/oAuthLogin.do")
                     .loginPage("/oAuthLogin")
                     .permitAll()
                     .and()
-                .logout()
+                    .logout()
                     .logoutSuccessUrl("/")
                     .logoutUrl("/logout")
                     .permitAll()
-            ;
+                    .invalidateHttpSession(false);
+
             // @formatter:on
         }
     }
@@ -101,20 +111,22 @@ public class SecurityConfig {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             // @formatter:off
-            http
-                .authorizeRequests()
+            http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                    .and()
+                    .authorizeRequests()
                     .antMatchers("/login/**").permitAll()
                     .antMatchers("/mydata", "/mydata/**").hasAnyRole("CLIENT", "ADMIN_CLIENT")
                     .antMatchers("/admin", "/admin/**").hasRole("ADMIN_CLIENT")
                     .and()
-                .httpBasic()
+                    .httpBasic()
                     .realmName("Europeana API2")
                     .and()
-                .csrf()
+                    .csrf()
                     .disable()
-                .logout()
+                    .logout()
                     .logoutSuccessUrl("/")
                     .logoutUrl("/logout")
+                    .permitAll()
             ;
             // @formatter:on
         }
