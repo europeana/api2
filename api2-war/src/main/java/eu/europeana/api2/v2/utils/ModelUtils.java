@@ -96,6 +96,11 @@ public class ModelUtils {
                 }
                 return "";
 
+            case TEXT:
+                label = "";
+
+                return "";
+
             default:
                 return "";
         }

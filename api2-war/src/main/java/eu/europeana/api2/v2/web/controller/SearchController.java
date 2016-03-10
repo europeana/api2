@@ -392,6 +392,8 @@ public class SearchController {
                 imageAspectRatios));
         filterTags.addAll(FakeTagsUtils.soundFilterTags(mimeTypes, soundHQs, soundDurations));
         filterTags.addAll(FakeTagsUtils.videoFilterTags(mimeTypes, videoHDs, videoDurations));
+        filterTags.addAll(FakeTagsUtils.textFilterTags(mimeTypes));
+
         boolean image = false, sound = false, video = false;
         for (final String type : mediaTypes) {
             switch (type.toLowerCase()) {
