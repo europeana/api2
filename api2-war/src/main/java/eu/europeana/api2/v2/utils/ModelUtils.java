@@ -17,7 +17,7 @@
 
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api2.v2.model.enums.FacetNames;
+import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
@@ -43,7 +43,7 @@ public class ModelUtils {
         // Constructor must be private
     }
 
-    public static String getFacetName(Integer tag) {
+    public static String decodeFacetName(Integer tag) {
         final MediaTypeEncoding mediaType = CommonPropertyExtractor.getType(tag);
         final String mimeType = CommonPropertyExtractor.getMimeType(tag);
 
@@ -97,104 +97,93 @@ public class ModelUtils {
         }
     }
 
-    public static List<Facet> conventFacetList(List<FacetField> facetFields) {
+    /**
+     * Consolidates the regular and technical metadata facets.
+     * The method loops through the List of FacetFields returned by Solr, extracts both the regular as the encoded
+     * technical metadata facets, converts them to Facet objects, adds those to a List and returns that List.
+     * @param facetFields the List of facetfields as returned by Solr
+     * @return a List of Facet objects representing both the regular, and the technical metadata facets
+     */
+    public static List<Facet> consolidateFacetList(List<FacetField> facetFields, List<String> requestedTechnicalFacets, boolean defaultFacetsRequested) {
+        if (facetFields == null || facetFields.isEmpty()) return null;
+        final List<Facet>                                facetList          = new ArrayList<>();
+        final Map<TechnicalFacetType, Map<String, Long>> technicalFacetMap = new HashMap<>();
 
-        if (facetFields == null || facetFields.isEmpty()) {
-            return null;
+        // Create a Map containing the technical Facet types
+        for (final TechnicalFacetType technicalFacetName : TechnicalFacetType.values()) {
+            technicalFacetMap.put(technicalFacetName, new HashMap<>());
         }
-
-        final List<Facet> facets = new ArrayList<>();
-        final Map<FacetNames, Map<String, Long>> mediaTypeFacets = new HashMap<>();
-
-        /*
-         * init to make thing easier :)
-         */
-        for (final FacetNames facetName : FacetNames.values()) {
-            mediaTypeFacets.put(facetName, new HashMap<>());
-        }
-
+        // loop through the list of Facet fields returned by Solr
         for (FacetField facetField : facetFields) {
             if (facetField.getValues() != null) {
                 final Facet facet = new Facet();
                 facet.name = facetField.getName();
 
-                if (FacetNames.IS_FULLTEXT.name().equalsIgnoreCase(facet.name)) {
-                    facet.name = FacetNames.IS_FULLTEXT.getRealName();
-                } else if (FacetNames.HAS_MEDIA.name().equalsIgnoreCase(facet.name)) {
-                    facet.name = FacetNames.HAS_MEDIA.getRealName();
-                } else if (FacetNames.HAS_THUMBNAILS.name().equalsIgnoreCase(facet.name)) {
-                    facet.name = FacetNames.HAS_THUMBNAILS.getRealName();
+                if (StringUtils.equalsIgnoreCase(TechnicalFacetType.IS_FULLTEXT.name(), facet.name)) {
+                    facet.name = TechnicalFacetType.IS_FULLTEXT.getRealName();
+                } else if (StringUtils.equalsIgnoreCase(TechnicalFacetType.HAS_MEDIA.name(), facet.name)) {
+                    facet.name = TechnicalFacetType.HAS_MEDIA.getRealName();
+                } else if (StringUtils.equalsIgnoreCase(TechnicalFacetType.HAS_THUMBNAILS.name(), facet.name)) {
+                    facet.name = TechnicalFacetType.HAS_THUMBNAILS.getRealName();
                 }
 
-
-                /*
-                 * demultiplex the face_tags into proper facets (see FacetNames)
-                 */
+                /* For every Facet field, loop through its values. If it is a Solr Facet field (name != facet_tags):
+                 * - for every value of this Facet field, add a LabelFrequency containing the Facet's name and count
+                 * If it ain't a Solr Facet field (name == facet_tags), it contains the technical metadata:
+                 * - for every value of facet_tags, retrieve the human-readable label from the encoded integer value
+                 * - match the technical Facet name against the enum TechnicalFacetType
+                 * - values associated with the technical Facet are stored in the technicalFacetMap
+                 * Note that technical metadata names are encoded numerically (See eu.europeana.crf_faketags) */
                 for (FacetField.Count count : facetField.getValues()) {
                     if (StringUtils.isNotEmpty(count.getName()) && count.getCount() > 0) {
                         if (!facetField.getName().equalsIgnoreCase("facet_tags")) {
-                            final LabelFrequency value = new LabelFrequency();
-                            value.count = count.getCount();
-                            value.label = count.getName();
-                            facet.fields.add(value);
+                            final LabelFrequency facetValue = new LabelFrequency();
+                            facetValue.count = count.getCount();
+                            facetValue.label = count.getName();
+                            facet.fields.add(facetValue);
                             continue;
                         }
 
-                        final Integer tag = Integer.valueOf(count.getName());
-                        final String label = FacetLabelExtractor.getFacetLabel(tag).trim();
+                        final Integer technicalFacetTag = Integer.valueOf(count.getName());
+                        final String technicalFacetLabel = FacetLabelExtractor.getFacetLabel(technicalFacetTag).trim();
 
-                        if (label.isEmpty()) {
-                            continue;
-                        }
+                        if (technicalFacetLabel.isEmpty()) continue;
 
-                        final FacetNames facetName = FacetNames.valueOf(getFacetName(tag).trim().toUpperCase());
-
-                        Long value = mediaTypeFacets.get(facetName).get(label);
-
-                        if (null == value) {
-                            value = 0L;
-                        }
-                        mediaTypeFacets.get(facetName).put(label, value + count.getCount());
+                        final TechnicalFacetType technicalFacetFinalName = TechnicalFacetType.valueOf(decodeFacetName(technicalFacetTag).trim().toUpperCase());
+                        Long technicalFacetValue = technicalFacetMap.get(technicalFacetFinalName).get(technicalFacetLabel);
+                        if (null == technicalFacetValue) technicalFacetValue = 0L;
+                        technicalFacetMap.get(technicalFacetFinalName).put(technicalFacetLabel, technicalFacetValue + count.getCount());
                     }
                 }
-
-                /*
-                 * note that only facets that have values are returned
-                 *  facet_tags shouldn't contain any values after the processing done above
-                 */
-                if (!facet.fields.isEmpty()) {
-                    facets.add(facet);
-                }
+                // If the Solr facet contains values, it is added to the return Facet List
+                if (!facet.fields.isEmpty()) facetList.add(facet);
             }
         }
-
-        for (Map.Entry<FacetNames, Map<String, Long>> facetNameValues : mediaTypeFacets.entrySet()) {
-            if (facetNameValues.getValue().isEmpty()) {
-                continue;
-            }
+        // loop through the technicalFacetMap, now populated with the retrieved technical metadata values
+        // If there are values present for a technical facet type, create a generic Facet for that technical facet type
+        // note that this is done in the same manner as for the Solr facets in the above FOR loop
+        // Then add the new Facet to the return Facet List
+        for (Map.Entry<TechnicalFacetType, Map<String, Long>> technicalFacet : technicalFacetMap.entrySet()) {
+            if (technicalFacet.getValue().isEmpty()) continue;
 
             final Facet facet = new Facet();
-            facet.name = facetNameValues.getKey().getRealName();
+            facet.name = technicalFacet.getKey().getRealName();
+            if ( null != requestedTechnicalFacets               &&
+                !requestedTechnicalFacets.contains(facet.name)  &&
+                !defaultFacetsRequested) continue;
 
-            for (final Map.Entry<String, Long> value : facetNameValues.getValue().entrySet()) {
+            for (final Map.Entry<String, Long> value : technicalFacet.getValue().entrySet()) {
                 final LabelFrequency freq = new LabelFrequency();
                 freq.label = value.getKey();
                 freq.count = value.getValue();
-
                 facet.fields.add(freq);
             }
-            facets.add(facet);
+            facetList.add(facet);
         }
 
-
-        /*
-         * sort the label of each facet
-         */
-        for (final Facet facet : facets) {
-            Collections.sort(facet.fields, (o1, o2) -> Long.compare(o2.count, o1.count));
-        }
-
-        return facets;
+        // sort the List of Facets on #count, descending
+        facetList.sort((f1, f2) -> Integer.compare(f2.fields.size(), f1.fields.size()));
+        return facetList;
     }
 
     public static SpellCheck convertSpellCheck(SpellCheckResponse response) {

@@ -18,7 +18,7 @@
 package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.v2.model.NumericFacetParameter;
-import eu.europeana.corelib.definitions.solr.Facet;
+import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -56,7 +56,7 @@ public class FacetParameterUtils {
         createFacetList();
         Map<String, Integer> facetParams = new HashMap<>();
         if (isDefaultFacetsRequested) {
-            for (Facet facet : Facet.values()) {
+            for (SolrFacetType facet : SolrFacetType.values()) {
                 saveFacetParam(type, facet.name(), parameters, true, facetParams);
             }
         }
@@ -72,7 +72,7 @@ public class FacetParameterUtils {
     public static void createFacetList() {
         if (facetList == null) {
             facetList = new ArrayList<>();
-            for (Facet facet : Facet.values()) {
+            for (SolrFacetType facet : SolrFacetType.values()) {
                 facetList.add(facet.toString());
             }
         }

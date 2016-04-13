@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import eu.europeana.corelib.definitions.solr.Facet;
+import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,7 +46,7 @@ public class FacetParameterUtilsTest {
 	public void testLimitWithDefaults() {
 		Map<String, Integer> resultMap = FacetParameterUtils.getFacetParams("limit", facets, parameters, true);
 		assertNotNull(resultMap);
-		assertEquals(Facet.values().length + 1, resultMap.size());
+		assertEquals(SolrFacetType.values().length + 1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.limit"));
 		assertTrue(resultMap.containsKey("f.DATA_PROVIDER.facet.limit"));
 		assertEquals(new Integer(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
