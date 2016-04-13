@@ -41,7 +41,6 @@ import eu.europeana.api2.v2.utils.FacetParameterUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
-import eu.europeana.api2.v2.utils.TechnicalFacetUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.exception.LimitReachedException;
@@ -69,6 +68,7 @@ import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import eu.europeana.crf_faketags.extractor.CommonTagExtractor;
+import eu.europeana.crf_faketags.utils.FakeTagsUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.ArrayUtils;
@@ -273,7 +273,7 @@ public class SearchController {
 
         // Note that this is about the parameter 'colourpalette', not the facet: they are processed below
         if (!colourPalette.isEmpty()) {
-            Iterator<Integer> it = TechnicalFacetUtils.colourPaletteFilterTags(colourPalette).iterator();
+            Iterator<Integer> it = FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator();
             if (it.hasNext()) colourPalettefilterQuery = "filter_tags:" + it.next().toString();
             while (it.hasNext()) colourPalettefilterQuery += " AND filter_tags:" + it.next().toString();
             queryString += StringUtils.isNotBlank(queryString) ? " AND " + colourPalettefilterQuery: colourPalettefilterQuery ;
@@ -281,11 +281,11 @@ public class SearchController {
 
         final List<Integer> filterTags = new ArrayList<>();
 
-        if (hasImageFacets) filterTags.addAll(TechnicalFacetUtils.imageFilterTags(imageMimeTypeFacets, imageSizeFacets, imageColourSpaceFacets,
+        if (hasImageFacets) filterTags.addAll(FakeTagsUtils.imageFilterTags(imageMimeTypeFacets, imageSizeFacets, imageColourSpaceFacets,
                 imageAspectRatioFacets, imageColourPaletteFacets));
-        if (hasSoundFacets) filterTags.addAll(TechnicalFacetUtils.soundFilterTags(soundMimeTypeFacets, soundHQFacets, soundDurationFacets));
-        if (hasVideoFacets) filterTags.addAll(TechnicalFacetUtils.videoFilterTags(videoMimeTypeFacets, videoHDFacets, videoDurationFacets));
-        if (otherMimeTypeFacets.size() > 0) filterTags.addAll(TechnicalFacetUtils.otherFilterTags(otherMimeTypeFacets));
+        if (hasSoundFacets) filterTags.addAll(FakeTagsUtils.soundFilterTags(soundMimeTypeFacets, soundHQFacets, soundDurationFacets));
+        if (hasVideoFacets) filterTags.addAll(FakeTagsUtils.videoFilterTags(videoMimeTypeFacets, videoHDFacets, videoDurationFacets));
+        if (otherMimeTypeFacets.size() > 0) filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeFacets));
 
         String filterTagQuery = "";
         if (!filterTags.isEmpty()) {
