@@ -19,6 +19,7 @@ package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.v2.model.NumericFacetParameter;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
+import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -40,7 +41,8 @@ public class FacetParameterUtils {
     final static int LIMIT_FOR_DEFAULT = 750;
     final static int LIMIT_FOR_CUSTOM = 50;
 
-    private static List<String> facetList;
+    private static List<String> solrFacetList;
+    private static List<String> technicalFacetList;
 
     /**
      * Returns all relevant parameters of a given type (right now: limit and offset)
@@ -53,7 +55,7 @@ public class FacetParameterUtils {
     public static Map<String, Integer> getFacetParams(String type, String[] facets,
                                                       Map<String, String[]> parameters,
                                                       boolean isDefaultFacetsRequested) {
-        createFacetList();
+        createFacetLists();
         Map<String, Integer> facetParams = new HashMap<>();
         if (isDefaultFacetsRequested) {
             for (SolrFacetType facet : SolrFacetType.values()) {
@@ -63,17 +65,27 @@ public class FacetParameterUtils {
 
         if (ArrayUtils.isNotEmpty(facets)) {
             for (String facet : facets) {
-                saveFacetParam(type, facet, parameters, facetList.contains(facet), facetParams);
+                saveFacetParam(type, facet, parameters, solrFacetList.contains(facet), facetParams);
             }
         }
         return facetParams;
     }
 
-    public static void createFacetList() {
-        if (facetList == null) {
-            facetList = new ArrayList<>();
+    public static void createFacetLists() {
+        if (solrFacetList == null) {
+            solrFacetList = new ArrayList<>();
             for (SolrFacetType facet : SolrFacetType.values()) {
-                facetList.add(facet.toString());
+                solrFacetList.add(facet.toString());
+            }
+        }
+        if (solrFacetList == null) {
+            solrFacetList = new ArrayList<>();
+            for (SolrFacetType facet : SolrFacetType.values()) {
+                solrFacetList.add(facet.toString());
+            }
+            technicalFacetList = new ArrayList<>();
+            for (TechnicalFacetType technicalFacet : TechnicalFacetType.values()) {
+                technicalFacetList.add(technicalFacet.toString());
             }
         }
     }
