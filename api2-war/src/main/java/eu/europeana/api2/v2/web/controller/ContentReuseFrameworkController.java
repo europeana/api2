@@ -108,9 +108,11 @@ public class ContentReuseFrameworkController {
             // All stored thumbnails are JPEG.
             headers.setContentType(MediaType.IMAGE_JPEG);
         } else {
-            response.setStatus(302);
-            response.sendRedirect("http://legacy.europeanastatic.eu/api/image?size=w200&type=" + type + "&uri=" + url);
-            // Uncommented again to resolve thumbnail issue when moving to Pivotal
+            // commented out below two lines to resolve thumbnail issue when moving to Pivotal
+            // When the move is complete, the below two lines should by uncommented again
+//            response.setStatus(302);
+//            response.sendRedirect("http://legacy.europeanastatic.eu/api/image?size=w200&type=" + type + "&uri=" + url);
+            // Uncommented the below two lines
             // When the move is complete, the below two lines should by commented out again
             headers.setContentType(MediaType.IMAGE_GIF);
             // All default not found thumbnails are GIF.
