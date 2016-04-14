@@ -88,6 +88,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
+
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  * @author Maike (edits)
@@ -136,7 +137,7 @@ public class SearchController {
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
             @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
-            @RequestParam(value = "facet", required = false) String[] facetArray,
+            @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
             @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
             @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
@@ -200,7 +201,7 @@ public class SearchController {
         if (sort != null && (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp "))) sort = "";
 
         // NOTE prefixes are case sensitive, only uppercase cf:params are recognised
-        // ALSO NOTE that the suffixes are NOT case sensitive. They are all made lowercase, except the colourpalette
+        // ALSO NOTE that the suffixes are NOT case sensitive. They are all made lowercase, except 'colourpalette'
         if (refinementArray != null) {
             for (String qf : refinementArray) {
                 if (StringUtils.contains(qf, ":")){
@@ -281,6 +282,7 @@ public class SearchController {
 
         final List<Integer> filterTags = new ArrayList<>();
 
+        // note that 'Facets' as it is used here refers to the qf= filter tags, not the true Facets (legacy from 'crf faketags')
         if (hasImageFacets) filterTags.addAll(FakeTagsUtils.imageFilterTags(imageMimeTypeFacets, imageSizeFacets, imageColourSpaceFacets,
                 imageAspectRatioFacets, imageColourPaletteFacets));
         if (hasSoundFacets) filterTags.addAll(FakeTagsUtils.soundFilterTags(soundMimeTypeFacets, soundHQFacets, soundDurationFacets));
@@ -295,24 +297,34 @@ public class SearchController {
             queryString += StringUtils.isNotBlank(queryString) ? " AND (" + filterTagQuery + ")" : filterTagQuery;
         }
 
+        // from here we're talking about REAL facets :)
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
-        String[] facets = expandFacetNames(StringArrayUtils.splitWebParameter(facetArray));
+        String[] mixedFacets = expandFacetNames(StringArrayUtils.splitWebParameter(mixedFacetArray));
         boolean facetsRequested = StringUtils.containsIgnoreCase(profile, "portal") ||
                 StringUtils.containsIgnoreCase(profile, "facets");
         boolean defaultFacetsRequested = facetsRequested &&
-                (ArrayUtils.isEmpty(facets) ||  ArrayUtils.contains(facets, "DEFAULT"));
+                (ArrayUtils.isEmpty(mixedFacets) ||  ArrayUtils.contains(mixedFacets, "DEFAULT"));
         boolean defaultOrReusabilityFacetsRequested = defaultFacetsRequested ||
-                (facetsRequested &&  ArrayUtils.contains(facets, "REUSABILITY"));
+                (facetsRequested &&  ArrayUtils.contains(mixedFacets, "REUSABILITY"));
 
-        // Limits the number of facets to FACET_LIMIT (16) where "DEFAULT facets" count for 11
-        facets = limitFacets(facets, defaultFacetsRequested);
+        // here we separate the requested facets in the original Solr facets and technical (metadata) facets
+        Map<String, String[]> separatedFacets = ModelUtils.separateFacets(mixedFacets);
+        String[] solrFacets = separatedFacets.get("solrfacets");
+        String[] technicalFacets = separatedFacets.get("technicalfacets");
 
-        Map<String, Integer> facetLimits = null;
-        Map<String, Integer> facetOffsets = null;
+        // Limits the number of solrFacets to FACET_LIMIT (16); DEFAULT = 11. It removes the DEFAULT facet afterwards.
+        if (ArrayUtils.isNotEmpty(solrFacets)) solrFacets = limitFacets(solrFacets, defaultFacetsRequested);
+
+        Map<String, Integer> solrFacetLimits = null;
+        Map<String, Integer> solrFacetOffsets = null;
+        Map<String, Integer> technicalFacetLimits = null;
+        Map<String, Integer> technicalFacetOffsets = null;
         if (facetsRequested) {
             Map<String, String[]> parameterMap = request.getParameterMap();
-            facetLimits = FacetParameterUtils.getFacetParams("limit", facetArray, parameterMap, defaultFacetsRequested);
-            facetOffsets = FacetParameterUtils.getFacetParams("offset", facetArray, parameterMap, defaultFacetsRequested);
+            solrFacetLimits = FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested);
+            solrFacetOffsets = FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested);
+            technicalFacetLimits = FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested);
+            technicalFacetOffsets = FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested);
         }
 
 		controllerUtils.addResponseHeaders(response);
@@ -339,21 +351,24 @@ public class SearchController {
                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                 .setAllowSpellcheck(false)
                 .setAllowFacets(false)
-                .setDefaultFacetsRequested(defaultFacetsRequested); // for reconstructing technical md facets afterwards
+                .setDefaultFacetsRequested(defaultFacetsRequested); // we don't need no steenkin' DEFAULT facet!
 
         // facets are applied to query HERE
-		if (ArrayUtils.isNotEmpty(facets)) {
-			query.setFacets(facets);
-			if (facetLimits != null && !facetLimits.isEmpty()) {
-				for (Map.Entry<String, Integer> entry : facetLimits.entrySet()) {
-					query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
-				}
+		if (ArrayUtils.isNotEmpty(solrFacets)) {
+			query.setSolrFacets(solrFacets);
+            query.setRequestedTechnicalFacets();
+			if (solrFacetLimits != null && !solrFacetLimits.isEmpty()) {
+				for (Map.Entry<String, Integer> entry : solrFacetLimits.entrySet()) query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
 			}
-			if (facetOffsets != null && !facetOffsets.isEmpty()) {
-				for (Map.Entry<String, Integer> entry : facetOffsets.entrySet()) {
-					query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
-				}
+			if (solrFacetOffsets != null && !solrFacetOffsets.isEmpty()) {
+				for (Map.Entry<String, Integer> entry : solrFacetOffsets.entrySet()) query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
 			}
+            if (technicalFacetLimits != null && !technicalFacetLimits.isEmpty()) {
+                for (Map.Entry<String, Integer> entry : technicalFacetLimits.entrySet()) query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
+            }
+            if (technicalFacetOffsets != null && !technicalFacetOffsets.isEmpty()) {
+                for (Map.Entry<String, Integer> entry : technicalFacetOffsets.entrySet()) query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
+            }
 		}
 
 		query.setValueReplacements(valueReplacements);
@@ -369,8 +384,8 @@ public class SearchController {
         if (facetsRequested) {
             query.setAllowFacets(true);
             if  ( !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
-                    ( ArrayUtils.contains(facets, "DATA_PROVIDER") ||
-                      ArrayUtils.contains(facets, "DEFAULT")
+                    ( ArrayUtils.contains(solrFacets, "DATA_PROVIDER") ||
+                      ArrayUtils.contains(solrFacets, "DEFAULT")
                     )
                 ) query.setParameter("f.DATA_PROVIDER.facet.limit", "3000");
         }
@@ -741,36 +756,25 @@ public class SearchController {
 
     /**
      * Limits the number of facets to FACET_LIMIT (16) where "DEFAULT facets" count for 11
+     * This method only gets called if solrFacets is not empty; hence, default facets
+     * can only be requested explicity. The method also removes the DEFAULT facet
      *
-     * @param facets                   The user entered facet names list
-     * @param isDefaultFacetsRequested Flag if default facets should be returned
+     * @param requestedSolrFacets      The user-supplied facet names list
+     * @param isDefaultFacetsRequested Whether default facets have been requested
      * @return                         The limited set of facet names
      */
 
-    public static String[] limitFacets(String[] facets, boolean isDefaultFacetsRequested) {
-        List<String> requestedFacets = Arrays.asList(facets);
+    public static String[] limitFacets(String[] requestedSolrFacets, boolean isDefaultFacetsRequested) {
         List<String> allowedFacets = new ArrayList<>();
-
-        int count = 0; // if default facets are requested implicitly (by not specifying any)
-        if (isDefaultFacetsRequested && !requestedFacets.contains("DEFAULT")) {
-            count = SolrFacetType.values().length;
+        int nrFacets = (isDefaultFacetsRequested) ? SolrFacetType.values().length : 0;
+        for (String requestedFacet : requestedSolrFacets) {
+            if (StringUtils.equalsIgnoreCase(requestedFacet, "DEFAULT")) continue;
+            if (nrFacets + 1 <= FACET_LIMIT) {
+                allowedFacets.add(requestedFacet);
+                nrFacets ++;
+            } else break;
         }
-
-        int increment;
-        for (String facet : requestedFacets) {
-            increment = 1;
-            if (StringUtils.equals(facet, "DEFAULT")) {
-                increment = SolrFacetType.values().length;
-            }
-            if (count + increment <= FACET_LIMIT) {
-                allowedFacets.add(facet);
-                count += increment;
-            } else {
-                break;
-            }
-        }
-
-        return allowedFacets.toArray(new String[allowedFacets.size()]);
+        return allowedFacets.toArray(new String[0]);
     }
 
 

@@ -27,7 +27,9 @@ import eu.europeana.corelib.definitions.model.facets.inverseLogic.SoundPropertyE
 import eu.europeana.corelib.definitions.model.facets.inverseLogic.VideoPropertyExtractor;
 import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
 import eu.europeana.crf_faketags.extractor.MediaTypeEncoding;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
@@ -38,6 +40,20 @@ import java.util.*;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 public class ModelUtils {
+
+
+    // static goodies: a Map containing the technical Facet types &
+    // a List containing the technical Facet names
+    final static private Map<TechnicalFacetType, Map<String, Long>> technicalFacetMap  = new HashMap<>();
+    final static private List<String>                               technicalFacetList = new ArrayList<>();
+    static {
+        for (final TechnicalFacetType technicalFacetName : TechnicalFacetType.values()) {
+            technicalFacetMap.put(technicalFacetName, new HashMap<>());
+        }
+        for (final TechnicalFacetType technicalFacet : TechnicalFacetType.values()) {
+            technicalFacetList.add(technicalFacet.name());
+        }
+    }
 
     private ModelUtils() {
         // Constructor must be private
@@ -107,12 +123,7 @@ public class ModelUtils {
     public static List<Facet> consolidateFacetList(List<FacetField> facetFields, List<String> requestedTechnicalFacets, boolean defaultFacetsRequested) {
         if (facetFields == null || facetFields.isEmpty()) return null;
         final List<Facet>                                facetList          = new ArrayList<>();
-        final Map<TechnicalFacetType, Map<String, Long>> technicalFacetMap = new HashMap<>();
 
-        // Create a Map containing the technical Facet types
-        for (final TechnicalFacetType technicalFacetName : TechnicalFacetType.values()) {
-            technicalFacetMap.put(technicalFacetName, new HashMap<>());
-        }
         // loop through the list of Facet fields returned by Solr
         for (FacetField facetField : facetFields) {
             if (facetField.getValues() != null) {
@@ -186,6 +197,14 @@ public class ModelUtils {
         return facetList;
     }
 
+    public static boolean containsTechnicalFacet(String[] mixedFacets){
+        return containsTechnicalFacet(Arrays.asList(mixedFacets));
+    }
+
+    public static boolean containsTechnicalFacet(List<String> mixedFacets){
+        return CollectionUtils.containsAny(mixedFacets, technicalFacetList);
+    }
+
     public static SpellCheck convertSpellCheck(SpellCheckResponse response) {
         if (response != null) {
             SpellCheck spellCheck = new SpellCheck();
@@ -201,6 +220,15 @@ public class ModelUtils {
             return spellCheck;
         }
         return null;
+    }
+
+    public static Map<String, String[]> separateFacets(String[] mixedFacetArray) {
+        Map<String, String[]> facetListMap = new HashMap<>();
+        if (ArrayUtils.isNotEmpty(mixedFacetArray)) {
+            facetListMap.put("solrfacets", ((List<String>)CollectionUtils.subtract(Arrays.asList(mixedFacetArray), technicalFacetList)).toArray(new String[0]));
+            facetListMap.put("technicalfacets", ((List<String>)CollectionUtils.intersection(technicalFacetList, Arrays.asList(mixedFacetArray))).toArray(new String[0]));
+        }
+        return facetListMap;
     }
 
 }
