@@ -44,7 +44,7 @@ public class FacetParameterUtilsTest {
 
 	@Test
 	public void testLimitWithDefaults() {
-		Map<String, Integer> resultMap = FacetParameterUtils.getFacetParams("limit", facets, parameters, true);
+		Map<String, Integer> resultMap = FacetParameterUtils.getSolrFacetParams("limit", facets, parameters, true);
 		assertNotNull(resultMap);
 		assertEquals(SolrFacetType.values().length + 1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.limit"));
@@ -55,7 +55,7 @@ public class FacetParameterUtilsTest {
 
 	@Test
 	public void testLimitWithoutDefaults() {
-		Map<String, Integer> resultMap = FacetParameterUtils.getFacetParams("limit", facets, parameters, false);
+		Map<String, Integer> resultMap = FacetParameterUtils.getSolrFacetParams("limit", facets, parameters, false);
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.limit"));
@@ -64,7 +64,7 @@ public class FacetParameterUtilsTest {
 
 	@Test
 	public void testOffsetWithDefaults() {
-		Map<String, Integer> resultMap = FacetParameterUtils.getFacetParams("offset", facets, parameters, true);
+		Map<String, Integer> resultMap = FacetParameterUtils.getSolrFacetParams("offset", facets, parameters, true);
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
@@ -73,7 +73,7 @@ public class FacetParameterUtilsTest {
 
 	@Test
 	public void testOffsetWithoutDefaults() {
-		Map<String, Integer> resultMap = FacetParameterUtils.getFacetParams("offset", facets, parameters, false);
+		Map<String, Integer> resultMap = FacetParameterUtils.getSolrFacetParams("offset", facets, parameters, false);
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
@@ -84,7 +84,7 @@ public class FacetParameterUtilsTest {
 	public void testAdditionalOffsetWithDefaults() {
 		parameters.put("f.PROVIDER.facet.offset", new String[]{"0"});
 
-		Map<String, Integer> resultMap = FacetParameterUtils.getFacetParams("offset", facets, parameters, true);
+		Map<String, Integer> resultMap = FacetParameterUtils.getSolrFacetParams("offset", facets, parameters, true);
 		assertNotNull(resultMap);
 		assertEquals(2, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
@@ -97,7 +97,7 @@ public class FacetParameterUtilsTest {
 	public void testAdditionalOffsetWithoutDefaults() {
 		parameters.put("f.PROVIDER.facet.offset", new String[]{"0"});
 
-		Map<String, Integer> resultMap = FacetParameterUtils.getFacetParams("offset", facets, parameters, false);
+		Map<String, Integer> resultMap = FacetParameterUtils.getSolrFacetParams("offset", facets, parameters, false);
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
