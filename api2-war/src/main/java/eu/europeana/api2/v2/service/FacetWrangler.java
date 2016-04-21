@@ -121,37 +121,36 @@ public class FacetWrangler {
         // loop through the array of requested technical facets; match them to the Enum type; set the requested
         // limit / offset range and retrieve the technical facet values that were stored in technicalFacetMap above.
         // Then add the new Facet to the facetlist
-        for (String requestedFacetName : requestedTechnicalFacets){
-            TechnicalFacetType matchedFacetName;
-            try {
-                matchedFacetName = TechnicalFacetType.valueOf(requestedFacetName);
-            } catch (IllegalArgumentException e) {
-                log.error("error matching requested technical facet name " + requestedFacetName + " with enum type in [consolidateFacetList] " + e.getClass().getSimpleName(), e);
-                continue;
-            }
-            String facetLimit = "f." + matchedFacetName + ".facet.limit";
-            String facetOffset = "f." + matchedFacetName + ".facet.offset";
-            if (technicalFacetMap.get(matchedFacetName).isEmpty()) continue;
-            int from = Math.min(((null != technicalFacetOffsets && technicalFacetOffsets.containsKey(facetOffset)) ?
-                    technicalFacetOffsets.get(facetOffset) : 0), technicalFacetMap.get(matchedFacetName).size() - 1);
-            int to = Math.min(((null != technicalFacetLimits && technicalFacetLimits.containsKey(facetLimit)) ?
-                            technicalFacetLimits.get(facetLimit) + from : technicalFacetMap.get(matchedFacetName).size() - 1),
-                    technicalFacetMap.get(matchedFacetName).size() - 1);
+        if (null != requestedTechnicalFacets && !requestedTechnicalFacets.isEmpty()){
+            for (String requestedFacetName : requestedTechnicalFacets) {
+                TechnicalFacetType matchedFacetName;
+                try {
+                    matchedFacetName = TechnicalFacetType.valueOf(requestedFacetName);
+                } catch (IllegalArgumentException e) {
+                    log.error("error matching requested technical facet name " + requestedFacetName + " with enum type in [consolidateFacetList] " + e.getClass().getSimpleName(), e);
+                    continue;
+                }
+                String facetLimit  = "f." + matchedFacetName + ".facet.limit";
+                String facetOffset = "f." + matchedFacetName + ".facet.offset";
+                if (technicalFacetMap.get(matchedFacetName).isEmpty()) continue;
+                int from = Math.min(((null != technicalFacetOffsets && technicalFacetOffsets.containsKey(facetOffset)) ? technicalFacetOffsets.get(facetOffset) : 0), technicalFacetMap.get(matchedFacetName).size() - 1);
+                int to = Math.min(((null != technicalFacetLimits && technicalFacetLimits.containsKey(facetLimit)) ? technicalFacetLimits.get(facetLimit) + from : technicalFacetMap.get(matchedFacetName).size() - 1), technicalFacetMap.get(matchedFacetName).size() - 1);
 
-            final Facet facet = new Facet();
-            facet.name = matchedFacetName.getRealName();
-            if ( null != requestedTechnicalFacets               &&
-                    !requestedTechnicalFacets.contains(facet.name)  &&
-                    !defaultFacetsRequested) continue;
+                final Facet facet = new Facet();
+                facet.name = matchedFacetName.getRealName();
+                if (null != requestedTechnicalFacets &&
+                        !requestedTechnicalFacets.contains(facet.name) &&
+                        !defaultFacetsRequested) continue;
 
-            List<String> keyList = new ArrayList<>(technicalFacetMap.get(matchedFacetName).keySet());
-            for (int i = from; i < to; i++){
-                final LabelFrequency freq = new LabelFrequency();
-                freq.label = keyList.get(i);
-                freq.count = technicalFacetMap.get(matchedFacetName).get(freq.label);
-                facet.fields.add(freq);
+                List<String> keyList = new ArrayList<>(technicalFacetMap.get(matchedFacetName).keySet());
+                for (int i = from; i < to; i++) {
+                    final LabelFrequency freq = new LabelFrequency();
+                    freq.label = keyList.get(i);
+                    freq.count = technicalFacetMap.get(matchedFacetName).get(freq.label);
+                    facet.fields.add(freq);
+                }
+                facetList.add(facet);
             }
-            facetList.add(facet);
         }
 
         // sort the List of Facets on #count, descending
