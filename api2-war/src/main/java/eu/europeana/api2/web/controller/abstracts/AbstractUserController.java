@@ -24,6 +24,8 @@ import javax.annotation.Resource;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
 import eu.europeana.api2.model.utils.LinkUtils;

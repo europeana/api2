@@ -3,6 +3,9 @@ package eu.europeana.api2.config;
 import eu.europeana.api2.web.security.oauth2.ApiApprovalHandler;
 import eu.europeana.api2.web.security.oauth2.ApiTokenStore;
 import eu.europeana.api2.web.security.oauth2.OAuth2ClientDetailsService;
+import org.quartz.*;
+import org.quartz.impl.RemoteScheduler;
+import org.quartz.spi.JobFactory;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,8 +28,13 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import javax.annotation.Resource;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
+import static org.springframework.security.config.http.SessionCreationPolicy.NEVER;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -42,35 +50,38 @@ public class OAuth2ServerConfig {
 
         @Override
         public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
-            resources.resourceId(EUROPEANA_RESOURCE_ID).stateless(false);
+            resources.resourceId(EUROPEANA_RESOURCE_ID).stateless(true);
         }
 
         @Override
         public void configure(HttpSecurity http) throws Exception {
             // @formatter:off
-			http
-				.sessionManagement()
-                    .sessionCreationPolicy(IF_REQUIRED)
-			        .and()
-				.requestMatchers()
+            http
+                    .sessionManagement()
+                    .sessionCreationPolicy(NEVER)
+                    .and()
+                    .requestMatchers()
                     .antMatchers("/user/**", "/oauth/users/**", "/oauth/clients/**")
-			        .and()
-//                .csrf()
-//                    .disable()
-				.authorizeRequests()
-					.antMatchers(GET, "/user/**").access("#oauth2.hasScope('read')")
-					.antMatchers(POST, "/user/**").access("#oauth2.hasScope('write')")
-					.antMatchers(PUT, "/user/**").access("#oauth2.hasScope('write')")
-					.antMatchers(DELETE, "/user/**").access("#oauth2.hasScope('write')")
+                    .and()
+                    .csrf()
+                    .disable()
+                    .authorizeRequests()
+                    .antMatchers(GET,"/user/profile").hasRole("USER").and()
+                    .authorizeRequests()
+                    .antMatchers(GET, "/user/**").access("#oauth2.hasScope('read')")
+                    .antMatchers(POST, "/user/**").access("#oauth2.hasScope('write')")
+                    .antMatchers(PUT, "/user/**").access("#oauth2.hasScope('write')")
+                    .antMatchers(DELETE, "/user/**").access("#oauth2.hasScope('write')")
                     // Authentication,
-					.regexMatchers(DELETE, "/oauth/users/([^/].*?)/tokens/.*")
-						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('write')")
-					.regexMatchers(GET, "/oauth/clients/([^/].*?)/users/.*")
-						.access("#oauth2.clientHasRole('ROLE_CLIENT') and (hasRole('ROLE_USER') or #oauth2.isClient()) and #oauth2.hasScope('read')")
-					.regexMatchers(GET, "/oauth/clients/.*")
-						.access("#oauth2.clientHasRole('ROLE_CLIENT') and #oauth2.isClient() and #oauth2.hasScope('read')")
+                    .regexMatchers(DELETE, "/oauth/users/([^/].*?)/tokens/.*")
+                    .access("#oauth2.clientHasRole('CLIENT') and (#oauth2.hasRole('USER') or #oauth2.isClient()) and #oauth2.hasScope('write')")
+                    .regexMatchers(GET, "/oauth/clients/([^/].*?)/users/.*")
+                    .access("#oauth2.clientHasRole('CLIENT') and (#oauth2.hasRole('USER') or #oauth2.isClient()) and #oauth2.hasScope('read')")
+                    .regexMatchers(GET, "/oauth/clients/.*")
+                    .access("#oauth2.clientHasRole('CLIENT') and #oauth2.isClient() and #oauth2.hasScope('read')")
+
             ;
-			// @formatter:on
+            // @formatter:on
         }
     }
 
@@ -141,7 +152,8 @@ public class OAuth2ServerConfig {
             handler.setApprovalStore(approvalStore());
             handler.setRequestFactory(new DefaultOAuth2RequestFactory(clientDetailsService));
             handler.setClientDetailsService(clientDetailsService);
-            handler.setUseApprovalStore(false);
+            handler.setUseApprovalStore(true);
+
             return handler;
         }
     }
