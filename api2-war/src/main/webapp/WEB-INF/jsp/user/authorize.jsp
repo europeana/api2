@@ -43,7 +43,7 @@
             )</p>
     </div>
     <% } %>
-    <c:remove scope="session" var="SPRING_SECURITY_LAST_EXCEPTION"/>
+
 
     <authz:authorize access="hasRole('ROLE_USER')">
         <h2>Please Confirm</h2>
@@ -58,12 +58,12 @@
 
         <form:form id="confirmationForm" name="confirmationForm" action="/oauth/authorize"
               method="post">
-            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-            <input name="user_oauth_approval" value="true" type="hidden"/>
+            <input type="visible" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+            <input name="user_oauth_approval" value="true" type="visible"/>
             <c:forEach items="${scopes}" var="scope">
-                <input name="${scope.key}" value="true" type="hidden"/>
+                <input name="${scope.key}" value="true" type="visible"/>
             </c:forEach>
-            <label><input name="authorize" value="Authorize" type="submit"></label>
+            <label><input name="authorize" value="Authorize" type="submit"/></label>
         </form:form>
         <%--<form id="denialForm" name="denialForm" action="<%=request.getContextPath()%>/oauth/authorize" method="post">--%>
             <%--<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>--%>
