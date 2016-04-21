@@ -36,6 +36,7 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripChannel;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripImage;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
+import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.FacetParameterUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
@@ -200,6 +201,7 @@ public class SearchController {
         // exclude sorting on timestamp, #238
         if (sort != null && (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp "))) sort = "";
 
+        // this method retrieves the filter facets from the QF part of the request
         // NOTE prefixes are case sensitive, only uppercase cf:params are recognised
         // ALSO NOTE that the suffixes are NOT case sensitive. They are all made lowercase, except 'colourpalette'
         if (refinementArray != null) {
@@ -289,6 +291,7 @@ public class SearchController {
         if (hasVideoFacets) filterTags.addAll(FakeTagsUtils.videoFilterTags(videoMimeTypeFacets, videoHDFacets, videoDurationFacets));
         if (otherMimeTypeFacets.size() > 0) filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeFacets));
 
+        // add the CF filter facets to the query string
         String filterTagQuery = "";
         if (!filterTags.isEmpty()) {
             Iterator<Integer> it = filterTags.iterator();
@@ -297,35 +300,21 @@ public class SearchController {
             queryString += StringUtils.isNotBlank(queryString) ? " AND (" + filterTagQuery + ")" : filterTagQuery;
         }
 
-        // from here we're talking about REAL facets :)
+        // from here we're talking about REAL facets. Retrieve facets from parameters; set some facet conditions
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets = expandFacetNames(StringArrayUtils.splitWebParameter(mixedFacetArray));
+
+        // separate the requested facets in Solr facets and technical (metadata) facets
+        Map<String, String[]> separatedFacets = ModelUtils.separateFacets(mixedFacets);
+        String[] solrFacets = separatedFacets.get("solrfacets");
+        String[] technicalFacets = separatedFacets.get("technicalfacets");
+
         boolean facetsRequested = StringUtils.containsIgnoreCase(profile, "portal") ||
                 StringUtils.containsIgnoreCase(profile, "facets");
         boolean defaultFacetsRequested = facetsRequested &&
                 (ArrayUtils.isEmpty(mixedFacets) ||  ArrayUtils.contains(mixedFacets, "DEFAULT"));
         boolean defaultOrReusabilityFacetsRequested = defaultFacetsRequested ||
                 (facetsRequested &&  ArrayUtils.contains(mixedFacets, "REUSABILITY"));
-
-        // here we separate the requested facets in the original Solr facets and technical (metadata) facets
-        Map<String, String[]> separatedFacets = ModelUtils.separateFacets(mixedFacets);
-        String[] solrFacets = separatedFacets.get("solrfacets");
-        String[] technicalFacets = separatedFacets.get("technicalfacets");
-
-        // Limits the number of solrFacets to FACET_LIMIT (16); DEFAULT = 11. It removes the DEFAULT facet afterwards.
-        if (ArrayUtils.isNotEmpty(solrFacets)) solrFacets = limitFacets(solrFacets, defaultFacetsRequested);
-
-        Map<String, Integer> solrFacetLimits = null;
-        Map<String, Integer> solrFacetOffsets = null;
-        Map<String, Integer> technicalFacetLimits = null;
-        Map<String, Integer> technicalFacetOffsets = null;
-        if (facetsRequested) {
-            Map<String, String[]> parameterMap = request.getParameterMap();
-            solrFacetLimits = FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested);
-            solrFacetOffsets = FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested);
-            technicalFacetLimits = FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested);
-            technicalFacetOffsets = FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested);
-        }
 
 		controllerUtils.addResponseHeaders(response);
 		rows = Math.min(rows, configuration.getApiRowLimit());
@@ -339,6 +328,7 @@ public class SearchController {
             );
         }
 
+        // create Query object and set some params
         Class<? extends IdBean> clazz = selectBean(profile);
         Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
                 .setApiQuery(true)
@@ -349,47 +339,37 @@ public class SearchController {
                 .setCurrentCursorMark(cursorMark)
                 .setParameter("facet.mincount", "1")
                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
-                .setAllowSpellcheck(false)
-                .setAllowFacets(false)
-                .setDefaultFacetsRequested(defaultFacetsRequested); // we don't need no steenkin' DEFAULT facet!
+                .setSpellcheckAllowed(false)
+                .setFacetsAllowed(false)
+                .setDefaultFacetsRequested(defaultFacetsRequested); // TODO we don't need no steenkin' DEFAULT facet?
 
-        // facets are applied to query HERE
-		if (ArrayUtils.isNotEmpty(solrFacets)) {
-			query.setSolrFacets(solrFacets);
-            query.setRequestedTechnicalFacets();
-			if (solrFacetLimits != null && !solrFacetLimits.isEmpty()) {
-				for (Map.Entry<String, Integer> entry : solrFacetLimits.entrySet()) query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
-			}
-			if (solrFacetOffsets != null && !solrFacetOffsets.isEmpty()) {
-				for (Map.Entry<String, Integer> entry : solrFacetOffsets.entrySet()) query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
-			}
-            if (technicalFacetLimits != null && !technicalFacetLimits.isEmpty()) {
-                for (Map.Entry<String, Integer> entry : technicalFacetLimits.entrySet()) query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
-            }
-            if (technicalFacetOffsets != null && !technicalFacetOffsets.isEmpty()) {
-                for (Map.Entry<String, Integer> entry : technicalFacetOffsets.entrySet()) query.setParameter(entry.getKey(), String.valueOf(entry.getValue()));
-            }
-		}
+        // Limits the number of solrFacets to FACET_LIMIT (16); DEFAULT = 11. It removes the DEFAULT facet afterwards.
+        if (ArrayUtils.isNotEmpty(solrFacets)) solrFacets = limitFacets(solrFacets, defaultFacetsRequested);
+
+        // removed the spooky looping stuff from setting the Solr facets and their associated parameters by directly
+        // passing the Maps to the Query object. Null checking happens there, too.
+        if (facetsRequested) {
+            Map<String, String[]> parameterMap = request.getParameterMap();
+            query.setSolrFacets(defaultFacetsRequested, solrFacets)
+                    .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested))
+                    .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested))
+                    .setRequestedTechnicalFacets(defaultFacetsRequested, technicalFacets) // if default facets requested, set all technical facets as requested
+                    .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
+                    .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))
+                    .setFacetsAllowed(true);
+        }
 
 		query.setValueReplacements(valueReplacements);
 
-		// reusability facet settings
+		// reusability facet settings; spell check allowed, etcetera
 		if (defaultOrReusabilityFacetsRequested) query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
-
-
-		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) {
-			query.setAllowSpellcheck(true);
-		}
-
-        if (facetsRequested) {
-            query.setAllowFacets(true);
-            if  ( !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
+		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) query.setSpellcheckAllowed(true);
+        if (facetsRequested && !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
                     ( ArrayUtils.contains(solrFacets, "DATA_PROVIDER") ||
                       ArrayUtils.contains(solrFacets, "DEFAULT")
-                    )
-                ) query.setParameter("f.DATA_PROVIDER.facet.limit", "3000");
-        }
+                    ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", "3000");
 
+        // do the search
         try {
             SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
             result.requestNumber = limitResponse.getRequestNumber();
@@ -400,17 +380,15 @@ public class SearchController {
                 result.addParam("rows", rows);
                 result.addParam("sort", sort);
             }
-
             if (log.isInfoEnabled()) log.info("got response " + result.items.size());
             return JsonUtils.toJson(result, callback);
+
         } catch (SolrTypeException e) {
-            if(e.getProblem().equals(ProblemType.SEARCH_LIMIT_REACHED)){
-                log.error(wskey + " [search.json] " + ProblemType.SEARCH_LIMIT_REACHED.getMessage());
-            } else {
-                log.error(wskey + " [search.json] ", e);
-            }
+            if(e.getProblem().equals(ProblemType.SEARCH_LIMIT_REACHED)) log.error(wskey + " [search.json] " + ProblemType.SEARCH_LIMIT_REACHED.getMessage());
+            else log.error(wskey + " [search.json] ", e);
             response.setStatus(400);
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
+
         } catch (Exception e) {
             log.error(wskey + " [search.json] " + e.getClass().getSimpleName(), e);
             response.setStatus(400);
@@ -459,6 +437,7 @@ public class SearchController {
             Query query,
             Class<T> clazz)
             throws SolrTypeException {
+        FacetWrangler wrangler = new FacetWrangler();
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T> resultSet = searchService.search(clazz, query);
         response.totalResults = resultSet.getResultSize();
@@ -488,7 +467,9 @@ public class SearchController {
         response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, "facets") ||
             StringUtils.containsIgnoreCase(profile, "portal")) {
-            response.facets = ModelUtils.consolidateFacetList(resultSet.getFacetFields(), query.getRequestedTechnicalFacets(), query.isDefaultFacetsRequested());
+            response.facets = wrangler.consolidateFacetList(resultSet.getFacetFields(),
+                    query.getRequestedTechnicalFacets(), query.isDefaultFacetsRequested(),
+                    query.getTechnicalFacetLimits(), query.getTechnicalFacetOffsets());
         }
         if (StringUtils.containsIgnoreCase(profile, "breadcrumb") ||
             StringUtils.containsIgnoreCase(profile, "portal")) {
@@ -542,7 +523,7 @@ public class SearchController {
         KmlResponse kmlResponse = new KmlResponse();
         Query query =
                 new Query(SearchUtils.rewriteQueryFields(queryString)).setRefinements(refinementArray)
-                        .setApiQuery(true).setAllowSpellcheck(false).setAllowFacets(false);
+                        .setApiQuery(true).setSpellcheckAllowed(false).setFacetsAllowed(false);
         query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
         try {
             ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
@@ -576,8 +557,8 @@ public class SearchController {
         try {
             Query query =
                     new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true)
-                            .setPageSize(count).setStart(start - 1).setAllowFacets(false)
-                            .setAllowSpellcheck(false);
+                            .setPageSize(count).setStart(start - 1).setFacetsAllowed(false)
+                            .setSpellcheckAllowed(false);
             ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
             channel.totalResults.value = resultSet.getResultSize();
             for (BriefBean bean : resultSet.getResults()) {
@@ -671,7 +652,7 @@ public class SearchController {
 			}
 			try {
 				Query query = new Query(SearchUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
-						.setStart(offset - 1).setAllowFacets(false).setAllowSpellcheck(false);
+						.setStart(offset - 1).setFacetsAllowed(false).setSpellcheckAllowed(false);
 				ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
 				for (RichBean bean : resultSet.getResults()) {
 					if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
