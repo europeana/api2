@@ -133,8 +133,13 @@ public class FacetWrangler {
                 String facetLimit  = "f." + matchedFacetName + ".facet.limit";
                 String facetOffset = "f." + matchedFacetName + ".facet.offset";
                 if (technicalFacetMap.get(matchedFacetName).isEmpty()) continue;
-                int from = Math.min(((null != technicalFacetOffsets && technicalFacetOffsets.containsKey(facetOffset)) ? technicalFacetOffsets.get(facetOffset) : 0), technicalFacetMap.get(matchedFacetName).size() - 1);
-                int to = Math.min(((null != technicalFacetLimits && technicalFacetLimits.containsKey(facetLimit)) ? technicalFacetLimits.get(facetLimit) + from : technicalFacetMap.get(matchedFacetName).size() - 1), technicalFacetMap.get(matchedFacetName).size() - 1);
+                int from = Math.min(((null != technicalFacetOffsets && technicalFacetOffsets.containsKey(facetOffset)) ?
+                                              technicalFacetOffsets.get(facetOffset) : 0),
+                                      technicalFacetMap.get(matchedFacetName).size() - 1);
+                int to   = Math.min(((null != technicalFacetLimits  && technicalFacetLimits.containsKey(facetLimit))   ?
+                                              technicalFacetLimits.get(facetLimit) + from :
+                                              technicalFacetMap.get(matchedFacetName).size()),
+                                      technicalFacetMap.get(matchedFacetName).size());
 
                 final Facet facet = new Facet();
                 facet.name = matchedFacetName.getRealName();
