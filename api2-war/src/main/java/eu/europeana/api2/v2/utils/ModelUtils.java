@@ -17,184 +17,84 @@
 
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api2.v2.model.enums.FacetNames;
+import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
-import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
 import eu.europeana.corelib.definitions.model.facets.inverseLogic.CommonPropertyExtractor;
 import eu.europeana.corelib.definitions.model.facets.inverseLogic.ImagePropertyExtractor;
 import eu.europeana.corelib.definitions.model.facets.inverseLogic.SoundPropertyExtractor;
 import eu.europeana.corelib.definitions.model.facets.inverseLogic.VideoPropertyExtractor;
-import eu.europeana.corelib.search.service.impl.FacetLabelExtractor;
 import eu.europeana.crf_faketags.extractor.MediaTypeEncoding;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
 
 import java.util.*;
+
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 public class ModelUtils {
 
-    private ModelUtils() {
-        // Constructor must be private
+    // static goodies: a List containing the technical Facet names
+    protected final static List<String> technicalFacetList = new ArrayList<>();
+    static {
+        for (final TechnicalFacetType technicalFacet : TechnicalFacetType.values()) {
+            technicalFacetList.add(technicalFacet.name());
+        }
     }
 
-    public static String getFacetName(Integer tag) {
+    /**
+     * if boolean name = true, returns the facet name associated with the tag value
+     * otherwise, returns the facet label
+     * @param tag  numerically encoded technical facet tag
+     * @param name whether to return the tag name (true) or label (false)
+     * @return tag name / label (String)
+     */
+    public static String decodeFacetTag(Integer tag, boolean name) {
         final MediaTypeEncoding mediaType = CommonPropertyExtractor.getType(tag);
         final String mimeType = CommonPropertyExtractor.getMimeType(tag);
 
-        if (StringUtils.isNotBlank(mimeType)) {
-            return "MIME_TYPE";
-        }
+        if (StringUtils.isNotBlank(mimeType)) return name ? "MIME_TYPE" : mimeType;
 
         String label;
         switch (mediaType) {
             case IMAGE:
                 label = ImagePropertyExtractor.getAspectRatio(tag);
-                if (StringUtils.isNotBlank(label)) {
-                    return "IMAGE_ASPECTRATIO";
-                }
+                if (StringUtils.isNotBlank(label)) return name ? "IMAGE_ASPECTRATIO" : label;
                 label = ImagePropertyExtractor.getColor(tag);
-                if (StringUtils.isNotBlank(label)) {
-                    return "COLOURPALETTE";
-                }
+                if (StringUtils.isNotBlank(label)) return name ? "COLOURPALETTE" : label;
                 label = ImagePropertyExtractor.getColorSpace(tag);
-                if (StringUtils.isNotBlank(label)) {
-                    return "greyscale".equalsIgnoreCase(label) ? "IMAGE_GREYSCALE" : "IMAGE_COLOUR";
-                }
+                if (StringUtils.isNotBlank(label)) return name ? ("greyscale".equalsIgnoreCase(label) ? "IMAGE_GREYSCALE" : "IMAGE_COLOUR") : label;
                 label = ImagePropertyExtractor.getSize(tag);
-                if (StringUtils.isNotBlank(label)) {
-                    return "IMAGE_SIZE";
-                }
+                if (StringUtils.isNotBlank(label)) return name ? "IMAGE_SIZE" : label;
                 return label;
             case AUDIO:
                 label = SoundPropertyExtractor.getDuration(tag);
-                if (StringUtils.isNotBlank(label)) {
-                    return "SOUND_DURATION";
-                }
+                if (StringUtils.isNotBlank(label)) return name ? "SOUND_DURATION" : label;
                 label = SoundPropertyExtractor.getQuality(tag);
-                if (StringUtils.isNotBlank(label)) {
-                    return "SOUND_HQ";
-                }
+                if (StringUtils.isNotBlank(label)) return name ? "SOUND_HQ" : label;
                 return "";
             case VIDEO:
                 label = VideoPropertyExtractor.getDuration(tag);
-                if (StringUtils.isNotBlank(label)) {
-                    return "VIDEO_DURATION";
-                }
+                if (StringUtils.isNotBlank(label)) return name ? "VIDEO_DURATION" : label;
                 label = VideoPropertyExtractor.getQuality(tag);
-                if (StringUtils.isNotBlank(label)) {
-                    return "VIDEO_HD";
-                }
+                if (StringUtils.isNotBlank(label)) return name ? "VIDEO_HD" : label;
                 return "";
-
             default:
                 return "";
         }
     }
 
-    public static List<Facet> conventFacetList(List<FacetField> facetFields) {
+    public static boolean containsTechnicalFacet(String[] mixedFacets){
+        return containsTechnicalFacet(Arrays.asList(mixedFacets));
+    }
 
-        if (facetFields == null || facetFields.isEmpty()) {
-            return null;
-        }
-
-        final List<Facet> facets = new ArrayList<>();
-        final Map<FacetNames, Map<String, Long>> mediaTypeFacets = new HashMap<>();
-
-        /*
-         * init to make thing easier :)
-         */
-        for (final FacetNames facetName : FacetNames.values()) {
-            mediaTypeFacets.put(facetName, new HashMap<>());
-        }
-
-        for (FacetField facetField : facetFields) {
-            if (facetField.getValues() != null) {
-                final Facet facet = new Facet();
-                facet.name = facetField.getName();
-
-                if (FacetNames.IS_FULLTEXT.name().equalsIgnoreCase(facet.name)) {
-                    facet.name = FacetNames.IS_FULLTEXT.getRealName();
-                } else if (FacetNames.HAS_MEDIA.name().equalsIgnoreCase(facet.name)) {
-                    facet.name = FacetNames.HAS_MEDIA.getRealName();
-                } else if (FacetNames.HAS_THUMBNAILS.name().equalsIgnoreCase(facet.name)) {
-                    facet.name = FacetNames.HAS_THUMBNAILS.getRealName();
-                }
-
-
-                /*
-                 * demultiplex the face_tags into proper facets (see FacetNames)
-                 */
-                for (FacetField.Count count : facetField.getValues()) {
-                    if (StringUtils.isNotEmpty(count.getName()) && count.getCount() > 0) {
-                        if (!facetField.getName().equalsIgnoreCase("facet_tags")) {
-                            final LabelFrequency value = new LabelFrequency();
-                            value.count = count.getCount();
-                            value.label = count.getName();
-                            facet.fields.add(value);
-                            continue;
-                        }
-
-                        final Integer tag = Integer.valueOf(count.getName());
-                        final String label = FacetLabelExtractor.getFacetLabel(tag).trim();
-
-                        if (label.isEmpty()) {
-                            continue;
-                        }
-
-                        final FacetNames facetName = FacetNames.valueOf(getFacetName(tag).trim().toUpperCase());
-
-                        Long value = mediaTypeFacets.get(facetName).get(label);
-
-                        if (null == value) {
-                            value = 0L;
-                        }
-                        mediaTypeFacets.get(facetName).put(label, value + count.getCount());
-                    }
-                }
-
-                /*
-                 * note that only facets that have values are returned
-                 *  facet_tags shouldn't contain any values after the processing done above
-                 */
-                if (!facet.fields.isEmpty()) {
-                    facets.add(facet);
-                }
-            }
-        }
-
-        for (Map.Entry<FacetNames, Map<String, Long>> facetNameValues : mediaTypeFacets.entrySet()) {
-            if (facetNameValues.getValue().isEmpty()) {
-                continue;
-            }
-
-            final Facet facet = new Facet();
-            facet.name = facetNameValues.getKey().getRealName();
-
-            for (final Map.Entry<String, Long> value : facetNameValues.getValue().entrySet()) {
-                final LabelFrequency freq = new LabelFrequency();
-                freq.label = value.getKey();
-                freq.count = value.getValue();
-
-                facet.fields.add(freq);
-            }
-            facets.add(facet);
-        }
-
-
-        /*
-         * sort the label of each facet
-         */
-        for (final Facet facet : facets) {
-            Collections.sort(facet.fields, (o1, o2) -> Long.compare(o2.count, o1.count));
-        }
-
-        return facets;
+    public static boolean containsTechnicalFacet(List<String> mixedFacets){
+        return CollectionUtils.containsAny(mixedFacets, technicalFacetList);
     }
 
     public static SpellCheck convertSpellCheck(SpellCheckResponse response) {
@@ -212,6 +112,15 @@ public class ModelUtils {
             return spellCheck;
         }
         return null;
+    }
+
+    public static Map<String, String[]> separateFacets(String[] mixedFacetArray) {
+        Map<String, String[]> facetListMap = new HashMap<>();
+        if (ArrayUtils.isNotEmpty(mixedFacetArray)) {
+            facetListMap.put("solrfacets", ((List<String>)CollectionUtils.subtract(Arrays.asList(mixedFacetArray), technicalFacetList)).toArray(new String[0]));
+            facetListMap.put("technicalfacets", ((List<String>)CollectionUtils.intersection(technicalFacetList, Arrays.asList(mixedFacetArray))).toArray(new String[0]));
+        }
+        return facetListMap;
     }
 
 }
