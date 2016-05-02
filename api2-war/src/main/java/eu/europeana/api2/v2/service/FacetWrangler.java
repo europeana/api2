@@ -19,6 +19,7 @@ package eu.europeana.api2.v2.service;
 
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
+import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -61,12 +62,12 @@ public class FacetWrangler {
                 final Facet facet = new Facet();
                 facet.name = facetField.getName();
 
-                if (StringUtils.equalsIgnoreCase(TechnicalFacetType.IS_FULLTEXT.name(), facet.name)) {
-                    facet.name = TechnicalFacetType.IS_FULLTEXT.getRealName();
-                } else if (StringUtils.equalsIgnoreCase(TechnicalFacetType.HAS_MEDIA.name(), facet.name)) {
-                    facet.name = TechnicalFacetType.HAS_MEDIA.getRealName();
-                } else if (StringUtils.equalsIgnoreCase(TechnicalFacetType.HAS_THUMBNAILS.name(), facet.name)) {
-                    facet.name = TechnicalFacetType.HAS_THUMBNAILS.getRealName();
+                if (StringUtils.equalsIgnoreCase(SolrFacetType.IS_FULLTEXT.name(), facet.name)) {
+                    facet.name = SolrFacetType.IS_FULLTEXT.toString();
+                } else if (StringUtils.equalsIgnoreCase(SolrFacetType.HAS_MEDIA.name(), facet.name)) {
+                    facet.name = SolrFacetType.HAS_MEDIA.toString();
+                } else if (StringUtils.equalsIgnoreCase(SolrFacetType.HAS_THUMBNAILS.name(), facet.name)) {
+                    facet.name = SolrFacetType.HAS_THUMBNAILS.toString();
                 }
 
                 /* If it ain't a Solr Facet field (name == facet_tags), it contains the technical metadata:
