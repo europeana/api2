@@ -143,7 +143,7 @@ public class SearchController {
             @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
             @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
             @RequestParam(value = "media", required = false) Boolean media,
-            @RequestParam(value = "landingpage", required = false) Boolean landingPage,
+            @RequestParam(value = "text_fulltext", required = false) Boolean fullText,
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
@@ -155,22 +155,22 @@ public class SearchController {
 
         String colourPalettefilterQuery = "";
         LimitResponse limitResponse;
-        Boolean hasImageFacets = false;
-        Boolean hasSoundFacets = false;
-        Boolean hasVideoFacets = false;
+        Boolean hasImageRefinements = false;
+        Boolean hasSoundRefinements = false;
+        Boolean hasVideoRefinements = false;
         List<String> newRefinements = new ArrayList<>();
-        List<String> imageMimeTypeFacets = new ArrayList<>();
-        List<String> soundMimeTypeFacets = new ArrayList<>();
-        List<String> videoMimeTypeFacets = new ArrayList<>();
-        List<String> otherMimeTypeFacets = new ArrayList<>();
-        List<String> imageSizeFacets = new ArrayList<>();
-        List<String> imageAspectRatioFacets = new ArrayList<>();
-        List<String> soundDurationFacets = new ArrayList<>();
-        List<String> videoDurationFacets = new ArrayList<>();
-        List<String> imageColourSpaceFacets = new ArrayList<>();
-        List<String> videoHDFacets = new ArrayList<>();
-        List<String> soundHQFacets = new ArrayList<>();
-        List<String> imageColourPaletteFacets = new ArrayList<>(); //Note: ColourPalette is a parameter; imageColourPaletteFacets are facets
+        List<String> imageMimeTypeRefinements = new ArrayList<>();
+        List<String> soundMimeTypeRefinements = new ArrayList<>();
+        List<String> videoMimeTypeRefinements = new ArrayList<>();
+        List<String> otherMimeTypeRefinements = new ArrayList<>();
+        List<String> imageSizeRefinements = new ArrayList<>();
+        List<String> imageAspectRatioRefinements = new ArrayList<>();
+        List<String> soundDurationRefinements = new ArrayList<>();
+        List<String> videoDurationRefinements = new ArrayList<>();
+        List<String> imageColourSpaceRefinements = new ArrayList<>();
+        List<String> videoHDRefinements = new ArrayList<>();
+        List<String> soundHQRefinements = new ArrayList<>();
+        List<String> imageColourPaletteRefinements = new ArrayList<>(); //Note: ColourPalette is a parameter; imageColourPaletteRefinements are facets
 
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
@@ -201,68 +201,78 @@ public class SearchController {
         // exclude sorting on timestamp, #238
         if (sort != null && (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp "))) sort = "";
 
-        // this method retrieves the filter facets from the QF part of the request
+        // retrieves the faceted refinements from the QF part of the request and stores them separately
+        // the rest of the refinements is kept in the refinementArray
         // NOTE prefixes are case sensitive, only uppercase cf:params are recognised
         // ALSO NOTE that the suffixes are NOT case sensitive. They are all made lowercase, except 'colourpalette'
         if (refinementArray != null) {
             for (String qf : refinementArray) {
                 if (StringUtils.contains(qf, ":")){
-                    String facetValue = StringUtils.substringAfter(qf, ":").toLowerCase();
+                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase();
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
-                            if (CommonTagExtractor.isImageMimeType(facetValue)) {
-                                imageMimeTypeFacets.add(facetValue);
-                                hasImageFacets = true;
-                            } else if (CommonTagExtractor.isSoundMimeType(facetValue)) {
-                                soundMimeTypeFacets.add(facetValue);
-                                hasSoundFacets = true;
-                            } else if (CommonTagExtractor.isVideoMimeType(facetValue)) {
-                                videoMimeTypeFacets.add(facetValue);
-                                hasVideoFacets = true;
-                            } else otherMimeTypeFacets.add(facetValue);
+                            if (CommonTagExtractor.isImageMimeType(refinementValue)) {
+                                imageMimeTypeRefinements.add(refinementValue);
+                                hasImageRefinements = true;
+                            } else if (CommonTagExtractor.isSoundMimeType(refinementValue)) {
+                                soundMimeTypeRefinements.add(refinementValue);
+                                hasSoundRefinements = true;
+                            } else if (CommonTagExtractor.isVideoMimeType(refinementValue)) {
+                                videoMimeTypeRefinements.add(refinementValue);
+                                hasVideoRefinements = true;
+                            } else otherMimeTypeRefinements.add(refinementValue);
                             break;
                         case "IMAGE_SIZE":
-                            imageSizeFacets.add(facetValue);
-                            hasImageFacets = true;
+                            imageSizeRefinements.add(refinementValue);
+                            hasImageRefinements = true;
                             break;
                         case "IMAGE_COLOUR":
                         case "IMAGE_COLOR":
-                            if (Boolean.valueOf(facetValue)) {
-                                imageColourSpaceFacets.add("rgb");
-                                hasImageFacets = true;
+                            if (Boolean.valueOf(refinementValue)) {
+                                imageColourSpaceRefinements.add("rgb");
+                                hasImageRefinements = true;
                             }
                             break;
                         case "IMAGE_GREYSCALE":
                         case "IMAGE_GRAYSCALE":
-                            if (Boolean.valueOf(facetValue)) {
-                                imageColourSpaceFacets.add("grayscale");
-                                hasImageFacets = true;
+                            if (Boolean.valueOf(refinementValue)) {
+                                imageColourSpaceRefinements.add("grayscale");
+                                hasImageRefinements = true;
                             }
                             break;
                         case "COLOURPALETTE":
                         case "COLORPALETTE":
-                            imageColourPaletteFacets.add(facetValue.toUpperCase());
-                            hasImageFacets = true;
+                            imageColourPaletteRefinements.add(refinementValue.toUpperCase());
+                            hasImageRefinements = true;
                             break;
                         case "IMAGE_ASPECTRATIO":
-                            imageAspectRatioFacets.add(facetValue);
-                            hasImageFacets = true;
+                            imageAspectRatioRefinements.add(refinementValue);
+                            hasImageRefinements = true;
                             break;
                         case "SOUND_HQ":
-                            soundHQFacets.add(Boolean.valueOf(facetValue) ? "true" : "false");
-                            hasSoundFacets = true;
+                            soundHQRefinements.add(Boolean.valueOf(refinementValue) ? "true" : "false");
+                            hasSoundRefinements = true;
                             break;
                         case "SOUND_DURATION":
-                            soundDurationFacets.add(facetValue);
-                            hasSoundFacets = true;
+                            soundDurationRefinements.add(refinementValue);
+                            hasSoundRefinements = true;
                             break;
                         case "VIDEO_HD":
-                            videoHDFacets.add(Boolean.valueOf(facetValue) ? "true" : "false");
-                            hasVideoFacets = true;
+                            videoHDRefinements.add(Boolean.valueOf(refinementValue) ? "true" : "false");
+                            hasVideoRefinements = true;
                             break;
                         case "VIDEO_DURATION":
-                            videoDurationFacets.add(facetValue);
-                            hasVideoFacets = true;
+                            videoDurationRefinements.add(refinementValue);
+                            hasVideoRefinements = true;
+                            break;
+                        case "MEDIA":
+                            if (null == media) media = Boolean.valueOf(refinementValue);
+                            break;
+                        case "THUMBNAIL":
+                            if (null == thumbnail) thumbnail = Boolean.valueOf(refinementValue);
+                            break;
+                        case "TEXT_FULLTEXT":
+                            if (null == fullText) fullText = Boolean.valueOf(refinementValue);
                             break;
                         default:
                             newRefinements.add(qf);
@@ -272,9 +282,14 @@ public class SearchController {
                 }
             }
         }
+        // these
+        if (null != media) newRefinements.add("has_media:" + media.toString());
+        if (null != thumbnail) newRefinements.add("has_thumbnails:" + thumbnail.toString());
+        if (null != fullText) newRefinements.add("is_fulltext:" + fullText.toString());
+
         refinementArray = newRefinements.toArray(new String[newRefinements.size()]);
 
-        // Note that this is about the parameter 'colourpalette', not the facet: they are processed below
+        // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         if (!colourPalette.isEmpty()) {
             Iterator<Integer> it = FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator();
             if (it.hasNext()) colourPalettefilterQuery = "filter_tags:" + it.next().toString();
@@ -284,14 +299,15 @@ public class SearchController {
 
         final List<Integer> filterTags = new ArrayList<>();
 
-        // note that 'Facets' as it is used here refers to the qf= filter tags, not the true Facets (legacy from 'crf faketags')
-        if (hasImageFacets) filterTags.addAll(FakeTagsUtils.imageFilterTags(imageMimeTypeFacets, imageSizeFacets, imageColourSpaceFacets,
-                imageAspectRatioFacets, imageColourPaletteFacets));
-        if (hasSoundFacets) filterTags.addAll(FakeTagsUtils.soundFilterTags(soundMimeTypeFacets, soundHQFacets, soundDurationFacets));
-        if (hasVideoFacets) filterTags.addAll(FakeTagsUtils.videoFilterTags(videoMimeTypeFacets, videoHDFacets, videoDurationFacets));
-        if (otherMimeTypeFacets.size() > 0) filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeFacets));
+        // Encode the faceted refinements ...
+        if (hasImageRefinements) filterTags.addAll(FakeTagsUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
+                imageAspectRatioRefinements, imageColourPaletteRefinements));
+        if (hasSoundRefinements) filterTags.addAll(FakeTagsUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
+        if (hasVideoRefinements) filterTags.addAll(FakeTagsUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
+        if (otherMimeTypeRefinements.size() > 0) filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeRefinements));
 
-        // add the CF filter facets to the query string
+        // add the CF filter facets to the query string like this: [existing-query] AND [refinement-1 OR refinement-2 OR
+        // refinement-3 ... ]
         String filterTagQuery = "";
         if (!filterTags.isEmpty()) {
             Iterator<Integer> it = filterTags.iterator();
@@ -300,9 +316,10 @@ public class SearchController {
             queryString += StringUtils.isNotBlank(queryString) ? " AND (" + filterTagQuery + ")" : filterTagQuery;
         }
 
-        // from here we're talking about REAL facets. Retrieve facets from parameters; set some facet conditions
+        // TODO this isn't right -> retrieve facets from parameters; set some facet conditions
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
-        String[] mixedFacets = expandFacetNames(StringArrayUtils.splitWebParameter(mixedFacetArray));
+        String[] mixedFacets = StringArrayUtils.splitWebParameter(mixedFacetArray);
+//        String[] mixedFacets = expandFacetNames(StringArrayUtils.splitWebParameter(mixedFacetArray));
 
         // separate the requested facets in Solr facets and technical (metadata) facets
         Map<String, String[]> separatedFacets = ModelUtils.separateFacets(mixedFacets);
