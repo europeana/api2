@@ -108,11 +108,15 @@ public class ContentReuseFrameworkController {
             // All stored thumbnails are JPEG.
             headers.setContentType(MediaType.IMAGE_JPEG);
         } else {
-            response.setStatus(302);
-            response.sendRedirect("http://legacy.europeanastatic.eu/api/image?size=w200&type=" + type + "&uri=" + url);
-//            headers.setContentType(MediaType.IMAGE_GIF);
+            // commented out below two lines to resolve thumbnail issue when moving to Pivotal
+            // When the move is complete, the below two lines should by uncommented again
+//            response.setStatus(302);
+//            response.sendRedirect("http://legacy.europeanastatic.eu/api/image?size=w200&type=" + type + "&uri=" + url);
+            // Uncommented the below two lines
+            // When the move is complete, the below two lines should by commented out again
+            headers.setContentType(MediaType.IMAGE_GIF);
             // All default not found thumbnails are GIF.
-//            mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
+            mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
         }
 
         return new ResponseEntity<>(mediaResponse, headers, HttpStatus.OK);
@@ -185,22 +189,25 @@ public class ContentReuseFrameworkController {
         return temp;
     }
 
-//    private byte[] getDefaultThumbnailForNotFoundResourceByType(final String type) {
-//        switch (StringUtils.upperCase(type)) {
-//            case "IMAGE":
-//                return getImage("/images/item-image-large.gif");
-//            case "SOUND":
-//                return getImage("/images/item-sound-large.gif");
-//            case "VIDEO":
-//                return getImage("/images/item-video-large.gif");
-//            case "TEXT":
-//                return getImage("/images/item-text-large.gif");
-//            case "3D":
-//                return getImage("/images/item-3d-large.gif");
-//            default:
-//                return getImage("/images/item-image-large.gif");
-//        }
-//    }
+    // Uncommented again to resolve thumbnail issue when moving to Pivotal
+    // When the move is complete, the below two lines should by commented out again
+
+    private byte[] getDefaultThumbnailForNotFoundResourceByType(final String type) {
+        switch (StringUtils.upperCase(type)) {
+            case "IMAGE":
+                return getImage("/images/item-image-large.gif");
+            case "SOUND":
+                return getImage("/images/item-sound-large.gif");
+            case "VIDEO":
+                return getImage("/images/item-video-large.gif");
+            case "TEXT":
+                return getImage("/images/item-text-large.gif");
+            case "3D":
+                return getImage("/images/item-3d-large.gif");
+            default:
+                return getImage("/images/item-image-large.gif");
+        }
+    }
 
     private String computeResourceUrl(final String resourceUrl, final String resourceSize) {
         return getMD5(resourceUrl) + "-" + (StringUtils.equalsIgnoreCase(resourceSize, "w400") ? "LARGE" : "MEDIUM");
