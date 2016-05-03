@@ -62,12 +62,12 @@ public class FacetWrangler {
                 final Facet facet = new Facet();
                 facet.name = facetField.getName();
 
-                if (StringUtils.equalsIgnoreCase(SolrFacetType.IS_FULLTEXT.name(), facet.name)) {
-                    facet.name = SolrFacetType.IS_FULLTEXT.toString();
-                } else if (StringUtils.equalsIgnoreCase(SolrFacetType.HAS_MEDIA.name(), facet.name)) {
-                    facet.name = SolrFacetType.HAS_MEDIA.toString();
-                } else if (StringUtils.equalsIgnoreCase(SolrFacetType.HAS_THUMBNAILS.name(), facet.name)) {
-                    facet.name = SolrFacetType.HAS_THUMBNAILS.toString();
+                if (StringUtils.equalsIgnoreCase(SolrFacetType.TEXT_FULLTEXT.toString(), facet.name)) {
+                    facet.name = SolrFacetType.TEXT_FULLTEXT.name();
+                } else if (StringUtils.equalsIgnoreCase(SolrFacetType.MEDIA.toString(), facet.name)) {
+                    facet.name = SolrFacetType.MEDIA.name();
+                } else if (StringUtils.equalsIgnoreCase(SolrFacetType.THUMBNAILS.toString(), facet.name)) {
+                    facet.name = SolrFacetType.THUMBNAILS.name();
                 }
 
                 /* If it ain't a Solr Facet field (name == facet_tags), it contains the technical metadata:
