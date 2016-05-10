@@ -231,12 +231,18 @@ public class SearchController {
                             if (Boolean.valueOf(refinementValue)) {
                                 imageColourSpaceRefinements.add("rgb");
                                 hasImageRefinements = true;
+                            } else if (StringUtils.equalsIgnoreCase(refinementValue, "false")){
+                                imageColourSpaceRefinements.add("grayscale");
+                                hasImageRefinements = true;
                             }
                             break;
                         case "IMAGE_GREYSCALE":
                         case "IMAGE_GRAYSCALE":
                             if (Boolean.valueOf(refinementValue)) {
                                 imageColourSpaceRefinements.add("grayscale");
+                                hasImageRefinements = true;
+                            } else if (StringUtils.equalsIgnoreCase(refinementValue, "false")){
+                                imageColourSpaceRefinements.add("rgb");
                                 hasImageRefinements = true;
                             }
                             break;
