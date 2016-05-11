@@ -144,6 +144,7 @@ public class SearchController {
             @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
             @RequestParam(value = "media", required = false) Boolean media,
             @RequestParam(value = "text_fulltext", required = false) Boolean fullText,
+            @RequestParam(value = "landingpage", required = false) Boolean landingPage,
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
@@ -280,6 +281,9 @@ public class SearchController {
                         case "TEXT_FULLTEXT":
                             if (null == fullText) fullText = Boolean.valueOf(refinementValue);
                             break;
+                        case "LANDINGPAGE":
+                            if (null == landingPage) landingPage = Boolean.valueOf(refinementValue);
+                            break;
                         default:
                             newRefinements.add(qf);
                     }
@@ -292,6 +296,7 @@ public class SearchController {
         if (null != media) newRefinements.add("has_media:" + media.toString());
         if (null != thumbnail) newRefinements.add("has_thumbnails:" + thumbnail.toString());
         if (null != fullText) newRefinements.add("is_fulltext:" + fullText.toString());
+        if (null != landingPage) newRefinements.add("has_landingpage:" + landingPage.toString());
 
         refinementArray = newRefinements.toArray(new String[newRefinements.size()]);
 
@@ -795,6 +800,7 @@ public class SearchController {
                 "\\D+", "");
     }
 
+    // TODO check if unused, if so remove this yer method
     private String[] expandFacetNames(String[] facet) {
         if (facet == null)
             return null;
@@ -806,6 +812,8 @@ public class SearchController {
                 facet[i] = "has_thumbnails";
             } else if ("TEXT_FULLTEXT".equalsIgnoreCase(facet[i])) {
                 facet[i] = "is_fulltext";
+            }else if ("LANDINGPAGE".equalsIgnoreCase(facet[i])) {
+                facet[i] = "has_landingpage";
             }
         }
         return facet;
