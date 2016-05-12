@@ -26,7 +26,7 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
-import eu.europeana.corelib.logging.Logger;
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,7 +36,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class ControllerUtils {
 
-  private Logger log = Logger.getLogger(ControllerUtils.class.getCanonicalName());
+  private Logger log = Logger.getLogger(ControllerUtils.class);
 
   @Resource
   private ApiKeyService apiService;

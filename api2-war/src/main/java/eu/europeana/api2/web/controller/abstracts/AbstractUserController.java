@@ -24,6 +24,8 @@ import javax.annotation.Resource;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
 import eu.europeana.api2.model.utils.LinkUtils;
@@ -62,6 +64,13 @@ public abstract class AbstractUserController {
 		} catch (DatabaseException ignored) {
 		}
 		return user;
+	}
+
+	protected User getUserByPrincipal(Principal principal) {
+		if (principal != null) {
+			return userService.findByEmail(principal.getName());
+		}
+		return null;
 	}
 
 	protected void copyUserObjectData(String wskey, UserObject to, EuropeanaUserObject from) {

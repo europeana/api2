@@ -18,18 +18,13 @@
 package eu.europeana.api2.web.security.model;
 
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
-import eu.europeana.corelib.definitions.db.entity.relational.enums.ApiClientLevel;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import static eu.europeana.corelib.db.util.UserUtils.hashPassword;
-import static eu.europeana.corelib.definitions.db.entity.relational.enums.ApiClientLevel.ADMIN;
-import static eu.europeana.corelib.definitions.db.entity.relational.enums.ApiClientLevel.CLIENT;
 
 public class ClientDetails implements UserDetails {
     private static final long serialVersionUID = -925096405395777537L;

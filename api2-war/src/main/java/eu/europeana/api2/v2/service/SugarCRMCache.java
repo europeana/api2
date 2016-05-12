@@ -29,8 +29,6 @@ import com.google.code.morphia.query.Query;
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
-import eu.europeana.corelib.logging.Logger;
-import eu.europeana.corelib.logging.Log;
 import eu.europeana.uim.sugarcrmclient.enums.EuropeanaRetrievableField;
 import eu.europeana.uim.sugarcrmclient.enums.EuropeanaUpdatableField;
 import eu.europeana.uim.sugarcrmclient.internal.helpers.ClientUtils;
@@ -43,9 +41,6 @@ import eu.europeana.uim.sugarcrmclient.internal.helpers.ClientUtils;
  * @since Oct 30, 2013
  */
 public class SugarCRMCache {
-
-	@Log
-	private Logger log;
 
 	@Resource(name = "corelib_db_morphia_datastore_sugarcrmcache")
 	private Datastore datastore;
