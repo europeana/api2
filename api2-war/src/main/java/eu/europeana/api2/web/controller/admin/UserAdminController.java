@@ -2,6 +2,7 @@ package eu.europeana.api2.web.controller.admin;
 
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.model.request.admin.UserCreate;
+import eu.europeana.api2.model.request.admin.UserPasswordReset;
 import eu.europeana.api2.model.response.admin.UserResponse;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
@@ -80,6 +81,7 @@ public class UserAdminController {
                     registration.getAddress(),
                     registration.getPhone(),
                     registration.getFieldOfWork(),
+                    registration.getRedirect(),
                     apiUrl
             );
             response.success = true;
@@ -109,5 +111,54 @@ public class UserAdminController {
         return null;
     }
 
+    @RequestMapping(
+            path = {"/forgot"},
+            method = {RequestMethod.POST},
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ApiResponse forgotPassword(
+            @RequestBody UserPasswordReset passwordReset,
+            Principal principal
+    ) {
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName());
+        try {
+            userService.sendResetPasswordToken(
+                    passwordReset.getEmail(),
+                    passwordReset.getRedirect(),
+                    apiUrl
+            );
+            response.success = true;
+        } catch (DatabaseException | EmailServiceException e) {
+            response.success = false;
+            response.error = e.getMessage();
+        }
+        return response;
+    }
+
+    @RequestMapping(
+            path = {"/resetpassword"},
+            method = {RequestMethod.POST},
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ApiResponse resetPassword(
+            @RequestBody UserPasswordReset passwordReset,
+            Principal principal
+    ) {
+        ModificationConfirmation response = new ModificationConfirmation(principal.getName());
+        try {
+            userService.resetPassword(
+                    passwordReset.getEmail(),
+                    passwordReset.getToken(),
+                    passwordReset.getPassword()
+            );
+            response.success = true;
+        } catch (DatabaseException | EmailServiceException e) {
+            response.success = false;
+            response.error = e.getMessage();
+        }
+        return response;
+    }
 
 }

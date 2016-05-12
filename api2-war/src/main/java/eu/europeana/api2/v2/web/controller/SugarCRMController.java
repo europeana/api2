@@ -49,11 +49,9 @@ import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.logging.Log;
-import eu.europeana.corelib.logging.Logger;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiOperation;
+import org.apache.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -79,8 +77,7 @@ import java.util.Date;
 @SwaggerSelect
 public class SugarCRMController {
 
-	@Log
-	private Logger log;
+	private Logger log = Logger.getLogger(this.getClass());
 
 	@Resource
 	private SugarCRMCache sugarCRMCache;

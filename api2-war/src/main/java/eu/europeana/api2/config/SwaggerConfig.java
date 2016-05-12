@@ -65,7 +65,7 @@ public class SwaggerConfig {
         return new ApiInfo(
         "Europeana REST API",
         "This Swagger API console provides an overview of and interface to the Europeana REST API. " +
-                "You can build and test anything from the simplest search to a complex query using facets " +
+                "You can build and test anything from the simplest search to a complex query using facetList " +
                 "such as dates, geotags and permissions. For more help and information, head to our " +
                 "comprehensive <a href=\"http://labs.europeana.api/api/\">online documentation</a>.",
         "2.0.14",
@@ -78,7 +78,7 @@ public class SwaggerConfig {
     private String hostUrl(){
         String hostUrl = StringUtils.isNotBlank(apiUrl) ? apiUrl : (
                 StringUtils.isNotBlank(apiCanonicalUrl) ? apiCanonicalUrl : "http://europeana.eu");
-        if (hostUrl.toLowerCase().indexOf("/api") != -1){
+        if (hostUrl.toLowerCase().contains("/api")){
             return hostUrl.substring(0, hostUrl.toLowerCase().indexOf("/api"));
         } else {
             return hostUrl;
