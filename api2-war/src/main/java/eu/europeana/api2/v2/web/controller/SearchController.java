@@ -367,9 +367,7 @@ public class SearchController {
                 .setCurrentCursorMark(cursorMark)
                 .setParameter("facet.mincount", "1")
                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
-                .setSpellcheckAllowed(false)
-                .setFacetsAllowed(false)
-                .setDefaultFacetsRequested(defaultFacetsRequested); // TODO we don't need no steenkin' DEFAULT facet?
+                .setSpellcheckAllowed(false);
 
         // Limits the number of solrFacets to FACET_LIMIT (16); DEFAULT = 11. It removes the DEFAULT facet afterwards.
         if (ArrayUtils.isNotEmpty(solrFacets)) solrFacets = limitFacets(solrFacets, defaultFacetsRequested);
@@ -385,6 +383,8 @@ public class SearchController {
                     .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
                     .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))
                     .setFacetsAllowed(true);
+        } else {
+            query.setFacetsAllowed(false);
         }
 
 		query.setValueReplacements(valueReplacements);
