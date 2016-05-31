@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.v2.utils;
 
+import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
@@ -39,12 +40,20 @@ import java.util.*;
  */
 public class ModelUtils {
 
-    // static goodies: a List containing the technical Facet names
+    final static public int FACET_LIMIT = 150;
+    // static goodies: Lists containing the enum Facet type names
     protected final static List<String> technicalFacetList = new ArrayList<>();
+    protected final static List<String> solrFacetList = new ArrayList<>();
+    protected final static List<String> enumFacetList = new ArrayList<>();
     static {
         for (final TechnicalFacetType technicalFacet : TechnicalFacetType.values()) {
             technicalFacetList.add(technicalFacet.name());
         }
+        for (final SolrFacetType solrFacet : SolrFacetType.values()) {
+            solrFacetList.add(solrFacet.toString());
+        }
+        enumFacetList.addAll(technicalFacetList);
+        enumFacetList.addAll(solrFacetList);
     }
 
     /**
@@ -114,13 +123,38 @@ public class ModelUtils {
         return null;
     }
 
-    public static Map<String, String[]> separateFacets(String[] mixedFacetArray) {
+    public static Map<String, String[]> separateAndLimitFacets(String[] mixedFacetArray, boolean defaultFacetsRequested) {
         Map<String, String[]> facetListMap = new HashMap<>();
-        if (ArrayUtils.isNotEmpty(mixedFacetArray)) {
-            facetListMap.put("solrfacets", ((List<String>)CollectionUtils.subtract(Arrays.asList(mixedFacetArray), technicalFacetList)).toArray(new String[0]));
+        String[] customSolrFacets;
+
+        if (defaultFacetsRequested){
+            facetListMap.put("technicalfacets", technicalFacetList.toArray(new String[0]));
+            facetListMap.put("solrfacets", solrFacetList.toArray(new String[0]));
+        } else if (ArrayUtils.isNotEmpty(mixedFacetArray)) {
             facetListMap.put("technicalfacets", ((List<String>)CollectionUtils.intersection(technicalFacetList, Arrays.asList(mixedFacetArray))).toArray(new String[0]));
+            facetListMap.put("solrfacets", ((List<String>)CollectionUtils.intersection(solrFacetList, Arrays.asList(mixedFacetArray))).toArray(new String[0]));
+        }
+
+        if (ArrayUtils.isNotEmpty(mixedFacetArray)) {
+            List<String> customSolrFacetList = ((List<String>) CollectionUtils.subtract(Arrays.asList(mixedFacetArray), enumFacetList));
+            if (customSolrFacetList.contains("DEFAULT")) customSolrFacetList.remove("DEFAULT");
+            customSolrFacets = (customSolrFacetList).toArray(new String[0]);
+            if (defaultFacetsRequested){
+                facetListMap.put("customfacets", safelyLimitArray(customSolrFacets, FACET_LIMIT - enumFacetList.size()));
+            } else {
+                facetListMap.put("customfacets", safelyLimitArray(customSolrFacets, FACET_LIMIT -
+                        (facetListMap.get("technicalfacets").length + facetListMap.get("solrfacets").length)));
+            }
         }
         return facetListMap;
+    }
+
+    private static String[] safelyLimitArray(String[] input, int limit){
+        if (limit >= input.length){
+            return input;
+        } else {
+            return Arrays.copyOfRange(input, 0, limit);
+        }
     }
 
 }
