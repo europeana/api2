@@ -52,7 +52,6 @@ import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.definitions.exception.ProblemType;
-import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
 import eu.europeana.corelib.search.SearchService;
@@ -98,8 +97,6 @@ import java.util.*;
 @SwaggerSelect
 @Api(tags = {"Search"}, description = " ")
 public class SearchController {
-
-	final static public int FACET_LIMIT = 16;
 
 	private Logger log = Logger.getLogger(SearchController.class);
 
@@ -332,10 +329,6 @@ public class SearchController {
         String[] mixedFacets = StringArrayUtils.splitWebParameter(mixedFacetArray);
 //        String[] mixedFacets = expandFacetNames(StringArrayUtils.splitWebParameter(mixedFacetArray));
 
-        // separate the requested facets in Solr facets and technical (metadata) facets
-        Map<String, String[]> separatedFacets = ModelUtils.separateFacets(mixedFacets);
-        String[] solrFacets = separatedFacets.get("solrfacets");
-        String[] technicalFacets = separatedFacets.get("technicalfacets");
 
         boolean facetsRequested = StringUtils.containsIgnoreCase(profile, "portal") ||
                 StringUtils.containsIgnoreCase(profile, "facets");
@@ -343,6 +336,13 @@ public class SearchController {
                 (ArrayUtils.isEmpty(mixedFacets) ||  ArrayUtils.contains(mixedFacets, "DEFAULT"));
         boolean defaultOrReusabilityFacetsRequested = defaultFacetsRequested ||
                 (facetsRequested &&  ArrayUtils.contains(mixedFacets, "REUSABILITY"));
+
+        // 1) replaces DEFAULT (or empty list of) facet with those defined in the enum types (removes explicit DEFAULT facet)
+        // 2) separates the requested facets in Solr facets and technical (fake-) facets
+        // 3) when many custom SOLR facets are supplied: caps the number of total facets to FACET_LIMIT
+        Map<String, String[]> separatedFacets = ModelUtils.separateAndLimitFacets(mixedFacets, defaultFacetsRequested);
+        String[] solrFacets = (String[]) ArrayUtils.addAll(separatedFacets.get("solrfacets"), separatedFacets.get("customfacets"));
+        String[] technicalFacets = separatedFacets.get("technicalfacets");
 
 		controllerUtils.addResponseHeaders(response);
 		rows = Math.min(rows, configuration.getApiRowLimit());
@@ -369,17 +369,15 @@ public class SearchController {
                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                 .setSpellcheckAllowed(false);
 
-        // Limits the number of solrFacets to FACET_LIMIT (16); DEFAULT = 11. It removes the DEFAULT facet afterwards.
-        if (ArrayUtils.isNotEmpty(solrFacets)) solrFacets = limitFacets(solrFacets, defaultFacetsRequested);
-
         // removed the spooky looping stuff from setting the Solr facets and their associated parameters by directly
         // passing the Maps to the Query object. Null checking happens there, too.
         if (facetsRequested) {
             Map<String, String[]> parameterMap = request.getParameterMap();
-            query.setSolrFacets(defaultFacetsRequested, solrFacets)
+            query.setSolrFacets(solrFacets)
+                    .setDefaultFacetsRequested(defaultFacetsRequested)
                     .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested))
                     .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested))
-                    .setRequestedTechnicalFacets(defaultFacetsRequested, technicalFacets) // if default facets requested, set all technical facets as requested
+                    .setTechnicalFacets(technicalFacets)
                     .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
                     .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))
                     .setFacetsAllowed(true);
@@ -496,7 +494,7 @@ public class SearchController {
         if (StringUtils.containsIgnoreCase(profile, "facets") ||
             StringUtils.containsIgnoreCase(profile, "portal")) {
             response.facets = wrangler.consolidateFacetList(resultSet.getFacetFields(),
-                    query.getRequestedTechnicalFacets(), query.isDefaultFacetsRequested(),
+                    query.getTechnicalFacets(), query.isDefaultFacetsRequested(),
                     query.getTechnicalFacetLimits(), query.getTechnicalFacetOffsets());
         }
         if (StringUtils.containsIgnoreCase(profile, "breadcrumb") ||
@@ -762,30 +760,6 @@ public class SearchController {
 			return "";
 		}
 	}
-
-    /**
-     * Limits the number of facets to FACET_LIMIT (16) where "DEFAULT facets" count for 11
-     * This method only gets called if solrFacets is not empty; hence, default facets
-     * can only be requested explicity. The method also removes the DEFAULT facet
-     *
-     * @param requestedSolrFacets      The user-supplied facet names list
-     * @param isDefaultFacetsRequested Whether default facets have been requested
-     * @return                         The limited set of facet names
-     */
-
-    public static String[] limitFacets(String[] requestedSolrFacets, boolean isDefaultFacetsRequested) {
-        List<String> allowedFacets = new ArrayList<>();
-        int nrFacets = (isDefaultFacetsRequested) ? SolrFacetType.values().length : 0;
-        for (String requestedFacet : requestedSolrFacets) {
-            if (StringUtils.equalsIgnoreCase(requestedFacet, "DEFAULT")) continue;
-            if (nrFacets + 1 <= FACET_LIMIT) {
-                allowedFacets.add(requestedFacet);
-                nrFacets ++;
-            } else break;
-        }
-        return allowedFacets.toArray(new String[0]);
-    }
-
 
     /**
      * retrieves the numerical part of the substring between the ':' and '*'
