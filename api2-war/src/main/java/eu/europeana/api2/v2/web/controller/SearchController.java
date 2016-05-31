@@ -52,7 +52,6 @@ import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.definitions.exception.ProblemType;
-import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
 import eu.europeana.corelib.search.SearchService;
@@ -378,7 +377,7 @@ public class SearchController {
                     .setDefaultFacetsRequested(defaultFacetsRequested)
                     .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested))
                     .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested))
-                    .setRequestedTechnicalFacets(technicalFacets)
+                    .setTechnicalFacets(technicalFacets)
                     .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
                     .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))
                     .setFacetsAllowed(true);
@@ -495,7 +494,7 @@ public class SearchController {
         if (StringUtils.containsIgnoreCase(profile, "facets") ||
             StringUtils.containsIgnoreCase(profile, "portal")) {
             response.facets = wrangler.consolidateFacetList(resultSet.getFacetFields(),
-                    query.getRequestedTechnicalFacets(), query.isDefaultFacetsRequested(),
+                    query.getTechnicalFacets(), query.isDefaultFacetsRequested(),
                     query.getTechnicalFacetLimits(), query.getTechnicalFacetOffsets());
         }
         if (StringUtils.containsIgnoreCase(profile, "breadcrumb") ||
