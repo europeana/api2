@@ -118,9 +118,12 @@ public class ObjectController {
         controllerUtils.addResponseHeaders(response);
 
         LimitResponse limitResponse;
+
+        long t9 = System.currentTimeMillis();
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
                     RecordType.OBJECT, profile);
+            log.info("Apikey checklimit took: " + (System.currentTimeMillis() - t9) + " milliseconds");
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
@@ -137,10 +140,16 @@ public class ObjectController {
         String originalObjectId = europeanaObjectId;
         try {
             long t0 = (new Date()).getTime();
+            long t2 = System.currentTimeMillis();
             FullBean bean = searchService.findById(europeanaObjectId, false);
+            log.info("SearchService find by ID took: " + (System.currentTimeMillis() - t2) + " milliseconds");
             if (bean == null) {
+                t2 = System.currentTimeMillis();
                 europeanaObjectId = searchService.resolveId(europeanaObjectId);
+                log.info("Bean = null; SearchService resolve ID took: " + (System.currentTimeMillis() - t2) + " milliseconds");
+                t2 = System.currentTimeMillis();
                 bean = searchService.findById(europeanaObjectId, false);
+                log.info("Bean = null; retrying SearchService find by ID now took: " + (System.currentTimeMillis() - t2) + " milliseconds");
             }
 //            if (bean != null && bean.isOptedOut()) {
 //                bean.getAggregations().get(0).setEdmObject("");
@@ -155,7 +164,9 @@ public class ObjectController {
                 List<BriefBean> similarItems;
                 List<BriefView> beans = new ArrayList<>();
                 try {
+                    t2 = System.currentTimeMillis();
                     similarItems = searchService.findMoreLikeThis(europeanaObjectId);
+                    log.info("SearchService find similar items took: " + (System.currentTimeMillis() - t2) + " milliseconds");
                     for (BriefBean b : similarItems) {
                         String similarItemsProfile = "minimal";
                         BriefView view = new BriefView(b, similarItemsProfile, wskey);
@@ -170,6 +181,7 @@ public class ObjectController {
             objectResult.object = new FullView(bean, profile, wskey);
             long t1 = (new Date()).getTime();
             objectResult.statsDuration = (t1 - t0);
+            log.info("Record retrieval took: " + (System.currentTimeMillis() - t9) + " milliseconds");
         } catch (MongoDBException e) {
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), limitResponse.getRequestNumber()), callback);
         }

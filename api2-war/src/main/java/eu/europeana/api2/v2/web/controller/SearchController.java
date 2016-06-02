@@ -465,7 +465,10 @@ public class SearchController {
             throws SolrTypeException {
         FacetWrangler wrangler = new FacetWrangler();
         SearchResults<T> response = new SearchResults<>(apiKey);
+        long t0 = System.currentTimeMillis();
         ResultSet<T> resultSet = searchService.search(clazz, query);
+        log.info("Search took: " + (System.currentTimeMillis() - t0) + " milliseconds");
+
         response.totalResults = resultSet.getResultSize();
         if ( StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) &&
              StringUtils.isNotBlank(resultSet.getNextCursorMark()) &&
