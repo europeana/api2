@@ -23,9 +23,12 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.web.util.UriComponentsBuilder;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.spring.web.paths.Paths;
+import springfox.documentation.spring.web.paths.AbstractPathProvider;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import static com.google.common.base.Predicates.not;
@@ -38,6 +41,7 @@ import static springfox.documentation.builders.RequestHandlerSelectors.withMetho
  */
 @EnableSwagger2 //Loads the spring beans required by the framework
 @PropertySource("classpath:swagger.properties")
+
 public class SwaggerConfig {
 
     @Value("${api2.url}")
@@ -57,7 +61,8 @@ public class SwaggerConfig {
                         withClassAnnotation(SwaggerIgnore.class)
                 ))) //Selection by RequestHandler
                 .build()
-                .host(hostUrl())
+                .host(getHostUrl())
+                .pathProvider(new BasePathAwareRelativePathProvider(getApiPath()))
                 .apiInfo(apiInfo());
     }
     
@@ -75,13 +80,42 @@ public class SwaggerConfig {
         "http://www.europeana.eu/portal/rights/api-terms-of-use.html" );
     }
 
-    private String hostUrl(){
-        String hostUrl = StringUtils.isNotBlank(apiUrl) ? apiUrl : (
+    private String getApiPath(){
+        return "/" + (fullApiUrl().toLowerCase().contains("/api") ? "api" : "") ;
+    }
+
+    private String getHostUrl(){
+        String hostUrl = fullApiUrl();
+        return (hostUrl.toLowerCase().contains("/api") ? hostUrl.substring(0, hostUrl.toLowerCase().indexOf("/api")) : hostUrl);
+    }
+
+    private String fullApiUrl(){
+        return StringUtils.isNotBlank(apiUrl) ? apiUrl : (
                 StringUtils.isNotBlank(apiCanonicalUrl) ? apiCanonicalUrl : "http://europeana.eu");
-        if (hostUrl.toLowerCase().contains("/api")){
-            return hostUrl.substring(0, hostUrl.toLowerCase().indexOf("/api"));
-        } else {
-            return hostUrl;
+    }
+
+    class BasePathAwareRelativePathProvider extends AbstractPathProvider {
+        private String basePath;
+
+        public BasePathAwareRelativePathProvider(String basePath) {
+            this.basePath = basePath;
+        }
+
+        @Override
+        protected String applicationPath() {
+            return basePath;
+        }
+
+        @Override
+        protected String getDocumentationPath() {
+            return "/";
+        }
+
+        @Override
+        public String getOperationPath(String operationPath) {
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromPath("/");
+            return Paths.removeAdjacentForwardSlashes(
+                    uriComponentsBuilder.path(operationPath.replaceFirst(basePath, "")).build().toString());
         }
     }
 }

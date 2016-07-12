@@ -64,14 +64,14 @@ public class SearchControllerTest {
                 "ts_skos_note,ts_skos_prefLabel,TYPE,UGC,USERTAGS,what,when,where,who,wr_dc_description,wr_dc_format,wr_dc_rights,wr_dc_source," +
                 "wr_dcterms_conformsTo,wr_dcterms_created,wr_dcterms_extent,wr_dcterms_hasPart,wr_dcterms_isFormatOf,wr_dcterms_issued," +
                 "wr_edm_isNextInSequence,wr_edm_rights,YEAR";
-		String[] facets = StringArrayUtils.splitWebParameter(new String[]{facetParamString});
+        String[]              facets           = StringArrayUtils.splitWebParameter(new String[]{facetParamString});
         Map<String, String[]> separatedFacets  = ModelUtils.separateAndLimitFacets(facets, false);
         assertEquals(8, separatedFacets.get("solrfacets").length);
         assertEquals(142, separatedFacets.get("customfacets").length);
-	}
+    }
 
-	@Test
-	public void testLimitFacetsDefaultRequested() {
+    @Test
+    public void testLimitFacetsDefaultRequested() {
         String                facetParamString = "ag_dc_date,ag_dc_identifier,ag_edm_begin,ag_edm_end,ag_edm_hasMet,ag_edm_isRelatedTo," +
                 "ag_edm_wasPresentAt,ag_foaf_name,ag_owl_sameAs,ag_rdagr2_biographicalInformation,ag_rdagr2_dateOfBirth,ag_rdagr2_dateOfDeath," +
                 "ag_rdagr2_dateOfEstablishment,ag_rdagr2_dateOfTermination,ag_rdagr2_gender,ag_rdagr2_professionOrOccupation,ag_skos_altLabel," +
@@ -104,7 +104,7 @@ public class SearchControllerTest {
                 "TYPE,UGC,USERTAGS,what,when,where,who,wr_dc_description,wr_dc_format,wr_dc_rights,wr_dc_source,wr_dcterms_conformsTo," +
                 "wr_dcterms_created,wr_dcterms_extent,wr_dcterms_hasPart,wr_dcterms_isFormatOf,wr_dcterms_issued,wr_edm_isNextInSequence," +
                 "wr_edm_rights,YEAR";
-		String[] facets = StringArrayUtils.splitWebParameter(new String[]{facetParamString});
+        String[]              facets           = StringArrayUtils.splitWebParameter(new String[]{facetParamString});
         Map<String, String[]> separatedFacets  = ModelUtils.separateAndLimitFacets(facets, true);
         assertEquals(10, separatedFacets.get("technicalfacets").length);
         assertEquals(13, separatedFacets.get("solrfacets").length);
@@ -115,9 +115,9 @@ public class SearchControllerTest {
         System.out.println(StringUtils.join(separatedFacets.get("solrfacets"), ", "));
         System.out.println("custom SOLR facets:");
         System.out.println(StringUtils.join(separatedFacets.get("customfacets"), ", "));
-	}
+    }
 
-	@Test
+    @Test
     public void testLimitFacetsWithTechnicalOnes() {
         String                facetParamString = "ag_dc_date,ag_dc_identifier,DEFAULT,ag_edm_begin,ag_edm_end,ag_edm_hasMet,ag_edm_isRelatedTo," +
                 "ag_edm_wasPresentAt,ag_foaf_name,ag_owl_sameAs,ag_rdagr2_biographicalInformation,ag_rdagr2_dateOfBirth,ag_rdagr2_dateOfDeath," +
@@ -150,7 +150,7 @@ public class SearchControllerTest {
                 "ts_edm_begin,ts_edm_end,ts_owl_sameAs,ts_skos_altLabel,ts_skos_hiddenLabel,ts_skos_note,ts_skos_prefLabel,TYPE,UGC,USERTAGS,VIDEO_HD," +
                 "what,when,where,who,wr_dc_description,wr_dc_format,wr_dc_rights,wr_dc_source,wr_dcterms_conformsTo,wr_dcterms_created,wr_dcterms_extent," +
                 "wr_dcterms_hasPart,wr_dcterms_isFormatOf,wr_dcterms_issued,wr_edm_isNextInSequence,wr_edm_rights,YEAR";
-		String[] facets = StringArrayUtils.splitWebParameter(new String[]{facetParamString});
+        String[]              facets           = StringArrayUtils.splitWebParameter(new String[]{facetParamString});
         Map<String, String[]> separatedFacets  = ModelUtils.separateAndLimitFacets(facets, false);
         assertEquals(3, separatedFacets.get("technicalfacets").length);
         assertEquals(8, separatedFacets.get("solrfacets").length);
@@ -161,5 +161,5 @@ public class SearchControllerTest {
         System.out.println(StringUtils.join(separatedFacets.get("solrfacets"), ", "));
         System.out.println("custom SOLR facets:");
         System.out.println(StringUtils.join(separatedFacets.get("customfacets"), ", "));
-	}
+    }
 }
