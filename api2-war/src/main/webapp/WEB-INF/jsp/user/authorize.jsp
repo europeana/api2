@@ -31,7 +31,7 @@
 <body>
 
 <h1>EUROPEANA.EU API</h1>
-
+<c:set var="context" value="${pageContext.request.contextPath}" />
 <div id="content">
 
     <% if (session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION) != null && !(session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION) instanceof UnapprovedClientAuthenticationException)) { %>
@@ -56,12 +56,12 @@
             <li>Saved searches</li>
         </ul>
 
-        <form:form id="confirmationForm" name="confirmationForm" action="/oauth/authorize"
+        <form:form id="confirmationForm" name="confirmationForm" action="${context}/oauth/authorize"
               method="post">
-            <input type="visible" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-            <input name="user_oauth_approval" value="true" type="visible"/>
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+            <input name="user_oauth_approval" value="true" type="hidden"/>
             <c:forEach items="${scopes}" var="scope">
-                <input name="${scope.key}" value="true" type="visible"/>
+                <input name="${scope.key}" value="true" type="hidden"/>
             </c:forEach>
             <label><input name="authorize" value="Authorize" type="submit"/></label>
         </form:form>

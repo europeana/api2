@@ -49,8 +49,8 @@
                 to login here!
             </p>
             <form id="loginForm" name="loginForm"
-                  action="<c:url value="/oAuthLogin.do"/>" method="post">
-                <input type="visible" name="${_csrf.parameterName}"
+                  action="<c:url value="${base}oAuthLogin.do"/>" method="post">
+                <input type="hidden" name="${_csrf.parameterName}"
                        value="${_csrf.token}" />
                 <p>
                     <label>E-mail:
