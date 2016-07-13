@@ -58,9 +58,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 We've been granted an open source license to use [Jetbrains'](https://www.jetbrains.com) IDE's for our work on the Europeana code base:
 
-![](https://raw.githubusercontent.com/Luthien-in-edhil/jetbrainsicons/master/icon_IntelliJIDEA.png) [IntelliJ] (https://www.jetbrains.com/idea/) Java IDE
+![](https://raw.githubusercontent.com/Luthien-in-edhil/jetbrainsicons/master/icon_IntelliJIDEA.png) [IntelliJ](https://www.jetbrains.com/idea/) Java IDE
 
-![](https://raw.githubusercontent.com/Luthien-in-edhil/jetbrainsicons/master/icon_PyCharm.png) [PyCHarm](https://www.jetbrains.com/pycharm/) Python IDE
+![](https://raw.githubusercontent.com/Luthien-in-edhil/jetbrainsicons/master/icon_PyCharm.png) [PyCharm](https://www.jetbrains.com/pycharm/) Python IDE
 
 ![](https://raw.githubusercontent.com/Luthien-in-edhil/jetbrainsicons/master/icon_RubyMine.png) [RubyMine](https://www.jetbrains.com/ruby/) Ruby IDE
 
