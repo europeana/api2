@@ -30,8 +30,8 @@ import java.util.Map;
 
 public class SearchControllerTest {
 
-    @Test
-    public void testLimitFacets() {
+	@Test
+	public void testLimitFacets() {
         String                facetParamString = "ag_dc_date,ag_dc_identifier,ag_edm_begin,ag_edm_end,ag_edm_hasMet,ag_edm_isRelatedTo," +
                 "ag_edm_wasPresentAt,ag_foaf_name,ag_owl_sameAs,ag_rdagr2_biographicalInformation,ag_rdagr2_dateOfBirth,ag_rdagr2_dateOfDeath," +
                 "ag_rdagr2_dateOfEstablishment,ag_rdagr2_dateOfTermination,ag_rdagr2_gender,ag_rdagr2_professionOrOccupation,ag_skos_altLabel," +
