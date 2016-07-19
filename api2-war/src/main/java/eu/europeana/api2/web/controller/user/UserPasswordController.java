@@ -33,7 +33,8 @@ public class UserPasswordController {
             HttpServletRequest request
     ) {
         try {
-            return "redirect:" +  userService.getRedirectFromToken(email, token) + "/" + email + "/" + token;
+//            return "redirect:" +  userService.getRedirectFromToken(email, token) + "/" + email + "/" + token;
+            return "redirect:" +  userService.getRedirectFromToken(email, token);
             //request.getScheme() + "://www.europeana.eu"
         } catch (DatabaseException ignore) {
         }
