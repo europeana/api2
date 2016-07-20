@@ -19,7 +19,7 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     protected WebApplicationContext createServletApplicationContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         //context.scan(ClassUtils.getPackageName(getClass()));
-        context.register(OAuth2ServerConfig.class,SecurityConfig.class,SwaggerConfig.class,WebMvcConfig.class);
+        context.register(SwaggerConfig.class,WebMvcConfig.class);
         context.addApplicationListener(new VcapPropertyLoaderListener());
         return context;
     }
@@ -33,7 +33,7 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     protected WebApplicationContext createRootApplicationContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         //context.scan(ClassUtils.getPackageName(getClass()));
-        context.register(AppConfig.class);
+        context.register(AppConfig.class,OAuth2ServerConfig.class,SecurityConfig.class);
         context.addApplicationListener(new VcapPropertyLoaderListener());
         return context;
     }
