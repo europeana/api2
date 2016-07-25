@@ -26,6 +26,7 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
+import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
 import eu.europeana.corelib.search.SearchService;
 import io.swagger.annotations.ApiOperation;
@@ -79,8 +80,7 @@ public class BasicObjectController {
         } catch (DatabaseException e) {
             // Disabled while awaiting better implementation (ticket #1742)
             //			apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT, profile);
-            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(),
-                    requestNumber), callback);
+            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), requestNumber), callback);
         } catch (LimitReachedException e) {
             // Disabled while awaiting better implementation (ticket #1742)
             //			apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
@@ -95,8 +95,7 @@ public class BasicObjectController {
         try {
             FullBean bean = searchService.findById(europeanaObjectId, true);
             if (bean == null) {
-                bean = searchService
-                        .resolve(europeanaObjectId, true);
+                bean = searchService .resolve(europeanaObjectId, true);
             }
 
             if (bean == null) {
@@ -104,16 +103,15 @@ public class BasicObjectController {
                 // apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
                 response.setStatus(404);
                 return JsonUtils.toJson(new ApiError(wskey,
-                        "Invalid record identifier: " + europeanaObjectId,
-                        requestNumber), callback);
+                        "Invalid record identifier: " + europeanaObjectId, requestNumber), callback);
             }
 
         } catch (SolrTypeException e) {
-            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(),
-                    requestNumber), callback);
+            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), requestNumber), callback);
         } catch (MongoDBException e) {
-            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(),
-                    requestNumber), callback);
+            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), requestNumber), callback);
+        } catch (MongoRuntimeException re) {
+            return JsonUtils.toJson(new ApiError(wskey, re.getMessage(), requestNumber), callback);
         }
 
         return JsonUtils.toJson(objectResult, callback);

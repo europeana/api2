@@ -54,6 +54,7 @@ import eu.europeana.corelib.edm.exceptions.SolrTypeException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
+import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
@@ -114,7 +115,7 @@ public class ObjectController {
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws MongoRuntimeException {
         controllerUtils.addResponseHeaders(response);
 
         LimitResponse limitResponse;
@@ -184,6 +185,8 @@ public class ObjectController {
             log.info("Record retrieval took: " + (System.currentTimeMillis() - t9) + " milliseconds");
         } catch (MongoDBException e) {
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), limitResponse.getRequestNumber()), callback);
+        } catch (MongoRuntimeException re) {
+            return JsonUtils.toJson(new ApiError(wskey, re.getMessage(), limitResponse.getRequestNumber()), callback);
         }
 
 //        final ObjectMapper objectMapper = new ObjectMapper();
@@ -259,7 +262,7 @@ public class ObjectController {
             if (bean == null) {
                 bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, false);
             }
-        } catch (SolrTypeException | MongoDBException e) {
+        } catch (SolrTypeException | MongoDBException | MongoRuntimeException e) {
             log.error(ExceptionUtils.getFullStackTrace(e));
         }
 
@@ -334,7 +337,7 @@ public class ObjectController {
             if (bean == null) {
                 bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, false);
             }
-        } catch (SolrTypeException | MongoDBException e) {
+        } catch (SolrTypeException | MongoDBException | MongoRuntimeException e) {
             log.error(ExceptionUtils.getFullStackTrace(e));
         }
 
