@@ -47,6 +47,7 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.definitions.exception.Neo4JException;
 import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.edm.exceptions.EuropeanaQueryException;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
@@ -187,6 +188,9 @@ public class ObjectController {
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), limitResponse.getRequestNumber()), callback);
         } catch (MongoRuntimeException re) {
             return JsonUtils.toJson(new ApiError(wskey, re.getMessage(), limitResponse.getRequestNumber()), callback);
+        } catch (Neo4JException e) {
+            log.error("Neo4JException thrown: " + e.getMessage());
+            log.error("Cause: " + e.getCause());
         }
 
 //        final ObjectMapper objectMapper = new ObjectMapper();
@@ -264,6 +268,8 @@ public class ObjectController {
             }
         } catch (SolrTypeException | MongoDBException | MongoRuntimeException e) {
             log.error(ExceptionUtils.getFullStackTrace(e));
+        } catch (Neo4JException e) {
+            e.printStackTrace();
         }
 
         if (bean != null) {
@@ -339,6 +345,8 @@ public class ObjectController {
             }
         } catch (SolrTypeException | MongoDBException | MongoRuntimeException e) {
             log.error(ExceptionUtils.getFullStackTrace(e));
+        } catch (Neo4JException e) {
+            e.printStackTrace();
         }
 
         if (bean != null) {

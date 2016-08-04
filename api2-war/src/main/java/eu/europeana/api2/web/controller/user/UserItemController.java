@@ -24,6 +24,7 @@ import eu.europeana.api2.v2.model.json.user.SavedItem;
 import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
+import eu.europeana.corelib.definitions.exception.Neo4JException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
@@ -128,6 +129,8 @@ public class UserItemController extends AbstractUserController {
         } catch (DatabaseException e) {
             response.success = false;
             response.error = e.getMessage();
+        } catch (Neo4JException e) {
+            e.printStackTrace();
         }
         return JsonUtils.toJson(response, callback);
     }
