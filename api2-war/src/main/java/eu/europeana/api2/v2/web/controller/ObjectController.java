@@ -269,7 +269,8 @@ public class ObjectController {
         } catch (SolrTypeException | MongoDBException | MongoRuntimeException e) {
             log.error(ExceptionUtils.getFullStackTrace(e));
         } catch (Neo4JException e) {
-            e.printStackTrace();
+            log.error("Neo4JException thrown: " + e.getMessage());
+            log.error("Cause: " + e.getCause());
         }
 
         if (bean != null) {
@@ -346,7 +347,8 @@ public class ObjectController {
         } catch (SolrTypeException | MongoDBException | MongoRuntimeException e) {
             log.error(ExceptionUtils.getFullStackTrace(e));
         } catch (Neo4JException e) {
-            e.printStackTrace();
+            log.error("Neo4JException thrown: " + e.getMessage());
+            log.error("Cause: " + e.getCause());
         }
 
         if (bean != null) {

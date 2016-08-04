@@ -31,6 +31,7 @@ import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
 import eu.europeana.corelib.search.SearchService;
 import io.swagger.annotations.ApiOperation;
+import org.apache.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,6 +56,8 @@ public class BasicObjectController {
 
     @Resource
     private SearchService searchService;
+
+    private Logger log = Logger.getLogger(BasicObjectController.class);
 
     @ApiOperation(value = "returns single item")
     @RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -114,7 +117,8 @@ public class BasicObjectController {
         } catch (MongoRuntimeException re) {
             return JsonUtils.toJson(new ApiError(wskey, re.getMessage(), requestNumber), callback);
         } catch (Neo4JException e) {
-            e.printStackTrace();
+            log.error("Neo4JException thrown: " + e.getMessage());
+            log.error("Cause: " + e.getCause());
         }
 
         return JsonUtils.toJson(objectResult, callback);

@@ -30,6 +30,7 @@ import eu.europeana.corelib.definitions.exception.Neo4JException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,6 +53,8 @@ import static eu.europeana.corelib.utils.EuropeanaUriUtils.createEuropeanaId;
 @Api(value = "my_europeana", description = " ")
 //@SwaggerSelect
 public class UserTagController extends AbstractUserController {
+
+    private Logger log = Logger.getLogger(UserTagController.class);
 
     @ApiOperation(value = "lists a user's data tags", nickname = "listUserTags")
     @RequestMapping(
@@ -167,7 +170,8 @@ public class UserTagController extends AbstractUserController {
                 response.success = false;
                 response.error = e.getMessage();
             } catch (Neo4JException e) {
-                e.printStackTrace();
+                log.error("Neo4JException thrown: " + e.getMessage());
+                log.error("Cause: " + e.getCause());
             }
         } else {
             response.success = false;
