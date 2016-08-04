@@ -27,6 +27,7 @@ import eu.europeana.corelib.db.entity.relational.custom.TagCloudItem;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.SocialTag;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
+import eu.europeana.corelib.definitions.exception.Neo4JException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
@@ -143,6 +144,8 @@ public class MyDataTagController extends AbstractUserController {
             } catch (DatabaseException e) {
                 response.success = false;
                 response.error = e.getMessage();
+            } catch (Neo4JException e) {
+                e.printStackTrace();
             }
         } else {
             response.success = false;

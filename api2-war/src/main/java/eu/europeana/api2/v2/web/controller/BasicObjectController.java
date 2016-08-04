@@ -25,6 +25,7 @@ import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.definitions.exception.Neo4JException;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
@@ -112,6 +113,8 @@ public class BasicObjectController {
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), requestNumber), callback);
         } catch (MongoRuntimeException re) {
             return JsonUtils.toJson(new ApiError(wskey, re.getMessage(), requestNumber), callback);
+        } catch (Neo4JException e) {
+            e.printStackTrace();
         }
 
         return JsonUtils.toJson(objectResult, callback);
