@@ -314,6 +314,8 @@ public class SearchController {
         if (hasVideoRefinements) filterTags.addAll(FakeTagsUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
         if (otherMimeTypeRefinements.size() > 0) filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeRefinements));
 
+        String facetQueryString = queryString;
+
         // add the CF filter facets to the query string like this: [existing-query] AND [refinement-1 OR refinement-2 OR
         // refinement-3 ... ]
         String filterTagQuery = "";
@@ -336,6 +338,8 @@ public class SearchController {
                 (ArrayUtils.isEmpty(mixedFacets) ||  ArrayUtils.contains(mixedFacets, "DEFAULT"));
         boolean defaultOrReusabilityFacetsRequested = defaultFacetsRequested ||
                 (facetsRequested &&  ArrayUtils.contains(mixedFacets, "REUSABILITY"));
+        boolean techRefsAndFacetsRequested =  ((hasImageRefinements || hasSoundRefinements ||
+                hasVideoRefinements || otherMimeTypeRefinements.size() > 0) && facetsRequested);
 
         // 1) replaces DEFAULT (or empty list of) facet with those defined in the enum types (removes explicit DEFAULT facet)
         // 2) separates the requested facets in Solr facets and technical (fake-) facets
@@ -356,9 +360,23 @@ public class SearchController {
             );
         }
 
-        // create Query object and set some params
         Class<? extends IdBean> clazz = selectBean(profile);
-        Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
+
+        // optionally, create a unrefined Facet-only query to retrieve the correct Facets + Facetcounts
+        Query facetQuery = null;
+        Query query;
+        if (techRefsAndFacetsRequested){
+            facetQuery = new Query(SearchUtils.rewriteQueryFields(facetQueryString))
+                    .setApiQuery(true)
+                    .setPageSize(0)
+                    .setStart(0)
+                    .setSort(sort)
+                    .setParameter("facet.mincount", "1")
+                    .setSpellcheckAllowed(false);
+        }
+
+        // create Query object and set some params
+        query = new Query(SearchUtils.rewriteQueryFields(queryString))
                 .setApiQuery(true)
                 .setRefinements(refinementArray)
                 .setPageSize(rows)
@@ -373,23 +391,18 @@ public class SearchController {
         // passing the Maps to the Query object. Null checking happens there, too.
         if (facetsRequested) {
             Map<String, String[]> parameterMap = request.getParameterMap();
-            query.setSolrFacets(solrFacets)
-                    .setDefaultFacetsRequested(defaultFacetsRequested)
-                    .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested))
-                    .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested))
-                    .setTechnicalFacets(technicalFacets)
-                    .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
-                    .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))
-                    .setFacetsAllowed(true);
+            if (techRefsAndFacetsRequested) setQueryFacets(facetQuery, solrFacets, defaultFacetsRequested, parameterMap, technicalFacets);
+            else setQueryFacets(query, solrFacets, defaultFacetsRequested, parameterMap, technicalFacets);
         } else {
             query.setFacetsAllowed(false);
         }
 
+        // not necessary for facetQuery as it doesn't use refinements
 		query.setValueReplacements(valueReplacements);
 
 		// reusability facet settings; spell check allowed, etcetera
-		if (defaultOrReusabilityFacetsRequested) query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
-		if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) query.setSpellcheckAllowed(true);
+        if (defaultOrReusabilityFacetsRequested) query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
+        if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) query.setSpellcheckAllowed(true);
         if (facetsRequested && !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
                     ( ArrayUtils.contains(solrFacets, "DATA_PROVIDER") ||
                       ArrayUtils.contains(solrFacets, "DEFAULT")
@@ -397,7 +410,14 @@ public class SearchController {
 
         // do the search
         try {
-            SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
+            SearchResults<? extends IdBean> facetResult = null;
+            SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz, false);
+
+            if (techRefsAndFacetsRequested){
+                facetResult = createResults(wskey, profile, facetQuery, clazz, true);
+                result.facets = facetResult.facets;
+            }
+
             result.requestNumber = limitResponse.getRequestNumber();
             if (StringUtils.containsIgnoreCase(profile, "params")) {
                 result.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -461,7 +481,8 @@ public class SearchController {
             String apiKey,
             String profile,
             Query query,
-            Class<T> clazz)
+            Class<T> clazz,
+            boolean facetsOnly)
             throws SolrTypeException {
         FacetWrangler wrangler = new FacetWrangler();
         SearchResults<T> response = new SearchResults<>(apiKey);
@@ -470,43 +491,48 @@ public class SearchController {
         log.info("Search took: " + (System.currentTimeMillis() - t0) + " milliseconds");
 
         response.totalResults = resultSet.getResultSize();
-        if ( StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) &&
-             StringUtils.isNotBlank(resultSet.getNextCursorMark()) &&
-             !resultSet.getNextCursorMark().equalsIgnoreCase(resultSet.getCurrentCursorMark())
-            ) response.nextCursor = resultSet.getNextCursorMark();
 
-        response.itemsCount = resultSet.getResults().size();
-        response.items = resultSet.getResults();
+        if (!facetsOnly){
+            if ( StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) &&
+                 StringUtils.isNotBlank(resultSet.getNextCursorMark()) &&
+                 !resultSet.getNextCursorMark().equalsIgnoreCase(resultSet.getCurrentCursorMark())
+                ) response.nextCursor = resultSet.getNextCursorMark();
 
-		List<T> beans = new ArrayList<>();
-		for (T b : resultSet.getResults()) {
-			if (b instanceof RichBean) beans.add((T) new RichView((RichBean) b, profile, apiKey));
-			else if (b instanceof ApiBean) beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
-			else if (b instanceof BriefBean) beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
-		}
+            response.itemsCount = resultSet.getResults().size();
+            response.items = resultSet.getResults();
 
-        List<FacetField> facetFields = resultSet.getFacetFields();
-        if (resultSet.getQueryFacets() != null) {
-            List<FacetField> allQueryFacetsMap = SearchUtils.extractQueryFacets(resultSet.getQueryFacets());
-            if (!allQueryFacetsMap.isEmpty()) facetFields.addAll(allQueryFacetsMap);
+            List<T> beans = new ArrayList<>();
+            for (T b : resultSet.getResults()) {
+                if (b instanceof RichBean) beans.add((T) new RichView((RichBean) b, profile, apiKey));
+                else if (b instanceof ApiBean) beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
+                else if (b instanceof BriefBean) beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
+            }
+
+            List<FacetField> facetFields = resultSet.getFacetFields();
+            if (resultSet.getQueryFacets() != null) {
+                List<FacetField> allQueryFacetsMap = SearchUtils.extractQueryFacets(resultSet.getQueryFacets());
+                if (!allQueryFacetsMap.isEmpty()) facetFields.addAll(allQueryFacetsMap);
+            }
+
+            if (log.isInfoEnabled()) log.info("beans: " + beans.size());
+
+            response.items = beans;
+
+            if (StringUtils.containsIgnoreCase(profile, "breadcrumb") ||
+                    StringUtils.containsIgnoreCase(profile, "portal")) {
+                response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
+            }
+            if (StringUtils.containsIgnoreCase(profile, "spelling") ||
+                    StringUtils.containsIgnoreCase(profile, "portal")) {
+                response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
+            }
         }
 
-        if (log.isInfoEnabled()) log.info("beans: " + beans.size());
-
-        response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, "facets") ||
             StringUtils.containsIgnoreCase(profile, "portal")) {
             response.facets = wrangler.consolidateFacetList(resultSet.getFacetFields(),
                     query.getTechnicalFacets(), query.isDefaultFacetsRequested(),
                     query.getTechnicalFacetLimits(), query.getTechnicalFacetOffsets());
-        }
-        if (StringUtils.containsIgnoreCase(profile, "breadcrumb") ||
-            StringUtils.containsIgnoreCase(profile, "portal")) {
-            response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
-        }
-        if (StringUtils.containsIgnoreCase(profile, "spelling") ||
-            StringUtils.containsIgnoreCase(profile, "portal")) {
-            response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
         }
 //        if (StringUtils.containsIgnoreCase(profile, "params")) {
 //            response.addParam("sort", resultSet.getSortField());
@@ -777,22 +803,34 @@ public class SearchController {
                 "\\D+", "");
     }
 
-    // TODO check if unused, if so remove this yer method
-    private String[] expandFacetNames(String[] facet) {
-        if (facet == null)
-            return null;
-
-        for (int i = 0; i < facet.length; ++i) {
-            if ("MEDIA".equalsIgnoreCase(facet[i])) {
-                facet[i] = "has_media";
-            } else if ("THUMBNAIL".equalsIgnoreCase(facet[i])) {
-                facet[i] = "has_thumbnails";
-            } else if ("TEXT_FULLTEXT".equalsIgnoreCase(facet[i])) {
-                facet[i] = "is_fulltext";
-            }else if ("LANDINGPAGE".equalsIgnoreCase(facet[i])) {
-                facet[i] = "has_landingpage";
-            }
-        }
-        return facet;
+    private void setQueryFacets(Query query, String[] solrFacets, Boolean defaultFacetsRequested, Map<String,
+            String[]> parameterMap, String[] technicalFacets){
+        query.setSolrFacets(solrFacets)
+                .setDefaultFacetsRequested(defaultFacetsRequested)
+                .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested))
+                .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested))
+                .setTechnicalFacets(technicalFacets)
+                .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
+                .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))
+                .setFacetsAllowed(true);
     }
+
+    // TODO check if unused, if so remove this yer method
+//    private String[] expandFacetNames(String[] facet) {
+//        if (facet == null)
+//            return null;
+//
+//        for (int i = 0; i < facet.length; ++i) {
+//            if ("MEDIA".equalsIgnoreCase(facet[i])) {
+//                facet[i] = "has_media";
+//            } else if ("THUMBNAIL".equalsIgnoreCase(facet[i])) {
+//                facet[i] = "has_thumbnails";
+//            } else if ("TEXT_FULLTEXT".equalsIgnoreCase(facet[i])) {
+//                facet[i] = "is_fulltext";
+//            }else if ("LANDINGPAGE".equalsIgnoreCase(facet[i])) {
+//                facet[i] = "has_landingpage";
+//            }
+//        }
+//        return facet;
+//    }
 }
