@@ -1,11 +1,14 @@
 package eu.europeana.api2.model.entity;
 
+import eu.europeana.corelib.definitions.users.Role;
+import org.apache.commons.lang3.EnumUtils;
+
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 public class UserEntity {
 
-    protected Long id;
+    protected Long   id;
     protected String email;
     protected String username;
     protected String password;
@@ -17,6 +20,7 @@ public class UserEntity {
     protected String address;
     protected String website;
     protected String fieldOfWork;
+    protected Role   role;
 
     public void setId(Long id) {
         this.id = id;
@@ -64,5 +68,9 @@ public class UserEntity {
 
     public void setWebsite(String website) {
         this.website = website;
+    }
+
+    public void setRole(Role role){
+          this.role = role;
     }
 }
