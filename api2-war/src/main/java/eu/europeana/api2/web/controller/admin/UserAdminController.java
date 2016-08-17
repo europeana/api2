@@ -34,6 +34,7 @@ public class UserAdminController {
     private String apiUrl;
 
     @RequestMapping(value = "/{term:.+}",
+//      @RequestMapping(value = "/{term}",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse find(
@@ -106,6 +107,7 @@ public class UserAdminController {
             entity.setAddress(user.getAddress());
             entity.setWebsite(user.getWebsite());
             entity.setFieldOfWork(user.getFieldOfWork());
+            entity.setRole(user.getRole());
             return entity;
         }
         return null;
