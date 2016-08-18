@@ -24,6 +24,8 @@ import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
+import eu.europeana.corelib.definitions.exception.Neo4JException;
+import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.search.SearchService;
@@ -80,7 +82,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
         log.info("Running thread for " + rdfAbout);
     }
 
-    public ModelAndView call() {
+    public ModelAndView call() throws Neo4JException {
 
         long t0 = System.currentTimeMillis();
         controllerUtils.addResponseHeaders(response);
@@ -240,7 +242,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
         return json;
     }
 
-    private void addChildrenCount(List<Neo4jBean> beans) {
+    private void addChildrenCount(List<Neo4jBean> beans) throws Neo4JException {
         if (beans != null && beans.size() > 0) {
             for (Neo4jBean bean : beans) {
                 if (bean.hasChildren()) {

@@ -22,6 +22,7 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.entity.enums.RecordType;
+import eu.europeana.corelib.definitions.exception.Neo4JException;
 import eu.europeana.corelib.search.SearchService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -59,6 +61,9 @@ public class HierarchicalController {
     @Resource
     private ControllerUtils controllerUtils;
 
+    @Resource
+    private ObjectController objectController;
+
     @ApiOperation(value = "returns the object itself")
     @RequestMapping(value = "/{collectionId}/{recordId}/self.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -69,9 +74,10 @@ public class HierarchicalController {
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_SELF, collectionId, recordId,
-                profile, wskey, -1, -1, callback, request, response);
+                profile, wskey, -1, -1, callback, request, response, redirectAttrs);
     }
 
     @ApiOperation(value = "returns the object, its ancestors and siblings")
@@ -84,9 +90,10 @@ public class HierarchicalController {
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS, collectionId, recordId,
-                profile, wskey, -1, -1, callback, request, response);
+                profile, wskey, -1, -1, callback, request, response, redirectAttrs);
     }
 
     @ApiOperation(value = "returns the object's children")
@@ -101,9 +108,10 @@ public class HierarchicalController {
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_CHILDREN, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response);
+                profile, wskey, limit, offset, callback, request, response, redirectAttrs);
     }
 
     @ApiOperation(value = "returns the object's parent")
@@ -118,9 +126,10 @@ public class HierarchicalController {
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_PARENT, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response);
+                profile, wskey, limit, offset, callback, request, response, redirectAttrs);
     }
 
     @ApiOperation(value = "returns the object's preceding siblings")
@@ -135,9 +144,10 @@ public class HierarchicalController {
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_PRECEDING_SIBLINGS, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response);
+                profile, wskey, limit, offset, callback, request, response, redirectAttrs);
     }
 
     @SwaggerIgnore
@@ -153,9 +163,10 @@ public class HierarchicalController {
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_PRECEDING_SIBLINGS, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response);
+                profile, wskey, limit, offset, callback, request, response, redirectAttrs);
     }
 
     @ApiOperation(value = "returns the object's following siblings")
@@ -170,15 +181,17 @@ public class HierarchicalController {
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_FOLLOWING_SIBLINGS, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response);
+                profile, wskey, limit, offset, callback, request, response, redirectAttrs);
     }
 
     private ModelAndView hierarchyTemplate(RecordType recordType,
                                            String collectionId, String recordId, String profile,
                                            String wskey, int limit, int offset, String callback,
-                                           HttpServletRequest request, HttpServletResponse response) {
+                                           HttpServletRequest request, HttpServletResponse response,
+                                           RedirectAttributes redirectAttrs) {
         ExecutorService service = Executors.newSingleThreadExecutor();
         String rdfAbout = "/" + collectionId + "/" + recordId;
         HierarchyTemplateRunner runner = new HierarchyTemplateRunner(recordType, rdfAbout,
@@ -188,13 +201,19 @@ public class HierarchicalController {
         try {
             return future.get();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error("InterruptedException thrown: " + e.getMessage());
+            log.error("Cause: " + e.getCause());
             return generateErrorHierarchy(recordType, rdfAbout, wskey, callback, "InterruptedException");
         } catch (ExecutionException e) {
-            e.printStackTrace();
-            return generateErrorHierarchy(recordType, rdfAbout, wskey, callback, "ExecutionException");
+            log.error("ExecutionExeption thrown: " + e.getMessage());
+            log.error("Cause: " + e.getCause());
+            ModelAndView gimmeJustTheRecordThen = new ModelAndView("redirect:/v2/record" + rdfAbout + ".json");
+            redirectAttrs.addAttribute("profile", profile);
+            redirectAttrs.addAttribute("wskey", wskey);
+            redirectAttrs.addAttribute("callback", callback);
+            return gimmeJustTheRecordThen;
         }
-        }
+    }
 
     private ModelAndView generateErrorHierarchy(RecordType recordType, String rdfAbout, String wskey
             , String callback, String exceptionType){
