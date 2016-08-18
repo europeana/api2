@@ -34,7 +34,6 @@ public class UserAdminController {
     private String apiUrl;
 
     @RequestMapping(value = "/{term:.+}",
-//      @RequestMapping(value = "/{term}",
             method = {RequestMethod.GET},
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse find(
