@@ -106,6 +106,7 @@ public class UserAdminController {
             entity.setAddress(user.getAddress());
             entity.setWebsite(user.getWebsite());
             entity.setFieldOfWork(user.getFieldOfWork());
+            entity.setRole(user.getRole());
             return entity;
         }
         return null;

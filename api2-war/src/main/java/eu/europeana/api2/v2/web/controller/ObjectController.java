@@ -47,6 +47,7 @@ import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.definitions.exception.Neo4JException;
 import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.edm.exceptions.EuropeanaQueryException;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
@@ -54,6 +55,7 @@ import eu.europeana.corelib.edm.exceptions.SolrTypeException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
+import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
@@ -114,10 +116,12 @@ public class ObjectController {
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws MongoRuntimeException {
         controllerUtils.addResponseHeaders(response);
 
         LimitResponse limitResponse;
+
+        long t9 = System.currentTimeMillis();
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
                     RecordType.OBJECT, profile);
@@ -172,6 +176,11 @@ public class ObjectController {
             objectResult.statsDuration = (t1 - t0);
         } catch (MongoDBException e) {
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), limitResponse.getRequestNumber()), callback);
+        } catch (MongoRuntimeException re) {
+            return JsonUtils.toJson(new ApiError(wskey, re.getMessage(), limitResponse.getRequestNumber()), callback);
+        } catch (Neo4JException e) {
+            log.error("Neo4JException thrown: " + e.getMessage());
+            log.error("Cause: " + e.getCause());
         }
 
 //        final ObjectMapper objectMapper = new ObjectMapper();
@@ -247,8 +256,11 @@ public class ObjectController {
             if (bean == null) {
                 bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, false);
             }
-        } catch (SolrTypeException | MongoDBException e) {
+        } catch (SolrTypeException | MongoDBException | MongoRuntimeException e) {
             log.error(ExceptionUtils.getFullStackTrace(e));
+        } catch (Neo4JException e) {
+            log.error("Neo4JException thrown: " + e.getMessage());
+            log.error("Cause: " + e.getCause());
         }
 
         if (bean != null) {
@@ -322,8 +334,11 @@ public class ObjectController {
             if (bean == null) {
                 bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, false);
             }
-        } catch (SolrTypeException | MongoDBException e) {
+        } catch (SolrTypeException | MongoDBException | MongoRuntimeException e) {
             log.error(ExceptionUtils.getFullStackTrace(e));
+        } catch (Neo4JException e) {
+            log.error("Neo4JException thrown: " + e.getMessage());
+            log.error("Cause: " + e.getCause());
         }
 
         if (bean != null) {

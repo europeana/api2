@@ -67,4 +67,8 @@ public class UserCreate extends UserEntity {
     public String getRedirect() {
         return redirect == null ? DEFAULTREDIRECTURL : redirect;
     }
+
+    public String getRole() {
+        return role.toString();
+    }
 }
