@@ -38,10 +38,10 @@ public class FacetParameterUtils {
 
     final static String DEFAULT_LIMIT_KEY = "f.DEFAULT.facet.limit";
     final static String DEFAULT_OFFSET_KEY = "f.DEFAULT.facet.offset";
-    final static int LIMIT_FOR_DATA_PROVIDER = 3000;
-    final static int LIMIT_FOR_DEFAULT = 750;
+    final public static int LIMIT_FOR_DATA_PROVIDER = 50;
+    final static int LIMIT_FOR_DEFAULT = 50;
     final static int LIMIT_FOR_CUSTOM = 50;
-    final static int LIMIT_FOR_TECH_DEFAULT = 750;
+    final static int LIMIT_FOR_TECH_DEFAULT = 50;
     final static int LIMIT_FOR_TECH_CUSTOM = 50;
 
     private static List<String> defaultSolrFacetList;
