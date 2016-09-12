@@ -50,7 +50,7 @@ public class FacetParameterUtilsTest {
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.limit"));
 		assertTrue(resultMap.containsKey("f.DATA_PROVIDER.facet.limit"));
 		assertEquals(new Integer(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
-		assertEquals(new Integer(3000), resultMap.get("f.DATA_PROVIDER.facet.limit"));
+		assertEquals(new Integer(50), resultMap.get("f.DATA_PROVIDER.facet.limit"));
 	}
 
 	@Test
