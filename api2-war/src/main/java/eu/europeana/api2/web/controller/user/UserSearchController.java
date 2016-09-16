@@ -23,8 +23,10 @@ import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Search;
 import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
 import eu.europeana.corelib.db.exception.DatabaseException;
+import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.SavedSearch;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
+import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.UrlBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,8 +39,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.annotation.Resource;
+import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -48,6 +53,9 @@ import java.util.ArrayList;
 @Api(value = "my_europeana", description = " ")
 //@SwaggerSelect
 public class UserSearchController extends AbstractUserController {
+
+    @Resource(name = "corelib_web_europeanaUrlService")
+    private EuropeanaUrlService europeanaUrlService;
 
     @ApiOperation(value = "list a user's saved searches", nickname = "listUserSearches")
     @RequestMapping(
@@ -93,11 +101,39 @@ public class UserSearchController extends AbstractUserController {
         try {
             User user = getUserByPrincipal(principal);
             if (user != null) {
-                UrlBuilder ub = new UrlBuilder(query);
-                ub.addParam("qf", refinements, true);
-                ub.addParam("start", start, true);
-                String queryString = StringUtils.replace(ub.toString(), "?", "&");
+                String queryString = getQueryString(query, refinements, start, user);
                 userService.createSavedSearch(user.getId(), query, queryString);
+                response.success = true;
+            } else {
+                response.success = false;
+                response.error = "User Profile not retrievable...";
+            }
+        } catch (DatabaseException e) {
+            response.success = false;
+            response.error = e.getMessage();
+        }
+        return JsonUtils.toJson(response, callback);
+    }
+
+    @ApiOperation(value = "update a saved search for a user", nickname = "updateUserSearch")
+    @RequestMapping(
+            value = "/{searchId}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method = RequestMethod.PUT
+    )
+    public ModelAndView update(
+            @PathVariable(value = "searchId") Long searchId,
+            @RequestParam(value = "query", required = true) String query,
+            @RequestParam(value = "qf", required = false) String[] refinements,
+            @RequestParam(value = "start", required = false, defaultValue = "1") String start,
+            @RequestParam(value = "callback", required = false) String callback,
+            Principal principal) {
+        ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
+        try {
+            User user = getUserByPrincipal(principal);
+            if (user != null) {
+                String queryString = getQueryString(query, refinements, start, user);
+                userService.updateSavedSearch(user.getId(), searchId, query, queryString);
                 response.success = true;
             } else {
                 response.success = false;
@@ -137,4 +173,22 @@ public class UserSearchController extends AbstractUserController {
         return JsonUtils.toJson(response, callback);
     }
 
+    private String getQueryString(String query, String[] refinements, String start, User user) {
+        List<ApiKey> apiKeys = apiKeyService.findByEmail(user.getEmail());
+        String firstKey = "";
+        if (apiKeys.size() > 0) {
+            firstKey = apiKeys.get(0).getId();
+        }
+        UrlBuilder ub = null;
+        try {
+            String resultRowCount = "50";
+            ub = europeanaUrlService.getApi2SearchJson(firstKey, query, resultRowCount);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        ub.addParam("qf", refinements, true);
+        ub.addParam("start", start, true);
+        return StringUtils.replace(ub.toString(), "?", "&", 0);
+    }
 }
