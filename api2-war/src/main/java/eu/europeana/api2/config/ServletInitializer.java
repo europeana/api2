@@ -1,7 +1,8 @@
 package eu.europeana.api2.config;
 
+import eu.europeana.api2.config.filter.GetMethodConvertingFilter;
 import eu.europeana.corelib.web.context.VcapPropertyLoaderListener;
-import org.springframework.util.ClassUtils;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -13,13 +14,14 @@ import javax.servlet.ServletException;
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
+@ComponentScan(basePackageClasses = {GetMethodConvertingFilter.class})
 public class ServletInitializer extends AbstractDispatcherServletInitializer {
 
     @Override
     protected WebApplicationContext createServletApplicationContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         //context.scan(ClassUtils.getPackageName(getClass()));
-        context.register(SwaggerConfig.class,WebMvcConfig.class);
+        context.register(SwaggerConfig.class, WebMvcConfig.class);
         context.addApplicationListener(new VcapPropertyLoaderListener());
         return context;
     }
@@ -33,7 +35,7 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     protected WebApplicationContext createRootApplicationContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         //context.scan(ClassUtils.getPackageName(getClass()));
-        context.register(AppConfig.class,OAuth2ServerConfig.class,SecurityConfig.class);
+        context.register(AppConfig.class, OAuth2ServerConfig.class, SecurityConfig.class);
         context.addApplicationListener(new VcapPropertyLoaderListener());
         return context;
     }
