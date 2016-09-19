@@ -31,30 +31,30 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_EMPTY)
 public class AbstractSearchResults<T> extends ApiResponse {
 
-	public long itemsCount;
+    public long itemsCount;
 
-	@JsonInclude(NON_NULL)
-	public Long totalResults;
+    @JsonInclude(NON_NULL)
+    public Long totalResults = 0L;
 
-	public String nextCursor;
+    public String nextCursor;
 
-	@JsonInclude(NON_NULL)
-	public List<T> items;
+    @JsonInclude(NON_NULL)
+    public List<T> items;
 
-	public AbstractSearchResults(String apikey) {
-		super(apikey);
-	}
+    public AbstractSearchResults(String apikey) {
+        super(apikey);
+    }
 
-	public AbstractSearchResults() {
-		// used by Jackson
-		super();
-	}
+    public AbstractSearchResults() {
+        // used by Jackson
+        super();
+    }
 
-	public Long getTotalResults() {
-		if (totalResults < itemsCount) {
-			return itemsCount;
-		}
-		return totalResults;
-	}
+    public Long getTotalResults() {
+        if (totalResults < itemsCount) {
+            return itemsCount;
+        }
+        return totalResults;
+    }
 
 }
