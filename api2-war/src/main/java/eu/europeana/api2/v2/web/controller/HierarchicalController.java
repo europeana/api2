@@ -215,13 +215,12 @@ public class HierarchicalController {
         }
     }
 
-    private ModelAndView generateErrorHierarchy(RecordType recordType, String rdfAbout, String wskey
-            , String callback, String exceptionType){
-                return JsonUtils.toJson(new ApiError(wskey,
-                String.format(exceptionType + " thrown when processing record %s", rdfAbout),
-                -1L), callback);
+    private ModelAndView generateErrorHierarchy(RecordType recordType, String rdfAbout, String wskey, String callback,
+                                                String exceptionType) {
+        return JsonUtils.toJson(new ApiError(wskey, String.format(exceptionType + " thrown when processing record %s",
+                rdfAbout), -1L), callback);
 
-            }
+    }
 
     protected static String getAction(RecordType recordType) {
         String action = "";

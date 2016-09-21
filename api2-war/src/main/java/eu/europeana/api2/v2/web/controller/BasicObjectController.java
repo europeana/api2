@@ -98,8 +98,7 @@ public class BasicObjectController {
         try {
             FullBean bean = searchService.findById(europeanaObjectId, true);
             if (bean == null) {
-                bean = searchService
-                        .resolve(europeanaObjectId, true);
+                bean = searchService .resolve(europeanaObjectId, true);
             }
 
             if (bean == null) {

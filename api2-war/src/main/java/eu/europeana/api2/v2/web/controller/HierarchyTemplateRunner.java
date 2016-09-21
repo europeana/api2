@@ -113,6 +113,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
         t1 = System.currentTimeMillis();
 
         hierarchicalResult.self = searchService.getHierarchicalBean(rdfAbout);
+
         if (hierarchicalResult.self != null) {
             hierarchicalResult.self.setChildrenCount(
                     searchService.getChildrenCount(rdfAbout));

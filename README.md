@@ -19,7 +19,6 @@ The JavaDoc will be generated once the upcoming code overhaul is complete.
 - [GitHub Issues](https://github.com/europeana/api2/issues)
 
 ## Build
-
 To build (requires the [CoreLib](https://github.com/europeana/corelib) dependency):
 
 ```bash
@@ -37,6 +36,7 @@ template-manifest.yml -> manifest.yml
 
 And make necessary changes
 
+Configure your maven settings: http://artifactory.eanadev.org/artifactory/webapp/mavensettings.html?1
 ```bash
 $ mvn clean install -DskipTests
 ```

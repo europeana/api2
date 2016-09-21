@@ -65,7 +65,7 @@ public class SwaggerConfig {
                 .pathProvider(new BasePathAwareRelativePathProvider(getApiPath()))
                 .apiInfo(apiInfo());
     }
-    
+
     ApiInfo apiInfo() {
         return new ApiInfo(
         "Europeana REST API",
