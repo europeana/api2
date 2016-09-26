@@ -59,8 +59,8 @@ public class SitemapController {
         // Generate the requested sitemap if it's outdated / doesn't exist (and is not currently being
         // created)
         if ((swiftProvider.getObjectApi().getWithoutBody(cacheFile) == null)) {
-            boolean             success = false;
-            ServletOutputStream out     = response.getOutputStream();
+            boolean success = false;
+            ServletOutputStream out = response.getOutputStream();
             log.error(String.format("Sitemap does not exist"));
         } else {
             // Read the sitemap from file
@@ -83,7 +83,7 @@ public class SitemapController {
      */
     @RequestMapping("/europeana-sitemap-hashed.xml")
     public void handleSitemap(@RequestParam(value = "from", required = true) String from, @RequestParam(value = "to", required = true) String to, HttpServletResponse response) throws IOException {
-        String cacheFile = "europeana-sitemap-hashed.xml" + "?from=" + from + "&to=" + to;
+        String cacheFile = getActiveFile() + "?from=" + from + "&to=" + to;
         if (swiftProvider.getObjectApi().getWithoutBody(cacheFile) == null) {
             log.info(String.format("Error processing %s", cacheFile));
         } else {
@@ -101,7 +101,7 @@ public class SitemapController {
     private void readCachedSitemap(ServletOutputStream out, SwiftProvider swiftProvider, String cacheFile) {
         try {
             StringWriter writer = new StringWriter();
-            InputStream  in     = swiftProvider.getObjectApi().get(cacheFile).getPayload().openStream();
+            InputStream in = swiftProvider.getObjectApi().get(cacheFile).getPayload().openStream();
             IOUtils.copy(in, writer);
             out.println(writer.toString());
             in.close();
@@ -109,5 +109,25 @@ public class SitemapController {
         } catch (IOException e) {
 
         }
+    }
+
+    private String getActiveFile() {
+        String result = "";
+        String activeSiteMapFile = "europeana-sitemap-active-xml-file.txt";
+        if (swiftProvider.getObjectApi().getWithoutBody(activeSiteMapFile) == null) {
+            log.info(String.format("Error processing %s", activeSiteMapFile));
+        } else {
+            try {
+                StringWriter writer = new StringWriter();
+                InputStream in = swiftProvider.getObjectApi().get(activeSiteMapFile).getPayload().openStream();
+                IOUtils.copy(in, writer);
+                result = writer.toString();
+                in.close();
+
+            } catch (IOException e) {
+
+            }
+        }
+        return result;
     }
 }
