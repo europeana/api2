@@ -154,6 +154,39 @@ public class UserAdminController {
         return response;
     }
 
+    @RequestMapping(value = "/{term:.+}",
+                    method = {RequestMethod.DELETE},
+                    consumes = MediaType.APPLICATION_JSON_VALUE,
+                    produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ApiResponse deleteUser(
+            @PathVariable String term,
+            Principal principal,
+            HttpServletResponse httpResponse) {
+        UserResponse response = new UserResponse(principal.getName());
+        response.success = false;
+
+        try {
+            User user = StringUtils.contains(term, "@") ?
+                        userService.findByEmail(term) :
+                        NumberUtils.isNumber(term) ?
+                        userService.findByID(NumberUtils.createLong(term)) :
+                        userService.findByName(term);
+            if (user != null) {
+                userService.delete(user);
+                response.success = true;
+                httpResponse.setStatus(204); // no content
+            } else {
+                response.error = ProblemType.NO_USER.getMessage();
+            }
+        } catch (DatabaseException e) {
+            httpResponse.setStatus(500);
+            e.printStackTrace();
+            response.error = e.getMessage();
+        }
+        return response;
+    }
+
     private UserResponse.User toEntity(User user) {
         if (user != null) {
             UserResponse.User entity = new UserResponse().new User();
