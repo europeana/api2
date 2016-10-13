@@ -17,9 +17,12 @@
 
 package eu.europeana.api2.web.controller;
 
+import eu.europeana.api2.config.AppConfig;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
+import eu.europeana.corelib.web.support.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -42,6 +45,10 @@ import java.util.Map;
 @Controller
 @SessionAttributes("authorizationRequest")
 public class AccessConfirmationController {
+
+
+    @Resource
+    private Configuration configuration;
 
     @Resource
     private ApiKeyService apiKeyService;
@@ -81,7 +88,8 @@ public class AccessConfirmationController {
     }
 
     @RequestMapping(value = "/oAuthLogin")
-    public String loginUserForm() {
+    public String loginUserForm(Map<String, Object> model) {
+        model.put("base", configuration.getApi2CanonicalUrl());
         return "user/login";
     }
 
