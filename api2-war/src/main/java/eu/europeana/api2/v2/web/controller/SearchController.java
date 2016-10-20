@@ -234,16 +234,16 @@ public class SearchController {
                                 hasImageRefinements = true;
                             }
                             break;
-                        case "IMAGE_GREYSCALE":
-                        case "IMAGE_GRAYSCALE":
-                            if (Boolean.valueOf(refinementValue)) {
-                                imageColourSpaceRefinements.add("grayscale");
-                                hasImageRefinements = true;
-                            } else if (StringUtils.equalsIgnoreCase(refinementValue, "false")){
-                                imageColourSpaceRefinements.add("rgb");
-                                hasImageRefinements = true;
-                            }
-                            break;
+//                        case "IMAGE_GREYSCALE":
+//                        case "IMAGE_GRAYSCALE":
+//                            if (Boolean.valueOf(refinementValue)) {
+//                                imageColourSpaceRefinements.add("grayscale");
+//                                hasImageRefinements = true;
+//                            } else if (StringUtils.equalsIgnoreCase(refinementValue, "false")){
+//                                imageColourSpaceRefinements.add("rgb");
+//                                hasImageRefinements = true;
+//                            }
+//                            break;
                         case "COLOURPALETTE":
                         case "COLORPALETTE":
                             imageColourPaletteRefinements.add(refinementValue.toUpperCase());
