@@ -1,11 +1,9 @@
 package eu.europeana.api2.web.controller.admin;
 
-import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.model.request.admin.UserCreate;
 import eu.europeana.api2.model.request.admin.UserPasswordReset;
 import eu.europeana.api2.model.response.admin.UserResponse;
-import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.ModificationConfirmation;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.exception.DatabaseException;
@@ -18,7 +16,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
