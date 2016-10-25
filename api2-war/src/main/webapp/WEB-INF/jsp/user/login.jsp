@@ -1,9 +1,5 @@
-<%@ page import="org.springframework.security.core.AuthenticationException" %>
-<%@ page import="org.springframework.security.oauth2.common.exceptions.UnapprovedClientAuthenticationException" %>
-<%@ page import="org.springframework.security.web.WebAttributes" %>
 <%@ page session="false" language="java" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <%--
   ~ Copyright 2007-2015 The Europeana Foundation
