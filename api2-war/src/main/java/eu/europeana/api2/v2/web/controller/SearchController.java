@@ -234,16 +234,6 @@ public class SearchController {
                                 hasImageRefinements = true;
                             }
                             break;
-//                        case "IMAGE_GREYSCALE":
-//                        case "IMAGE_GRAYSCALE":
-//                            if (Boolean.valueOf(refinementValue)) {
-//                                imageColourSpaceRefinements.add("grayscale");
-//                                hasImageRefinements = true;
-//                            } else if (StringUtils.equalsIgnoreCase(refinementValue, "false")){
-//                                imageColourSpaceRefinements.add("rgb");
-//                                hasImageRefinements = true;
-//                            }
-//                            break;
                         case "COLOURPALETTE":
                         case "COLORPALETTE":
                             imageColourPaletteRefinements.add(refinementValue.toUpperCase());
@@ -327,7 +317,6 @@ public class SearchController {
         // TODO this isn't right -> retrieve facets from parameters; set some facet conditions
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets = StringArrayUtils.splitWebParameter(mixedFacetArray);
-//        String[] mixedFacets = expandFacetNames(StringArrayUtils.splitWebParameter(mixedFacetArray));
 
 
         boolean facetsRequested = StringUtils.containsIgnoreCase(profile, "portal") ||
@@ -772,24 +761,5 @@ public class SearchController {
     private String getIdFromQueryTerms(String queryTerms) {
         return queryTerms.substring(queryTerms.indexOf(":"), queryTerms.indexOf("*")).replaceAll(
                 "\\D+", "");
-    }
-
-    // TODO check if unused, if so remove this yer method
-    private String[] expandFacetNames(String[] facet) {
-        if (facet == null)
-            return null;
-
-        for (int i = 0; i < facet.length; ++i) {
-            if ("MEDIA".equalsIgnoreCase(facet[i])) {
-                facet[i] = "has_media";
-            } else if ("THUMBNAIL".equalsIgnoreCase(facet[i])) {
-                facet[i] = "has_thumbnails";
-            } else if ("TEXT_FULLTEXT".equalsIgnoreCase(facet[i])) {
-                facet[i] = "is_fulltext";
-            }else if ("LANDINGPAGE".equalsIgnoreCase(facet[i])) {
-                facet[i] = "has_landingpage";
-            }
-        }
-        return facet;
     }
 }
