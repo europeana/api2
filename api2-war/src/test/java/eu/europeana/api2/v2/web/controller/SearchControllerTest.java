@@ -106,9 +106,9 @@ public class SearchControllerTest {
                 "wr_edm_rights,YEAR";
         String[]              facets           = StringArrayUtils.splitWebParameter(new String[]{facetParamString});
         Map<String, String[]> separatedFacets  = ModelUtils.separateAndLimitFacets(facets, true);
-        assertEquals(10, separatedFacets.get("technicalfacets").length);
+        assertEquals(9, separatedFacets.get("technicalfacets").length);
         assertEquals(13, separatedFacets.get("solrfacets").length);
-        assertEquals(127, separatedFacets.get("customfacets").length);
+        assertEquals(128, separatedFacets.get("customfacets").length);
         System.out.println("Technical facets:");
         System.out.println(StringUtils.join(separatedFacets.get("technicalfacets"), ", "));
         System.out.println("SOLR facets:");
@@ -129,7 +129,7 @@ public class SearchControllerTest {
                 "edm_UGC,edm_webResource,europeana_aggregation_dc_creator,europeana_aggregation_edm_country,europeana_aggregation_edm_hasView," +
                 "europeana_aggregation_edm_isShownBy,europeana_aggregation_edm_landingPage,europeana_aggregation_edm_language," +
                 "europeana_aggregation_edm_rights,europeana_aggregation_ore_aggregatedCHO,europeana_aggregation_ore_aggregates,europeana_collectionName," +
-                "europeana_completeness,europeana_id,europeana_previewNoDistribute,format,identifier,IMAGE_GREYSCALE,language,LANGUAGE,location," +
+                "europeana_completeness,europeana_id,europeana_previewNoDistribute,format,identifier,IMAGE_COLOUR,language,LANGUAGE,location," +
                 "LOCATION,pl_dcterms_hasPart,pl_dcterms_isPartOf,pl_dcterms_isPartOf_label,pl_owl_sameAs,pl_skos_altLabel,pl_skos_hiddenLabel," +
                 "pl_skos_note,pl_skos_prefLabel,pl_wgs84_pos_alt,pl_wgs84_pos_lat,pl_wgs84_pos_lat_long,pl_wgs84_pos_long,PROVIDER," +
                 "provider_aggregation_dc_rights,provider_aggregation_edm_aggregatedCHO,provider_aggregation_edm_dataProvider," +
