@@ -77,7 +77,7 @@ public class ModelUtils {
                 label = ImagePropertyExtractor.getColor(tag);
                 if (StringUtils.isNotBlank(label)) return name ? "COLOURPALETTE" : label;
                 label = ImagePropertyExtractor.getColorSpace(tag);
-                if (StringUtils.isNotBlank(label)) return name ? ("greyscale".equalsIgnoreCase(label) ? "IMAGE_GREYSCALE" : "IMAGE_COLOUR") : label;
+                if (StringUtils.isNotBlank(label)) return name ? "IMAGE_COLOUR" : label;
                 label = ImagePropertyExtractor.getSize(tag);
                 if (StringUtils.isNotBlank(label)) return name ? "IMAGE_SIZE" : label;
                 return label;

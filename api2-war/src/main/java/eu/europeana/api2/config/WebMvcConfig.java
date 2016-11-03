@@ -38,6 +38,11 @@ import java.util.List;
 @Import(SwaggerConfig.class) // make sure WebMVC is started before swagger initiates
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer.favorPathExtension(false);
+    }
+
     @Bean
     public ViewResolver contentViewResolver() throws Exception {
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();

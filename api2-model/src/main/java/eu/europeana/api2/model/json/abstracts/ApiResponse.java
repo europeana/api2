@@ -38,8 +38,6 @@ public abstract class ApiResponse {
 
 	public String apikey;
 
-	public final String action = "--deprecated--";
-
 	public boolean success = true;
 
 	public String error;

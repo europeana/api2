@@ -22,6 +22,9 @@ package eu.europeana.api2.v2.model;
  *
  * @author Peter.Kiraly@kb.nl
  */
+
+// TODO THIS IS A DUPLICATE CLASS - also in api-war
+
 public class NumericFacetParameter {
 
     /**
