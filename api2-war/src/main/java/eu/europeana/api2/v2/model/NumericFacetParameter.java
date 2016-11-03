@@ -21,6 +21,9 @@ package eu.europeana.api2.v2.model;
  * Data object for a name - integer value pair. It is used for storing Solr parameters
  * @author Peter.Kiraly@kb.nl
  */
+
+// TODO THIS IS A DUPLICATE CLASS (also in api-model)
+
 public class NumericFacetParameter {
 
 	/**
