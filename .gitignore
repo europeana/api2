@@ -15,10 +15,14 @@
 *~
 *.bak
 
-# Avoid pushing the copy of the property file in api-war
-api2-war/src/main/resources/europeana.properties
+api2-war/target/
+api2-model/target/
 
-# Also avoid pushing the production property file
+# Avoid pushing the personal properties override
+api2-war/src/main/resources/europeana.user.properties
+
+# Also avoid pushing the production(???) & personal properties file
 properties/production
+properties/personal
 
-_atticSTATICA-LICENSE.txt
+STATICA-LICENSE.txt
