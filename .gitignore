@@ -18,11 +18,4 @@
 api2-war/target/
 api2-model/target/
 
-# Avoid pushing the personal properties override
-api2-war/src/main/resources/europeana.user.properties
-
-# Also avoid pushing the production(???) & personal properties file
-properties/production
-properties/personal
-
-STATICA-LICENSE.txt
+_atticSTATICA-LICENSE.txt

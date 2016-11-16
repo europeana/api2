@@ -1,0 +1,54 @@
+version: "2"
+
+services:
+#Mongo and Swift are not Dockerized yet
+  relational-database:
+    build:
+      context: ./postgresql
+    image: api-postgresql-database
+    ports:
+    - "5432:5432"
+    environment:
+        POSTGRES_PASSWORD: culture
+        POSTGRES_USER: europeana
+    #
+    restart: always
+
+  graph-database:
+    build:
+      context: ./neo4j
+    image: api-neo4j-database
+    ports:
+      - "7474:7474"
+      - "5005:5005"
+    restart: always
+
+  appserver:
+    build:
+      context: ./tomcat
+    image: api-tomcat-server
+#    environment:
+#      CATALINA_OPTS: -Xms512M -Xmx4096M -server -XX:+UseParallelGC
+#   Mount point for application in tomcat(the target folder on your workspace is directly mounted to the tomcat container)
+    volumes:
+      - ../api2-war/target/api:/tomcat/webapps/api
+    links:
+      - graph-database:api-neo4j-database
+      - relational-database:api-postgresql-database
+    # open ports for tomcat and remote debugging
+    ports:
+      - "8080:8080"
+      - "8000:8000"
+    restart: always
+    depends_on:
+      - relational-database
+
+  webserver:
+    build:
+      context: ./apache
+    image: api-webserver
+    links:
+          - appserver:api-tomcat-server
+    ports:
+      - "80:80"
+    restart: always
