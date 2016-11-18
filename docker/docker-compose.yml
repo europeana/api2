@@ -27,18 +27,35 @@ services:
     build:
       context: ./tomcat
     image: api-tomcat-server
-#    environment:
-#      CATALINA_OPTS: -Xms512M -Xmx4096M -server -XX:+UseParallelGC
-#   Mount point for application in tomcat(the target folder on your workspace is directly mounted to the tomcat container)
+    environment:
+      #Memory monitoring
+      CATALINA_OPTS: '
+            -XX:+UseConcMarkSweepGC
+            -XX:NativeMemoryTracking=summary
+
+            -Djava.rmi.server.hostname=172.18.0.4
+            -Dcom.sun.management.jmxremote 
+            -Dcom.sun.management.jmxremote.port=1099
+            -Dcom.sun.management.jmxremote.rmi.port=1099
+            -Dcom.sun.management.jmxremote.local.only=false 
+            -Dcom.sun.management.jmxremote.authenticate=false
+            -Dcom.sun.management.jmxremote.ssl=false
+                '
+      # -Xms512M -Xmx4096M -server -XX:+UseParallelGC
+      #Debugging port
+      JPDA_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000
+
+    #   Mount point for application in tomcat(the target folder on your workspace is directly mounted to the tomcat container)
     volumes:
       - ../api2-war/target/api:/tomcat/webapps/api
     links:
       - graph-database:api-neo4j-database
       - relational-database:api-postgresql-database
-    # open ports for tomcat and remote debugging
+    # Map ports from tomcat container to the local machine
     ports:
       - "8080:8080"
       - "8000:8000"
+      - "1099:1099"
     restart: always
     depends_on:
       - relational-database
