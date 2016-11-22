@@ -38,10 +38,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -187,20 +184,26 @@ public class HierarchicalController {
                 profile, wskey, limit, offset, callback, request, response, redirectAttrs);
     }
 
+    public HierarchicalController() {
+    }
+
     private ModelAndView hierarchyTemplate(RecordType recordType, String collectionId, String recordId,
                                            String profile, String wskey, int limit, int offset, String callback,
                                            HttpServletRequest request, HttpServletResponse response,
                                            RedirectAttributes redirectAttrs) {
-        ExecutorService         service  = Executors.newSingleThreadExecutor();
+        ExecutorService         executor  = Executors.newSingleThreadExecutor();
         String                  rdfAbout = "/" + collectionId + "/" + recordId;
         HierarchyTemplateRunner runner = new HierarchyTemplateRunner(recordType, rdfAbout, profile, wskey, limit, offset, callback, request, response, log, controllerUtils, searchService);
-        Future<ModelAndView>    future = service.submit(runner);
+        Future<ModelAndView>    future = executor.submit(runner);
 
         long t9 = System.currentTimeMillis();
 
-
+        ModelAndView result;
         try {
-            return future.get();
+            result = future.get();
+            executor.shutdown();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+            return result;
         } catch (InterruptedException e) {
             log.error("InterruptedException thrown: " + e.getMessage());
             log.error("Cause: " + e.getCause());
@@ -213,6 +216,12 @@ public class HierarchicalController {
             redirectAttrs.addAttribute("wskey", wskey);
             redirectAttrs.addAttribute("callback", callback);
             return gimmeJustTheRecordThen;
+        } finally {
+            if (!executor.isTerminated()) {
+                log.error("Neo4J query thread didn't terminate in time");
+            }
+            executor.shutdownNow();
+            log.error("Neo4J query thread shut down");
         }
     }
 
