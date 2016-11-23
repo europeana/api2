@@ -19,7 +19,7 @@ services:
       context: ./neo4j
     image: api-neo4j-database
     ports:
-      - "7474:7474"
+      - "7475:7474"
       - "5005:5005"
     restart: always
 
