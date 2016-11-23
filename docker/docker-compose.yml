@@ -33,7 +33,7 @@ services:
             -XX:+UseConcMarkSweepGC
             -XX:NativeMemoryTracking=summary
 
-            -Djava.rmi.server.hostname=172.18.0.254
+            -Djava.rmi.server.hostname=172.18.0.4
             -Dcom.sun.management.jmxremote 
             -Dcom.sun.management.jmxremote.port=1099
             -Dcom.sun.management.jmxremote.rmi.port=1099
@@ -56,9 +56,6 @@ services:
       - "8080:8080"
       - "8000:8000"
       - "1099:1099"
-    networks:
-          default:
-            ipv4_address: 172.18.0.254
     restart: always
     depends_on:
       - relational-database
