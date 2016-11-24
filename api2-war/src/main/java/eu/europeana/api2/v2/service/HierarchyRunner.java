@@ -65,11 +65,32 @@ public class HierarchyRunner {
     private ControllerUtils controllerUtils;
     private SearchService searchService;
 
-    public HierarchyRunner(RecordType recordType,
-                    String rdfAbout, String profile,
-                    String wskey, int limit, int offset, String callback,
-                    HttpServletRequest request, HttpServletResponse response,
-                    Logger log, ControllerUtils controllerUtils, SearchService searchService){
+//    public HierarchyRunner(RecordType recordType,
+//                    String rdfAbout, String profile,
+//                    String wskey, int limit, int offset, String callback,
+//                    HttpServletRequest request, HttpServletResponse response,
+//                    Logger log, ControllerUtils controllerUtils, SearchService searchService){
+//        this.recordType = recordType;
+//        this.rdfAbout = rdfAbout;
+//        this.profile = profile;
+//        this.wskey = wskey;
+//        this.limit = limit;
+//        this.offset = offset;
+//        this.callback = callback;
+//        this.request = request;
+//        this.response = response;
+//        this.log = log;
+//        this.controllerUtils = controllerUtils;
+//        this.searchService = searchService;
+//        log.info("Running thread for " + rdfAbout);
+//    }
+
+    @Async
+    public Future<ModelAndView> call(RecordType recordType,
+                                     String rdfAbout, String profile,
+                                     String wskey, int limit, int offset, String callback,
+                                     HttpServletRequest request, HttpServletResponse response,
+                                     Logger log, ControllerUtils controllerUtils, SearchService searchService) throws Neo4JException {
         this.recordType = recordType;
         this.rdfAbout = rdfAbout;
         this.profile = profile;
@@ -83,10 +104,6 @@ public class HierarchyRunner {
         this.controllerUtils = controllerUtils;
         this.searchService = searchService;
         log.info("Running thread for " + rdfAbout);
-    }
-
-    @Async
-    public Future<ModelAndView> call() throws Neo4JException {
 
         long t0 = System.currentTimeMillis();
         controllerUtils.addResponseHeaders(response);

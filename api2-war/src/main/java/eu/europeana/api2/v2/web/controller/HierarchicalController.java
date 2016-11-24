@@ -75,14 +75,17 @@ public class HierarchicalController {
     @Resource
     private ObjectController objectController;
 
-    @SuppressWarnings("SpringJavaAutowiringInspection")
+//    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean
-    public HierarchyRunner hierarchyRunnerBean(RecordType recordType, String rdfAbout,
-                                               String profile, String wskey, int limit, int offset, String callback,
-                                               HttpServletRequest request, HttpServletResponse response) {
-        return new HierarchyRunner(recordType, rdfAbout, profile, wskey, limit,
-                offset, callback, request, response, log, controllerUtils, searchService);
+    public HierarchyRunner hierarchyRunnerBean() {
+        return new HierarchyRunner();
     }
+//    public HierarchyRunner hierarchyRunnerBean(RecordType recordType, String rdfAbout,
+//                                               String profile, String wskey, int limit, int offset, String callback,
+//                                               HttpServletRequest request, HttpServletResponse response) {
+//        return new HierarchyRunner(recordType, rdfAbout, profile, wskey, limit,
+//                offset, callback, request, response, log, controllerUtils, searchService);
+//    }
 
     @ApiOperation(value = "returns the object itself")
     @RequestMapping(value = "/{collectionId}/{recordId}/self.json", method = RequestMethod.GET,
@@ -256,10 +259,10 @@ public class HierarchicalController {
                                           RedirectAttributes redirectAttrs) {
 
         String                  rdfAbout = "/" + collectionId + "/" + recordId;
-        HierarchyRunner mrBean = hierarchyRunnerBean(recordType, rdfAbout, profile, wskey, limit,
-                offset, callback, request, response);
+        HierarchyRunner mrBean = hierarchyRunnerBean();
         try {
-            Future<ModelAndView> result = mrBean.call();
+            Future<ModelAndView> result = mrBean.call(recordType, rdfAbout, profile, wskey, limit,
+                    offset, callback, request, response, log, controllerUtils, searchService);
             return result.get();
 //            while (true){
 //                if (future.isDone()) {
