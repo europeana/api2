@@ -19,7 +19,7 @@ services:
       context: ./neo4j
     image: api-neo4j-database
     ports:
-      - "7475:7474"
+      - "7474:7474"
       - "5005:5005"
     restart: always
 
@@ -29,11 +29,12 @@ services:
     image: api-tomcat-server
     environment:
       #Memory monitoring
+      #-Djava.rmi.server.hostname=172.18.0.4
       CATALINA_OPTS: '
             -XX:+UseConcMarkSweepGC
             -XX:NativeMemoryTracking=summary
 
-            -Djava.rmi.server.hostname=172.18.0.4
+            -Djava.rmi.server.hostname=172.18.0.254
             -Dcom.sun.management.jmxremote 
             -Dcom.sun.management.jmxremote.port=1099
             -Dcom.sun.management.jmxremote.rmi.port=1099
@@ -56,6 +57,9 @@ services:
       - "8080:8080"
       - "8000:8000"
       - "1099:1099"
+    networks:
+          default:
+            ipv4_address: 172.18.0.254
     restart: always
     depends_on:
       - relational-database
