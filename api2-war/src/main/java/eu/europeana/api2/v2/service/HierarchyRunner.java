@@ -25,7 +25,6 @@ import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.exception.Neo4JException;
-import eu.europeana.corelib.definitions.exception.ProblemType;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.search.SearchService;
@@ -40,7 +39,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 /**
@@ -64,26 +62,6 @@ public class HierarchyRunner {
     private Logger log;
     private ControllerUtils controllerUtils;
     private SearchService searchService;
-
-//    public HierarchyRunner(RecordType recordType,
-//                    String rdfAbout, String profile,
-//                    String wskey, int limit, int offset, String callback,
-//                    HttpServletRequest request, HttpServletResponse response,
-//                    Logger log, ControllerUtils controllerUtils, SearchService searchService){
-//        this.recordType = recordType;
-//        this.rdfAbout = rdfAbout;
-//        this.profile = profile;
-//        this.wskey = wskey;
-//        this.limit = limit;
-//        this.offset = offset;
-//        this.callback = callback;
-//        this.request = request;
-//        this.response = response;
-//        this.log = log;
-//        this.controllerUtils = controllerUtils;
-//        this.searchService = searchService;
-//        log.info("Running thread for " + rdfAbout);
-//    }
 
     @Async
     public Future<ModelAndView> call(RecordType recordType,

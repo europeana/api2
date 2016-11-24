@@ -80,12 +80,6 @@ public class HierarchicalController {
     public HierarchyRunner hierarchyRunnerBean() {
         return new HierarchyRunner();
     }
-//    public HierarchyRunner hierarchyRunnerBean(RecordType recordType, String rdfAbout,
-//                                               String profile, String wskey, int limit, int offset, String callback,
-//                                               HttpServletRequest request, HttpServletResponse response) {
-//        return new HierarchyRunner(recordType, rdfAbout, profile, wskey, limit,
-//                offset, callback, request, response, log, controllerUtils, searchService);
-//    }
 
     @ApiOperation(value = "returns the object itself")
     @RequestMapping(value = "/{collectionId}/{recordId}/self.json", method = RequestMethod.GET,
@@ -213,45 +207,6 @@ public class HierarchicalController {
     public HierarchicalController() {
     }
 
-//    private ModelAndView hierarchyTemplate(RecordType recordType, String collectionId, String recordId,
-//                                           String profile, String wskey, int limit, int offset, String callback,
-//                                           HttpServletRequest request, HttpServletResponse response,
-//                                           RedirectAttributes redirectAttrs) {
-////        ExecutorService         executorService  = Executors.newSingleThreadExecutor();
-//        ExecutorService         executorService  = Executors.newCachedThreadPool();
-//
-//        String                  rdfAbout = "/" + collectionId + "/" + recordId;
-//        HierarchyRunner runner = new HierarchyRunner(recordType, rdfAbout, profile, wskey, limit, offset, callback, request, response, log, controllerUtils, searchService);
-//        Future<ModelAndView>    future = executorService.submit(runner);
-//
-//        long t9 = System.currentTimeMillis();
-//
-//        ModelAndView result;
-//        try {
-//            result = future.get();
-//            executorService.shutdown();
-//            executorService.awaitTermination(5, TimeUnit.SECONDS);
-//            return result;
-//        } catch (InterruptedException e) {
-//            log.error("InterruptedException thrown: " + e.getMessage());
-//            log.error("Cause: " + e.getCause());
-//            return generateErrorHierarchy(recordType, rdfAbout, wskey, callback, "InterruptedException");
-//        } catch (ExecutionException e) {
-//            log.error("ExecutionExeption thrown: " + e.getMessage());
-//            log.error("Cause: " + e.getCause());
-//            ModelAndView gimmeJustTheRecordThen = new ModelAndView("redirect:/v2/record" + rdfAbout + ".json");
-//            redirectAttrs.addAttribute("profile", profile);
-//            redirectAttrs.addAttribute("wskey", wskey);
-//            redirectAttrs.addAttribute("callback", callback);
-//            return gimmeJustTheRecordThen;
-//        } finally {
-//            if (!executorService.isTerminated()) {
-//                log.error("Neo4J query thread didn't terminate in time");
-//            }
-//            executorService.shutdownNow();
-//            log.error("Neo4J query thread shut down");
-//        }
-//    }
 
     public ModelAndView hierarchyTemplate(RecordType recordType, String collectionId, String recordId,
                                           String profile, String wskey, int limit, int offset, String callback,
@@ -264,12 +219,6 @@ public class HierarchicalController {
             Future<ModelAndView> result = mrBean.call(recordType, rdfAbout, profile, wskey, limit,
                     offset, callback, request, response, log, controllerUtils, searchService);
             return result.get();
-//            while (true){
-//                if (future.isDone()) {
-//                    log.info("Neo4j query completed");
-//                    return future.get();
-//                }
-//            }
         } catch (Neo4JException e) {
             log.error("Neo4JException thrown: " + e.getMessage());
             log.error("Cause: " + e.getCause());
