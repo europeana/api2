@@ -21,7 +21,6 @@ import java.net.UnknownHostException;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @Configuration
-//@EnableAsync
 @ImportResource({
         "classpath:corelib-db-context.xml",
         "classpath:corelib-solr-context.xml",

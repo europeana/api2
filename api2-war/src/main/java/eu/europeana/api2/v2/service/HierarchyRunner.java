@@ -15,7 +15,7 @@
  *  the Licence.
  */
 
-package eu.europeana.api2.v2.web.controller;
+package eu.europeana.api2.v2.service;
 
 import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
@@ -32,6 +32,8 @@ import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 /**
  * Im Luthien hain echant 30/06/15
@@ -47,7 +50,7 @@ import java.util.concurrent.Callable;
  *
  */
 
-public class HierarchyTemplateRunner implements Callable<ModelAndView> {
+public class HierarchyRunner {
     private static final int MAX_LIMIT = 100;
     private String rdfAbout;
     private RecordType recordType;
@@ -62,11 +65,11 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
     private ControllerUtils controllerUtils;
     private SearchService searchService;
 
-    HierarchyTemplateRunner(RecordType recordType,
-                            String rdfAbout, String profile,
-                            String wskey, int limit, int offset, String callback,
-                            HttpServletRequest request, HttpServletResponse response,
-                            Logger log, ControllerUtils controllerUtils, SearchService searchService){
+    public HierarchyRunner(RecordType recordType,
+                    String rdfAbout, String profile,
+                    String wskey, int limit, int offset, String callback,
+                    HttpServletRequest request, HttpServletResponse response,
+                    Logger log, ControllerUtils controllerUtils, SearchService searchService){
         this.recordType = recordType;
         this.rdfAbout = rdfAbout;
         this.profile = profile;
@@ -82,14 +85,15 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
         log.info("Running thread for " + rdfAbout);
     }
 
-    public ModelAndView call() throws Neo4JException {
+    @Async
+    public Future<ModelAndView> call() throws Neo4JException {
 
         long t0 = System.currentTimeMillis();
         controllerUtils.addResponseHeaders(response);
 
         limit = Math.min(limit, MAX_LIMIT);
 
-        long t1 = System.currentTimeMillis();
+        long          t1 = System.currentTimeMillis();
         LimitResponse limitResponse;
 
         try {
@@ -97,7 +101,7 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
                     recordType, profile);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
-            return JsonUtils.toJson(new ApiError(e), callback);
+            return new AsyncResult<>(JsonUtils.toJson(new ApiError(e), callback));
         }
 
         log.info("Limit: " + (System.currentTimeMillis() - t1));
@@ -120,9 +124,9 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
         } else {
             hierarchicalResult.success = false;
             response.setStatus(404);
-            return JsonUtils.toJson(new ApiError(wskey,
+            return new AsyncResult <> (JsonUtils.toJson(new ApiError(wskey,
                     String.format("Invalid record identifier: %s", rdfAbout),
-                    limitResponse.getRequestNumber()), callback);
+                    limitResponse.getRequestNumber()), callback));
         }
 
         log.info("get self: " + (System.currentTimeMillis() - t1));
@@ -236,11 +240,9 @@ public class HierarchyTemplateRunner implements Callable<ModelAndView> {
         t1 = System.currentTimeMillis();
 
         hierarchicalResult.statsDuration = (System.currentTimeMillis() - t0);
-
         ModelAndView json = JsonUtils.toJson(hierarchicalResult, callback);
         log.info("toJson: " + (System.currentTimeMillis() - t1));
-
-        return json;
+        return new AsyncResult <> (json);
     }
 
     private void addChildrenCount(List<Neo4jBean> beans) throws Neo4JException {
