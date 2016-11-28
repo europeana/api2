@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -36,6 +37,7 @@ import java.util.List;
 @EnableWebMvc
 @ComponentScan(basePackageClasses = {SearchController.class, ExceptionController.class})
 @Import(SwaggerConfig.class) // make sure WebMVC is started before swagger initiates
+@EnableAsync
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
     @Override
