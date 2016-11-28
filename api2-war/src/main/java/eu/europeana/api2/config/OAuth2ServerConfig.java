@@ -2,15 +2,9 @@ package eu.europeana.api2.config;
 
 import eu.europeana.api2.web.security.oauth2.ApiApprovalHandler;
 import eu.europeana.api2.web.security.oauth2.ApiTokenStore;
-import eu.europeana.api2.web.security.oauth2.OAuth2ClientDetailsService;
-import org.quartz.*;
-import org.quartz.impl.RemoteScheduler;
-import org.quartz.spi.JobFactory;
 import org.springframework.context.annotation.*;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -28,13 +22,9 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import javax.annotation.Resource;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
-import static org.springframework.security.config.http.SessionCreationPolicy.NEVER;
+
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -58,7 +48,7 @@ public class OAuth2ServerConfig {
             // @formatter:off
             http
                     .sessionManagement()
-                    .sessionCreationPolicy(NEVER)
+                    .sessionCreationPolicy(IF_REQUIRED)
                     .and()
                     .requestMatchers()
                     .antMatchers("/user/**", "/oauth/users/**", "/oauth/clients/**")
@@ -66,7 +56,7 @@ public class OAuth2ServerConfig {
                     .csrf()
                     .disable()
                     .authorizeRequests()
-                    .antMatchers(GET,"/user/profile").hasRole("USER").and()
+                    .antMatchers(GET, "/user/profile").hasRole("USER").and()
                     .authorizeRequests()
                     .antMatchers(GET, "/user/**").access("#oauth2.hasScope('read')")
                     .antMatchers(POST, "/user/**").access("#oauth2.hasScope('write')")
