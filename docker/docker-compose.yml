@@ -29,12 +29,11 @@ services:
     image: api-tomcat-server
     environment:
       #Memory monitoring
-      #-Djava.rmi.server.hostname=172.18.0.4
       CATALINA_OPTS: '
             -XX:+UseConcMarkSweepGC
             -XX:NativeMemoryTracking=summary
 
-            -Djava.rmi.server.hostname=172.18.0.254
+            -Djava.rmi.server.hostname=172.18.0.4
             -Dcom.sun.management.jmxremote 
             -Dcom.sun.management.jmxremote.port=1099
             -Dcom.sun.management.jmxremote.rmi.port=1099
