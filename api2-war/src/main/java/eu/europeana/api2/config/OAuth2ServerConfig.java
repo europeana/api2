@@ -2,6 +2,8 @@ package eu.europeana.api2.config;
 
 import eu.europeana.api2.web.security.oauth2.ApiApprovalHandler;
 import eu.europeana.api2.web.security.oauth2.ApiTokenStore;
+import org.apache.commons.dbcp.BasicDataSource;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,10 +19,13 @@ import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
+import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import javax.annotation.Resource;
+import javax.sql.DataSource;
 
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
@@ -88,6 +93,9 @@ public class OAuth2ServerConfig {
         @Resource(name = "api2_oauth2_authenticationManagerBean")
         private AuthenticationManager authenticationManager;
 
+        @Resource(name = "corelib_db_dataSource")
+        private DataSource oauthDataSource;
+
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
             clients
@@ -99,6 +107,7 @@ public class OAuth2ServerConfig {
             endpoints
                     .tokenStore(tokenStore())
                     .userApprovalHandler(userApprovalHandler)
+                    .authorizationCodeServices(authorizationCodeServices())
                     .authenticationManager(authenticationManager);
         }
 
@@ -112,10 +121,15 @@ public class OAuth2ServerConfig {
             return new ApiTokenStore();
         }
 
-//        @Bean(name = "api2_oauth2_clientDetailsService")
+        //        @Bean(name = "api2_oauth2_clientDetailsService")
 //        public ClientDetailsService clientDetailsService() {
 //            return new OAuth2ClientDetailsService();
 //        }
+
+        @Bean
+        public AuthorizationCodeServices authorizationCodeServices() {
+            return new JdbcAuthorizationCodeServices(oauthDataSource);
+        }
     }
 
     @Configuration

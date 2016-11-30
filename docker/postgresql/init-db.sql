@@ -162,6 +162,9 @@ CREATE TABLE users (
   activationdate date
 );
 
+create table oauth_code (
+  code VARCHAR(256), authentication BYTEA
+);
 
 ALTER TABLE users OWNER TO europeana;
 
