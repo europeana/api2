@@ -15,7 +15,14 @@
 *~
 *.bak
 
+api2-war/src/resources/europeana.user.properties
+
+# I've got some different settings
+docker/docker-compose.yml
+api2-war/src/test/java/eu/europeana/api2/v2/web/controller/sugarcrm/test/AbstractSugarCRMCacheTest.java~81dce14764ca74c57dbc5c167b99951bedc39f75
+
 api2-war/target/
 api2-model/target/
 
-_atticSTATICA-LICENSE.txt
+
+.gitignore
