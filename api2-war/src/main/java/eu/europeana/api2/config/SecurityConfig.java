@@ -86,8 +86,7 @@ public class SecurityConfig {
                     .logout()
                     .logoutSuccessUrl("/")
                     .logoutUrl("/logout")
-                    .permitAll()
-                    .invalidateHttpSession(false);
+                    .permitAll();
 
             // @formatter:on
         }
