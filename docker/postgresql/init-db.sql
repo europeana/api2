@@ -321,4 +321,4 @@ ALTER TABLE ONLY saveditem
 INSERT INTO users (id, activationdate, address, company, country, email, fieldofwork, firstname, languageitem, languageportal, languagesearch, languagesearchapplied, lastlogin, lastname, password, phone, registrationdate, role, username, website)
 VALUES (1, '1980-01-01 00:00:00.000000', null, null, null, 'test@test.com', null, 'test', null, null, null, true, null, 'test', 'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3', null, '2016-01-01', 'ROLE_GOD', 'test', null);
 INSERT INTO apikey (apikey, activationdate, appname, company, description, email, firstname, lastname, level, privatekey, registrationdate, usagelimit, website)
-VALUES ('api2demo', '2016-01-01', 'test', 'test', null, 'test@test.com', 'test', 'test', 'ADMIN', 'verysecret', '2016-01-01', 0, null);
+VALUES ('api2demo', '2016-01-01', 'test', 'test', null, 'test@test.com', 'test', 'test', 'ADMIN', 'verysecret', '2016-01-01', 100000, null);
