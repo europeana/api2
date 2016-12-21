@@ -43,7 +43,7 @@ public class SitemapController {
     private final Logger log = Logger.getLogger(this.getClass());
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Resource
+    @Resource(name = "api_object_storage_client")
     private ObjectStorageClient objectStorageClient;
 
     /**
