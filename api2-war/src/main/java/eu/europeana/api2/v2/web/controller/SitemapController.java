@@ -41,6 +41,7 @@ import java.util.Optional;
 public class SitemapController {
 
     private final Logger log = Logger.getLogger(this.getClass());
+    public static String ACTIVE_SITEMAP_FILE = "europeana-sitemap-active-xml-file.txt";;
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Resource(name = "api_object_storage_client")
@@ -61,13 +62,12 @@ public class SitemapController {
         String cacheFile = "europeana-sitemap-index-hashed.xml";
         // Generate the requested sitemap if it's outdated / doesn't exist (and is not currently being
         // created)
-        if ((objectStorageClient.getWithoutBody(cacheFile) == null)) {
-            boolean success = false;
-            ServletOutputStream out = response.getOutputStream();
-            log.error(String.format("Sitemap does not exist"));
-        } else {
+        if (objectStorageClient.getWithoutBody(cacheFile).isPresent()) {
             // Read the sitemap from file
             readCachedSitemap(response.getOutputStream(), objectStorageClient, cacheFile);
+        } else {
+            log.error(String.format("Sitemap " + cacheFile + " does not exist"));
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
 
     }
@@ -85,13 +85,26 @@ public class SitemapController {
      * @throws IOException
      */
     @RequestMapping("/europeana-sitemap-hashed.xml")
-    public void handleSitemap(@RequestParam(value = "from", required = true) String from, @RequestParam(value = "to", required = true) String to, HttpServletResponse response) throws IOException {
-        String cacheFile = getActiveFile() + "?from=" + from + "&to=" + to;
-        if (objectStorageClient.getWithoutBody(cacheFile) == null) {
-            log.info(String.format("Error processing %s", cacheFile));
-        } else {
+    public void handleSitemap(@RequestParam(value = "from", required = true) String from, @RequestParam(value = "to", required = true) String to, HttpServletResponse response) throws Exception {
+        String cacheFile = null;
+        try {
+            cacheFile = getActiveFile() + "?from=" + from + "&to=" + to;
+        } catch (SiteMapNotFoundException e) {
+            log.error(ACTIVE_SITEMAP_FILE + "could not be found");
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
+        if (objectStorageClient.getWithoutBody(cacheFile).isPresent()) {
             ServletOutputStream out = response.getOutputStream();
-            readCachedSitemap(out, objectStorageClient, cacheFile);
+            try {
+                readCachedSitemap(out, objectStorageClient, cacheFile);
+            } catch (IOException e) {
+                log.error(e);
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            log.info(String.format("Error processing %s", cacheFile));
+            //TODO write 404 reponse body
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
@@ -101,39 +114,50 @@ public class SitemapController {
      * @param out
      * @param cacheFile
      */
-    private void readCachedSitemap(ServletOutputStream out, ObjectStorageClient objectStorageClient, String cacheFile) {
+    private void readCachedSitemap(ServletOutputStream out, ObjectStorageClient objectStorageClient, String cacheFile) throws IOException {
+        InputStream in = null;
+        Payload payload = null;
         try {
             StringWriter writer = new StringWriter();
             Optional<StorageObject> storageObject = objectStorageClient.get(cacheFile);
-            Payload payload = storageObject.get().getPayload();
-            InputStream in = (InputStream) payload.openStream();
+            StorageObject storageObjectValue = storageObject.get();
+            payload = storageObjectValue.getPayload();
+            in = payload.openStream();
             IOUtils.copy(in, writer);
             out.println(writer.toString());
-            in.close();
             out.flush();
+            in.close();
             payload.close();
         } catch (IOException e) {
-
+            throw new IOException("Error while reading sitemap file " + cacheFile + " from the ObjectStorage provider", e);
+        }finally {
+            IOUtils.closeQuietly(in);
+            IOUtils.closeQuietly(payload);
         }
     }
 
-    private String getActiveFile() {
+    private String getActiveFile() throws IOException, SiteMapNotFoundException {
         String result = "";
-        String activeSiteMapFile = "europeana-sitemap-active-xml-file.txt";
-        if (objectStorageClient.getWithoutBody(activeSiteMapFile) == null) {
-            log.info(String.format("Error processing %s", activeSiteMapFile));
-        } else {
+        if (objectStorageClient.getWithoutBody(ACTIVE_SITEMAP_FILE).isPresent()) {
+            InputStream in = null;
+            Payload payload = null;
             try {
                 StringWriter writer = new StringWriter();
-                Payload payload = objectStorageClient.get(activeSiteMapFile).get().getPayload();
-                InputStream in = payload.openStream();
+                payload = objectStorageClient.get(ACTIVE_SITEMAP_FILE).get().getPayload();
+                in = payload.openStream();
                 IOUtils.copy(in, writer);
                 result = writer.toString();
                 in.close();
                 payload.close();
             } catch (IOException e) {
-
+                throw new IOException("Error while reading active sitemap file " + ACTIVE_SITEMAP_FILE + " from the ObjectStorage provider", e);
+            } finally {
+                IOUtils.closeQuietly(in);
+                IOUtils.closeQuietly(payload);
             }
+        } else {
+            log.info(String.format("Error processing %s", ACTIVE_SITEMAP_FILE));
+            throw new SiteMapNotFoundException(String.format("Error processing %s", ACTIVE_SITEMAP_FILE));
         }
         return result;
     }
