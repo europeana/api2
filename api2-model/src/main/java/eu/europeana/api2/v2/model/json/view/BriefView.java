@@ -116,7 +116,18 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getDcLanguage() {
+        if (isProfile(Profile.MINIMAL)) {
+            return null;
+        }
         return bean.getDcLanguage();
+    }
+
+    @Override
+    public Map<String, List<String>> getDcLanguageLangAware() {
+        if (isProfile(Profile.MINIMAL)) {
+            return null;
+        }
+        return bean.getDcLanguageLangAware();
     }
 
     @Override
@@ -138,6 +149,14 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             return null;
         }
         return bean.getEdmPlaceLabel();
+    }
+
+    @Override
+    public Map<String, List<String>> getEdmPlaceLabelLangAware() {
+        if (isProfile(Profile.MINIMAL)) {
+            return null;
+        }
+        return bean.getEdmPlaceLabelLangAware();
     }
 
     @Override
@@ -164,6 +183,14 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             return null;
         }
         return bean.getEdmTimespanLabel();
+    }
+
+    @Override
+    public Map<String, List<String>> getEdmTimespanLabelLangAware() {
+        if (isProfile(Profile.MINIMAL)) {
+            return null;
+        }
+        return bean.getEdmTimespanLabelLangAware();
     }
 
     @Override
@@ -199,14 +226,24 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     @Override
+    public Map<String, List<String>> getEdmAgentLabelLangAware() {
+        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+            return null;
+        }
+        return bean.getEdmAgentLabelLangAware();
+    }
+
+    @Override
     public String[] getDctermsHasPart() {
         // bean.getDctermsHasPart()
         return null;
     }
 
     @Override
-    public String[] getDcCreator() {
-        return bean.getDcCreator();
+    public String[] getDcCreator() { return bean.getDcCreator(); }
+
+    @Override
+    public Map<String, List<String>> getDcCreatorLangAware() { return bean.getDcCreatorLangAware();
     }
 
     @Override
@@ -218,7 +255,18 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     @Override
+    public Map<String, List<String>> getDcContributorLangAware() {
+        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+            return null;
+        }
+        return bean.getDcContributorLangAware();
+    }
+
+    @Override
     public Date getTimestamp() {
+        if (isProfile(Profile.MINIMAL)) {
+            return null;
+        }
         return bean.getTimestamp();
     }
 
@@ -226,11 +274,6 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     public String getId() {
         return bean.getId();
     }
-
-//    @Override
-//    public Boolean isOptedOut() {
-//        return bean.isOptedOut();
-//    }
 
     private String[] getThumbnails() {
         if (thumbnails == null) {
@@ -269,8 +312,8 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return bean.getScore();
     }
 
-    protected boolean isProfile(Profile _profile) {
-        return StringUtils.containsIgnoreCase(profile, _profile.getName());
+    protected boolean isProfile(Profile p) {
+        return StringUtils.containsIgnoreCase(profile, p.getName());
     }
 
     @Override
@@ -278,7 +321,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         if (ArrayUtils.isEmpty(bean.getEdmIsShownAt())) {
             return bean.getEdmIsShownAt();
         }
-        String temp[] = getProvider();
+        String[] temp = getProvider();
         String provider = "";
         if (temp != null) {
             provider = temp[0];
@@ -298,22 +341,10 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     @Override
-    public Map<String, List<String>> getEdmPlaceLabelLangAware() {
-        return bean.getEdmPlaceLabelLangAware();
-    }
-
-    @Override
-    public Map<String, List<String>> getEdmTimespanLabelLangAware() {
-        return bean.getEdmTimespanLabelLangAware();
-    }
-
-    @Override
-    public Map<String, List<String>> getEdmAgentLabelLangAware() {
-        return bean.getEdmAgentLabelLangAware();
-    }
-
-    @Override
     public Boolean getPreviewNoDistribute() {
+        if (isProfile(Profile.MINIMAL)) {
+            return null; // if we return null the field won't be included in the json result
+        }
         return bean.getPreviewNoDistribute() != null ? bean.getPreviewNoDistribute() : false;
     }
 
@@ -322,18 +353,5 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return bean.getDcTitleLangAware();
     }
 
-    @Override
-    public Map<String, List<String>> getDcCreatorLangAware() {
-        return bean.getDcCreatorLangAware();
-    }
 
-    @Override
-    public Map<String, List<String>> getDcContributorLangAware() {
-        return bean.getDcContributorLangAware();
-    }
-
-    @Override
-    public Map<String, List<String>> getDcLanguageLangAware() {
-        return bean.getDcLanguageLangAware();
-    }
 }
