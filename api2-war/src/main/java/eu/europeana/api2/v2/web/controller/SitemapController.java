@@ -17,9 +17,11 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.corelib.web.swift.SwiftProvider;
+import eu.europeana.domain.StorageObject;
+import eu.europeana.features.ObjectStorageClient;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.jclouds.io.Payload;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.Optional;
 
 /**
  * Created by luthien on 07/12/2015.
@@ -38,10 +41,12 @@ import java.io.StringWriter;
 public class SitemapController {
 
     private final Logger log = Logger.getLogger(this.getClass());
+    public static String ACTIVE_SITEMAP_FILE = "europeana-sitemap-active-xml-file.txt";
+    ;
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Resource
-    private SwiftProvider swiftProvider;
+    @Resource(name = "api_object_storage_client")
+    private ObjectStorageClient objectStorageClient;
 
     /**
      * Generate the sitemap index file. This file groups multiple sitemap files to adhere to the
@@ -58,15 +63,13 @@ public class SitemapController {
         String cacheFile = "europeana-sitemap-index-hashed.xml";
         // Generate the requested sitemap if it's outdated / doesn't exist (and is not currently being
         // created)
-        if ((swiftProvider.getObjectApi().getWithoutBody(cacheFile) == null)) {
-            boolean success = false;
-            ServletOutputStream out = response.getOutputStream();
-            log.error(String.format("Sitemap does not exist"));
-        } else {
-            // Read the sitemap from file
-            readCachedSitemap(response.getOutputStream(), swiftProvider, cacheFile);
+        // Read the sitemap from file
+        try {
+            readCachedSitemap(response.getOutputStream(), objectStorageClient, cacheFile);
+        } catch (SiteMapNotFoundException e) {
+            log.error(e);
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
-
     }
 
     /**
@@ -77,18 +80,28 @@ public class SitemapController {
      * the size is not the limiting factor).
      *
      * @param from     start index
-     * @param to       end index
+     * @param to       end indexw
      * @param response The {@link HttpServletResponse}
      * @throws IOException
      */
     @RequestMapping("/europeana-sitemap-hashed.xml")
-    public void handleSitemap(@RequestParam(value = "from", required = true) String from, @RequestParam(value = "to", required = true) String to, HttpServletResponse response) throws IOException {
-        String cacheFile = getActiveFile() + "?from=" + from + "&to=" + to;
-        if (swiftProvider.getObjectApi().getWithoutBody(cacheFile) == null) {
-            log.info(String.format("Error processing %s", cacheFile));
-        } else {
-            ServletOutputStream out = response.getOutputStream();
-            readCachedSitemap(out, swiftProvider, cacheFile);
+    public void handleSitemap(@RequestParam(value = "from", required = true) String from, @RequestParam(value = "to", required = true) String to, HttpServletResponse response) throws Exception {
+        ServletOutputStream out = response.getOutputStream();
+        String cacheFile = null;
+        try {
+            cacheFile = getActiveFile() + "?from=" + from + "&to=" + to;
+        } catch (SiteMapNotFoundException e) {
+            log.error(ACTIVE_SITEMAP_FILE + "could not be found");
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            out.println(e.toString());
+        }
+
+        try {
+            readCachedSitemap(out, objectStorageClient, cacheFile);
+        } catch (IOException e) {
+            log.error(e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out.println(e.toString());
         }
     }
 
@@ -98,35 +111,53 @@ public class SitemapController {
      * @param out
      * @param cacheFile
      */
-    private void readCachedSitemap(ServletOutputStream out, SwiftProvider swiftProvider, String cacheFile) {
+    private void readCachedSitemap(ServletOutputStream out, ObjectStorageClient objectStorageClient, String cacheFile) throws IOException, SiteMapNotFoundException {
+        InputStream in = null;
+        Payload payload = null;
         try {
             StringWriter writer = new StringWriter();
-            InputStream in = swiftProvider.getObjectApi().get(cacheFile).getPayload().openStream();
+            Optional<StorageObject> storageObject = objectStorageClient.get(cacheFile);
+            if (!storageObject.isPresent()) {
+                throw new SiteMapNotFoundException("Error while reading sitemap file " + cacheFile + " from the ObjectStorage provider");
+            }
+            StorageObject storageObjectValue = storageObject.get();
+            payload = storageObjectValue.getPayload();
+            in = payload.openStream();
             IOUtils.copy(in, writer);
             out.println(writer.toString());
-            in.close();
             out.flush();
+            in.close();
+            payload.close();
         } catch (IOException e) {
-
+            throw new IOException("Error while reading sitemap file " + cacheFile + " from the ObjectStorage provider", e);
+        } finally {
+            IOUtils.closeQuietly(in);
+            IOUtils.closeQuietly(payload);
         }
     }
 
-    private String getActiveFile() {
+    private String getActiveFile() throws IOException, SiteMapNotFoundException {
         String result = "";
-        String activeSiteMapFile = "europeana-sitemap-active-xml-file.txt";
-        if (swiftProvider.getObjectApi().getWithoutBody(activeSiteMapFile) == null) {
-            log.info(String.format("Error processing %s", activeSiteMapFile));
-        } else {
-            try {
-                StringWriter writer = new StringWriter();
-                InputStream in = swiftProvider.getObjectApi().get(activeSiteMapFile).getPayload().openStream();
-                IOUtils.copy(in, writer);
-                result = writer.toString();
-                in.close();
-
-            } catch (IOException e) {
-
+        InputStream in = null;
+        Payload payload = null;
+        try {
+            StringWriter writer = new StringWriter();
+            Optional<StorageObject> storageObject = objectStorageClient.get(ACTIVE_SITEMAP_FILE);
+            if (!storageObject.isPresent()) {
+                throw new SiteMapNotFoundException("Error while reading sitemap file " + ACTIVE_SITEMAP_FILE + " from the ObjectStorage provider");
             }
+            StorageObject storageObjectValue = storageObject.get();
+            payload = storageObjectValue.getPayload();
+            in = payload.openStream();
+            IOUtils.copy(in, writer);
+            result = writer.toString();
+            in.close();
+            payload.close();
+        } catch (IOException e) {
+            throw new IOException("Error while reading active sitemap file " + ACTIVE_SITEMAP_FILE + " from the ObjectStorage provider", e);
+        } finally {
+            IOUtils.closeQuietly(in);
+            IOUtils.closeQuietly(payload);
         }
         return result;
     }
