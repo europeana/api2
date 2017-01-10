@@ -2,15 +2,11 @@ package eu.europeana.api2.config;
 
 import eu.europeana.api2.web.security.oauth2.ApiApprovalHandler;
 import eu.europeana.api2.web.security.oauth2.ApiTokenStore;
-import eu.europeana.api2.web.security.oauth2.OAuth2ClientDetailsService;
-import org.quartz.*;
-import org.quartz.impl.RemoteScheduler;
-import org.quartz.spi.JobFactory;
+import org.apache.commons.dbcp.BasicDataSource;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -23,18 +19,17 @@ import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.approval.TokenApprovalStore;
 import org.springframework.security.oauth2.provider.approval.UserApprovalHandler;
+import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 
 import javax.annotation.Resource;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import javax.sql.DataSource;
 
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
-import static org.springframework.security.config.http.SessionCreationPolicy.NEVER;
+
 
 /**
  * OAuth Authorization Code Grant server
@@ -65,7 +60,7 @@ public class OAuth2ServerConfig {
             // @formatter:off
             http
                     .sessionManagement()
-                    .sessionCreationPolicy(NEVER)
+                    .sessionCreationPolicy(IF_REQUIRED)
                     .and()
                     .requestMatchers()
                     .antMatchers("/user/**", "/oauth/users/**", "/oauth/clients/**")
@@ -73,7 +68,7 @@ public class OAuth2ServerConfig {
                     .csrf()
                     .disable()
                     .authorizeRequests()
-                    .antMatchers(GET,"/user/profile").hasRole("USER").and()
+                    .antMatchers(GET, "/user/profile").hasRole("USER").and()
                     .authorizeRequests()
                     .antMatchers(GET, "/user/**").access("#oauth2.hasScope('read')")
                     .antMatchers(POST, "/user/**").access("#oauth2.hasScope('write')")
@@ -105,6 +100,9 @@ public class OAuth2ServerConfig {
         @Resource(name = "api2_oauth2_authenticationManagerBean")
         private AuthenticationManager authenticationManager;
 
+        @Resource(name = "corelib_db_dataSource")
+        private DataSource oauthDataSource;
+
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
             clients
@@ -116,6 +114,7 @@ public class OAuth2ServerConfig {
             endpoints
                     .tokenStore(tokenStore())
                     .userApprovalHandler(userApprovalHandler)
+                    .authorizationCodeServices(authorizationCodeServices())
                     .authenticationManager(authenticationManager);
         }
 
@@ -129,10 +128,15 @@ public class OAuth2ServerConfig {
             return new ApiTokenStore();
         }
 
-//        @Bean(name = "api2_oauth2_clientDetailsService")
+        //        @Bean(name = "api2_oauth2_clientDetailsService")
 //        public ClientDetailsService clientDetailsService() {
 //            return new OAuth2ClientDetailsService();
 //        }
+
+        @Bean
+        public AuthorizationCodeServices authorizationCodeServices() {
+            return new JdbcAuthorizationCodeServices(oauthDataSource);
+        }
     }
 
     @Configuration

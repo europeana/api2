@@ -7,6 +7,8 @@ import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.web.context.VcapPropertyLoaderListener;
+import eu.europeana.features.ObjectStorageClient;
+import eu.europeana.features.S3ObjectStorageClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -36,6 +38,14 @@ public class AppConfig {
 
     @Value("${cachemongodb.port}")
     private int cachePort;
+    @Value("${s3.key}")
+    String key;
+    @Value("${s3.secret}")
+    String secret;
+    @Value("${s3.region}")
+    String region;
+    @Value("${s3.bucket}")
+    String bucket;
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer properties() {
@@ -68,5 +78,8 @@ public class AppConfig {
     public Mongo ApiDbMongoCache() throws UnknownHostException {
         return new MongoClient(cacheHost, cachePort);
     }
-
+    @Bean(name = "api_object_storage_client")
+    public ObjectStorageClient ObjectStorageClient(){
+        return new S3ObjectStorageClient(key,secret,region,bucket);
+    }
 }

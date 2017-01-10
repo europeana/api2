@@ -91,8 +91,7 @@ public class BasicObjectController {
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), e.getRequested()), callback);
         }
 
-        BasicObjectResult objectResult = new BasicObjectResult(wskey,
-                requestNumber);
+        BasicObjectResult objectResult = new BasicObjectResult(wskey, requestNumber);
 
         objectResult.object = new HashMap<>();
 

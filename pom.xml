@@ -28,7 +28,6 @@
         <artifactId>corelib</artifactId>
         <groupId>eu.europeana</groupId>
         <version>2.5.2-SNAPSHOT</version>
-        <relativePath>../corelib/pom.xml</relativePath>
     </parent>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -57,3 +56,5 @@
     </dependencyManagement>
 
 </project>
+
+

@@ -60,6 +60,9 @@ services:
       - "8000:8000"
       #JMX Port
       - "1099:1099"
+#    networks:
+#          default:
+#            ipv4_address: 172.18.0.254
     restart: always
     depends_on:
       - relational-database
