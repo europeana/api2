@@ -25,13 +25,14 @@
     <url>http://www.europeana.eu</url>
 
     <parent>
-        <artifactId>corelib</artifactId>
+       <artifactId>europeana-parent-pom</artifactId>
         <groupId>eu.europeana</groupId>
-        <version>2.5.2-SNAPSHOT</version>
+        <version>1.2</version>
     </parent>
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <version.springWebService>2.2.4.RELEASE</version.springWebService>
+        <!--NOTE change version if API version differs from the corelib version!-->
+        <version.corelib>${project.version}</version.corelib>
     </properties>
     <modules>
         <module>api2-model</module>
@@ -44,17 +45,6 @@
         <tag>HEAD</tag>
         <url>https://github.com/europeana/api2</url>
     </scm>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>eu.europeana.api2</groupId>
-                <artifactId>api2-model</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
 </project>
 
 
