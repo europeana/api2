@@ -15,10 +15,14 @@
 *~
 *.bak
 
-# Avoid pushing the copy of the property file in api-war
-api2-war/src/main/resources/europeana.properties
+api2-war/src/resources/europeana.user.properties
 
-# Also avoid pushing the production property file
-properties/production
+# I've got some different settings
+docker/docker-compose.yml
+api2-war/src/test/java/eu/europeana/api2/v2/web/controller/sugarcrm/test/AbstractSugarCRMCacheTest.java~81dce14764ca74c57dbc5c167b99951bedc39f75
 
-_atticSTATICA-LICENSE.txt
+api2-war/target/
+api2-model/target/
+
+
+.gitignore
