@@ -80,7 +80,7 @@
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-search</artifactId>
-            <version>${project.version}</version>
+            <version>${version.corelib}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana</groupId>
