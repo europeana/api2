@@ -549,7 +549,7 @@ public class SearchController {
             // Disabled while awaiting better implementation (ticket #1742)
             // apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH_KML, "kml");
         } catch (SolrTypeException e) {
-            response.setStatus(429);
+            response.setStatus(500);
             throw new Exception(e);
         }
         return kmlResponse;
