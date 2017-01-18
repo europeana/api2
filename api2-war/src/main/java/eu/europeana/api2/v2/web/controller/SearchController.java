@@ -508,7 +508,7 @@ public class SearchController {
 	 * @return the JSON response
 	 */
 	@SwaggerIgnore
-	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET}, produces = {"application/vnd.google-earth.kml+xml", MediaType.ALL_VALUE})
+	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET}, produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public KmlResponse searchKml(
 			@RequestParam(value = "query", required = true) String queryString,
@@ -549,19 +549,30 @@ public class SearchController {
             // Disabled while awaiting better implementation (ticket #1742)
             // apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH_KML, "kml");
         } catch (SolrTypeException e) {
-            response.setStatus(429);
+            response.setStatus(500);
             throw new Exception(e);
         }
         return kmlResponse;
     }
 
-	@ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "suggestions")
-	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
+    /**
+     * Handles an opensearch query (see also https://en.wikipedia.org/wiki/OpenSearch)
+     *
+     * @param queryString the search terms used to query the Europeana repository; similar to the query parameter in the search method.
+     * @param start the first object in the search result set to start with (first item = 1), e.g., if a result set is made up of 100 objects, you can set the first returned object to the 22nd object in the set [optional parameter, default = 1]
+     * @param count the number of search results to return; possible values can be any integer up to 100 [optional parameter, default = 12]
+     * @return rss response of the query
+     */
+	@ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
+	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public RssResponse openSearchRss(
 			@RequestParam(value = "searchTerms", required = true) String queryString,
 			@RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "count", required = false, defaultValue = "12") int count) {
+        if (log.isDebugEnabled()) {
+            log.debug("openSearch query with terms: " + queryString);
+        }
 		RssResponse rss = new RssResponse();
 		Channel channel = rss.channel;
 		channel.startIndex.value = start;
@@ -581,19 +592,19 @@ public class SearchController {
                 item.guid = urlService.getPortalRecord(false, bean.getId()).toString();
                 item.title = getTitle(bean);
                 item.description = getDescription(bean);
-        /*
-         * String enclosure = getThumbnail(bean); if (enclosure != null) { item.enclosure = new
-         * Enclosure(enclosure); }
-         */
                 item.link = item.guid;
                 channel.items.add(item);
             }
         } catch (SolrTypeException e) {
+            log.error("Error executing opensearch query", e);
             channel.totalResults.value = 0;
             Item item = new Item();
             item.title = "Error";
             item.description = e.getMessage();
             channel.items.add(item);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Returning rss result: "+rss);
         }
         return rss;
     }
