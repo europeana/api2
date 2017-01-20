@@ -6,8 +6,7 @@ sudo: false
 language: java
 jdk:
   - oraclejdk8
-before_install:
-  - git clone https://github.com/europeana/corelib.git --branch $TRAVIS_BRANCH
+install:
   - echo "<settings>
               <profiles>
                   <profile>
@@ -43,6 +42,8 @@ before_install:
                   </profile>
               </profiles>
           </settings>" > ~/settings.xml
-  - mvn install -s ~/settings.xml -f corelib/pom.xml -DskipTests
+  - mvn install -s ~/settings.xml -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+script:
+  - mvn test -B -s ~/settings.xml
 after_success:
   - mvn clean cobertura:cobertura coveralls:report
