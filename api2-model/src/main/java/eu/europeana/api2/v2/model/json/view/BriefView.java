@@ -36,8 +36,10 @@ import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 @JsonInclude(NON_EMPTY)
+@JsonPropertyOrder(alphabetic=true)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
     protected EuropeanaUrlService urlService;

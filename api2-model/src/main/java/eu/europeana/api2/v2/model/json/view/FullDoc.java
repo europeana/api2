@@ -39,7 +39,9 @@ import eu.europeana.corelib.definitions.edm.entity.Place;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
 import eu.europeana.corelib.definitions.edm.entity.Timespan;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
+@JsonPropertyOrder(alphabetic=true)
 public class FullDoc {
 
 	private Map<String, Object> map;
