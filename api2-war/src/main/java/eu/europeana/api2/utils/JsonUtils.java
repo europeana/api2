@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class JsonUtils {
@@ -37,7 +38,7 @@ public class JsonUtils {
 
     public static ModelAndView toJson(String json, String callback) {
         String resultPage = "json";
-        Map<String, Object> model = new HashMap<>();
+        Map<String, Object> model = new LinkedHashMap<>();
         model.put("json", json);
         if (StringUtils.isNotBlank(callback)) {
             resultPage = "jsonp";
@@ -56,7 +57,7 @@ public class JsonUtils {
         }
         // TODO report error...
         String resultPage = "json";
-        Map<String, Object> model = new HashMap<>();
+        Map<String, Object> model = new LinkedHashMap<>();
         if (StringUtils.isNotBlank(callback)) {
             resultPage = "jsonp";
             model.put("callback", callback);
