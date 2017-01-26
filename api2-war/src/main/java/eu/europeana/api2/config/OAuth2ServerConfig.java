@@ -33,11 +33,12 @@ import static org.springframework.security.config.http.SessionCreationPolicy.IF_
 
 /**
  * OAuth Authorization Code Grant server
- *
+ * OAuth 2 Introduction:
+ * @see https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2
  * Oauth 2.0 protocol details:
- * @See https://tools.ietf.org/html/rfc6749#section-4.1
+ * @see https://tools.ietf.org/html/rfc6749#section-4.1
  * Europeana Infrastructure diagram:
- * @See https://drive.google.com/file/d/0B7lriE2YnGwUOWdzMGd3czR4eUE/view?usp=sharing
+ * @see https://drive.google.com/file/d/0B7lriE2YnGwUOWdzMGd3czR4eUE/view?usp=sharing
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  * @author Jeroen Jeurissen (enlightenedsoftware.nl)
  */
