@@ -8,7 +8,9 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
+@JsonPropertyOrder(alphabetic=true)
 public class RichView extends ApiView implements RichBean {
 
     private String[] isShownBy;

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.utils.DateUtils;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 import java.util.Date;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 @JsonInclude(NON_EMPTY)
+@JsonPropertyOrder(alphabetic=true)
 public class ApiView extends BriefView implements ApiBean {
 
     private String[] edmConceptTerm;

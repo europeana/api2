@@ -25,6 +25,7 @@ import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 import java.util.Date;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.List;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 @JsonInclude(NON_EMPTY)
+@JsonPropertyOrder(alphabetic=true)
 public class FullView implements FullBean {
 
   private FullBean bean;
