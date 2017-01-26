@@ -178,7 +178,7 @@ public class HierarchicalController {
                                           HttpServletRequest request, HttpServletResponse response,
                                           RedirectAttributes redirectAttrs) {
 
-        String                  rdfAbout = "/" + collectionId + "/" + recordId;
+        String                  rdfAbout = collectionId + "/" + recordId;
         HierarchyRunner mrBean = hierarchyRunnerBean();
         try {
             Future<ModelAndView> result = mrBean.call(recordType, rdfAbout, profile, wskey, limit,
