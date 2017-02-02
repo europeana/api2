@@ -201,6 +201,7 @@ public class ObjectController {
             objectResult.statsDuration = (t1 - t0);
             if (log.isDebugEnabled()) { log.debug("Record retrieval took: " + (System.currentTimeMillis() - t9) + " milliseconds"); }
         } catch (Exception e) {
+            response.setStatus(500);
             return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": "+ e.getMessage(), limitResponse.getRequestNumber()), callback);
         }
 
