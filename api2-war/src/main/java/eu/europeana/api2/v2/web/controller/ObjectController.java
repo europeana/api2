@@ -62,7 +62,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -287,8 +286,10 @@ public class ObjectController {
 
         if (bean != null) {
             String rdf = EdmUtils.toEDM(bean, false);
+            InputStream rdfInput = null;
             try {
-                Model modelResult = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(rdf), "", "RDF/XML");
+                rdfInput = IOUtils.toInputStream(rdf);
+                Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
                 JenaRDFParser parser = new JenaRDFParser();
                 Object raw = JSONLD.fromRDF(modelResult, parser);
                 if (StringUtils.equalsIgnoreCase(format, "compacted")) {
@@ -302,6 +303,9 @@ public class ObjectController {
             } catch (JSONLDProcessingError e) {
                 log.error(e.getMessage(), e);
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+            finally {
+                IOUtils.closeQuietly(rdfInput);
             }
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -381,7 +385,6 @@ public class ObjectController {
             return JSONUtils.fromInputStream(in);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
-            e.printStackTrace();
         } finally {
             IOUtils.closeQuietly(in);
         }
@@ -445,9 +448,7 @@ public class ObjectController {
                 log.info("result: " + stringWriter.toString());
             }
         } catch (JAXBException e) {
-            if (log.isEnabledFor(Priority.ERROR)) {
-                log.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
-            }
+            log.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
         }
     }
 }
