@@ -47,11 +47,3 @@ docker exec -i -t docker_relational-database_1 /bin/bash
 
 **Start your container with environment parameters and self destruct after you stop it with ctrl-c on local port 5433**:
 docker run -i -t -e POSTGRES_USER=europeana -e POSTGRES_PASSWORD=culture -p 5433:5432 --name test-postgres-config --rm api-postgresql-database
-
-Using the decker docker server:
-export DOCKER_HOST=tcp://10.101.41.249:2375
-
-Pusing images to the docker registry server:
-Set your insecure registry host in the following configuration file:
-/etc/docker/daemon.json
-    { "insecure-registries":["10.101.41.249:5000"] }

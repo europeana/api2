@@ -25,6 +25,7 @@ import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.neo4j.exception.Neo4JException;
+import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.search.SearchService;
@@ -114,8 +115,12 @@ public class HierarchyRunner {
         hierarchicalResult.self = searchService.getHierarchicalBean(rdfAbout);
 
         if (hierarchicalResult.self != null) {
-            hierarchicalResult.self.setChildrenCount(
-                    searchService.getChildrenCount(rdfAbout));
+            long childrenCount = searchService.getChildrenCount(rdfAbout);
+            if (hierarchicalResult.self.hasChildren() && childrenCount == 0){
+                throw new Neo4JException(ProblemType.NEO4J_INCONSISTENT_DATA);
+            } else {
+                hierarchicalResult.self.setChildrenCount(childrenCount);
+            }
         } else {
             hierarchicalResult.success = false;
             response.setStatus(404);
