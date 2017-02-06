@@ -219,7 +219,7 @@ public class HierarchicalController {
 
         String header = SUBJECTPREFIX + e.getProblem().getMessage();
         String body = (e.getMessage() + newline + newline
-                + e.getStackTrace());
+                + e.getStackTrace().toString());
         try {
             emailService.sendException(header, body);
         } catch (EmailServiceException es) {
