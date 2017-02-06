@@ -30,6 +30,7 @@ import eu.europeana.corelib.web.exception.ProblemResponseAction;
 import eu.europeana.corelib.web.service.EmailService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -218,8 +219,9 @@ public class HierarchicalController {
         String newline = System.getProperty("line.separator");
 
         String header = SUBJECTPREFIX + e.getProblem().getMessage();
-        String body = (e.getMessage() + newline + newline
-                + e.getStackTrace().toString());
+        String body = (e.getMessage() + newline + newline +
+                ExceptionUtils.getStackTrace(e));
+//                + e.getStackTrace().toString());
         try {
             emailService.sendException(header, body);
         } catch (EmailServiceException es) {
