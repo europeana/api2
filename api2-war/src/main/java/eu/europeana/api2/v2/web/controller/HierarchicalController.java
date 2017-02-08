@@ -196,9 +196,9 @@ public class HierarchicalController {
         } catch (Neo4JException e) {
             log.error("Neo4JException thrown: " + e.getMessage());
             log.error("Cause: " + e.getCause());
-            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)){
-                sendExceptionEmail(e);
-            }
+//            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)){
+//                sendExceptionEmail(e);
+//            }
             return generateErrorHierarchy(rdfAbout, wskey, callback, e.getProblem().getMessage() + " for");
         } catch (InterruptedException e) {
             log.error("InterruptedException thrown: " + e.getMessage());
