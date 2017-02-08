@@ -21,12 +21,16 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.service.HierarchyRunner;
 import eu.europeana.api2.v2.utils.ControllerUtils;
-import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.definitions.exception.Neo4JException;
+import eu.europeana.corelib.neo4j.exception.Neo4JException;
 import eu.europeana.corelib.search.SearchService;
+import eu.europeana.corelib.web.exception.EmailServiceException;
+import eu.europeana.corelib.web.exception.EuropeanaException;
+import eu.europeana.corelib.web.exception.ProblemResponseAction;
+import eu.europeana.corelib.web.service.EmailService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -52,7 +56,8 @@ import java.util.concurrent.Future;
 //@SwaggerSelect
 @RequestMapping(value = "/v2/record")
 public class HierarchicalController {
-
+    //TODO factor exception email handling out to generic functionality
+    private final String SUBJECTPREFIX = "Europeana exception email handler: ";
     private static Logger log = Logger.getLogger(HierarchicalController.class);
 
     @Resource
@@ -60,6 +65,9 @@ public class HierarchicalController {
 
     @Resource
     private ControllerUtils controllerUtils;
+
+    @Resource(name = "corelib_web_emailService")
+    private EmailService emailService;
 
     @Bean
     public HierarchyRunner hierarchyRunnerBean() {
@@ -178,6 +186,7 @@ public class HierarchicalController {
                                           HttpServletRequest request, HttpServletResponse response,
                                           RedirectAttributes redirectAttrs) {
 
+        //TODO remove first slash after the new neo4j startup plugin has been deployed
         String                  rdfAbout = "/" + collectionId + "/" + recordId;
         HierarchyRunner mrBean = hierarchyRunnerBean();
         try {
@@ -187,11 +196,14 @@ public class HierarchicalController {
         } catch (Neo4JException e) {
             log.error("Neo4JException thrown: " + e.getMessage());
             log.error("Cause: " + e.getCause());
-            return generateErrorHierarchy(rdfAbout, wskey, callback, "Neo4JException");
+//            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)){
+//                sendExceptionEmail(e);
+//            }
+            return generateErrorHierarchy(rdfAbout, wskey, callback, e.getProblem().getMessage() + " for");
         } catch (InterruptedException e) {
             log.error("InterruptedException thrown: " + e.getMessage());
             log.error("Cause: " + e.getCause());
-            return generateErrorHierarchy(rdfAbout, wskey, callback, "InterruptedException");
+            return generateErrorHierarchy(rdfAbout, wskey, callback, "InterruptedException thrown when processing");
         } catch (ExecutionException e) {
             log.error("ExecutionExeption thrown: " + e.getMessage());
             log.error("Cause: " + e.getCause());
@@ -203,9 +215,23 @@ public class HierarchicalController {
         }
     }
 
+    private void sendExceptionEmail(EuropeanaException e){
+        String newline = System.getProperty("line.separator");
+
+        String header = SUBJECTPREFIX + e.getProblem().getMessage();
+        String body = (e.getMessage() + newline + newline +
+                ExceptionUtils.getStackTrace(e));
+//                + e.getStackTrace().toString());
+        try {
+            emailService.sendException(header, body);
+        } catch (EmailServiceException es) {
+            es.printStackTrace();
+        }
+    }
+
     private ModelAndView generateErrorHierarchy(String rdfAbout, String wskey, String callback,
-                                                String exceptionType) {
-        return JsonUtils.toJson(new ApiError(wskey, String.format(exceptionType + " thrown when processing record %s",
+                                                String message) {
+        return JsonUtils.toJson(new ApiError(wskey, String.format(message + " record %s",
                 rdfAbout), -1L), callback);
 
     }

@@ -24,7 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

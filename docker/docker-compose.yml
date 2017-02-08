@@ -53,12 +53,8 @@ services:
       - relational-database:api-postgresql-database
     # Map ports from tomcat container to the local machine
     ports:
-    #local:container
-      #Tomcat port
       - "8080:8080"
-      #Debug port
       - "8000:8000"
-      #JMX Port
       - "1099:1099"
 #    networks:
 #          default:
