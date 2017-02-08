@@ -49,13 +49,10 @@ import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.exception.Neo4JException;
 import eu.europeana.corelib.definitions.exception.ProblemType;
-import eu.europeana.corelib.edm.exceptions.EuropeanaQueryException;
-import eu.europeana.corelib.edm.exceptions.MongoDBException;
-import eu.europeana.corelib.edm.exceptions.SolrTypeException;
+import eu.europeana.corelib.edm.exceptions.*;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
@@ -65,7 +62,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -106,6 +102,18 @@ public class ObjectController {
     @Resource
     private ControllerUtils controllerUtils;
 
+    /**
+     * Handles record.json GET requests. Each request should consists of at least a collectionId, a recordId and an api-key (wskey)
+     * @param collectionId
+     * @param recordId
+     * @param profile
+     * @param wskey
+     * @param callback
+     * @param request
+     * @param response
+     * @return
+     * @throws MongoRuntimeException
+     */
     @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
     @RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -117,6 +125,7 @@ public class ObjectController {
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
             HttpServletResponse response) throws MongoRuntimeException {
+        if (log.isDebugEnabled()) { log.debug("Retrieving record with id "+collectionId+"/"+recordId); }
         controllerUtils.addResponseHeaders(response);
 
         LimitResponse limitResponse;
@@ -125,13 +134,12 @@ public class ObjectController {
         try {
             limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
                     RecordType.OBJECT, profile);
-            log.info("Apikey checklimit took: " + (System.currentTimeMillis() - t9) + " milliseconds");
+            if (log.isDebugEnabled()) { log.debug("Apikey checklimit took: " + (System.currentTimeMillis() - t9) + " milliseconds"); }
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
         }
 
-        log.info("record");
         ObjectResult objectResult = new ObjectResult(wskey, limitResponse.getRequestNumber());
         if (StringUtils.containsIgnoreCase(profile, "params")) {
             objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
@@ -143,15 +151,23 @@ public class ObjectController {
         try {
             long t0 = (new Date()).getTime();
             long t2 = System.currentTimeMillis();
+            // first try to retrieve the bean directly
             FullBean bean = searchService.findById(europeanaObjectId, false);
-            log.info("SearchService find by ID took: " + (System.currentTimeMillis() - t2) + " milliseconds");
+            if (log.isDebugEnabled()) { log.debug("SearchService findByID took: " + (System.currentTimeMillis() - t2) + " milliseconds"); }
             if (bean == null) {
+                // if the bean is null, the record id may have changed so check for that
                 t2 = System.currentTimeMillis();
                 europeanaObjectId = searchService.resolveId(europeanaObjectId);
-                log.info("Bean = null; SearchService resolve ID took: " + (System.currentTimeMillis() - t2) + " milliseconds");
-                t2 = System.currentTimeMillis();
-                bean = searchService.findById(europeanaObjectId, false);
-                log.info("Bean = null; retrying SearchService find by ID now took: " + (System.currentTimeMillis() - t2) + " milliseconds");
+                if (log.isDebugEnabled()) { log.debug("Bean = null; SearchService resolveID took: " + (System.currentTimeMillis() - t2) + " milliseconds"); }
+                // retry retrieving the bean if we have a new id
+                if (europeanaObjectId != null) {
+                    t2 = System.currentTimeMillis();
+                    bean = searchService.findById(europeanaObjectId, false);
+                    if (log.isDebugEnabled()) { log.debug("Bean = null; retrying SearchService findByID now took: " + (System.currentTimeMillis() - t2) + " milliseconds"); }
+                    if (bean == null) { // detect potential errors in record redirect data, we log it because we're not sure how often this happens
+                        log.warn("Retrieved new recordId "+europeanaObjectId+" but still unable to find record.");
+                    }
+                }
             }
 //            if (bean != null && bean.isOptedOut()) {
 //                bean.getAggregations().get(0).setEdmObject("");
@@ -168,7 +184,7 @@ public class ObjectController {
                 try {
                     t2 = System.currentTimeMillis();
                     similarItems = searchService.findMoreLikeThis(europeanaObjectId);
-                    log.info("SearchService find similar items took: " + (System.currentTimeMillis() - t2) + " milliseconds");
+                    if (log.isDebugEnabled()) { log.debug("SearchService find similar items took: " + (System.currentTimeMillis() - t2) + " milliseconds"); }
                     for (BriefBean b : similarItems) {
                         String similarItemsProfile = "minimal";
                         BriefView view = new BriefView(b, similarItemsProfile, wskey);
@@ -183,14 +199,10 @@ public class ObjectController {
             objectResult.object = new FullView(bean, profile, wskey);
             long t1 = (new Date()).getTime();
             objectResult.statsDuration = (t1 - t0);
-            log.info("Record retrieval took: " + (System.currentTimeMillis() - t9) + " milliseconds");
-        } catch (MongoDBException e) {
-            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), limitResponse.getRequestNumber()), callback);
-        } catch (MongoRuntimeException re) {
-            return JsonUtils.toJson(new ApiError(wskey, re.getMessage(), limitResponse.getRequestNumber()), callback);
-        } catch (Neo4JException e) {
-            log.error("Neo4JException thrown: " + e.getMessage());
-            log.error("Cause: " + e.getCause());
+            if (log.isDebugEnabled()) { log.debug("Record retrieval took: " + (System.currentTimeMillis() - t9) + " milliseconds"); }
+        } catch (Exception e) {
+            response.setStatus(500);
+            return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": "+ e.getMessage(), limitResponse.getRequestNumber()), callback);
         }
 
 //        final ObjectMapper objectMapper = new ObjectMapper();
@@ -275,8 +287,10 @@ public class ObjectController {
 
         if (bean != null) {
             String rdf = EdmUtils.toEDM(bean, false);
+            InputStream rdfInput = null;
             try {
-                Model modelResult = ModelFactory.createDefaultModel().read(IOUtils.toInputStream(rdf), "", "RDF/XML");
+                rdfInput = IOUtils.toInputStream(rdf);
+                Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
                 JenaRDFParser parser = new JenaRDFParser();
                 Object raw = JSONLD.fromRDF(modelResult, parser);
                 if (StringUtils.equalsIgnoreCase(format, "compacted")) {
@@ -290,6 +304,9 @@ public class ObjectController {
             } catch (JSONLDProcessingError e) {
                 log.error(e.getMessage(), e);
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+            finally {
+                IOUtils.closeQuietly(rdfInput);
             }
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -369,7 +386,6 @@ public class ObjectController {
             return JSONUtils.fromInputStream(in);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
-            e.printStackTrace();
         } finally {
             IOUtils.closeQuietly(in);
         }
@@ -433,9 +449,7 @@ public class ObjectController {
                 log.info("result: " + stringWriter.toString());
             }
         } catch (JAXBException e) {
-            if (log.isEnabledFor(Priority.ERROR)) {
-                log.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
-            }
+            log.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
         }
     }
 }
