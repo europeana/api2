@@ -24,7 +24,7 @@ import eu.europeana.api2.v2.model.json.user.SavedItem;
 import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
-import eu.europeana.corelib.definitions.exception.Neo4JException;
+import eu.europeana.corelib.neo4j.exception.Neo4JException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;

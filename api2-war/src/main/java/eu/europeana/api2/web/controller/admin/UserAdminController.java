@@ -9,7 +9,7 @@ import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
-import eu.europeana.corelib.definitions.exception.ProblemType;
+import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.exception.EmailServiceException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
