@@ -186,7 +186,6 @@ public class HierarchicalController {
                                           HttpServletRequest request, HttpServletResponse response,
                                           RedirectAttributes redirectAttrs) {
 
-        //TODO remove first slash after the new neo4j startup plugin has been deployed
         String                  rdfAbout = "/" + collectionId + "/" + recordId;
         HierarchyRunner mrBean = hierarchyRunnerBean();
         try {
