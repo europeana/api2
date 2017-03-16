@@ -23,8 +23,8 @@ import javax.annotation.Resource;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.query.Query;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 
 import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;

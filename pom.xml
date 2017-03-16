@@ -27,7 +27,7 @@
     <parent>
        <artifactId>europeana-parent-pom</artifactId>
         <groupId>eu.europeana</groupId>
-        <version>1.5</version>
+        <version>1.6-SNAPSHOT</version>
     </parent>
     <properties>
         <version.springWebService>2.2.4.RELEASE</version.springWebService>

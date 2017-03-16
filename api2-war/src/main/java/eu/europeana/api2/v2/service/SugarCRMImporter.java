@@ -17,10 +17,10 @@
 
 package eu.europeana.api2.v2.service;
 
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.Morphia;
-import com.google.code.morphia.query.Query;
-import com.google.code.morphia.query.UpdateOperations;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 import com.google.common.collect.Lists;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
@@ -46,6 +46,9 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Imports provider and collections data from the Europeana SugarCRM system and stores it in a Mongo cache db
+ */
 public class SugarCRMImporter {
 
     private final static String CACHEDB = "sugarcrmCache";
@@ -54,7 +57,7 @@ public class SugarCRMImporter {
     private final static String ALL_PROVIDER_QUERY = String.format("(%s OR %s)",
             DATA_AGGREGATOR_QUERY, CONTENT_PROVIDER_QUERY);
 
-    private Logger log = Logger.getLogger(this.getClass());
+    private final static Logger log = Logger.getLogger(SugarCRMImporter.class);
 
     @Resource(name = "api_db_mongo_cache")
     private Mongo mongo;
@@ -467,22 +470,19 @@ public class SugarCRMImporter {
                 log.info("SugarCRMCache mongo is null");
                 try {
                     mongo = new MongoClient();
-                } catch (UnknownHostException | MongoException e) {
-                    e.printStackTrace();
+                } catch (MongoException e) {
+                    log.error("Error creating mongo client", e);
                 }
             }
-
-            mongo.getDB(CACHEDB);
-            Morphia morphia = new Morphia();
-            morphia.map(DataSet.class).map(Provider.class);
-            datastore = morphia.createDatastore(mongo, CACHEDB);
         }
 
-        datastore.getDB().getCollection("DataSet").createIndex("identifier");
-        datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.name");
-        datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.country_c");
-        datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.sales_stage");
-        datastore.getDB().getCollection("Provider").createIndex("identifier");
+        if (datastore != null) {
+            datastore.getDB().getCollection("DataSet").createIndex("identifier");
+            datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.name");
+            datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.country_c");
+            datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.sales_stage");
+            datastore.getDB().getCollection("Provider").createIndex("identifier");
+        }
     }
 
 }
