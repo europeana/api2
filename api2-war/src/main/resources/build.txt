@@ -1,1 +1,4 @@
-Revision ${buildNumber} built at ${timestamp} (version: ${project.version}, branch: ${scmBranch})
+Version: ${project.version}
+Branch: ${scmBranch}
+BuildNumber: ${buildNumber}
+Timestamp: ${timestamp}
