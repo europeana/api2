@@ -17,10 +17,9 @@
 
 package eu.europeana.api2.v2.service;
 
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.Morphia;
-import com.google.code.morphia.query.Query;
-import com.google.code.morphia.query.UpdateOperations;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 import com.google.common.collect.Lists;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
@@ -42,19 +41,22 @@ import org.w3c.dom.Element;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.StringWriter;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Imports provider and collections data from the Europeana SugarCRM system and stores it in a Mongo cache db
+ */
 public class SugarCRMImporter {
 
-    private final static String CACHEDB = "sugarcrmCache";
-    private final static String DATA_AGGREGATOR_QUERY = "(accounts_cstm.agg_status_c LIKE '%D')";
-    private final static String CONTENT_PROVIDER_QUERY = "(accounts_cstm.agg_status_c LIKE '%P')";
-    private final static String ALL_PROVIDER_QUERY = String.format("(%s OR %s)",
-            DATA_AGGREGATOR_QUERY, CONTENT_PROVIDER_QUERY);
 
-    private Logger log = Logger.getLogger(this.getClass());
+    private static final String DATA_AGGREGATOR_QUERY = "(accounts_cstm.agg_status_c LIKE '%D')";
+    // the other 2 static string fields seem to be deprecated (not used)
+    //    private static final String CONTENT_PROVIDER_QUERY = "(accounts_cstm.agg_status_c LIKE '%P')";
+    //    private static final String ALL_PROVIDER_QUERY = String.format("(%s OR %s)",
+    //            DATA_AGGREGATOR_QUERY, CONTENT_PROVIDER_QUERY);
+
+    private static final  Logger LOG = Logger.getLogger(SugarCRMImporter.class);
 
     @Resource(name = "api_db_mongo_cache")
     private Mongo mongo;
@@ -103,16 +105,16 @@ public class SugarCRMImporter {
                 providerRequest.setOffset(offset);
             }
 
-            log.info(String.format("Saving %d providers", exportedProviders.size()));
+            LOG.info(String.format("Saving %d providers", exportedProviders.size()));
             int i = 1;
             for (Element exportedProvider : exportedProviders) {
-                log.info(String.format("Processing provider %d/%d", i++, exportedProviders.size()));
+                LOG.info(String.format("Processing provider %d/%d", i++, exportedProviders.size()));
                 Provider provider = new Provider();
                 populateProviderFromDOMElement(provider, exportedProvider);
                 datastore.save(provider);
                 extractDatasetsFromProvider(exportedProvider);
             }
-            log.info("All providers are saved.");
+            LOG.info("All providers are saved.");
         }
     }
 
@@ -172,7 +174,7 @@ public class SugarCRMImporter {
                 xmlElements = new ArrayList<>();
             }
 
-            log.info(String.format("Retrieved %d providers", xmlElements.size()));
+            LOG.info(String.format("Retrieved %d providers", xmlElements.size()));
             for (Element xmlElement : xmlElements) {
                 Provider provider = new Provider();
                 // Insert values in Provider Object
@@ -239,14 +241,14 @@ public class SugarCRMImporter {
      * @throws JIXBQueryResultException
      */
     public SugarCRMSearchResults<Provider> pollProviders() throws JIXBQueryResultException {
-        log.info("pollProviders()");
+        LOG.info("pollProviders()");
         String q1 = "accounts.date_modified > " + getLastProviderModification(); // DATE_SUB(NOW(),INTERVAL 66 MINUTE)
         String q2 = "accounts_cstm.agg_status_c LIKE '%D'";
-        log.info("query: " + q1);
+        LOG.info("query: " + q1);
         SugarCRMSearchResults<Provider> retrievedProviders = retrieveProviders(q1, q2);
-        log.info(String.format("retrievedProviders: %d", retrievedProviders.items.size()));
+        LOG.info(String.format("retrievedProviders: %d", retrievedProviders.items.size()));
         for (Provider provider : retrievedProviders.items) {
-            log.info(String.format("Provider: %s was updated by the scheduler...", provider.identifier));
+            LOG.info(String.format("Provider: %s was updated by the scheduler...", provider.identifier));
             saveupdateProvider2Cache(provider);
         }
         return retrievedProviders;
@@ -259,11 +261,11 @@ public class SugarCRMImporter {
      */
     public SugarCRMSearchResults<DataSet> pollCollections() throws JIXBQueryResultException {
         String query = "opportunities.date_modified > " + getLastDatasetModification(); // DATE_SUB(NOW(),INTERVAL 66 MINUTE)"
-        log.info("pollCollections(); query: " + query);
+        LOG.info("pollCollections(); query: " + query);
         SugarCRMSearchResults<DataSet> retrievedDatasets = retrieveDataset(query, null);
-        log.info(String.format("retrievedDatasets: %d", retrievedDatasets.items.size()));
+        LOG.info(String.format("retrievedDatasets: %d", retrievedDatasets.items.size()));
         for (DataSet dataset : retrievedDatasets.items) {
-            log.info(String.format("Dataset: %s was updated by the scheduler at %s", dataset.identifier, dataset.savedsugarcrmFields.get("date_modified")));
+            LOG.info(String.format("Dataset: %s was updated by the scheduler at %s", dataset.identifier, dataset.savedsugarcrmFields.get("date_modified")));
             saveupdateCollection2Cache(dataset);
         }
         return retrievedDatasets;
@@ -462,27 +464,25 @@ public class SugarCRMImporter {
     @PostConstruct
     public void initLocal() {
         if (datastore == null) {
-            log.info("SugarCRMCache datasource is null");
+            LOG.info("SugarCRMCache datasource is null");
             if (mongo == null) {
-                log.info("SugarCRMCache mongo is null");
+                LOG.info("SugarCRMCache mongo is null");
                 try {
+                    LOG.info("Creating new MongoClient for SugarCRMCache");
                     mongo = new MongoClient();
-                } catch (UnknownHostException | MongoException e) {
-                    e.printStackTrace();
+                } catch (MongoException e) {
+                    LOG.error("Error creating mongo client", e);
                 }
             }
-
-            mongo.getDB(CACHEDB);
-            Morphia morphia = new Morphia();
-            morphia.map(DataSet.class).map(Provider.class);
-            datastore = morphia.createDatastore(mongo, CACHEDB);
         }
 
-        datastore.getDB().getCollection("DataSet").createIndex("identifier");
-        datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.name");
-        datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.country_c");
-        datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.sales_stage");
-        datastore.getDB().getCollection("Provider").createIndex("identifier");
+        if (datastore != null) {
+            datastore.getDB().getCollection("DataSet").createIndex("identifier");
+            datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.name");
+            datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.country_c");
+            datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.sales_stage");
+            datastore.getDB().getCollection("Provider").createIndex("identifier");
+        }
     }
 
 }
