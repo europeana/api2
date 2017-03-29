@@ -15,6 +15,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -82,7 +84,14 @@ public class VersionController {
     private String getCreationDate(Class clazz) throws IOException, URISyntaxException {
         Path file = Paths.get(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());
         BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
-        return attr.creationTime().toString();
+        ZoneId timezone = ZoneId.of("CET");
+        LocalDateTime fileTime = LocalDateTime.ofInstant(attr.creationTime().toInstant(), timezone);
+        StringBuilder timeString = new StringBuilder(fileTime.toLocalDate().toString());
+        timeString.append(" ");
+        timeString.append(fileTime.toLocalTime().toString());
+        timeString.append(" ");
+        timeString.append(timezone.getId());
+        return timeString.toString();
     }
 
     private String stripVersionFileName(String fileName) {
