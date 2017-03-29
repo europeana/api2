@@ -120,7 +120,7 @@ public class ContentReuseFrameworkController {
 //            response.sendRedirect("http://legacy.europeanastatic.eu/api/image?size=w200&type=" + type + "&uri=" + url);
             // Uncommented the below two lines
             // When the move is complete, the below two lines should by commented out again
-            headers.setContentType(MediaType.IMAGE_GIF);
+            headers.setContentType(MediaType.IMAGE_PNG);
             // All default not found thumbnails are GIF.
             mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
         }
@@ -135,7 +135,7 @@ public class ContentReuseFrameworkController {
         BufferedImage img;
         try {
             img = ImageIO.read(getClass().getResourceAsStream(path));
-            response = getByteArray(img);
+            response = getByteArray(img, path.endsWith(".png") ? "png" : "gif");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -153,11 +153,11 @@ public class ContentReuseFrameworkController {
         return response;
     }
 
-    private byte[] getByteArray(final BufferedImage bufferedImage) {
+    private byte[] getByteArray(final BufferedImage bufferedImage, String formatName) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try {
-            ImageIO.write(bufferedImage, "gif", baos);
+            ImageIO.write(bufferedImage, formatName, baos);
             baos.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -201,17 +201,17 @@ public class ContentReuseFrameworkController {
     private byte[] getDefaultThumbnailForNotFoundResourceByType(final String type) {
         switch (StringUtils.upperCase(type)) {
             case "IMAGE":
-                return getImage("/images/item-image-large.gif");
+                return getImage("/images/EU_thumbnails_image.png");
             case "SOUND":
-                return getImage("/images/item-sound-large.gif");
+                return getImage("/images/EU_thumbnails_sound.png");
             case "VIDEO":
-                return getImage("/images/item-video-large.gif");
+                return getImage("/images/EU_thumbnails_video.png");
             case "TEXT":
-                return getImage("/images/item-text-large.gif");
+                return getImage("/images/EU_thumbnails_text.png");
             case "3D":
-                return getImage("/images/item-3d-large.gif");
+                return getImage("/images/EU_thumbnails_3d.png");
             default:
-                return getImage("/images/item-image-large.gif");
+                return getImage("/images/EU_thumbnails_image.png");
         }
     }
 
