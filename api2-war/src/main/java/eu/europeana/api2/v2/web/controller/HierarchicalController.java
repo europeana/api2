@@ -194,18 +194,18 @@ public class HierarchicalController {
             return result.get();
         } catch (Neo4JException e) {
             log.error("Neo4JException thrown: " + e.getMessage());
-            log.error("Cause: " + e.getCause());
-//            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)){
-//                sendExceptionEmail(e);
-//            }
+            if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
+            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)){
+                sendExceptionEmail(e);
+            }
             return generateErrorHierarchy(rdfAbout, wskey, callback, e.getProblem().getMessage() + " for");
         } catch (InterruptedException e) {
             log.error("InterruptedException thrown: " + e.getMessage());
-            log.error("Cause: " + e.getCause());
+            if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
             return generateErrorHierarchy(rdfAbout, wskey, callback, "InterruptedException thrown when processing");
         } catch (ExecutionException e) {
             log.error("ExecutionExeption thrown: " + e.getMessage());
-            log.error("Cause: " + e.getCause());
+            if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
             ModelAndView gimmeJustTheRecordThen = new ModelAndView("redirect:/v2/record" + rdfAbout + ".json");
             redirectAttrs.addAttribute("profile", profile);
             redirectAttrs.addAttribute("wskey", wskey);

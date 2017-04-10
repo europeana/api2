@@ -53,8 +53,8 @@ import java.security.NoSuchAlgorithmException;
 @Controller
 public class ContentReuseFrameworkController {
 
-    @Resource
-    private ContentReuseFrameworkService crfService;
+    //@Resource
+    //private ContentReuseFrameworkService crfService;
 
     @Resource
     private MediaStorageService mediaStorageService;
@@ -62,33 +62,39 @@ public class ContentReuseFrameworkController {
     @Resource
     private ControllerUtils controllerUtils;
 
-    @RequestMapping(value = "/v2/metadata-by-url.json", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView metadataByUrl(
-            @RequestParam(value = "url", required = true) String url,
-            @RequestParam(value = "wskey", required = true) String wskey,
-            @RequestParam(value = "callback", required = false) String callback,
-            HttpServletRequest request,
-            HttpServletResponse response) {
-        long t0 = System.currentTimeMillis();
-        controllerUtils.addResponseHeaders(response);
-        LimitResponse limitResponse;
-        try {
-            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    RecordType.OBJECT, null);
-        } catch (ApiLimitException e) {
-            response.setStatus(e.getHttpStatus());
-            return JsonUtils.toJson(new ApiError(e), callback);
-        }
+    /**
+     * @Deprecated There is no documentation on this query on Europeana Labs and there hasn't been any request to this
+     * for at least 6 months according to the production logs. Also this is the only reference to the crfService and
+     * we can't connect to it anymore after the upgrade of the mongo and morphia drivers.
+     */
 
-        CrfMetadataResult result = new CrfMetadataResult(wskey, limitResponse.getRequestNumber());
-        SourceDocumentReferenceMetaInfo info = crfService.getMetadata(url);
-        if (info != null) {
-            result.imageMetaInfo = info.getImageMetaInfo();
-        }
-        result.statsDuration = (System.currentTimeMillis() - t0);
-        return JsonUtils.toJson(result, callback);
-    }
+//    @RequestMapping(value = "/v2/metadata-by-url.json", method = RequestMethod.GET,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ModelAndView metadataByUrl(
+//            @RequestParam(value = "url", required = true) String url,
+//            @RequestParam(value = "wskey", required = true) String wskey,
+//            @RequestParam(value = "callback", required = false) String callback,
+//            HttpServletRequest request,
+//            HttpServletResponse response) {
+//        long t0 = System.currentTimeMillis();
+//        controllerUtils.addResponseHeaders(response);
+//        LimitResponse limitResponse;
+//        try {
+//            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+//                    RecordType.OBJECT, null);
+//        } catch (ApiLimitException e) {
+//            response.setStatus(e.getHttpStatus());
+//            return JsonUtils.toJson(new ApiError(e), callback);
+//        }
+//
+//        CrfMetadataResult result = new CrfMetadataResult(wskey, limitResponse.getRequestNumber());
+//        SourceDocumentReferenceMetaInfo info = crfService.getMetadata(url);
+//        if (info != null) {
+//            result.imageMetaInfo = info.getImageMetaInfo();
+//        }
+//        result.statsDuration = (System.currentTimeMillis() - t0);
+//        return JsonUtils.toJson(result, callback);
+    //}
 
     @RequestMapping(value = "/v2/thumbnail-by-url.json", method = RequestMethod.GET)
     public ResponseEntity<byte[]> thumbnailByUrl(
@@ -114,7 +120,7 @@ public class ContentReuseFrameworkController {
 //            response.sendRedirect("http://legacy.europeanastatic.eu/api/image?size=w200&type=" + type + "&uri=" + url);
             // Uncommented the below two lines
             // When the move is complete, the below two lines should by commented out again
-            headers.setContentType(MediaType.IMAGE_GIF);
+            headers.setContentType(MediaType.IMAGE_PNG);
             // All default not found thumbnails are GIF.
             mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
         }
@@ -129,7 +135,7 @@ public class ContentReuseFrameworkController {
         BufferedImage img;
         try {
             img = ImageIO.read(getClass().getResourceAsStream(path));
-            response = getByteArray(img);
+            response = getByteArray(img, path.endsWith(".png") ? "png" : "gif");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -147,11 +153,11 @@ public class ContentReuseFrameworkController {
         return response;
     }
 
-    private byte[] getByteArray(final BufferedImage bufferedImage) {
+    private byte[] getByteArray(final BufferedImage bufferedImage, String formatName) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try {
-            ImageIO.write(bufferedImage, "gif", baos);
+            ImageIO.write(bufferedImage, formatName, baos);
             baos.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -195,17 +201,17 @@ public class ContentReuseFrameworkController {
     private byte[] getDefaultThumbnailForNotFoundResourceByType(final String type) {
         switch (StringUtils.upperCase(type)) {
             case "IMAGE":
-                return getImage("/images/item-image-large.gif");
+                return getImage("/images/EU_thumbnails_image.png");
             case "SOUND":
-                return getImage("/images/item-sound-large.gif");
+                return getImage("/images/EU_thumbnails_sound.png");
             case "VIDEO":
-                return getImage("/images/item-video-large.gif");
+                return getImage("/images/EU_thumbnails_video.png");
             case "TEXT":
-                return getImage("/images/item-text-large.gif");
+                return getImage("/images/EU_thumbnails_text.png");
             case "3D":
-                return getImage("/images/item-3d-large.gif");
+                return getImage("/images/EU_thumbnails_3d.png");
             default:
-                return getImage("/images/item-image-large.gif");
+                return getImage("/images/EU_thumbnails_image.png");
         }
     }
 

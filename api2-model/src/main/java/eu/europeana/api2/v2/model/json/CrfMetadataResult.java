@@ -24,15 +24,17 @@ import eu.europeana.harvester.domain.ImageMetaInfo;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
+ * @deprecated Was only used in the ContentReuseFrameworkController.metadataByUrl() method which is now deprecated
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
+@Deprecated
 @JsonInclude(NON_EMPTY)
 public class CrfMetadataResult extends ApiResponse {
 
-	public ImageMetaInfo imageMetaInfo;
-
-	public CrfMetadataResult(String apikey, long requestNumber) {
-		super(apikey);
-		this.requestNumber = requestNumber;
-	}
+//	public ImageMetaInfo imageMetaInfo;
+//
+//	public CrfMetadataResult(String apikey, long requestNumber) {
+//		super(apikey);
+//		this.requestNumber = requestNumber;
+//	}
 }

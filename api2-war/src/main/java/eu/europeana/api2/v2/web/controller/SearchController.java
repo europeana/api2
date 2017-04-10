@@ -151,6 +151,9 @@ public class SearchController {
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         colourPalette.replaceAll(String::toUpperCase);
 
+        // #579 rights URL's don't match well to queries containing ":https*"
+        queryString = queryString.replace(":https*", ":http*");
+
         String colourPalettefilterQuery = "";
         LimitResponse limitResponse;
         Boolean hasImageRefinements = false;

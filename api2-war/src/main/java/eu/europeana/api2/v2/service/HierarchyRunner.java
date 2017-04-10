@@ -117,7 +117,7 @@ public class HierarchyRunner {
         if (hierarchicalResult.self != null) {
             long childrenCount = searchService.getChildrenCount(rdfAbout);
             if (hierarchicalResult.self.hasChildren() && childrenCount == 0){
-                throw new Neo4JException(ProblemType.NEO4J_INCONSISTENT_DATA);
+                throw new Neo4JException(ProblemType.NEO4J_INCONSISTENT_DATA, " for record " + rdfAbout);
             } else {
                 hierarchicalResult.self.setChildrenCount(childrenCount);
             }

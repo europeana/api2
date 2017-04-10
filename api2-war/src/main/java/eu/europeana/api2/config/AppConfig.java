@@ -9,6 +9,7 @@ import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.web.context.VcapPropertyLoaderListener;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -32,6 +33,8 @@ import java.net.UnknownHostException;
 @EnableScheduling
 @PropertySource("classpath:europeana.properties")
 public class AppConfig {
+
+    private static final Logger LOG = Logger.getLogger(AppConfig.class);
 
     @Value("${cachemongodb.host}")
     private String cacheHost;
@@ -76,6 +79,7 @@ public class AppConfig {
 
     @Bean(name = "api_db_mongo_cache")
     public Mongo ApiDbMongoCache() throws UnknownHostException {
+        LOG.info("Creating new MongoClient for SugarCRMCache");
         return new MongoClient(cacheHost, cachePort);
     }
     @Bean(name = "api_object_storage_client")
