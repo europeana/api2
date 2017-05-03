@@ -350,7 +350,9 @@ public class SearchController {
 
         // create Query object and set some params
         Class<? extends IdBean> clazz = selectBean(profile);
-        Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
+//        Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
+        Query query = new Query(SearchUtils.rewriteQueryFields(
+                                SearchUtils.fixBuggySolrIndex(queryString)))
                 .setApiQuery(true)
                 .setRefinements(refinementArray)
                 .setPageSize(rows)
