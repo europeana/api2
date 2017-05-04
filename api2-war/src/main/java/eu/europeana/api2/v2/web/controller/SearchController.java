@@ -459,7 +459,12 @@ public class SearchController {
             throws SolrTypeException {
         FacetWrangler wrangler = new FacetWrangler();
         SearchResults<T> response = new SearchResults<>(apiKey);
-        ResultSet<T> resultSet = searchService.search(clazz, query);
+        ResultSet<T>     resultSet;
+        if (StringUtils.containsIgnoreCase(profile, "debug")) {
+            resultSet = searchService.search(clazz, query, true);
+        } else {
+            resultSet = searchService.search(clazz, query);
+        }
         response.totalResults = resultSet.getResultSize();
             if ( StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) &&
                  StringUtils.isNotBlank(resultSet.getNextCursorMark()) &&
@@ -499,6 +504,9 @@ public class SearchController {
                     StringUtils.containsIgnoreCase(profile, "portal")) {
                 response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
             }
+        if (StringUtils.containsIgnoreCase(profile, "debug")) {
+            response.debug = resultSet.getSolrQueryString();
+        }
 //        if (StringUtils.containsIgnoreCase(profile, "params")) {
 //            response.addParam("sort", resultSet.getSortField());
 //        }
