@@ -20,6 +20,7 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.domain.MediaFile;
 import eu.europeana.corelib.web.service.MediaStorageService;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpHeaders;
@@ -37,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -71,6 +73,12 @@ public class ContentReuseFrameworkController {
             @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
             HttpServletResponse response) throws IOException {
+
+        // 2017-05-12 Timing debug statements added for now as part of ticket #613.
+        // Can be removed when it's confirmed that timing is improved
+        long startTime = 0;
+        if (LOG.isDebugEnabled()) { startTime = System.nanoTime(); };
+
         controllerUtils.addResponseHeaders(response);
         final HttpHeaders headers = new HttpHeaders();
         final String mediaFileId = computeResourceUrl(url, size);
@@ -87,7 +95,15 @@ public class ContentReuseFrameworkController {
             mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
         }
 
-        return new ResponseEntity<>(mediaResponse, headers, HttpStatus.OK);
+        ResponseEntity result = new ResponseEntity<>(mediaResponse, headers, HttpStatus.OK);
+        if (LOG.isDebugEnabled()) {
+            if (MediaType.IMAGE_JPEG.equals(headers.getContentType())) {
+                LOG.debug("Total thumbnail request time (from s3): " + (System.nanoTime() - startTime) / 1000);
+            } else {
+                LOG.debug("Total thumbnail request time (missing media): " + (System.nanoTime() - startTime) / 1000);
+            }
+        }
+        return result;
     }
 
     /**
@@ -96,6 +112,15 @@ public class ContentReuseFrameworkController {
      * @return
      */
     private byte[] getImage(String path) {
+
+//        byte[] result = null;
+//        try (InputStream in = this.getClass().getResourceAsStream(path)){
+//            result = IOUtils.toByteArray(in);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    return result;
+
         byte[] response = null;
         BufferedImage img;
         try {
@@ -160,6 +185,7 @@ public class ContentReuseFrameworkController {
             default:
                 return getImage("/images/EU_thumbnails_image.png");
         }
+
     }
 
     /**

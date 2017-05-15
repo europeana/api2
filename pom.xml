@@ -33,6 +33,7 @@
         <version.springWebService>2.2.4.RELEASE</version.springWebService>
         <!--NOTE change version if API version differs from the corelib version!-->
         <version.corelib>2.6.2-SNAPSHOT</version.corelib>
+        <version.objectStorage>1.3-SNAPSHOT</version.objectStorage>
     </properties>
     <modules>
         <module>api2-model</module>
