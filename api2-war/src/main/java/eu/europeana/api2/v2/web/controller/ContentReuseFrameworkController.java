@@ -33,10 +33,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -77,7 +74,7 @@ public class ContentReuseFrameworkController {
         // 2017-05-12 Timing debug statements added for now as part of ticket #613.
         // Can be removed when it's confirmed that timing is improved
         long startTime = 0;
-        if (LOG.isDebugEnabled()) { startTime = System.nanoTime(); };
+        if (LOG.isDebugEnabled()) { startTime = System.nanoTime(); }
 
         controllerUtils.addResponseHeaders(response);
         final HttpHeaders headers = new HttpHeaders();
@@ -86,9 +83,9 @@ public class ContentReuseFrameworkController {
 
         byte[] mediaResponse;
         if (mediaFile != null) {
-            mediaResponse = mediaFile.getContent();
             // All stored thumbnails are JPEG.
             headers.setContentType(MediaType.IMAGE_JPEG);
+            mediaResponse = mediaFile.getContent();
         } else {
             // All default not found thumbnails are PNG.
             headers.setContentType(MediaType.IMAGE_PNG);
@@ -112,42 +109,15 @@ public class ContentReuseFrameworkController {
      * @return
      */
     private byte[] getImage(String path) {
-
-//        byte[] result = null;
-//        try (InputStream in = this.getClass().getResourceAsStream(path)){
-//            result = IOUtils.toByteArray(in);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    return result;
-
-        byte[] response = null;
-        BufferedImage img;
-        try {
-            img = ImageIO.read(getClass().getResourceAsStream(path));
-            response = getByteArray(img, path.endsWith(".png") ? "png" : "gif");
+        byte[] result = null;
+        try (InputStream in = this.getClass().getResourceAsStream(path)){
+            result = IOUtils.toByteArray(in);
         } catch (IOException e) {
-            LOG.error("Error reading default thumbnail", e);
+            LOG.error("Error reading default thumbnail file", e);
         }
-        return response;
+        return result;
     }
 
-    /**
-     * Convert a bufferedImage to a byte array
-     * @param bufferedImage
-     * @param formatName
-     * @return
-     */
-    private byte[] getByteArray(final BufferedImage bufferedImage, String formatName) {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()){
-            ImageIO.write(bufferedImage, formatName, baos);
-            baos.flush();
-            return baos.toByteArray();
-        } catch (IOException e) {
-            LOG.error("Error writing buffered default thumbnail", e);
-        }
-        return new byte[0];
-    }
 
     private String getMD5(String input) {
         final MessageDigest messageDigest;
