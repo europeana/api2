@@ -71,7 +71,7 @@ public class ContentReuseFrameworkController {
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
             HttpServletResponse response) throws IOException {
 
-        // 2017-05-12 Timing debug statements added for now as part of ticket #613.
+        // 2017-05-12 Timing debug statements added as part of ticket #613.
         // Can be removed when it's confirmed that timing is improved
         long startTime = 0;
         if (LOG.isDebugEnabled()) { startTime = System.nanoTime(); }
@@ -79,20 +79,18 @@ public class ContentReuseFrameworkController {
         controllerUtils.addResponseHeaders(response);
         final HttpHeaders headers = new HttpHeaders();
         final String mediaFileId = computeResourceUrl(url, size);
-        final MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, true);
+        byte[] mediaContent = mediaStorageService.retrieveContent(mediaFileId);
 
-        byte[] mediaResponse;
-        if (mediaFile != null) {
-            // All stored thumbnails are JPEG.
-            headers.setContentType(MediaType.IMAGE_JPEG);
-            mediaResponse = mediaFile.getContent();
-        } else {
+        if (mediaContent == null || mediaContent.length == 0) {
             // All default not found thumbnails are PNG.
             headers.setContentType(MediaType.IMAGE_PNG);
-            mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
+            mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
+        } else {
+            // All stored thumbnails are JPEG.
+            headers.setContentType(MediaType.IMAGE_JPEG);
         }
 
-        ResponseEntity result = new ResponseEntity<>(mediaResponse, headers, HttpStatus.OK);
+        ResponseEntity result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
         if (LOG.isDebugEnabled()) {
             if (MediaType.IMAGE_JPEG.equals(headers.getContentType())) {
                 LOG.debug("Total thumbnail request time (from s3): " + (System.nanoTime() - startTime) / 1000);
