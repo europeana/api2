@@ -113,6 +113,7 @@ public class ObjectController {
      * @param profile
      * @param wskey
      * @param callback
+     * @param hierarchyTimeout maximum time allowed to retrieve hierarchical information
      * @param request
      * @param response
      * @return
@@ -127,12 +128,16 @@ public class ObjectController {
             @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "4000") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response) throws MongoRuntimeException {
         if (log.isDebugEnabled()) { log.debug("Retrieving record with id "+collectionId+"/"+recordId); }
         controllerUtils.addResponseHeaders(response);
 
         LimitResponse limitResponse;
+        if (hierarchyTimeout != 4000) {
+            searchService.setNeo4jTimeoutMillis(hierarchyTimeout);
+        }
 
         long t9 = System.currentTimeMillis();
         try {

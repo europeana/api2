@@ -72,9 +72,9 @@ public class ControllerUtils {
         throw new ApiLimitException(wskey, "Invalid API key", 0, HttpStatus.FORBIDDEN.value());
       }
 //       apiKey.getUsageLimit();
-      log.info("get apiKey: " + (System.currentTimeMillis() - t));
+      if (log.isDebugEnabled()) { log.debug("get apiKey: " + (System.currentTimeMillis() - t)); }
       requestNumber = 999;
-      log.info("setting default request number; (checklimit disabled): " + requestNumber);
+      if (log.isDebugEnabled()) { log.debug("setting default request number; (checklimit disabled): " + requestNumber); }
 
       // t = System.currentTimeMillis();
 //       requestNumber = apiService.checkReachedLimit(apiKey);
