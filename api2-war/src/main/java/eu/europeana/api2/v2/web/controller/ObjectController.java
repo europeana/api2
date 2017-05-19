@@ -135,7 +135,7 @@ public class ObjectController {
         controllerUtils.addResponseHeaders(response);
 
         LimitResponse limitResponse;
-        if (hierarchyTimeout != 4000) {
+        if (hierarchyTimeout >= 0) {
             searchService.setNeo4jTimeoutMillis(hierarchyTimeout);
         }
 
