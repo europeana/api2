@@ -100,7 +100,9 @@ public class HierarchyRunner {
             return new AsyncResult<>(JsonUtils.toJson(new ApiError(e), callback));
         }
 
-        log.info("Limit: " + (System.currentTimeMillis() - t1));
+        if (log.isDebugEnabled()) {
+            log.debug("Limit: " + (System.currentTimeMillis() - t1));
+        }
         t1 = System.currentTimeMillis();
 
         HierarchicalResult hierarchicalResult = new HierarchicalResult(wskey, limitResponse.getRequestNumber());
@@ -109,7 +111,9 @@ public class HierarchyRunner {
             hierarchicalResult.addParam("profile", profile);
         }
 
-        log.info("Init object: " + (System.currentTimeMillis() - t1));
+        if (log.isDebugEnabled()) {
+            log.debug("Init object: " + (System.currentTimeMillis() - t1));
+        }
         t1 = System.currentTimeMillis();
 
         hierarchicalResult.self = searchService.getHierarchicalBean(rdfAbout);
@@ -129,7 +133,9 @@ public class HierarchyRunner {
                     limitResponse.getRequestNumber()), callback));
         }
 
-        log.info("get self: " + (System.currentTimeMillis() - t1));
+        if (log.isDebugEnabled()) {
+            log.debug("get self: " + (System.currentTimeMillis() - t1));
+        }
         t1 = System.currentTimeMillis();
 
         if (recordType.equals(RecordType.HIERARCHY_CHILDREN)) {
@@ -162,7 +168,9 @@ public class HierarchyRunner {
         } else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
             long tgetsiblings = System.currentTimeMillis();
             hierarchicalResult.followingSiblings = searchService.getFollowingSiblings(rdfAbout, limit);
-            log.info("Get siblings: " + (System.currentTimeMillis() - tgetsiblings));
+            if (log.isDebugEnabled()) {
+                log.debug("Get siblings: " + (System.currentTimeMillis() - tgetsiblings));
+            }
             if (hierarchicalResult.followingSiblings == null || hierarchicalResult.followingSiblings.isEmpty()) {
                 hierarchicalResult.message = "This record has no following siblings";
                 hierarchicalResult.success = false;
@@ -170,7 +178,9 @@ public class HierarchyRunner {
             } else {
                 long tgetsiblingsCount = System.currentTimeMillis();
                 addChildrenCount(hierarchicalResult.followingSiblings);
-                log.info("Get siblingsCount: " + (System.currentTimeMillis() - tgetsiblingsCount));
+                if (log.isDebugEnabled()) {
+                    log.debug("Get siblingsCount: " + (System.currentTimeMillis() - tgetsiblingsCount));
+                }
             }
         } else if (recordType.equals(RecordType.HIERARCHY_PRECEDING_SIBLINGS)) {
             hierarchicalResult.precedingSiblings = searchService.getPrecedingSiblings(rdfAbout, limit);
@@ -236,12 +246,17 @@ public class HierarchyRunner {
                 }
             }
         }
-        log.info("get main: " + (System.currentTimeMillis() - t1));
+        if (log.isDebugEnabled()) {
+            log.debug("get main: " + (System.currentTimeMillis() - t1));
+        }
         t1 = System.currentTimeMillis();
+
 
         hierarchicalResult.statsDuration = (System.currentTimeMillis() - t0);
         ModelAndView json = JsonUtils.toJson(hierarchicalResult, callback);
-        log.info("toJson: " + (System.currentTimeMillis() - t1));
+        if (log.isDebugEnabled()) {
+            log.debug("toJson: " + (System.currentTimeMillis() - t1));
+        }
         return new AsyncResult <> (json);
     }
 

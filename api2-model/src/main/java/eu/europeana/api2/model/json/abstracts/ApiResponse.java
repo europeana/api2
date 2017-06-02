@@ -46,6 +46,8 @@ public abstract class ApiResponse {
 
 	public Long statsDuration;
 
+	public String debug;
+
 	public Long requestNumber;
 
 	public Map<String, Object> params;
