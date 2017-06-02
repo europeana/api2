@@ -1,7 +1,7 @@
 version: "2"
 
 services:
-#Mongo and Swift are not Dockerized yet
+#Mongo and ObjectStorage are not Dockerized yet
   relational-database:
     build:
       context: ./postgresql

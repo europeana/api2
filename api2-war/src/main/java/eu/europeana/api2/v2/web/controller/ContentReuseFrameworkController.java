@@ -17,18 +17,12 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api2.ApiLimitException;
-import eu.europeana.api2.model.json.ApiError;
-import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.LimitResponse;
-import eu.europeana.api2.v2.model.json.CrfMetadataResult;
 import eu.europeana.api2.v2.utils.ControllerUtils;
-import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.domain.MediaFile;
-import eu.europeana.corelib.web.service.ContentReuseFrameworkService;
 import eu.europeana.corelib.web.service.MediaStorageService;
-import eu.europeana.harvester.domain.SourceDocumentReferenceMetaInfo;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,24 +31,22 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * Retrieves image thumbnails.
+ * The thumbnail API doesn't require any form of authentication, providing an API key is optional.
+ */
 @Controller
 public class ContentReuseFrameworkController {
 
-    //@Resource
-    //private ContentReuseFrameworkService crfService;
+    private static final Logger LOG = Logger.getLogger(ContentReuseFrameworkController.class);
 
     @Resource
     private MediaStorageService mediaStorageService;
@@ -63,117 +55,67 @@ public class ContentReuseFrameworkController {
     private ControllerUtils controllerUtils;
 
     /**
-     * @Deprecated There is no documentation on this query on Europeana Labs and there hasn't been any request to this
-     * for at least 6 months according to the production logs. Also this is the only reference to the crfService and
-     * we can't connect to it anymore after the upgrade of the mongo and morphia drivers.
+     * Retrieves image thumbnails.
+     * @param url optional, the URL of the media resource of which a thumbnail should be returned. Note that the URL should be encoded.
+     *            When no url is provided a default thumbnail will be returned
+     * @param size optional, the size of the thumbnail, can either be w200 (width 200) or w400 (width 400).
+     * @param type optional, type of the default thumbnail (media image) in case the thumbnail does not exists or no url is provided, can be: IMAGE, SOUND, VIDEO, TEXT or 3D.
+     * @param response
+     * @return
+     * @throws IOException
      */
-
-//    @RequestMapping(value = "/v2/metadata-by-url.json", method = RequestMethod.GET,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ModelAndView metadataByUrl(
-//            @RequestParam(value = "url", required = true) String url,
-//            @RequestParam(value = "wskey", required = true) String wskey,
-//            @RequestParam(value = "callback", required = false) String callback,
-//            HttpServletRequest request,
-//            HttpServletResponse response) {
-//        long t0 = System.currentTimeMillis();
-//        controllerUtils.addResponseHeaders(response);
-//        LimitResponse limitResponse;
-//        try {
-//            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-//                    RecordType.OBJECT, null);
-//        } catch (ApiLimitException e) {
-//            response.setStatus(e.getHttpStatus());
-//            return JsonUtils.toJson(new ApiError(e), callback);
-//        }
-//
-//        CrfMetadataResult result = new CrfMetadataResult(wskey, limitResponse.getRequestNumber());
-//        SourceDocumentReferenceMetaInfo info = crfService.getMetadata(url);
-//        if (info != null) {
-//            result.imageMetaInfo = info.getImageMetaInfo();
-//        }
-//        result.statsDuration = (System.currentTimeMillis() - t0);
-//        return JsonUtils.toJson(result, callback);
-    //}
-
     @RequestMapping(value = "/v2/thumbnail-by-url.json", method = RequestMethod.GET)
     public ResponseEntity<byte[]> thumbnailByUrl(
             @RequestParam(value = "uri", required = false) String url,
             @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
             HttpServletResponse response) throws IOException {
+
+        // 2017-05-12 Timing debug statements added as part of ticket #613.
+        // Can be removed when it's confirmed that timing is improved
+        long startTime = 0;
+        if (LOG.isDebugEnabled()) { startTime = System.nanoTime(); }
+
         controllerUtils.addResponseHeaders(response);
-        url = (url == null ? "": url);
         final HttpHeaders headers = new HttpHeaders();
         final String mediaFileId = computeResourceUrl(url, size);
-        final MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, true);
+        byte[] mediaContent = mediaStorageService.retrieveContent(mediaFileId);
 
-        byte[] mediaResponse = null;
-        if (mediaFile != null) {
-            mediaResponse = mediaFile.getContent();
+        if (mediaContent == null || mediaContent.length == 0) {
+            // All default not found thumbnails are PNG.
+            headers.setContentType(MediaType.IMAGE_PNG);
+            mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
+        } else {
             // All stored thumbnails are JPEG.
             headers.setContentType(MediaType.IMAGE_JPEG);
-        } else {
-            // commented out below two lines to resolve thumbnail issue when moving to Pivotal
-            // When the move is complete, the below two lines should by uncommented again
-//            response.setStatus(302);
-//            response.sendRedirect("http://legacy.europeanastatic.eu/api/image?size=w200&type=" + type + "&uri=" + url);
-            // Uncommented the below two lines
-            // When the move is complete, the below two lines should by commented out again
-            headers.setContentType(MediaType.IMAGE_PNG);
-            // All default not found thumbnails are GIF.
-            mediaResponse = getDefaultThumbnailForNotFoundResourceByType(type);
         }
 
-        return new ResponseEntity<>(mediaResponse, headers, HttpStatus.OK);
+        ResponseEntity result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
+        if (LOG.isDebugEnabled()) {
+            if (MediaType.IMAGE_JPEG.equals(headers.getContentType())) {
+                LOG.debug("Total thumbnail request time (from s3): " + (System.nanoTime() - startTime) / 1000);
+            } else {
+                LOG.debug("Total thumbnail request time (missing media): " + (System.nanoTime() - startTime) / 1000);
+            }
+        }
+        return result;
     }
 
-
-    private byte[] getImage(String path) { //, String size) {
-        byte[] response = null;
-
-        BufferedImage img;
-        try {
-            img = ImageIO.read(getClass().getResourceAsStream(path));
-            response = getByteArray(img, path.endsWith(".png") ? "png" : "gif");
+    /**
+     * Retrieve the default thumbnail image as a byte array
+     * @param path
+     * @return
+     */
+    private byte[] getImage(String path) {
+        byte[] result = null;
+        try (InputStream in = this.getClass().getResourceAsStream(path)){
+            result = IOUtils.toByteArray(in);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error("Error reading default thumbnail file", e);
         }
-//        int imgType = img.getType() == 0? BufferedImage.TYPE_INT_ARGB : img.getType();
-
-//        if (size.equals("180")) {
-//            try {
-//                final BufferedImage newImage = resizeImage(img, imgType, 130, 180);
-//                response = getByteArray(newImage);
-//            } catch (Exception e) {
-//                log.error(e.getMessage());
-//            }
-//        }
-
-        return response;
+        return result;
     }
 
-    private byte[] getByteArray(final BufferedImage bufferedImage, String formatName) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        try {
-            ImageIO.write(bufferedImage, formatName, baos);
-            baos.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return baos.toByteArray();
-    }
-
-    private BufferedImage resizeImage(BufferedImage originalImage, int type, int width, int height) {
-        BufferedImage resizedImage = new BufferedImage(width, height, type);
-        Graphics2D g = resizedImage.createGraphics();
-        g.drawImage(originalImage, 0, 0, width, height, null);
-        g.dispose();
-
-        return resizedImage;
-    }
 
     private String getMD5(String input) {
         final MessageDigest messageDigest;
@@ -183,20 +125,18 @@ public class ContentReuseFrameworkController {
             messageDigest.reset();
             messageDigest.update(input.getBytes());
             final byte[] resultByte = messageDigest.digest();
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for (byte aResultByte : resultByte) {
                 sb.append(Integer.toString((aResultByte & 0xff) + 0x100, 16).substring(1));
             }
             temp = sb.toString();
         } catch (NoSuchAlgorithmException e) {
+            LOG.error("Cannot find MD5 algorithm", e);
             temp = input;
         }
 
         return temp;
     }
-
-    // Uncommented again to resolve thumbnail issue when moving to Pivotal
-    // When the move is complete, the below two lines should by commented out again
 
     private byte[] getDefaultThumbnailForNotFoundResourceByType(final String type) {
         switch (StringUtils.upperCase(type)) {
@@ -213,10 +153,18 @@ public class ContentReuseFrameworkController {
             default:
                 return getImage("/images/EU_thumbnails_image.png");
         }
+
     }
 
+    /**
+     * Convert the provided url and size into a string representing the id of the media file.
+     * @param resourceUrl
+     * @param resourceSize
+     * @return
+     */
     private String computeResourceUrl(final String resourceUrl, final String resourceSize) {
-        return getMD5(resourceUrl) + "-" + (StringUtils.equalsIgnoreCase(resourceSize, "w400") ? "LARGE" : "MEDIUM");
+        String urlText = (resourceUrl == null ? "" : resourceUrl);
+        return getMD5(urlText) + "-" + (StringUtils.equalsIgnoreCase(resourceSize, "w200") ? "MEDIUM" : "LARGE");
 
     }
 }
