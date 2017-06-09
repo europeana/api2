@@ -4,12 +4,14 @@ import eu.europeana.api2.v2.model.VersionInfoResult;
 import eu.europeana.corelib.search.SearchService;
 import org.apache.log4j.Logger;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,7 +28,7 @@ import java.util.regex.Pattern;
  * from (jar) manifest or filename
  * Created by Patrick Ehlert on 24-3-17.
  */
-@Controller
+@RestController
 public class VersionController {
 
     private static final Logger LOG = Logger.getLogger(VersionController.class);
@@ -37,14 +39,14 @@ public class VersionController {
      *
      * @return ModelAndView that contains api and corelib version and build information
      */
-    @RequestMapping(value = {"version", "/v2/version"}, method = {RequestMethod.GET}, produces = MediaType.TEXT_HTML_VALUE)
-    public ModelAndView getVersion() {
+    @RequestMapping(value = {"version", "/v2/version"}, method = {RequestMethod.GET})
+    public VersionInfoResult getVersion() {
         VersionInfoResult result = new VersionInfoResult();
         try {
             result.setApiBuildInfo(getVersion(VersionInfoResult.class) + " " + getCreationDate(VersionInfoResult.class));
             result.setCorelibBuildInfo(getVersion(SearchService.class) + " " + getCreationDate(SearchService.class));
-        } catch (Exception e) {
-            LOG.warn("Unable to retrieve api or corelib build information", e);
+        } catch (IOException | URISyntaxException e) {
+            LOG.warn("Error retrieving api or corelib build information", e);
         }
 
         // get more accurate build information from api build.txt file (if we can)
@@ -57,14 +59,14 @@ public class VersionController {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     sb.append(line);
-                    sb.append("\n");
+                    sb.append(' ');
                 }
                 result.setApiBuildInfo(sb.toString());
             } catch (IOException e) {
                 LOG.error("Error reading API2 build.txt file", e);
             }
         }
-        return new ModelAndView("version", "versionInfo", result);
+        return result;
     }
 
     private String getVersion(Class clazz) {
@@ -87,10 +89,8 @@ public class VersionController {
         ZoneId timezone = ZoneId.of("CET");
         LocalDateTime fileTime = LocalDateTime.ofInstant(attr.creationTime().toInstant(), timezone);
         StringBuilder timeString = new StringBuilder(fileTime.toLocalDate().toString());
-        timeString.append(" ");
-        timeString.append(fileTime.toLocalTime().toString());
-        timeString.append(" ");
-        timeString.append(timezone.getId());
+        timeString.append(' ').append(fileTime.toLocalTime())
+                  .append(' ').append(timezone.getId());
         return timeString.toString();
     }
 
