@@ -31,8 +31,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.WebRequest;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +72,7 @@ public class ContentReuseFrameworkController {
             @RequestParam(value = "uri", required = false) String url,
             @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
-            HttpServletResponse response) throws IOException {
+            HttpServletResponse response, WebRequest webRequest) throws IOException {
 
         // 2017-05-12 Timing debug statements added as part of ticket #613.
         // Can be removed when it's confirmed that timing is improved
@@ -79,18 +82,44 @@ public class ContentReuseFrameworkController {
         controllerUtils.addResponseHeaders(response);
         final HttpHeaders headers = new HttpHeaders();
         final String mediaFileId = computeResourceUrl(url, size);
-        byte[] mediaContent = mediaStorageService.retrieveContent(mediaFileId);
 
-        if (mediaContent == null || mediaContent.length == 0) {
-            // All default not found thumbnails are PNG.
+        ResponseEntity result;
+
+        // 2017-06-13 as part of ticket 638 we retrieve the entire mediafile and put the eTag and lastModified in our response
+        // However we need to see if this will really have a positive effect on the load (see also ticket #659)
+
+        // retrieve only metadata to check lastModified
+        MediaFile mediaMetaData = mediaStorageService.retrieve(mediaFileId, false);
+        byte[] mediaContent;
+        if (mediaMetaData == null) {
             headers.setContentType(MediaType.IMAGE_PNG);
             mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
+            result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
         } else {
+            // this check automatically sets an ETag and last-Modified in our response header and returns a 304
+            // (but only when clients include the If_Modified_Since header in their request)
+            if (webRequest.checkNotModified(mediaMetaData.getContentMd5(), mediaMetaData.getCreatedAt().getMillis())) {
+                LOG.debug("Thumbnail: returning 304 - Not modified");
+                result = null;
+            }
+
+            // retrieve actual content
+            mediaContent = mediaStorageService.retrieveContent(mediaFileId);
             // All stored thumbnails are JPEG.
             headers.setContentType(MediaType.IMAGE_JPEG);
+            result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
         }
 
-        ResponseEntity result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
+//        byte[] mediaContent = mediaStorageService.retrieveContent(mediaFileId);
+//        if (mediaContent == null || mediaContent.length == 0) {
+//            // All default not found thumbnails are PNG.
+//            headers.setContentType(MediaType.IMAGE_PNG);
+//            mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
+//        } else {
+//            // All stored thumbnails are JPEG.
+//            headers.setContentType(MediaType.IMAGE_JPEG);
+//        }
+
         if (LOG.isDebugEnabled()) {
             if (MediaType.IMAGE_JPEG.equals(headers.getContentType())) {
                 LOG.debug("Total thumbnail request time (from s3): " + (System.nanoTime() - startTime) / 1000);
