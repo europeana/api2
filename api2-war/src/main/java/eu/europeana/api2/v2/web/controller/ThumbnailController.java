@@ -23,19 +23,17 @@ import eu.europeana.corelib.web.service.MediaStorageService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,23 +44,26 @@ import java.security.NoSuchAlgorithmException;
  * Retrieves image thumbnails.
  * The thumbnail API doesn't require any form of authentication, providing an API key is optional.
  */
-@Controller
-public class ContentReuseFrameworkController {
+@RestController
+public class ThumbnailController {
 
-    private static final Logger LOG = Logger.getLogger(ContentReuseFrameworkController.class);
+    private static final Logger LOG = Logger.getLogger(ThumbnailController.class);
 
-    @Resource
     private MediaStorageService mediaStorageService;
 
-    @Resource
-    private ControllerUtils controllerUtils;
+    @Autowired
+    private ThumbnailController(MediaStorageService mediaStorageService) {
+        this.mediaStorageService = mediaStorageService;
+    }
 
     /**
      * Retrieves image thumbnails.
      * @param url optional, the URL of the media resource of which a thumbnail should be returned. Note that the URL should be encoded.
      *            When no url is provided a default thumbnail will be returned
      * @param size optional, the size of the thumbnail, can either be w200 (width 200) or w400 (width 400).
-     * @param type optional, type of the default thumbnail (media image) in case the thumbnail does not exists or no url is provided, can be: IMAGE, SOUND, VIDEO, TEXT or 3D.
+     * @param type optional, type of the default thumbnail (media image) in case the thumbnail does not exists or no url is provided,
+     *             can be: IMAGE, SOUND, VIDEO, TEXT or 3D.
+     * @param webRequest
      * @param response
      * @return
      * @throws IOException
@@ -72,14 +73,14 @@ public class ContentReuseFrameworkController {
             @RequestParam(value = "uri", required = false) String url,
             @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
-            HttpServletResponse response, WebRequest webRequest) throws IOException {
+            WebRequest webRequest, HttpServletResponse response) throws IOException {
 
         // 2017-05-12 Timing debug statements added as part of ticket #613.
         // Can be removed when it's confirmed that timing is improved
         long startTime = 0;
         if (LOG.isDebugEnabled()) { startTime = System.nanoTime(); }
 
-        controllerUtils.addResponseHeaders(response);
+        ControllerUtils.addResponseHeaders(response);
         final HttpHeaders headers = new HttpHeaders();
         final String mediaFileId = computeResourceUrl(url, size);
 
@@ -100,7 +101,6 @@ public class ContentReuseFrameworkController {
             // (but only when clients include the If_Modified_Since header in their request)
             if (webRequest.checkNotModified(mediaMetaData.getContentMd5(), mediaMetaData.getCreatedAt().getMillis())) {
                 LOG.debug("Thumbnail: returning 304 - Not modified");
-                result = null;
             }
 
             // retrieve actual content
@@ -194,6 +194,5 @@ public class ContentReuseFrameworkController {
     private String computeResourceUrl(final String resourceUrl, final String resourceSize) {
         String urlText = (resourceUrl == null ? "" : resourceUrl);
         return getMD5(urlText) + "-" + (StringUtils.equalsIgnoreCase(resourceSize, "w200") ? "MEDIUM" : "LARGE");
-
     }
 }

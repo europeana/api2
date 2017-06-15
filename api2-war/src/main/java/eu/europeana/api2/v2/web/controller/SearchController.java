@@ -37,6 +37,7 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripImage;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.FacetParameterUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
@@ -113,7 +114,7 @@ public class SearchController {
     private EuropeanaUrlService urlService;
 
     @Resource
-    private ControllerUtils controllerUtils;
+    private ApiKeyUtils apiKeyUtils;
 
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
@@ -174,7 +175,7 @@ public class SearchController {
         List<String> imageColourPaletteRefinements = new ArrayList<>(); //Note: ColourPalette is a parameter; imageColourPaletteRefinements are facets
 
         try {
-            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
+            limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());
             return JsonUtils.toJson(new ApiError(e), callback);
@@ -336,7 +337,7 @@ public class SearchController {
         String[] solrFacets = (String[]) ArrayUtils.addAll(separatedFacets.get("solrfacets"), separatedFacets.get("customfacets"));
         String[] technicalFacets = separatedFacets.get("technicalfacets");
 
-		controllerUtils.addResponseHeaders(response);
+		ControllerUtils.addResponseHeaders(response);
 		rows = Math.min(rows, configuration.getApiRowLimit());
 
 		Map<String, String> valueReplacements = new HashMap<>();
@@ -438,7 +439,7 @@ public class SearchController {
             @RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletResponse response) {
-        controllerUtils.addResponseHeaders(response);
+        ControllerUtils.addResponseHeaders(response);
         if (log.isInfoEnabled()) log.info("phrases: " + phrases);
         Suggestions apiResponse = new Suggestions(null);
         try {
@@ -643,7 +644,7 @@ public class SearchController {
 			@RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
 			@RequestParam(value = "language", required = false) String reqLanguage,
 			HttpServletResponse response) {
-		controllerUtils.addResponseHeaders(response);
+		ControllerUtils.addResponseHeaders(response);
 
 		FieldTripResponse rss = new FieldTripResponse();
 		FieldTripChannel channel = rss.channel;
