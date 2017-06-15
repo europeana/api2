@@ -24,6 +24,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -84,30 +85,28 @@ public class ThumbnailController {
         final HttpHeaders headers = new HttpHeaders();
         final String mediaFileId = computeResourceUrl(url, size);
 
-        ResponseEntity result;
+        ResponseEntity result = null;
 
         // 2017-06-13 as part of ticket 638 we retrieve the entire mediafile and put the eTag and lastModified in our response
         // However we need to see if this will really have a positive effect on the load (see also ticket #659)
-
-        // retrieve only metadata to check lastModified
-        MediaFile mediaMetaData = mediaStorageService.retrieve(mediaFileId, false);
+        
+        MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, true);
         byte[] mediaContent;
-        if (mediaMetaData == null) {
+        if (mediaFile == null) {
             headers.setContentType(MediaType.IMAGE_PNG);
             mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
             result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
         } else {
             // this check automatically sets an ETag and last-Modified in our response header and returns a 304
             // (but only when clients include the If_Modified_Since header in their request)
-            if (webRequest.checkNotModified(mediaMetaData.getContentMd5(), mediaMetaData.getCreatedAt().getMillis())) {
-                LOG.debug("Thumbnail: returning 304 - Not modified");
+            if (webRequest.checkNotModified(mediaFile.getContentMd5(), mediaFile.getCreatedAt().getMillis())) {
+                // no need to do anything, just return result = null
+            } else {
+                // All stored thumbnails are JPEG.
+                headers.setContentType(MediaType.IMAGE_JPEG);
+                mediaContent = mediaFile.getContent();
+                result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
             }
-
-            // retrieve actual content
-            mediaContent = mediaStorageService.retrieveContent(mediaFileId);
-            // All stored thumbnails are JPEG.
-            headers.setContentType(MediaType.IMAGE_JPEG);
-            result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
         }
 
 //        byte[] mediaContent = mediaStorageService.retrieveContent(mediaFileId);
@@ -121,10 +120,15 @@ public class ThumbnailController {
 //        }
 
         if (LOG.isDebugEnabled()) {
-            if (MediaType.IMAGE_JPEG.equals(headers.getContentType())) {
-                LOG.debug("Total thumbnail request time (from s3): " + (System.nanoTime() - startTime) / 1000);
+            Long duration = (System.nanoTime() - startTime) / 1000;
+            if (MediaType.IMAGE_PNG.equals(headers.getContentType())) {
+                LOG.debug("Total thumbnail request time (missing media): " +duration);
             } else {
-                LOG.debug("Total thumbnail request time (missing media): " + (System.nanoTime() - startTime) / 1000);
+                if (result == null) {
+                    LOG.debug("Total thumbnail request time (from s3 + return 304): " +duration);
+                } else {
+                    LOG.debug("Total thumbnail request time (from s3 + return 200): " + duration);
+                }
             }
         }
         return result;
@@ -167,6 +171,7 @@ public class ThumbnailController {
         return temp;
     }
 
+    //@Cacheable
     private byte[] getDefaultThumbnailForNotFoundResourceByType(final String type) {
         switch (StringUtils.upperCase(type)) {
             case "IMAGE":
