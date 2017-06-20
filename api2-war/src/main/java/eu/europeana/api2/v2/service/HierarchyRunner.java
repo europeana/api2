@@ -22,6 +22,7 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.HierarchicalResult;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.neo4j.exception.Neo4JException;
@@ -61,7 +62,6 @@ public class HierarchyRunner {
     private HttpServletRequest request;
     private HttpServletResponse response;
     private Logger log;
-    private ControllerUtils controllerUtils;
     private SearchService searchService;
 
     @Async
@@ -69,7 +69,7 @@ public class HierarchyRunner {
                                      String rdfAbout, String profile,
                                      String wskey, int limit, int offset, String callback,
                                      HttpServletRequest request, HttpServletResponse response,
-                                     Logger log, ControllerUtils controllerUtils, SearchService searchService) throws Neo4JException {
+                                     Logger log, ApiKeyUtils apiKeyUtils, SearchService searchService) throws Neo4JException {
         this.recordType = recordType;
         this.rdfAbout = rdfAbout;
         this.profile = profile;
@@ -80,12 +80,11 @@ public class HierarchyRunner {
         this.request = request;
         this.response = response;
         this.log = log;
-        this.controllerUtils = controllerUtils;
         this.searchService = searchService;
         log.info("Running thread for " + rdfAbout);
 
         long t0 = System.currentTimeMillis();
-        controllerUtils.addResponseHeaders(response);
+        ControllerUtils.addResponseHeaders(response);
 
         limit = Math.min(limit, MAX_LIMIT);
 
@@ -93,7 +92,7 @@ public class HierarchyRunner {
         LimitResponse limitResponse;
 
         try {
-            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+            limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
                     recordType, profile);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());

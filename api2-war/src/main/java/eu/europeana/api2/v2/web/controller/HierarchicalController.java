@@ -20,13 +20,12 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.service.HierarchyRunner;
-import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.neo4j.exception.Neo4JException;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.exception.EmailServiceException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
-import eu.europeana.corelib.web.exception.ProblemResponseAction;
 import eu.europeana.corelib.web.service.EmailService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
@@ -64,7 +63,7 @@ public class HierarchicalController {
     private SearchService searchService;
 
     @Resource
-    private ControllerUtils controllerUtils;
+    private ApiKeyUtils apiKeyUtils;
 
     @Resource(name = "corelib_web_emailService")
     private EmailService emailService;
@@ -190,7 +189,7 @@ public class HierarchicalController {
         HierarchyRunner mrBean = hierarchyRunnerBean();
         try {
             Future<ModelAndView> result = mrBean.call(recordType, rdfAbout, profile, wskey, limit,
-                    offset, callback, request, response, log, controllerUtils, searchService);
+                    offset, callback, request, response, log, apiKeyUtils, searchService);
             return result.get();
         } catch (Neo4JException e) {
             log.error("Neo4JException thrown: " + e.getMessage());

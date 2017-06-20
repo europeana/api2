@@ -37,6 +37,7 @@ import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
@@ -65,7 +66,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -104,7 +104,7 @@ public class ObjectController {
     private EuropeanaUrlService urlService;
 
     @Resource
-    private ControllerUtils controllerUtils;
+    private ApiKeyUtils apiKeyUtils;
 
     /**
      * Handles record.json GET requests. Each request should consists of at least a collectionId, a recordId and an api-key (wskey)
@@ -130,13 +130,13 @@ public class ObjectController {
             HttpServletRequest request,
             HttpServletResponse response) throws MongoRuntimeException {
         if (log.isDebugEnabled()) { log.debug("Retrieving record with id "+collectionId+"/"+recordId); }
-        controllerUtils.addResponseHeaders(response);
+        ControllerUtils.addResponseHeaders(response);
 
         LimitResponse limitResponse;
 
         long t9 = System.currentTimeMillis();
         try {
-            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+            limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
                     RecordType.OBJECT, profile);
             if (log.isDebugEnabled()) { log.debug("Apikey checklimit took: " + (System.currentTimeMillis() - t9) + " milliseconds"); }
         } catch (ApiLimitException e) {
@@ -265,7 +265,7 @@ public class ObjectController {
         response.setCharacterEncoding("UTF-8");
 
         try {
-            controllerUtils.checkLimit(wskey,
+            apiKeyUtils.checkLimit(wskey,
                     request.getRequestURL().toString(), RecordType.OBJECT_JSONLD, null);
         } catch (ApiLimitException e) {
             response.setStatus(e.getHttpStatus());

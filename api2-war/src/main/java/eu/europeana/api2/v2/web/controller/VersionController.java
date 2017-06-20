@@ -3,7 +3,6 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.v2.model.VersionInfoResult;
 import eu.europeana.corelib.search.SearchService;
 import org.apache.log4j.Logger;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;

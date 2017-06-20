@@ -5,13 +5,15 @@ import com.mongodb.MongoClient;
 import eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler;
 import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.service.SugarCRMImporter;
-import eu.europeana.api2.v2.utils.ControllerUtils;
-import eu.europeana.corelib.web.context.VcapPropertyLoaderListener;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -38,33 +40,59 @@ public class AppConfig {
 
     @Value("${cachemongodb.host}")
     private String cacheHost;
-
     @Value("${cachemongodb.port}")
     private int cachePort;
-    @Value("${s3.key}")
-    String key;
-    @Value("${s3.secret}")
-    String secret;
-    @Value("${s3.region}")
-    String region;
-    @Value("${s3.bucket}")
-    String bucket;
 
+    @Value("${s3.key}")
+    private String key;
+    @Value("${s3.secret}")
+    private String secret;
+    @Value("${s3.region}")
+    private String region;
+    @Value("${s3.bucket}")
+    private String bucket;
+
+    /**
+     * Read and setup europeana.properties files.
+     * The main properties are in the europeana.properties file, but since this is committed on GitHub this must not
+     * hold any usernames and passwords. These can be placed in the europeana.user.properties file which is never
+     * committed
+     * @return PropertSourcePlaceholderConfigurere bean
+     */
     @Bean
     public static PropertySourcesPlaceholderConfigurer properties() {
         PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-        propertySourcesPlaceholderConfigurer.setLocation(new ClassPathResource("europeana.properties"));
+        propertySourcesPlaceholderConfigurer.setIgnoreResourceNotFound(true);
+        propertySourcesPlaceholderConfigurer.setLocalOverride(true);
+        propertySourcesPlaceholderConfigurer.setLocations(new ClassPathResource("europeana.properties"), new ClassPathResource("europeana.user.properties"));
         return propertySourcesPlaceholderConfigurer;
     }
 
+    /**
+     * Setup utility for checking api key limits (connects to the PostgreSql database)
+     * @return ApiKeyUtils bean
+     */
     @Bean
-    public ControllerUtils controllerUtils() {
-        return new ControllerUtils();
+    public ApiKeyUtils apiKeyUtils() {
+        return new ApiKeyUtils();
     }
 
+    /**
+     * The SugarCRMPollingScheduler regularly invokes the SugarCRMImporter
+     * @return SugarCRMPollingScheduler bean
+     */
     @Bean
     public SugarCRMPollingScheduler sugarCRMPollingScheduler() {
         return new SugarCRMPollingScheduler();
+    }
+
+    /**
+     *  The SugarCRMIMporter connects to sugarCRM to check if data on providers or datasets is changed
+     *  @return  SugarCRMImporter bean
+     */
+    @Bean
+    public SugarCRMImporter sugarCRMImporter() {
+        return new SugarCRMImporter();
     }
 
     @Bean
@@ -72,18 +100,20 @@ public class AppConfig {
         return new SugarCRMCache();
     }
 
-    @Bean
-    public SugarCRMImporter sugarCRMImporter() {
-        return new SugarCRMImporter();
-    }
-
     @Bean(name = "api_db_mongo_cache")
-    public Mongo ApiDbMongoCache() throws UnknownHostException {
+    public Mongo apiDbMongoCache() throws UnknownHostException {
         LOG.info("Creating new MongoClient for SugarCRMCache");
         return new MongoClient(cacheHost, cachePort);
     }
+
+    /**
+     * The ObjectStorageClient allows access to our Storage Provider where thumbnails and sitemap files are stored
+     * At the moment we use Amazon S3
+     * @return ObjectStorageClient bean
+     */
     @Bean(name = "api_object_storage_client")
-    public ObjectStorageClient ObjectStorageClient(){
+    public ObjectStorageClient objectStorageClient(){
+        LOG.info("Creating new objectStorage client");
         return new S3ObjectStorageClient(key,secret,region,bucket);
     }
 }
