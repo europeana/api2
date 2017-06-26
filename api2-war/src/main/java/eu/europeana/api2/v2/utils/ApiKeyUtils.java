@@ -13,12 +13,12 @@ import org.springframework.http.HttpStatus;
 import javax.annotation.Resource;
 
 /**
- * Utility class for checking api-keys
+ * Utility class for checking API client keys
  * Created by patrick on 13-6-17.
  */
 public class ApiKeyUtils {
 
-    private Logger log = Logger.getLogger(ApiKeyUtils.class);
+    private static final Logger LOG = Logger.getLogger(ApiKeyUtils.class);
 
     @Resource
     private ApiKeyService apiService;
@@ -55,10 +55,15 @@ public class ApiKeyUtils {
             if (apiKey == null) {
                 throw new ApiLimitException(wskey, "Invalid API key", 0, HttpStatus.UNAUTHORIZED.value());
             }
-//       apiKey.getUsageLimit();
-            log.info("get apiKey: " + (System.currentTimeMillis() - t));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Get apiKey took " + (System.currentTimeMillis() - t) +" ms");
+            }
+
+            //       apiKey.getUsageLimit();
             requestNumber = 999;
-            log.info("setting default request number; (checklimit disabled): " + requestNumber);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Setting default request number; (checklimit disabled): " + requestNumber);
+            }
 
             // t = System.currentTimeMillis();
 //       requestNumber = apiService.checkReachedLimit(apiKey);
@@ -67,6 +72,7 @@ public class ApiKeyUtils {
             // apiLogService.logApiRequest(wskey, url, recordType, profile);
             // log.info("logApiRequest: " + (System.currentTimeMillis() - t));
         } catch (DatabaseException e) {
+            LOG.error("Error retrieving apikey", e);
             // apiLogService.logApiRequest(wskey, url, recordType, profile);
             throw new ApiLimitException(wskey, e.getMessage(), requestNumber, HttpStatus.UNAUTHORIZED.value());
             // } catch (LimitReachedException e) {
