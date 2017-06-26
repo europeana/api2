@@ -53,7 +53,7 @@ public class ApiKeyUtils {
             t = System.currentTimeMillis();
             apiKey = apiService.findByID(wskey);
             if (apiKey == null) {
-                throw new ApiLimitException(wskey, "Invalid API key", 0, HttpStatus.FORBIDDEN.value());
+                throw new ApiLimitException(wskey, "Invalid API key", 0, HttpStatus.UNAUTHORIZED.value());
             }
 //       apiKey.getUsageLimit();
             log.info("get apiKey: " + (System.currentTimeMillis() - t));
