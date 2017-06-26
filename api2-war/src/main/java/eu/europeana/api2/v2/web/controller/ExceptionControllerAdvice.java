@@ -22,15 +22,10 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import org.apache.log4j.Logger;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,36 +34,45 @@ import java.util.Map;
 
 
 /**
- * This class replaces the default Spring handling of missing required parameters and functions as a
- * global uncaught exception handler
+ * This class functions as a global uncaught exception handler
  *
  * Created by luthien on 17/08/15.
  */
 
 @ControllerAdvice
-public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
+public class ExceptionControllerAdvice {
 
     private static final Logger LOG = Logger.getLogger(ExceptionControllerAdvice.class);
 
     /**
-     * Handles apikey parameter missing problems
-     * @param ex
-     * @param headers
-     * @param status
+     * Handles all required parameter missing problems (e.g. APIkey missing)
      * @param request
+     * @param response
+     * @param ex
      * @return
      */
-    @Override
-    protected ResponseEntity<Object> handleMissingServletRequestParameter(
-            MissingServletRequestParameterException ex, HttpHeaders headers,
-            HttpStatus status, WebRequest request) {
-        ModelAndView mav;
-//        if (ex.getParameterName().equalsIgnoreCase("wskey")) {
-            mav = JsonUtils.toJson(new ApiError("", "No API key provided"));
-//        } else {
-//            mav = JsonUtils.toJson(new ApiError("", "Required parameter '" + ex.getParameterName() + "' missing"));
-//        }
-        return new ResponseEntity<>(mav.getModel().get("json"), headers, HttpStatus.FORBIDDEN);
+    @ExceptionHandler(value = {MissingServletRequestParameterException.class})
+    public ModelAndView missingParameterErrorHandler (HttpServletRequest request, HttpServletResponse response, MissingServletRequestParameterException ex) {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        String requestFormat = ControllerUtils.getRequestFormat(request);
+
+        String errorMsg;
+        if ("wskey".equalsIgnoreCase(ex.getParameterName())) {
+            errorMsg = "No API key provided";
+        } else {
+            errorMsg = "Required parameter '" + ex.getParameterName() + "' missing";
+        }
+
+        ModelAndView result;
+        if ("RDF".equalsIgnoreCase(requestFormat)) {
+            result = generateRdfError(errorMsg);
+        } else if ("SRW".equalsIgnoreCase(requestFormat)) {
+            // No specification available how to provide error details in SRW format, this is a temp solution
+            return null;
+        } else {
+            result = JsonUtils.toJson(new ApiError("", errorMsg));
+        }
+        return result;
     }
 
     /**
@@ -79,14 +83,12 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
      * @return
      */
     @ExceptionHandler(value = {ApiLimitException.class})
-    public ModelAndView defaultErrorHandler(HttpServletRequest request, HttpServletResponse response, ApiLimitException e)
+    public ModelAndView apiLimitErrorHandler(HttpServletRequest request, HttpServletResponse response, ApiLimitException e)
             throws ApiLimitException{
         response.setStatus(e.getHttpStatus());
         String requestFormat = ControllerUtils.getRequestFormat(request);
         if ("RDF".equalsIgnoreCase(requestFormat)) {
-            Map<String, Object> model = new HashMap<>();
-            model.put("error", "Unregistered API key");
-            return new ModelAndView("rdf", model);
+            return generateRdfError("Unregistered API key");
         } else if ("SRW".equalsIgnoreCase(requestFormat)) {
             // No specification available how to provide error details in SRW format, this is a temp solution
             return null;
@@ -111,9 +113,7 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
         String requestFormat = ControllerUtils.getRequestFormat(request);
 
         if ("RDF".equalsIgnoreCase(requestFormat)) {
-            Map<String, Object> model = new HashMap<>();
-            model.put("error", "Internal server error");
-            return new ModelAndView("rdf", model);
+            return generateRdfError("Internal server error");
         } else if ("SRW".equalsIgnoreCase(requestFormat)) {
             // No specification available how to provide error details in SRW format, this is a temp solution
             throw e;
@@ -121,6 +121,12 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
         String wskey = request.getParameter("wskey");
         String callback = request.getParameter("callback");
         return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": "+ e.getMessage()), callback);
+    }
+
+    private ModelAndView generateRdfError(String errorMessage) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("error", errorMessage);
+        return new ModelAndView("rdf", model);
     }
 
 }
