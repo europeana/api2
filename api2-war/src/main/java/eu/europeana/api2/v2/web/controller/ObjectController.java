@@ -62,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -108,7 +109,8 @@ public class ObjectController {
      * @param profile supported types are 'params' and 'similar'
      * @param wskey
      * @param callback
-     * @param request
+     * @param webRequest
+     * @param servletRequest
      * @param response
      * @return
      * @throws ApiLimitException
@@ -122,8 +124,8 @@ public class ObjectController {
             @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
-            HttpServletRequest request, HttpServletResponse response) throws ApiLimitException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, profile, callback, request);
+            WebRequest webRequest, HttpServletRequest servletRequest, HttpServletResponse response) throws ApiLimitException {
+        RequestData data = new RequestData(collectionId, recordId, wskey, profile, callback, webRequest, servletRequest);
         try {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT, data, response);
         } catch (EuropeanaException e) {
@@ -154,7 +156,8 @@ public class ObjectController {
      * @param wskey
      * @param format
      * @param callback
-     * @param request
+     * @param webRequest
+     * @param servletRequest
      * @param response
      * @return
      * @throws ApiLimitException
@@ -168,8 +171,8 @@ public class ObjectController {
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
             @RequestParam(value = "callback", required = false) String callback,
-            HttpServletRequest request, HttpServletResponse response) throws ApiLimitException {
-        return recordJSONLD(collectionId, recordId, wskey, format, callback, request, response);
+            WebRequest webRequest, HttpServletRequest servletRequest, HttpServletResponse response) throws ApiLimitException {
+        return recordJSONLD(collectionId, recordId, wskey, format, callback, webRequest, servletRequest, response);
     }
 
     /***
@@ -179,7 +182,8 @@ public class ObjectController {
      * @param wskey
      * @param format supported types are 'compacted', 'flattened' and 'normalized'
      * @param callback
-     * @param request
+     * @param webRequest
+     * @param servletRequest
      * @param response
      * @return
      * @throws ApiLimitException
@@ -193,9 +197,9 @@ public class ObjectController {
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
             @RequestParam(value = "callback", required = false) String callback,
-            HttpServletRequest request, HttpServletResponse response) throws ApiLimitException {
+            WebRequest webRequest, HttpServletRequest servletRequest, HttpServletResponse response) throws ApiLimitException {
 
-        RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, request);
+        RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
         try {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
         } catch (EuropeanaException e) {
@@ -211,7 +215,8 @@ public class ObjectController {
      * @param collectionId
      * @param recordId
      * @param wskey
-     * @param request
+     * @param webRequest
+     * @param servletRequest
      * @param response
      * @return
      * @throws ApiLimitException
@@ -221,8 +226,8 @@ public class ObjectController {
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "wskey", required = true) String wskey,
-                                  HttpServletRequest request, HttpServletResponse response) throws ApiLimitException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, request);
+                                  WebRequest webRequest, HttpServletRequest servletRequest, HttpServletResponse response) throws ApiLimitException {
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
         try {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
         } catch (EuropeanaException e) {
@@ -238,7 +243,8 @@ public class ObjectController {
      * @param collectionId
      * @param recordId
      * @param wskey
-     * @param request
+     * @param webRequest
+     * @param servletRequest
      * @param response
      * @return
      * @throws Exception
@@ -251,9 +257,9 @@ public class ObjectController {
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "wskey", required = false) String wskey,
-            HttpServletRequest request, HttpServletResponse response)
+            WebRequest webRequest, HttpServletRequest servletRequest, HttpServletResponse response)
             throws ApiLimitException, EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, request);
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
         // output can be an SrwResponse (status 200)
         Object out = handleRecordRequest(RecordType.OBJECT_SRW, data, response);
         if (out instanceof SrwResponse) {
@@ -276,7 +282,7 @@ public class ObjectController {
         }
 
         // check apikey and add default headers
-        data.apikeyCheckResponse = apiKeyUtils.checkLimit(data.wskey, data.request.getRequestURL().toString(), recordType, data.profile);
+        data.apikeyCheckResponse = apiKeyUtils.checkLimit(data.wskey, data.servletRequest.getRequestURL().toString(), recordType, data.profile);
         ControllerUtils.addResponseHeaders(response);
 
         // retrieve record data
@@ -300,10 +306,16 @@ public class ObjectController {
                 }
             } else {
                 response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-                response.setHeader("Location", generateRedirectUrl(data.request, data.europeanaObjectId, newId));
+                response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, newId));
                 result = null;
             }
             return result;
+        }
+
+        // check modified
+        if (bean.getTimestampUpdated() != null && data.webRequest.checkNotModified(bean.getTimestampUpdated().getTime())) {
+            // checkNotModified method will set LastModified header automatically and will return 304 - Not modified if necessary
+            // (but only when clients include the If_Modified_Since header in their request)
         }
 
         // generate output depending on type of record
@@ -317,7 +329,7 @@ public class ObjectController {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Done generating record output in "+(System.nanoTime() - startTime)+" ms");
+            LOG.debug("Done generating record output in "+(System.currentTimeMillis()- startTime)+" ms");
         }
         return output;
     }
@@ -326,7 +338,7 @@ public class ObjectController {
         ObjectResult objectResult = new ObjectResult(data.wskey, data.apikeyCheckResponse.getRequestNumber());
 
         if (StringUtils.containsIgnoreCase(data.profile, "params")) {
-            objectResult.addParams(RequestUtils.getParameterMap(data.request), "wskey");
+            objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
         }
 
@@ -373,7 +385,11 @@ public class ObjectController {
         Record record = new Record();
         record.recordData.dc = doc;
         srwResponse.records.record.add(record);
-        createXml(srwResponse);
+        try {
+            createXml(srwResponse);
+        } catch(JAXBException e) {
+            LOG.error("Error generating xml", e);
+        }
         return srwResponse;
     }
 
@@ -390,7 +406,7 @@ public class ObjectController {
         long startTime = System.currentTimeMillis();
         String newId = searchService.resolveId(europeanaId);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("No record found. SearchService resolveID took " + (System.currentTimeMillis() - startTime) + " ms");
+            LOG.debug("SearchService find newId took " + (System.currentTimeMillis() - startTime) + " ms");
         }
         return newId;
     }
@@ -463,18 +479,11 @@ public class ObjectController {
         return null;
     }
 
-    private void createXml(SrwResponse response) {
-        try {
-            final JAXBContext context = JAXBContext.newInstance(SrwResponse.class);
-            final Marshaller marshaller = context.createMarshaller();
-            final StringWriter stringWriter = new StringWriter();
-            marshaller.marshal(response, stringWriter);
-            if (LOG.isInfoEnabled()) {
-                LOG.info("result: " + stringWriter.toString());
-            }
-        } catch (JAXBException e) {
-            LOG.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
-        }
+    private void createXml(SrwResponse response) throws JAXBException {
+        final JAXBContext context = JAXBContext.newInstance(SrwResponse.class);
+        final Marshaller marshaller = context.createMarshaller();
+        final StringWriter stringWriter = new StringWriter();
+        marshaller.marshal(response, stringWriter);
     }
 
     /**
@@ -486,14 +495,17 @@ public class ObjectController {
         protected String wskey;
         protected LimitResponse apikeyCheckResponse;
         protected String callback;
-        protected HttpServletRequest request;
+        protected WebRequest webRequest;
+        protected HttpServletRequest servletRequest;
 
-        public RequestData(String collectionId, String recordId, String wskey, String profile, String callback, HttpServletRequest request) {
+        public RequestData(String collectionId, String recordId, String wskey, String profile, String callback,
+                           WebRequest webRequest, HttpServletRequest servletRequest) {
             this.europeanaObjectId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
             this.wskey = wskey;
             this.profile = profile;
             this.callback = callback;
-            this.request = request;
+            this.webRequest = webRequest;
+            this.servletRequest = servletRequest;
         }
     }
 }
