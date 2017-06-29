@@ -381,7 +381,7 @@ public class ObjectController {
 
     private SrwResponse generateSrw(FullBean bean) {
         SrwResponse srwResponse = new SrwResponse();
-        FullDoc doc = new FullDoc(bean);
+        FullDoc doc = new FullDoc(bean); // TODO this will generate date ParseExceptions, need to investigate
         Record record = new Record();
         record.recordData.dc = doc;
         srwResponse.records.record.add(record);

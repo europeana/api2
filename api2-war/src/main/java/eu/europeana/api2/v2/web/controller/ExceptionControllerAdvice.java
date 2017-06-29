@@ -53,7 +53,7 @@ public class ExceptionControllerAdvice {
      */
     @ExceptionHandler(value = {MissingServletRequestParameterException.class})
     public ModelAndView missingParameterErrorHandler (HttpServletRequest request, HttpServletResponse response, MissingServletRequestParameterException ex) {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         String requestFormat = ControllerUtils.getRequestFormat(request);
 
         String errorMsg;

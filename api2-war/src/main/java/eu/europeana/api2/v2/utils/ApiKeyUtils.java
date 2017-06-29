@@ -47,7 +47,7 @@ public class ApiKeyUtils {
         long requestNumber = 0;
         long t;
         if (StringUtils.isBlank(wskey)) {
-            throw new ApiLimitException(wskey, "No API key provided", 0, HttpStatus.FORBIDDEN.value());
+            throw new ApiLimitException(wskey, "No API key provided", 0, HttpStatus.UNAUTHORIZED.value());
         }
         try {
             t = System.currentTimeMillis();
