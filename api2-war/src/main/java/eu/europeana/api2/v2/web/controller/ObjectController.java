@@ -469,9 +469,9 @@ public class ObjectController {
         try {
             long startTime = System.currentTimeMillis();
             List<BriefBean> similarItems = searchService.findMoreLikeThis(europeanaId);
-           // if (LOG.isDebugEnabled()) {
-                LOG.error("SearchService find similar items took " + (System.currentTimeMillis() - startTime) + " ms");
-            //}
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("SearchService find similar items took " + (System.currentTimeMillis() - startTime) + " ms");
+            }
             for (BriefBean b : similarItems) {
                 String similarItemsProfile = "minimal";
                 BriefView view = new BriefView(b, similarItemsProfile, wskey);
