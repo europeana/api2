@@ -291,7 +291,16 @@ public class ObjectController {
             ModelAndView result;
             // record not found, check if we can redirect
             String newId = findNewId(data.europeanaObjectId);
-            if (newId == null) {
+
+            // 2017-07-06 code PE: inserted as temp workaround until we resolve #662 (see also comment below)
+            if (newId != null) {
+                bean = retrieveRecord(newId);
+            }
+            if (bean == null) {
+                // -- end of insert
+
+
+                //if (newId == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 if (RecordType.OBJECT_RDF.equals(recordType)) {
                     Map<String, Object> model = new HashMap<>();
@@ -304,12 +313,16 @@ public class ObjectController {
                     result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: " + data.europeanaObjectId,
                             data.apikeyCheckResponse.getRequestNumber()), data.callback);
                 }
-            } else {
-                response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-                response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, newId));
-                result = null;
+                return result;
+                // 2017-07-06 PE: Code below was implemented as part of ticket #662. However as collections does not support his yet,
+                // activation of this functionality is postponed
+                //} else {
+                //  response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+                //  response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, newId));
+                //  result = null;
+             //}
             }
-            return result;
+            //return result;
         }
 
         // check modified
