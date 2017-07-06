@@ -158,10 +158,7 @@ public class SearchController {
         }
         queryString = queryString.trim();
         // #579 rights URL's don't match well to queries containing ":https*"
-        // 2017-06-26 PE: commented out these 3 lines below because it's not tested yet
-//        if (queryString != null) {
-//            queryString = queryString.replace(":https://", ":http://");
-//        }
+        queryString = queryString.replace(":https://", ":http://");
         if (log.isInfoEnabled()) {
             log.info("QUERY: |" + queryString + "|");
         }
