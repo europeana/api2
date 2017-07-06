@@ -92,6 +92,10 @@ import java.util.*;
 @SwaggerSelect
 public class ObjectController {
 
+    // default timeout value for hierarchical queries in milliseconds.
+    // And yes, this is an int value. Ask the Spring folks why it looks like it's a String.
+    private static final String DEFAULT_HIERARCHY_TIMEOUT = "4000";
+
     private Logger log = Logger.getLogger(ObjectController.class);
 
     @Resource
@@ -127,16 +131,13 @@ public class ObjectController {
             @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "4000") int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = DEFAULT_HIERARCHY_TIMEOUT) int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response) throws MongoRuntimeException {
         if (log.isDebugEnabled()) { log.debug("Retrieving record with id "+collectionId+"/"+recordId); }
         ControllerUtils.addResponseHeaders(response);
 
         LimitResponse limitResponse;
-        if (hierarchyTimeout >= 0) {
-            searchService.setNeo4jTimeoutMillis(hierarchyTimeout);
-        }
 
         long t9 = System.currentTimeMillis();
         try {
