@@ -17,39 +17,116 @@
 
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import eu.europeana.api2.v2.utils.ControllerUtils;
+import org.apache.log4j.Logger;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
- * This class replaces the default Spring handling of missing required parameters
- * adding an error message, the option to alter the HTTP status & returning JSON
+ * This class functions as a global uncaught exception handler
  *
  * Created by luthien on 17/08/15.
  */
 
 @ControllerAdvice
-public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
+public class ExceptionControllerAdvice {
 
-    @Override
-    protected ResponseEntity<Object> handleMissingServletRequestParameter(
-            MissingServletRequestParameterException ex, HttpHeaders headers,
-            HttpStatus status, WebRequest request) {
-        ModelAndView mav;
-//        if (ex.getParameterName().equalsIgnoreCase("wskey")) {
-            mav = JsonUtils.toJson(new ApiError("", "No API key provided"));
-//        } else {
-//            mav = JsonUtils.toJson(new ApiError("", "Required parameter '" + ex.getParameterName() + "' missing"));
+    private static final Logger LOG = Logger.getLogger(ExceptionControllerAdvice.class);
 
-//        }
-        return new ResponseEntity<>(mav.getModel().get("json"), headers, HttpStatus.FORBIDDEN);
+    /**
+     * Handles all required parameter missing problems (e.g. APIkey missing)
+     * @param request
+     * @param response
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(value = {MissingServletRequestParameterException.class})
+    public ModelAndView missingParameterErrorHandler (HttpServletRequest request, HttpServletResponse response, MissingServletRequestParameterException ex) {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        String requestFormat = ControllerUtils.getRequestFormat(request);
+
+        String errorMsg;
+        if ("wskey".equalsIgnoreCase(ex.getParameterName())) {
+            errorMsg = "No API key provided";
+        } else {
+            errorMsg = "Required parameter '" + ex.getParameterName() + "' missing";
+        }
+
+        ModelAndView result;
+        if ("RDF".equalsIgnoreCase(requestFormat)) {
+            result = generateRdfError(errorMsg);
+        } else if ("SRW".equalsIgnoreCase(requestFormat)) {
+            // No specification available how to provide error details in SRW format, this is a temp solution
+            return null;
+        } else {
+            result = JsonUtils.toJson(new ApiError("", errorMsg));
+        }
+        return result;
     }
+
+    /**
+     * Handles all ApiLimitExceptions
+     * @param request
+     * @param response
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(value = {ApiLimitException.class})
+    public ModelAndView apiLimitErrorHandler(HttpServletRequest request, HttpServletResponse response, ApiLimitException e)
+            throws ApiLimitException{
+        response.setStatus(e.getHttpStatus());
+        String requestFormat = ControllerUtils.getRequestFormat(request);
+        if ("RDF".equalsIgnoreCase(requestFormat)) {
+            return generateRdfError("Unregistered API key");
+        } else if ("SRW".equalsIgnoreCase(requestFormat)) {
+            // No specification available how to provide error details in SRW format, this is a temp solution
+            return null;
+        }
+        return JsonUtils.toJson(new ApiError(e), request.getParameter("callback"));
+    }
+
+    /**
+     * General error handler. This handler is used when there are no more specific handlers for the error in question.
+     * The drawback of using this is that we cannot supply the requestNumber in the error message
+     * @param request
+     * @param response
+     *
+     * @param e
+     * @return ModelAndView with error message
+     */
+    @ExceptionHandler(value = {Exception.class})
+    public ModelAndView defaultExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e)
+            throws Exception {
+        LOG.error("Caught exception:", e);
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        String requestFormat = ControllerUtils.getRequestFormat(request);
+
+        if ("RDF".equalsIgnoreCase(requestFormat)) {
+            return generateRdfError("Internal server error");
+        } else if ("SRW".equalsIgnoreCase(requestFormat)) {
+            // No specification available how to provide error details in SRW format, this is a temp solution
+            throw e;
+        }
+        String wskey = request.getParameter("wskey");
+        String callback = request.getParameter("callback");
+        return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": "+ e.getMessage()), callback);
+    }
+
+    private ModelAndView generateRdfError(String errorMessage) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("error", errorMessage);
+        return new ModelAndView("rdf", model);
+    }
+
 }
