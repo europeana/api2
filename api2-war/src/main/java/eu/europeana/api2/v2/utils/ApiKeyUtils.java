@@ -74,7 +74,9 @@ public class ApiKeyUtils {
         } catch (DatabaseException e) {
             LOG.error("Error retrieving apikey", e);
             // apiLogService.logApiRequest(wskey, url, recordType, profile);
-            throw new ApiLimitException(wskey, e.getMessage(), requestNumber, HttpStatus.UNAUTHORIZED.value());
+            ApiLimitException ex = new ApiLimitException(wskey, e.getMessage(), requestNumber, HttpStatus.UNAUTHORIZED.value());
+            ex.initCause(e);
+            throw ex;
             // } catch (LimitReachedException e) {
             // apiLogService.logApiRequest(wskey, url, RecordType.LIMIT, recordType.toString());
             // throw new ApiLimitException(wskey, apiCall, e.getMessage(), requestNumber, 429);
