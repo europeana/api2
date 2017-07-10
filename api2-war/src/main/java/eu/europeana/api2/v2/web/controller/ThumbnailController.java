@@ -79,7 +79,9 @@ public class ThumbnailController {
         // 2017-05-12 Timing debug statements added as part of ticket #613.
         // Can be removed when it's confirmed that timing is improved
         long startTime = 0;
-        if (LOG.isDebugEnabled()) { startTime = System.nanoTime(); }
+        if (LOG.isDebugEnabled()) {
+            startTime = System.nanoTime();
+        }
 
         ControllerUtils.addResponseHeaders(response);
         final HttpHeaders headers = new HttpHeaders();
@@ -90,7 +92,7 @@ public class ThumbnailController {
         // 2017-06-13 as part of ticket 638 we retrieve the entire mediafile and put the eTag and lastModified in our response
         // However we need to see if this will really have a positive effect on the load (see also ticket #659)
         
-        MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, true);
+        MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, Boolean.TRUE);
         byte[] mediaContent;
         if (mediaFile == null) {
             headers.setContentType(MediaType.IMAGE_PNG);

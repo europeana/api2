@@ -302,11 +302,11 @@ public class ObjectController {
 
                 //if (newId == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                if (RecordType.OBJECT_RDF.equals(recordType)) {
+                if (recordType == RecordType.OBJECT_RDF) {
                     Map<String, Object> model = new HashMap<>();
                     model.put("error", "Non-existing record identifier");
                     result = new ModelAndView("rdf", model);
-                } else if (RecordType.OBJECT_SRW.equals(recordType)) {
+                } else if (recordType == RecordType.OBJECT_SRW) {
                     // no official supported way to return xml error message yet
                     result = null;
                 } else {
@@ -452,14 +452,14 @@ public class ObjectController {
         StringBuilder url = new StringBuilder();
         url.append(scheme).append("://").append(serverName);
         if (serverPort != 80 && serverPort != 443) {
-            url.append(":").append(serverPort);
+            url.append(':').append(serverPort);
         }
         url.append(requestUri);
         if (pathInfo != null) {
             url.append(pathInfo);
         }
         if (queryString != null) {
-            url.append("?").append(queryString);
+            url.append('?').append(queryString);
         }
         return url.toString();
     }
@@ -487,7 +487,7 @@ public class ObjectController {
         try (InputStream in = this.getClass().getResourceAsStream("/jsonld/context.jsonld")) {
             return JSONUtils.fromInputStream(in);
         } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
+            LOG.error("Error reading context.jsonld",   e);
         }
         return null;
     }
