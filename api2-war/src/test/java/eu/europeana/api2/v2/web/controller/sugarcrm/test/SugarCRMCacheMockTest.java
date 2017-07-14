@@ -142,6 +142,5 @@ public class SugarCRMCacheMockTest extends AbstractSugarCRMCacheTest {
 				});
 
 		importerInstance.setSugarwsClient(sugarwsClient);
-		importerInstance.initLocal();
 	}
 }
