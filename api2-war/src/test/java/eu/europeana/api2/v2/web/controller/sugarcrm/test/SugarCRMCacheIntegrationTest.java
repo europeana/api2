@@ -99,6 +99,5 @@ public abstract class SugarCRMCacheIntegrationTest extends
 
 		importerInstance = new SugarCRMImporter();
 		importerInstance.setSugarwsClient(sugarwsClient);
-		importerInstance.initLocal();
 	}
 }
