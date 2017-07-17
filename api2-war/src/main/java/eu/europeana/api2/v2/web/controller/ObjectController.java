@@ -92,10 +92,6 @@ import java.util.*;
 @SwaggerSelect
 public class ObjectController {
 
-    // default timeout value for hierarchical queries in milliseconds.
-    // And yes, this is an int value. Ask the Spring folks why it looks like it's a String.
-    private static final String DEFAULT_HIERARCHY_TIMEOUT = "4000";
-
     private Logger log = Logger.getLogger(ObjectController.class);
 
     @Resource
@@ -131,7 +127,7 @@ public class ObjectController {
             @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = DEFAULT_HIERARCHY_TIMEOUT) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response) throws MongoRuntimeException {
         if (log.isDebugEnabled()) { log.debug("Retrieving record with id "+collectionId+"/"+recordId); }
@@ -161,7 +157,7 @@ public class ObjectController {
             long t0 = (new Date()).getTime();
             long t2 = System.currentTimeMillis();
             // first try to retrieve the bean directly
-            FullBean bean = searchService.findById(europeanaObjectId, false);
+            FullBean bean = searchService.findById(europeanaObjectId, false, hierarchyTimeout);
             if (log.isDebugEnabled()) { log.debug("SearchService findByID took: " + (System.currentTimeMillis() - t2) + " milliseconds"); }
             if (bean == null) {
                 // if the bean is null, the record id may have changed so check for that
@@ -171,7 +167,7 @@ public class ObjectController {
                 // retry retrieving the bean if we have a new id
                 if (europeanaObjectId != null) {
                     t2 = System.currentTimeMillis();
-                    bean = searchService.findById(europeanaObjectId, false);
+                    bean = searchService.findById(europeanaObjectId, false, hierarchyTimeout);
                     if (log.isDebugEnabled()) { log.debug("Bean = null; retrying SearchService findByID now took: " + (System.currentTimeMillis() - t2) + " milliseconds"); }
                     if (bean == null) { // detect potential errors in record redirect data, we log it because we're not sure how often this happens
                         log.warn("Retrieved new recordId "+europeanaObjectId+" but still unable to find record.");

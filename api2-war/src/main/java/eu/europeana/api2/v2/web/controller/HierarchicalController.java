@@ -25,6 +25,7 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.search.SearchService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -50,17 +51,14 @@ import java.util.concurrent.*;
 @RequestMapping(value = "/v2/record")
 public class HierarchicalController {
 
-    // default timeout value for hierarchical queries in milliseconds.
-    // And yes, this is an int value. Ask the Spring folks why it looks like it's a String.
-    private static final String DEFAULT_HIERARCHY_TIMEOUT = "4000";
-
-    // just in case some joker gets ideas ...
-    private static final int MAX_HIERARCHY_TIMEOUT = 20000;
-
     private static Logger log = Logger.getLogger(HierarchicalController.class);
 
     @Resource
     private SearchService searchService;
+
+    private static final int DEFAULT_HIERARCHY_TIMEOUT = 4000;
+    private static final int MAX_HIERARCHY_TIMEOUT = 20000;
+    private static final int MIN_HIERARCHY_TIMEOUT = 400;
 
     @Resource
     private ApiKeyUtils apiKeyUtils;
@@ -79,7 +77,7 @@ public class HierarchicalController {
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = DEFAULT_HIERARCHY_TIMEOUT) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -96,7 +94,7 @@ public class HierarchicalController {
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = DEFAULT_HIERARCHY_TIMEOUT) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -115,7 +113,7 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = DEFAULT_HIERARCHY_TIMEOUT) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -134,7 +132,7 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = DEFAULT_HIERARCHY_TIMEOUT) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -155,7 +153,7 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = DEFAULT_HIERARCHY_TIMEOUT) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -174,7 +172,7 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = DEFAULT_HIERARCHY_TIMEOUT) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -189,12 +187,15 @@ public class HierarchicalController {
 
         String                  rdfAbout = "/" + collectionId + "/" + recordId;
         HierarchyRunner mrBean = hierarchyRunnerBean();
+        hierarchyTimeout = (hierarchyTimeout == 0 ? DEFAULT_HIERARCHY_TIMEOUT :
+                            (hierarchyTimeout < MIN_HIERARCHY_TIMEOUT ? MIN_HIERARCHY_TIMEOUT :
+                             (hierarchyTimeout > MAX_HIERARCHY_TIMEOUT ? MAX_HIERARCHY_TIMEOUT : DEFAULT_HIERARCHY_TIMEOUT)));
         try {
             final ExecutorService timeoutExecutorService = Executors.newSingleThreadExecutor();
             Future<ModelAndView> myFlexibleFriend = timeoutExecutorService.submit(()
                     -> mrBean.call(recordType, rdfAbout, profile, wskey, limit, offset, callback, request,
                     response, log, apiKeyUtils, searchService));
-            return myFlexibleFriend.get(Math.min(hierarchyTimeout, MAX_HIERARCHY_TIMEOUT), TimeUnit.MILLISECONDS);
+            return myFlexibleFriend.get(hierarchyTimeout, TimeUnit.MILLISECONDS);
 
         } catch (InterruptedException e) {
             log.error("InterruptedException thrown: " + e.getMessage());
@@ -218,7 +219,7 @@ public class HierarchicalController {
     private ModelAndView generateErrorHierarchy(String rdfAbout, String wskey, String callback,
                                                 String message) {
         return JsonUtils.toJson(new ApiError(wskey, String.format(message + " record %s",
-                rdfAbout), -1L), callback);
+                rdfAbout), 999L), callback);
 
     }
 
