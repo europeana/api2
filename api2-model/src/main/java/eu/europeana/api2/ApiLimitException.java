@@ -17,6 +17,9 @@
 
 package eu.europeana.api2;
 
+/**
+ * Exception that is thrown when the apikey is invalid, or if the number of requests if over it's daily maximum
+ */
 public class ApiLimitException extends Exception {
 
     private static final long serialVersionUID = 1L;

@@ -38,11 +38,6 @@ public class AppConfig {
 
     private static final Logger LOG = Logger.getLogger(AppConfig.class);
 
-    @Value("${cachemongodb.host}")
-    private String cacheHost;
-    @Value("${cachemongodb.port}")
-    private int cachePort;
-
     @Value("${s3.key}")
     private String key;
     @Value("${s3.secret}")
@@ -98,12 +93,6 @@ public class AppConfig {
     @Bean
     public SugarCRMCache sugarCRMCache() {
         return new SugarCRMCache();
-    }
-
-    @Bean(name = "api_db_mongo_cache")
-    public Mongo apiDbMongoCache() throws UnknownHostException {
-        LOG.info("Creating new MongoClient for SugarCRMCache");
-        return new MongoClient(cacheHost, cachePort);
     }
 
     /**
