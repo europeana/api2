@@ -77,7 +77,7 @@ public class HierarchicalController {
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "4000") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -94,7 +94,7 @@ public class HierarchicalController {
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "4000") Integer hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -113,7 +113,7 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "4000") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -132,7 +132,7 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "4000") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -153,7 +153,7 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "4000") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
@@ -172,7 +172,7 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "4000") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {

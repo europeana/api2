@@ -126,7 +126,7 @@ public class ObjectController {
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
                                @RequestParam(value = "wskey", required = true) String wskey,
                                @RequestParam(value = "callback", required = false) String callback,
-                               @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
+                               @RequestParam(value = "hierarchytimeout", required = false) Integer hierarchyTimeout,
                                WebRequest webRequest,
                                HttpServletRequest servletRequest,
                                HttpServletResponse response) throws ApiLimitException {
@@ -202,7 +202,7 @@ public class ObjectController {
                                      HttpServletRequest servletRequest,
                                      HttpServletResponse response) throws ApiLimitException {
 
-        RequestData data = new RequestData(collectionId, recordId, wskey, format, 0, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, wskey, format, null, callback, webRequest, servletRequest);
         try {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
         } catch (EuropeanaException e) {
@@ -232,7 +232,7 @@ public class ObjectController {
                                   WebRequest webRequest,
                                   HttpServletRequest servletRequest,
                                   HttpServletResponse response) throws ApiLimitException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, 0, null, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, null, webRequest, servletRequest);
         try {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
         } catch (EuropeanaException e) {
@@ -265,7 +265,7 @@ public class ObjectController {
                           WebRequest webRequest,
                           HttpServletRequest servletRequest,
                           HttpServletResponse response) throws ApiLimitException, EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, 0, null, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, null, webRequest, servletRequest);
         // output can be an SrwResponse (status 200)
         Object out = handleRecordRequest(RecordType.OBJECT_SRW, data, response);
         if (out instanceof SrwResponse) {
@@ -423,9 +423,9 @@ public class ObjectController {
         return srwResponse;
     }
 
-    private FullBean retrieveRecord(String europeanaId, int hierarchyTimeout) throws MongoRuntimeException, MongoDBException, Neo4JException {
+    private FullBean retrieveRecord(String europeanaId, Integer hierarchyTimeout) throws MongoRuntimeException, MongoDBException, Neo4JException {
         long     startTime = System.currentTimeMillis();
-        FullBean result    = searchService.findById(europeanaId, false, hierarchyTimeout);
+        FullBean result    = searchService.findById(europeanaId, false, (hierarchyTimeout == null ? 0 : hierarchyTimeout));
         if (LOG.isDebugEnabled()) {
             LOG.debug("SearchService findByID took " + (System.currentTimeMillis() - startTime) + " ms");
         }
@@ -525,12 +525,12 @@ public class ObjectController {
         protected String             profile; // called format in json-ld
         protected String             wskey;
         protected LimitResponse      apikeyCheckResponse;
-        protected int                hierarchyTimeout;
+        protected Integer            hierarchyTimeout;
         protected String             callback;
         protected WebRequest         webRequest;
         protected HttpServletRequest servletRequest;
 
-        public RequestData(String collectionId, String recordId, String wskey, String profile, int hierarchyTimeout, String callback, WebRequest webRequest, HttpServletRequest servletRequest) {
+        public RequestData(String collectionId, String recordId, String wskey, String profile, Integer hierarchyTimeout, String callback, WebRequest webRequest, HttpServletRequest servletRequest) {
             this.europeanaObjectId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
             this.wskey = wskey;
             this.profile = profile;
