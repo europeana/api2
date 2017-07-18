@@ -109,6 +109,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     @Override
+    public String[] getDcDescription() {
+        return bean.getDcDescription();
+    }
+
+    @Override
     public String[] getDctermsSpatial() {
         if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
             return null;

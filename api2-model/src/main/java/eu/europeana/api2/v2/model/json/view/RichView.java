@@ -14,7 +14,6 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 public class RichView extends ApiView implements RichBean {
 
     private String[] isShownBy;
-    private String[] dcDescription;
     private String[] edmLandingPage;
     private Map<String, List<String>> dcDescriptionLangAware;
     private Map<String, List<String>> dcSubjectLangAware;
@@ -22,7 +21,6 @@ public class RichView extends ApiView implements RichBean {
 
     public RichView(RichBean bean, String profile, String wskey) {
         super(bean, profile, wskey);
-        dcDescription = bean.getDcDescription();
         isShownBy = bean.getEdmIsShownBy();
         edmLandingPage = bean.getEdmLandingPage();
         dcTypeLangAware = bean.getDcTypeLangAware();
@@ -43,11 +41,6 @@ public class RichView extends ApiView implements RichBean {
             isShownByLinks.add(item);
         }
         return isShownByLinks.toArray(new String[isShownByLinks.size()]);
-    }
-
-    @Override
-    public String[] getDcDescription() {
-        return dcDescription;
     }
 
     @Override
