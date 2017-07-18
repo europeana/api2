@@ -25,7 +25,6 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.search.SearchService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
