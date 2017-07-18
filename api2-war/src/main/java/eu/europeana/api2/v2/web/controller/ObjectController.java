@@ -111,7 +111,7 @@ public class ObjectController {
      * @param recordId
      * @param profile        supported types are 'params' and 'similar'
      * @param wskey
-     * @param hierarchyTimeout
+     * @param hierarchytimeout
      * @param callback
      * @param webRequest
      * @param servletRequest
@@ -126,7 +126,7 @@ public class ObjectController {
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
                                @RequestParam(value = "wskey", required = true) String wskey,
                                @RequestParam(value = "callback", required = false) String callback,
-                               @RequestParam(value = "hierarchytimeout", required = false) int hierarchyTimeout,
+                               @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
                                WebRequest webRequest,
                                HttpServletRequest servletRequest,
                                HttpServletResponse response) throws ApiLimitException {
