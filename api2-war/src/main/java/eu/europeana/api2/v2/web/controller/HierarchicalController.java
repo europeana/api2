@@ -55,7 +55,7 @@ public class HierarchicalController {
     @Resource
     private SearchService searchService;
 
-    private static final int DEFAULT_HIERARCHY_TIMEOUT = 4000;
+    private static final int DEFAULT_HIERARCHY_TIMEOUT = 8000;
     private static final int MAX_HIERARCHY_TIMEOUT = 20000;
     private static final int MIN_HIERARCHY_TIMEOUT = 400;
 
