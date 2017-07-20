@@ -195,7 +195,6 @@ public class HierarchicalController {
                     -> mrBean.call(recordType, rdfAbout, profile, wskey, limit, offset, callback, request,
                     response, log, apiKeyUtils, searchService));
             return myFlexibleFriend.get(hierarchyTimeout, TimeUnit.MILLISECONDS);
-
         } catch (InterruptedException e) {
             response.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
             log.error("InterruptedException thrown: " + e.getMessage());

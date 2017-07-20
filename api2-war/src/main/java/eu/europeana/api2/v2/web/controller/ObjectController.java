@@ -111,8 +111,8 @@ public class ObjectController {
      * @param recordId
      * @param profile        supported types are 'params' and 'similar'
      * @param wskey
-     * @param hierarchyTimeout
      * @param callback
+     * @param hierarchyTimeout maximum time allowed to retrieve hierarchical information
      * @param webRequest
      * @param servletRequest
      * @param response
