@@ -197,10 +197,12 @@ public class HierarchicalController {
             return myFlexibleFriend.get(hierarchyTimeout, TimeUnit.MILLISECONDS);
 
         } catch (InterruptedException e) {
+            response.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
             log.error("InterruptedException thrown: " + e.getMessage());
             if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
             return generateErrorHierarchy(rdfAbout, wskey, callback, "InterruptedException thrown when processing");
         } catch (TimeoutException e) {
+            response.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
             log.error("TimeoutException thrown: " + e.getMessage());
             if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
             return generateErrorHierarchy(rdfAbout, wskey, callback, "TimeoutException thrown when processing");
