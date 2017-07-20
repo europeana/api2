@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
@@ -51,7 +52,7 @@ import eu.europeana.corelib.utils.StringArrayUtils;
 public class QueryTranslationController {
 
 	@Resource
-	private ControllerUtils controllerUtils;
+	private ApiKeyUtils apiKeyUtils;
 
 	private static final String ERROR_TERM = "Invalid parameter: term can not be empty";
 	private static final String ERROR_LANGUAGE = "Invalid parameter: languageCodes can not be empty";
@@ -67,13 +68,13 @@ public class QueryTranslationController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse response) {
-		controllerUtils.addResponseHeaders(response);
+		ControllerUtils.addResponseHeaders(response);
 
 		languageCodes = StringArrayUtils.splitWebParameter(languageCodes);
 
 		LimitResponse limitResponse;
 		try {
-			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					RecordType.TRANSLATE_QUERY, null);
 		} catch (ApiLimitException e) {
 			response.setStatus(e.getHttpStatus());

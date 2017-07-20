@@ -26,8 +26,6 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
-import eu.europeana.api2.model.json.ApiNotImplementedYet;
-import eu.europeana.api2.model.json.abstracts.ApiResponse;
 import eu.europeana.api2.model.xml.srw.SrwResponse;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
@@ -37,42 +35,36 @@ import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.db.exception.DatabaseException;
-import eu.europeana.corelib.db.exception.LimitReachedException;
-import eu.europeana.corelib.db.service.ApiKeyService;
-import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.edm.exceptions.BadDataException;
 import eu.europeana.corelib.neo4j.exception.Neo4JException;
-import eu.europeana.corelib.web.exception.ProblemType;
-import eu.europeana.corelib.edm.exceptions.EuropeanaQueryException;
+import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
-import eu.europeana.corelib.edm.exceptions.SolrTypeException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBContext;
@@ -84,381 +76,468 @@ import java.io.StringWriter;
 import java.util.*;
 
 /**
+ * Provides record information in all kinds of formats; json, json-ld, rdf and srw
+ *
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@Api(tags = {"Record"}, description = " ")
+@Api(tags = {"Record"})
 @RequestMapping(value = "/v2/record")
 @SwaggerSelect
 public class ObjectController {
 
-    private Logger log = Logger.getLogger(ObjectController.class);
+    private static final Logger LOG = Logger.getLogger(ObjectController.class);
 
-    @Resource
     private SearchService searchService;
 
-    @Resource
-    private ApiKeyService apiService;
+    private ApiKeyUtils apiKeyUtils;
 
-    @Resource
-    private EuropeanaUrlService urlService;
-
-    @Resource
-    private ControllerUtils controllerUtils;
+    /**
+     * Create a new ObjectController
+     *
+     * @param searchService
+     * @param apiKeyUtils
+     */
+    @Autowired
+    public ObjectController(SearchService searchService, ApiKeyUtils apiKeyUtils) {
+        this.searchService = searchService;
+        this.apiKeyUtils = apiKeyUtils;
+    }
 
     /**
      * Handles record.json GET requests. Each request should consists of at least a collectionId, a recordId and an api-key (wskey)
+     *
      * @param collectionId
      * @param recordId
-     * @param profile
+     * @param profile        supported types are 'params' and 'similar'
      * @param wskey
      * @param callback
      * @param hierarchyTimeout maximum time allowed to retrieve hierarchical information
-     * @param request
+     * @param webRequest
+     * @param servletRequest
      * @param response
      * @return
-     * @throws MongoRuntimeException
+     * @throws ApiLimitException
      */
     @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
-    @RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView record(
-            @PathVariable String collectionId,
-            @PathVariable String recordId,
-            @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
-            @RequestParam(value = "wskey", required = true) String wskey,
-            @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "4000") int hierarchyTimeout,
-            HttpServletRequest request,
-            HttpServletResponse response) throws MongoRuntimeException {
-        if (log.isDebugEnabled()) { log.debug("Retrieving record with id "+collectionId+"/"+recordId); }
-        controllerUtils.addResponseHeaders(response);
-
-        LimitResponse limitResponse;
-        if (hierarchyTimeout >= 0) {
-            searchService.setNeo4jTimeoutMillis(hierarchyTimeout);
-        }
-
-        long t9 = System.currentTimeMillis();
+    @RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView record(@PathVariable String collectionId,
+                               @PathVariable String recordId,
+                               @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
+                               @RequestParam(value = "wskey", required = true) String wskey,
+                               @RequestParam(value = "callback", required = false) String callback,
+                               @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
+                               WebRequest webRequest,
+                               HttpServletRequest servletRequest,
+                               HttpServletResponse response) throws ApiLimitException {
+        RequestData data = new RequestData(collectionId, recordId, wskey, profile, hierarchyTimeout, callback, webRequest, servletRequest);
         try {
-            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                    RecordType.OBJECT, profile);
-            if (log.isDebugEnabled()) { log.debug("Apikey checklimit took: " + (System.currentTimeMillis() - t9) + " milliseconds"); }
-        } catch (ApiLimitException e) {
-            response.setStatus(e.getHttpStatus());
-            return JsonUtils.toJson(new ApiError(e), callback);
+            return (ModelAndView) handleRecordRequest(RecordType.OBJECT, data, response);
+        } catch (EuropeanaException e) {
+            LOG.error("Error retrieving record JSON", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": " + e.getMessage(), data.apikeyCheckResponse.getRequestNumber()), data.callback);
         }
-
-        ObjectResult objectResult = new ObjectResult(wskey, limitResponse.getRequestNumber());
-        if (StringUtils.containsIgnoreCase(profile, "params")) {
-            objectResult.addParams(RequestUtils.getParameterMap(request), "wskey");
-            objectResult.addParam("profile", profile);
-        }
-
-        String europeanaObjectId = EuropeanaUriUtils.createResolveEuropeanaId(collectionId, recordId);
-        String originalObjectId = europeanaObjectId;
-        try {
-            long t0 = (new Date()).getTime();
-            long t2 = System.currentTimeMillis();
-            // first try to retrieve the bean directly
-            FullBean bean = searchService.findById(europeanaObjectId, false);
-            if (log.isDebugEnabled()) { log.debug("SearchService findByID took: " + (System.currentTimeMillis() - t2) + " milliseconds"); }
-            if (bean == null) {
-                // if the bean is null, the record id may have changed so check for that
-                t2 = System.currentTimeMillis();
-                europeanaObjectId = searchService.resolveId(europeanaObjectId);
-                if (log.isDebugEnabled()) { log.debug("Bean = null; SearchService resolveID took: " + (System.currentTimeMillis() - t2) + " milliseconds"); }
-                // retry retrieving the bean if we have a new id
-                if (europeanaObjectId != null) {
-                    t2 = System.currentTimeMillis();
-                    bean = searchService.findById(europeanaObjectId, false);
-                    if (log.isDebugEnabled()) { log.debug("Bean = null; retrying SearchService findByID now took: " + (System.currentTimeMillis() - t2) + " milliseconds"); }
-                    if (bean == null) { // detect potential errors in record redirect data, we log it because we're not sure how often this happens
-                        log.warn("Retrieved new recordId "+europeanaObjectId+" but still unable to find record.");
-                    }
-                }
-            }
-//            if (bean != null && bean.isOptedOut()) {
-//                bean.getAggregations().get(0).setEdmObject("");
-//            }
-            if (bean == null) {
-                response.setStatus(404);
-                return JsonUtils.toJson(new ApiError(wskey, "Invalid record identifier: "
-                        + originalObjectId, limitResponse.getRequestNumber()), callback);
-            }
-
-            if (StringUtils.containsIgnoreCase(profile, Profile.SIMILAR.getName())) {
-                List<BriefBean> similarItems;
-                List<BriefView> beans = new ArrayList<>();
-                try {
-                    t2 = System.currentTimeMillis();
-                    similarItems = searchService.findMoreLikeThis(europeanaObjectId);
-                    if (log.isDebugEnabled()) { log.debug("SearchService find similar items took: " + (System.currentTimeMillis() - t2) + " milliseconds"); }
-                    for (BriefBean b : similarItems) {
-                        String similarItemsProfile = "minimal";
-                        BriefView view = new BriefView(b, similarItemsProfile, wskey);
-
-                        beans.add(view);
-                    }
-                } catch (SolrServerException e) {
-                    log.error("Error during getting similar items: " + e.getLocalizedMessage(), e);
-                }
-                objectResult.similarItems = beans;
-            }
-            objectResult.object = new FullView(bean, profile, wskey);
-            long t1 = (new Date()).getTime();
-            objectResult.statsDuration = (t1 - t0);
-            if (log.isDebugEnabled()) { log.debug("Record retrieval took: " + (System.currentTimeMillis() - t9) + " milliseconds"); }
-        } catch (Exception e) {
-            response.setStatus(500);
-            return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": "+ e.getMessage(), limitResponse.getRequestNumber()), callback);
-        }
-
-//        final ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-//        final ObjectWriter ow = objectMapper.writer().withDefaultPrettyPrinter();
-
-        return JsonUtils.toJson(objectResult, callback);
     }
 
-    @SuppressWarnings("unused")
-    @SwaggerIgnore
-    @RequestMapping(value = "/{collectionId}/{recordId}.kml", method = RequestMethod.GET, produces = "application/vnd.google-earth.kml+xml")
-    @ResponseBody
-    public ApiResponse searchKml(
-            @PathVariable String collectionId,
-            @PathVariable String recordId,
-            @RequestParam(value = "apikey", required = true) String apiKey,
-            @RequestParam(value = "sessionhash", required = true) String sessionHash) {
-        return new ApiNotImplementedYet(apiKey);
-    }
-
+    /**
+     * @param callback
+     * @return only the context part of a json-ld record
+     */
     @SwaggerIgnore
     @RequestMapping(value = {"/context.jsonld", "/context.json-ld"}, method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView contextJSONLD(
-            @RequestParam(value = "callback", required = false) String callback
-    ) {
+    public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
         String jsonld = JSONUtils.toString(getJsonContext());
         return JsonUtils.toJson(jsonld, callback);
     }
 
+    /**
+     * Retrieve a record in JSON-LD format (hidden alias for record.jsonld request)
+     *
+     * @param collectionId
+     * @param recordId
+     * @param wskey
+     * @param format
+     * @param callback
+     * @param webRequest
+     * @param servletRequest
+     * @param response
+     * @return
+     * @throws ApiLimitException
+     */
     @SwaggerIgnore
-    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld",
-            method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView recordJSON_LD(
-            @PathVariable String collectionId,
-            @PathVariable String recordId,
-            @RequestParam(value = "wskey", required = true) String wskey,
-            @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
-            @RequestParam(value = "callback", required = false) String callback,
-            HttpServletRequest request, HttpServletResponse response) {
-        response.setCharacterEncoding("UTF-8");
-        return recordJSONLD(collectionId, recordId, wskey, format, callback, request, response);
+    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView recordJSON_LD(@PathVariable String collectionId,
+                                      @PathVariable String recordId,
+                                      @RequestParam(value = "wskey", required = true) String wskey,
+                                      @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
+                                      @RequestParam(value = "callback", required = false) String callback,
+                                      WebRequest webRequest,
+                                      HttpServletRequest servletRequest,
+                                      HttpServletResponse response) throws ApiLimitException {
+        return recordJSONLD(collectionId, recordId, wskey, format, callback, webRequest, servletRequest, response);
     }
 
-
+    /***
+     * Retrieve a record in JSON-LD format.
+     * @param collectionId
+     * @param recordId
+     * @param wskey
+     * @param format supported types are 'compacted', 'flattened' and 'normalized'
+     * @param callback
+     * @param webRequest
+     * @param servletRequest
+     * @param response
+     * @return
+     * @throws ApiLimitException
+     */
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
-    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld",
-            method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView recordJSONLD(
-            @PathVariable String collectionId,
-            @PathVariable String recordId,
-            @RequestParam(value = "wskey", required = true) String wskey,
-            @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
-            @RequestParam(value = "callback", required = false) String callback,
-            HttpServletRequest request, HttpServletResponse response) {
-        response.setCharacterEncoding("UTF-8");
+    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView recordJSONLD(@PathVariable String collectionId,
+                                     @PathVariable String recordId,
+                                     @RequestParam(value = "wskey", required = true) String wskey,
+                                     @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
+                                     @RequestParam(value = "callback", required = false) String callback,
+                                     WebRequest webRequest,
+                                     HttpServletRequest servletRequest,
+                                     HttpServletResponse response) throws ApiLimitException {
 
+        RequestData data = new RequestData(collectionId, recordId, wskey, format, null, callback, webRequest, servletRequest);
         try {
-            controllerUtils.checkLimit(wskey,
-                    request.getRequestURL().toString(), RecordType.OBJECT_JSONLD, null);
-        } catch (ApiLimitException e) {
-            response.setStatus(e.getHttpStatus());
-            return JsonUtils.toJson(new ApiError(e), callback);
+            return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
+        } catch (EuropeanaException e) {
+            LOG.error("Error retrieving record JSON-LD", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": " + e.getMessage(), data.apikeyCheckResponse.getRequestNumber()), data.callback);
         }
-
-        String europeanaObjectId = "/" + collectionId + "/" + recordId;
-
-        String jsonld = null;
-
-        FullBeanImpl bean = null;
-        try {
-            bean = (FullBeanImpl) searchService.findById(europeanaObjectId, false);
-            if (bean == null) {
-                bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, false);
-            }
-        } catch (SolrTypeException | MongoDBException | MongoRuntimeException e) {
-            log.error(ExceptionUtils.getFullStackTrace(e));
-        } catch (Neo4JException e) {
-            log.error("Neo4JException thrown: " + e.getMessage());
-            log.error("Cause: " + e.getCause());
-        }
-
-        if (bean != null) {
-            String rdf = EdmUtils.toEDM(bean, false);
-            InputStream rdfInput = null;
-            try {
-                rdfInput = IOUtils.toInputStream(rdf);
-                Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
-                JenaRDFParser parser = new JenaRDFParser();
-                Object raw = JSONLD.fromRDF(modelResult, parser);
-                if (StringUtils.equalsIgnoreCase(format, "compacted")) {
-                    raw = JSONLD.compact(raw, getJsonContext(), new Options());
-                } else if (StringUtils.equalsIgnoreCase(format, "flattened")) {
-                    raw = JSONLD.flatten(raw);
-                } else if (StringUtils.equalsIgnoreCase(format, "normalized")) {
-                    raw = JSONLD.normalize(raw);
-                }
-                jsonld = JSONUtils.toString(raw);
-            } catch (JSONLDProcessingError e) {
-                log.error(e.getMessage(), e);
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
-            finally {
-                IOUtils.closeQuietly(rdfInput);
-            }
-        } else {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        }
-
-        return JsonUtils.toJson(jsonld, callback);
     }
 
+    /**
+     * Retrieve a record in RDF format
+     *
+     * @param collectionId
+     * @param recordId
+     * @param wskey
+     * @param webRequest
+     * @param servletRequest
+     * @param response
+     * @return
+     * @throws ApiLimitException
+     */
     @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
     @RequestMapping(value = "/{collectionId}/{recordId}.rdf", method = RequestMethod.GET, produces = "application/rdf+xml")
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "wskey", required = true) String wskey,
-                                  HttpServletResponse response) {
-        response.setCharacterEncoding("UTF-8");
-
-        Map<String, Object> model = new HashMap<>();
-        model.put("error", "");
-
-        String europeanaObjectId = "/" + collectionId + "/" + recordId;
-
-        ApiKey apiKey;
+                                  WebRequest webRequest,
+                                  HttpServletRequest servletRequest,
+                                  HttpServletResponse response) throws ApiLimitException {
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, null, webRequest, servletRequest);
         try {
-            apiKey = apiService.findByID(wskey);
-            if (apiKey == null) {
-                response.setStatus(401);
-                model.put("error", "Unregistered API key");
-                return new ModelAndView("rdf", model);
-            }
-            apiKey.getUsageLimit();
-            apiService.checkReachedLimit(apiKey);
-        } catch (DatabaseException e) {
-            // Disabled while awaiting better implementation (ticket #1742)
-            // apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT_RDF, profile);
-            model.put("error", e.getMessage());
-            response.setStatus(401);
-            return new ModelAndView("rdf", model);
-            // return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), requestNumber));
-        } catch (LimitReachedException e) {
-            // Disabled while awaiting better implementation (ticket #1742)
-            // apiLogService.logApiRequest(wskey, requestUri, RecordType.LIMIT, profile);
-            log.error(e.getMessage());
-            model.put("error", e.getMessage());
-            response.setStatus(429);
-            return new ModelAndView("rdf", model);
-            // return JsonUtils.toJson(new ApiError(wskey, "record.json", e.getMessage(), e.getRequested()));
+            return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
+        } catch (EuropeanaException e) {
+            LOG.error("Error retrieving record RDF", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": " + e.getMessage(), data.apikeyCheckResponse.getRequestNumber()), data.callback);
+        }
+    }
+
+    /**
+     * Provides records in SRU/SRW (XML) format.
+     *
+     * @param collectionId
+     * @param recordId
+     * @param wskey
+     * @param webRequest
+     * @param servletRequest
+     * @param response
+     * @return
+     * @throws Exception
+     */
+    // 2017-06-16 This code hasn't been used for a long time (not a single .srw request was logged in Kibana)
+    // However, depending on the results of a to-be-held survey among developers we may bring this back to life again
+    @SwaggerIgnore
+    @RequestMapping(value = "/{collectionId}/{recordId}.srw", method = RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
+    public @ResponseBody
+    SrwResponse recordSrw(@PathVariable String collectionId,
+                          @PathVariable String recordId,
+                          @RequestParam(value = "wskey", required = false) String wskey,
+                          WebRequest webRequest,
+                          HttpServletRequest servletRequest,
+                          HttpServletResponse response) throws ApiLimitException, EuropeanaException {
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, null, webRequest, servletRequest);
+        // output can be an SrwResponse (status 200)
+        Object out = handleRecordRequest(RecordType.OBJECT_SRW, data, response);
+        if (out instanceof SrwResponse) {
+            return (SrwResponse) out;
+        }
+        // or output is a ModelAndView and status 404 or 301
+        return null;
+    }
+
+
+    /**
+     * The larger part of handling a record is the same for all types of output, so this method handles all the common
+     * functionality like setting CORS headers, checking API key, retrieving the record for mongo and setting 301 or 404 if necessary
+     */
+    private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
+            throws ApiLimitException, EuropeanaException {
+        long startTime = System.currentTimeMillis();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Retrieving record with id " + data.europeanaObjectId + ", type = " + recordType);
         }
 
-        FullBeanImpl bean = null;
-        try {
-            bean = (FullBeanImpl) searchService.findById(europeanaObjectId, false);
+        // check apikey and add default headers
+        data.apikeyCheckResponse = apiKeyUtils.checkLimit(data.wskey, data.servletRequest.getRequestURL().toString(), recordType, data.profile);
+        ControllerUtils.addResponseHeaders(response);
+
+        // retrieve record data
+        FullBean bean = retrieveRecord(data.europeanaObjectId, data.hierarchyTimeout);
+        if (bean == null) {
+            ModelAndView result;
+            // record not found, check if we can redirect
+            String newId = findNewId(data.europeanaObjectId);
+
+            // 2017-07-06 code PE: inserted as temp workaround until we resolve #662 (see also comment below)
+            if (newId != null) {
+                bean = retrieveRecord(newId, 0);
+            }
             if (bean == null) {
-                bean = (FullBeanImpl) searchService.resolve(europeanaObjectId, false);
+                // -- end of insert
+
+
+                //if (newId == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                if (recordType == RecordType.OBJECT_RDF) {
+                    Map<String, Object> model = new HashMap<>();
+                    model.put("error", "Non-existing record identifier");
+                    result = new ModelAndView("rdf", model);
+                } else if (recordType == RecordType.OBJECT_SRW) {
+                    // no official supported way to return xml error message yet
+                    result = null;
+                } else {
+                    result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: "
+                            + data.europeanaObjectId, data.apikeyCheckResponse.getRequestNumber()), data.callback);
+                }
+                return result;
+                // 2017-07-06 PE: Code below was implemented as part of ticket #662. However as collections does not support his yet,
+                // activation of this functionality is postponed
+                //} else {
+                //  response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+                //  response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, newId));
+                //  result = null;
+                //}
             }
-        } catch (SolrTypeException | MongoDBException | MongoRuntimeException e) {
-            log.error(ExceptionUtils.getFullStackTrace(e));
-        } catch (Neo4JException e) {
-            log.error("Neo4JException thrown: " + e.getMessage());
-            log.error("Cause: " + e.getCause());
+            //return result;
         }
 
-        if (bean != null) {
-            model.put("record", EdmUtils.toEDM(bean, false));
-        } else {
-            response.setStatus(404);
-            model.put("error", "Non-existing record identifier");
+        // check modified
+        // 2017-07-10 PE: Decided to postpone the modified check for now (see also ticket 676)
+        //if (bean.getTimestampUpdated() != null && data.webRequest.checkNotModified(bean.getTimestampUpdated().getTime()))
+        {
+            // checkNotModified method will set LastModified header automatically and will return 304 - Not modified if necessary
+            // (but only when clients include the If_Modified_Since header in their request)
         }
 
-        // Disabled while awaiting better implementation (ticket #1742)
-        // apiLogService.logApiRequest(wskey, requestUri, RecordType.OBJECT_RDF, profile);
+        // generate output depending on type of record
+        Object output;
+        switch (recordType) {
+            case OBJECT:
+                output = generateJson(bean, data, startTime);
+                break;
+            case OBJECT_JSONLD:
+                output = generateJsonLd(bean, data, response);
+                break;
+            case OBJECT_RDF:
+                output = generateRdf(bean);
+                break;
+            case OBJECT_SRW:
+                output = generateSrw(bean);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown record output type: " + recordType);
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Done generating record output in " + (System.currentTimeMillis() - startTime) + " ms");
+        }
+        return output;
+    }
+
+    private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
+        ObjectResult objectResult = new ObjectResult(data.wskey, data.apikeyCheckResponse.getRequestNumber());
+
+        if (StringUtils.containsIgnoreCase(data.profile, "params")) {
+            objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
+            objectResult.addParam("profile", data.profile);
+        }
+
+        if (StringUtils.containsIgnoreCase(data.profile, Profile.SIMILAR.getName())) {
+            objectResult.similarItems = getSimilarItems(data.europeanaObjectId, data.wskey);
+        }
+
+        objectResult.object = new FullView(bean, data.profile, data.wskey);
+        objectResult.statsDuration = System.currentTimeMillis() - startTime;
+        return JsonUtils.toJson(objectResult, data.callback);
+    }
+
+    private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
+        String jsonld = null;
+        String rdf    = EdmUtils.toEDM((FullBeanImpl) bean, false);
+        try (InputStream rdfInput = IOUtils.toInputStream(rdf)) {
+            Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
+            Object raw         = JSONLD.fromRDF(modelResult, new JenaRDFParser());
+            if (StringUtils.equalsIgnoreCase(data.profile, "compacted")) {
+                raw = JSONLD.compact(raw, getJsonContext(), new Options());
+            } else if (StringUtils.equalsIgnoreCase(data.profile, "flattened")) {
+                raw = JSONLD.flatten(raw);
+            } else if (StringUtils.equalsIgnoreCase(data.profile, "normalized")) {
+                raw = JSONLD.normalize(raw);
+            }
+            jsonld = JSONUtils.toString(raw);
+        } catch (IOException | JSONLDProcessingError e) {
+            LOG.error("Error parsing JSON-LD data", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+        }
+        return JsonUtils.toJson(jsonld, data.callback);
+    }
+
+    private ModelAndView generateRdf(FullBean bean) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("record", EdmUtils.toEDM((FullBeanImpl) bean, false));
         return new ModelAndView("rdf", model);
     }
 
-    private Object getJsonContext() {
-        InputStream in = this.getClass().getResourceAsStream("/jsonld/context.jsonld");
+    private SrwResponse generateSrw(FullBean bean) {
+        SrwResponse srwResponse = new SrwResponse();
+        FullDoc     doc         = new FullDoc(bean); // TODO this will generate date ParseExceptions, need to investigate
+        Record      record      = new Record();
+        record.recordData.dc = doc;
+        srwResponse.records.record.add(record);
         try {
+            createXml(srwResponse);
+        } catch (JAXBException e) {
+            LOG.error("Error generating xml", e);
+        }
+        return srwResponse;
+    }
+
+    private FullBean retrieveRecord(String europeanaId, Integer hierarchyTimeout) throws MongoRuntimeException, MongoDBException, Neo4JException {
+        long     startTime = System.currentTimeMillis();
+        FullBean result    = searchService.findById(europeanaId, false, (hierarchyTimeout == null ? 0 : hierarchyTimeout));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("SearchService findByID took " + (System.currentTimeMillis() - startTime) + " ms");
+        }
+        return result;
+    }
+
+    private String findNewId(String europeanaId) throws BadDataException {
+        long   startTime = System.currentTimeMillis();
+        String newId     = searchService.resolveId(europeanaId);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("SearchService find newId took " + (System.currentTimeMillis() - startTime) + " ms");
+        }
+        return newId;
+    }
+
+    /**
+     * Reconstruct the original url and instead of the old EuropeanaId inserts the new provided one.
+     * <p>
+     * Original code snippet was copied from https://stackoverflow.com/a/5212336 and slightly adjusted.
+     *
+     * @param req
+     * @param oldId
+     * @param newId
+     * @return
+     */
+    private String generateRedirectUrl(HttpServletRequest req, String oldId, String newId) {
+
+        String scheme      = req.getScheme();             // http
+        String serverName  = req.getServerName();     // www.europeana.eu
+        int    serverPort  = req.getServerPort();        // 80
+        String requestUri  = req.getRequestURI();     // /api/v2/record/90402/BK_1978_399.json
+        String pathInfo    = req.getPathInfo();         //
+        String queryString = req.getQueryString();   // wskey=....
+
+        requestUri = requestUri.replace(oldId, newId);
+        // check if we really replaced the id to avoid infinite loops
+        if (!requestUri.contains(newId)) {
+            throw new IllegalStateException("Error generating record redirect url");
+        }
+
+        // Reconstruct original requesting URL
+        StringBuilder url = new StringBuilder();
+        url.append(scheme).append("://").append(serverName);
+        if (serverPort != 80 && serverPort != 443) {
+            url.append(':').append(serverPort);
+        }
+        url.append(requestUri);
+        if (pathInfo != null) {
+            url.append(pathInfo);
+        }
+        if (queryString != null) {
+            url.append('?').append(queryString);
+        }
+        return url.toString();
+    }
+
+    private List<BriefView> getSimilarItems(String europeanaId, String wskey) {
+        List<BriefView> result = new ArrayList<>();
+        try {
+            long            startTime    = System.currentTimeMillis();
+            List<BriefBean> similarItems = searchService.findMoreLikeThis(europeanaId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("SearchService find similar items took " + (System.currentTimeMillis() - startTime) + " ms");
+            }
+            for (BriefBean b : similarItems) {
+                String    similarItemsProfile = "minimal";
+                BriefView view                = new BriefView(b, similarItemsProfile, wskey);
+                result.add(view);
+            }
+        } catch (SolrServerException e) {
+            LOG.error("Error retrieving similar items: " + e.getLocalizedMessage(), e);
+        }
+        return result;
+    }
+
+    private Object getJsonContext() {
+        try (InputStream in = this.getClass().getResourceAsStream("/jsonld/context.jsonld")) {
             return JSONUtils.fromInputStream(in);
         } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(in);
+            LOG.error("Error reading context.jsonld", e);
         }
         return null;
     }
 
-    @SwaggerIgnore
-    @RequestMapping(value = "/{collectionId}/{recordId}.srw", method = RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
-    public @ResponseBody SrwResponse recordSrw(
-            @PathVariable String collectionId,
-          @PathVariable String recordId,
-          @RequestParam(value = "wskey", required = false) String wskey,
-          HttpServletResponse response)
-            throws Exception {
-        log.info("====== /v2/record/{collectionId}/{recordId}.srw ======");
-
-        if (StringUtils.isBlank(wskey)) {
-            // model.put("json", utils.toJson(new ApiError(wskey, "search.json", "No API authorisation key.")));
-            throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
-        }
-
-        ApiKey apiKey = apiService.findByID(wskey);
-        if (apiKey == null) {
-            // model.put("json", utils.toJson(new ApiError(wskey, "search.json", "Unregistered user")));
-            throw new EuropeanaQueryException(ProblemType.NO_PASSWORD);
-            // hasResult = true;
-        }
-
-        String europeanaObjectId = "/" + collectionId + "/" + recordId;
-        FullBean bean = searchService.findById(europeanaObjectId, true);
-        if (bean == null) {
-            bean = searchService.resolve(europeanaObjectId, true);
-        }
-
-        SrwResponse srwResponse = new SrwResponse();
-        FullDoc doc;
-        if (bean != null) {
-            doc = new FullDoc(bean);
-            Record record = new Record();
-            record.recordData.dc = doc;
-            srwResponse.records.record.add(record);
-            log.info("record added");
-        } else {
-            String url = urlService.getPortalRecord(true, collectionId, recordId).toString();
-            response.setStatus(302);
-            response.setHeader("Location", url);
-            return null;
-        }
-        createXml(srwResponse);
-        log.info("xml created");
-        return srwResponse;
+    private void createXml(SrwResponse response) throws JAXBException {
+        final JAXBContext  context      = JAXBContext.newInstance(SrwResponse.class);
+        final Marshaller   marshaller   = context.createMarshaller();
+        final StringWriter stringWriter = new StringWriter();
+        marshaller.marshal(response, stringWriter);
     }
 
-    private void createXml(SrwResponse response) {
-        try {
-            final JAXBContext context = JAXBContext.newInstance(SrwResponse.class);
-            final Marshaller marshaller = context.createMarshaller();
-            final StringWriter stringWriter = new StringWriter();
-            marshaller.marshal(response, stringWriter);
-            if (log.isInfoEnabled()) {
-                log.info("result: " + stringWriter.toString());
-            }
-        } catch (JAXBException e) {
-            log.error("JAXBException: " + e.getMessage() + ", " + e.getCause().getMessage(), e);
+    /**
+     * Helper class so we can pass all data around in 1 object (and not specify many parameters)
+     */
+    private static class RequestData {
+        protected String             europeanaObjectId;
+        protected String             profile; // called format in json-ld
+        protected String             wskey;
+        protected LimitResponse      apikeyCheckResponse;
+        protected Integer            hierarchyTimeout;
+        protected String             callback;
+        protected WebRequest         webRequest;
+        protected HttpServletRequest servletRequest;
+
+        public RequestData(String collectionId, String recordId, String wskey, String profile, Integer hierarchyTimeout, String callback, WebRequest webRequest, HttpServletRequest servletRequest) {
+            this.europeanaObjectId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
+            this.wskey = wskey;
+            this.profile = profile;
+            this.hierarchyTimeout = hierarchyTimeout;
+            this.callback = callback;
+            this.webRequest = webRequest;
+            this.servletRequest = servletRequest;
         }
     }
 }

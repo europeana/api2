@@ -46,6 +46,7 @@ import eu.europeana.api2.v2.model.json.sugarcrm.DataSet;
 import eu.europeana.api2.v2.model.json.sugarcrm.Provider;
 import eu.europeana.api2.v2.model.json.sugarcrm.SugarCRMSearchResults;
 import eu.europeana.api2.v2.service.SugarCRMCache;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
@@ -83,7 +84,7 @@ public class SugarCRMController {
 	private SugarCRMCache sugarCRMCache;
 
 	@Resource
-	private ControllerUtils controllerUtils;
+	private ApiKeyUtils apiKeyUtils;
 
 	/**
 	 * Returns the list of Europeana providers. The response is an Array of JSON
@@ -103,14 +104,14 @@ public class SugarCRMController {
 			@RequestParam(value = "pagesize", required = false) String pagesize,
 			HttpServletRequest request,
 			HttpServletResponse httpResponse) {
-		controllerUtils.addResponseHeaders(httpResponse);
+		ControllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response;
 
 		LimitResponse limitResponse;
 		try {
-			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					RecordType.PROVIDERS, null);
 		} catch (ApiLimitException e) {
 			httpResponse.setStatus(e.getHttpStatus());
@@ -151,14 +152,14 @@ public class SugarCRMController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse httpResponse) {
-		controllerUtils.addResponseHeaders(httpResponse);
+		ControllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<Provider> response;
 
 		LimitResponse limitResponse;
 		try {
-			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					RecordType.PROVIDER, null);
 		} catch (ApiLimitException e) {
 			httpResponse.setStatus(e.getHttpStatus());
@@ -199,14 +200,14 @@ public class SugarCRMController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse httpResponse) {
-		controllerUtils.addResponseHeaders(httpResponse);
+		ControllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response;
 
 		LimitResponse limitResponse;
 		try {
-			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					RecordType.PROVIDER_DATASETS, null);
 		} catch (ApiLimitException e) {
 			httpResponse.setStatus(e.getHttpStatus());
@@ -252,14 +253,14 @@ public class SugarCRMController {
 			@RequestParam(value = "pagesize", required = false) String pagesize,
 			HttpServletRequest request,
 			HttpServletResponse httpResponse) {
-		controllerUtils.addResponseHeaders(httpResponse);
+		ControllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response;
 
 		LimitResponse limitResponse;
 		try {
-			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					RecordType.DATASETS, null);
 		} catch (ApiLimitException e) {
 			httpResponse.setStatus(e.getHttpStatus());
@@ -303,14 +304,14 @@ public class SugarCRMController {
 			@RequestParam(value = "callback", required = false) String callback,
 			HttpServletRequest request,
 			HttpServletResponse httpResponse) {
-		controllerUtils.addResponseHeaders(httpResponse);
+		ControllerUtils.addResponseHeaders(httpResponse);
 
 		Date starttime = new Date();
 		SugarCRMSearchResults<DataSet> response;
 
 		LimitResponse limitResponse;
 		try {
-			limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(),
+			limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
 					RecordType.DATASETS, null);
 		} catch (ApiLimitException e) {
 			httpResponse.setStatus(e.getHttpStatus());

@@ -20,17 +20,11 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.service.HierarchyRunner;
-import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.neo4j.exception.Neo4JException;
 import eu.europeana.corelib.search.SearchService;
-import eu.europeana.corelib.web.exception.EmailServiceException;
-import eu.europeana.corelib.web.exception.EuropeanaException;
-import eu.europeana.corelib.web.exception.ProblemResponseAction;
-import eu.europeana.corelib.web.service.EmailService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.log4j.Logger;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -44,8 +38,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -56,18 +49,18 @@ import java.util.concurrent.Future;
 //@SwaggerSelect
 @RequestMapping(value = "/v2/record")
 public class HierarchicalController {
-    //TODO factor exception email handling out to generic functionality
-    private final String SUBJECTPREFIX = "Europeana exception email handler: ";
+
     private static Logger log = Logger.getLogger(HierarchicalController.class);
 
     @Resource
     private SearchService searchService;
 
-    @Resource
-    private ControllerUtils controllerUtils;
+    private static final int DEFAULT_HIERARCHY_TIMEOUT = 8000;
+    private static final int MAX_HIERARCHY_TIMEOUT = 20000;
+    private static final int MIN_HIERARCHY_TIMEOUT = 400;
 
-    @Resource(name = "corelib_web_emailService")
-    private EmailService emailService;
+    @Resource
+    private ApiKeyUtils apiKeyUtils;
 
     @Bean
     public HierarchyRunner hierarchyRunnerBean() {
@@ -83,11 +76,12 @@ public class HierarchicalController {
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_SELF, collectionId, recordId,
-                profile, wskey, -1, -1, callback, request, response, redirectAttrs);
+                profile, wskey, -1, -1, callback, request, response, redirectAttrs, hierarchyTimeout);
     }
 
     @ApiOperation(value = "returns the object, its ancestors and siblings")
@@ -99,11 +93,12 @@ public class HierarchicalController {
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
             @RequestParam(value = "wskey", required = true) String wskey,
             @RequestParam(value = "callback", required = false) String callback,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS, collectionId, recordId,
-                profile, wskey, -1, -1, callback, request, response, redirectAttrs);
+                profile, wskey, -1, -1, callback, request, response, redirectAttrs, hierarchyTimeout);
     }
 
     @ApiOperation(value = "returns the object's children")
@@ -117,11 +112,12 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_CHILDREN, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response, redirectAttrs);
+                profile, wskey, limit, offset, callback, request, response, redirectAttrs, hierarchyTimeout);
     }
 
     @ApiOperation(value = "returns the object's parent")
@@ -135,11 +131,12 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_PARENT, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response, redirectAttrs);
+                profile, wskey, limit, offset, callback, request, response, redirectAttrs, hierarchyTimeout);
     }
 
     // maintain backwards compatibility with previous spelling of "preceeding"
@@ -155,11 +152,12 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_PRECEDING_SIBLINGS, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response, redirectAttrs);
+                profile, wskey, limit, offset, callback, request, response, redirectAttrs, hierarchyTimeout);
     }
 
     @ApiOperation(value = "returns the object's following siblings")
@@ -173,36 +171,40 @@ public class HierarchicalController {
             @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
             @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
+            @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
             HttpServletResponse response,
             RedirectAttributes redirectAttrs) {
         return hierarchyTemplate(RecordType.HIERARCHY_FOLLOWING_SIBLINGS, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response, redirectAttrs);
+                profile, wskey, limit, offset, callback, request, response, redirectAttrs, hierarchyTimeout);
     }
-
 
     public ModelAndView hierarchyTemplate(RecordType recordType, String collectionId, String recordId,
                                           String profile, String wskey, int limit, int offset, String callback,
                                           HttpServletRequest request, HttpServletResponse response,
-                                          RedirectAttributes redirectAttrs) {
+                                          RedirectAttributes redirectAttrs, int hierarchyTimeout) {
 
         String                  rdfAbout = "/" + collectionId + "/" + recordId;
         HierarchyRunner mrBean = hierarchyRunnerBean();
+        hierarchyTimeout = (hierarchyTimeout == 0 ? DEFAULT_HIERARCHY_TIMEOUT :
+                            (hierarchyTimeout < MIN_HIERARCHY_TIMEOUT ? MIN_HIERARCHY_TIMEOUT :
+                             (hierarchyTimeout > MAX_HIERARCHY_TIMEOUT ? MAX_HIERARCHY_TIMEOUT : hierarchyTimeout)));
         try {
-            Future<ModelAndView> result = mrBean.call(recordType, rdfAbout, profile, wskey, limit,
-                    offset, callback, request, response, log, controllerUtils, searchService);
-            return result.get();
-        } catch (Neo4JException e) {
-            log.error("Neo4JException thrown: " + e.getMessage());
-            if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
-//            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)){
-//                sendExceptionEmail(e);
-//            }
-            return generateErrorHierarchy(rdfAbout, wskey, callback, e.getProblem().getMessage() + " for");
+            final ExecutorService timeoutExecutorService = Executors.newSingleThreadExecutor();
+            Future<ModelAndView> myFlexibleFriend = timeoutExecutorService.submit(()
+                    -> mrBean.call(recordType, rdfAbout, profile, wskey, limit, offset, callback, request,
+                    response, log, apiKeyUtils, searchService));
+            return myFlexibleFriend.get(hierarchyTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
+            response.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
             log.error("InterruptedException thrown: " + e.getMessage());
             if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
             return generateErrorHierarchy(rdfAbout, wskey, callback, "InterruptedException thrown when processing");
+        } catch (TimeoutException e) {
+            response.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
+            log.error("TimeoutException thrown: " + e.getMessage());
+            if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
+            return generateErrorHierarchy(rdfAbout, wskey, callback, "TimeoutException thrown when processing");
         } catch (ExecutionException e) {
             log.error("ExecutionExeption thrown: " + e.getMessage());
             if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
@@ -214,24 +216,10 @@ public class HierarchicalController {
         }
     }
 
-    private void sendExceptionEmail(EuropeanaException e){
-        String newline = System.getProperty("line.separator");
-
-        String header = SUBJECTPREFIX + e.getProblem().getMessage();
-        String body = (e.getMessage() + newline + newline +
-                ExceptionUtils.getStackTrace(e));
-//                + e.getStackTrace().toString());
-        try {
-            emailService.sendException(header, body);
-        } catch (EmailServiceException es) {
-            es.printStackTrace();
-        }
-    }
-
     private ModelAndView generateErrorHierarchy(String rdfAbout, String wskey, String callback,
                                                 String message) {
         return JsonUtils.toJson(new ApiError(wskey, String.format(message + " record %s",
-                rdfAbout), -1L), callback);
+                rdfAbout), 999L), callback);
 
     }
 

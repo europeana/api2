@@ -37,6 +37,7 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripImage;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.FacetParameterUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
@@ -113,7 +114,7 @@ public class SearchController {
     private EuropeanaUrlService urlService;
 
     @Resource
-    private ControllerUtils controllerUtils;
+    private ApiKeyUtils apiKeyUtils;
 
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
@@ -129,7 +130,7 @@ public class SearchController {
     @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
 			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "query", required = false) String queryString,
+			@RequestParam(value = "query", required = true) String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
@@ -145,17 +146,45 @@ public class SearchController {
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws ApiLimitException {
+
+        // do apikey check before anything else
+        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
+
+        // check query parameter
+        if (StringUtils.isBlank(queryString)) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return JsonUtils.toJson(new ApiError("", "Empty query parameter"), callback);
+        }
+        queryString = queryString.trim();
+        // #579 rights URL's don't match well to queries containing ":https*"
+        queryString = queryString.replace(":https://", ":http://");
+        if (log.isInfoEnabled()) {
+            log.info("QUERY: |" + queryString + "|");
+        }
+
+        // check other parameters
+        if (cursorMark != null) {
+            if (start > 1) {
+                response.setStatus(400);
+                return JsonUtils.toJson(new ApiError("", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
+            }
+        }
+
+        // TODO check whether this is still necessary?
+        // workaround of a Spring issue
+        // (https://jira.springsource.org/browse/SPR-7963)
+        String[] _qf = request.getParameterMap().get("qf");
+        if (_qf != null && _qf.length != refinementArray.length) refinementArray = _qf;
+
+        // exclude sorting on timestamp, #238
+        if (sort != null && (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp "))) sort = "";
 
         List<String> colourPalette = new ArrayList();
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         colourPalette.replaceAll(String::toUpperCase);
 
-        // #579 rights URL's don't match well to queries containing ":https*"
-        queryString = queryString.replace(":https*", ":http*");
-
         String colourPalettefilterQuery = "";
-        LimitResponse limitResponse;
         Boolean hasImageRefinements = false;
         Boolean hasSoundRefinements = false;
         Boolean hasVideoRefinements = false;
@@ -172,35 +201,6 @@ public class SearchController {
         List<String> videoHDRefinements = new ArrayList<>();
         List<String> soundHQRefinements = new ArrayList<>();
         List<String> imageColourPaletteRefinements = new ArrayList<>(); //Note: ColourPalette is a parameter; imageColourPaletteRefinements are facets
-
-        try {
-            limitResponse = controllerUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
-        } catch (ApiLimitException e) {
-            response.setStatus(e.getHttpStatus());
-            return JsonUtils.toJson(new ApiError(e), callback);
-        }
-
-        if (StringUtils.isBlank(queryString)) {
-            response.setStatus(400);
-            return JsonUtils.toJson(new ApiError("", (queryString == null ? "Missing" : "Invalid") + " query parameter"), callback);
-        }
-        queryString = queryString.trim();
-        log.info("QUERY: |" + queryString + "|");
-
-        // TODO check whether this is still necessary?
-        // workaround of a Spring issue
-        // (https://jira.springsource.org/browse/SPR-7963)
-        String[] _qf = request.getParameterMap().get("qf");
-        if (_qf != null && _qf.length != refinementArray.length) refinementArray = _qf;
-
-        if (cursorMark != null) {
-            if (start > 1) {
-                response.setStatus(400);
-                return JsonUtils.toJson(new ApiError("", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
-            }
-        }
-        // exclude sorting on timestamp, #238
-        if (sort != null && (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp "))) sort = "";
 
         // retrieves the faceted refinements from the QF part of the request and stores them separately
         // the rest of the refinements is kept in the refinementArray
@@ -336,7 +336,7 @@ public class SearchController {
         String[] solrFacets = (String[]) ArrayUtils.addAll(separatedFacets.get("solrfacets"), separatedFacets.get("customfacets"));
         String[] technicalFacets = separatedFacets.get("technicalfacets");
 
-		controllerUtils.addResponseHeaders(response);
+		ControllerUtils.addResponseHeaders(response);
 		rows = Math.min(rows, configuration.getApiRowLimit());
 
 		Map<String, String> valueReplacements = new HashMap<>();
@@ -350,7 +350,9 @@ public class SearchController {
 
         // create Query object and set some params
         Class<? extends IdBean> clazz = selectBean(profile);
-        Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
+//        Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
+        Query query = new Query(SearchUtils.rewriteQueryFields(
+                                SearchUtils.fixBuggySolrIndex(queryString)))
                 .setApiQuery(true)
                 .setRefinements(refinementArray)
                 .setPageSize(rows)
@@ -398,7 +400,7 @@ public class SearchController {
                 result.addParam("rows", rows);
                 result.addParam("sort", sort);
             }
-            if (log.isInfoEnabled()) log.info("got response " + result.items.size());
+            if (log.isDebugEnabled()) log.debug("got response " + result.items.size());
             return JsonUtils.toJson(result, callback);
 
         } catch (SolrTypeException e) {
@@ -436,7 +438,7 @@ public class SearchController {
             @RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletResponse response) {
-        controllerUtils.addResponseHeaders(response);
+        ControllerUtils.addResponseHeaders(response);
         if (log.isInfoEnabled()) log.info("phrases: " + phrases);
         Suggestions apiResponse = new Suggestions(null);
         try {
@@ -485,7 +487,7 @@ public class SearchController {
                 if (!allQueryFacetsMap.isEmpty()) facetFields.addAll(allQueryFacetsMap);
             }
 
-            if (log.isInfoEnabled()) log.info("beans: " + beans.size());
+            if (log.isDebugEnabled()) log.debug("beans: " + beans.size());
 
             response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, "facets") ||
@@ -641,7 +643,7 @@ public class SearchController {
 			@RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
 			@RequestParam(value = "language", required = false) String reqLanguage,
 			HttpServletResponse response) {
-		controllerUtils.addResponseHeaders(response);
+		ControllerUtils.addResponseHeaders(response);
 
 		FieldTripResponse rss = new FieldTripResponse();
 		FieldTripChannel channel = rss.channel;

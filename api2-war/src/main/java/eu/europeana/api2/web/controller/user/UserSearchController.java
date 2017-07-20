@@ -31,6 +31,7 @@ import eu.europeana.corelib.web.utils.UrlBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,9 +51,11 @@ import java.util.List;
  */
 @Controller
 @RequestMapping(value = "/user/savedsearch")
-@Api(value = "my_europeana", description = " ")
+@Api(value = "my_europeana")
 //@SwaggerSelect
 public class UserSearchController extends AbstractUserController {
+
+    private static final Logger LOG = Logger.getLogger(UserSearchController.class);
 
     @Resource(name = "corelib_web_europeanaUrlService")
     private EuropeanaUrlService europeanaUrlService;
@@ -81,7 +84,7 @@ public class UserSearchController extends AbstractUserController {
             }
         } else {
             response.success = false;
-            response.error = "User Profile not retrievable...";
+            response.error = "User profile not retrievable...";
         }
         return JsonUtils.toJson(response, callback);
     }
@@ -109,6 +112,7 @@ public class UserSearchController extends AbstractUserController {
                 response.error = "User Profile not retrievable...";
             }
         } catch (DatabaseException e) {
+            LOG.error("Error creating saved search", e);
             response.success = false;
             response.error = e.getMessage();
         }
@@ -140,6 +144,7 @@ public class UserSearchController extends AbstractUserController {
                 response.error = "User Profile not retrievable...";
             }
         } catch (DatabaseException e) {
+            LOG.error("Error updating saved search", e);
             response.success = false;
             response.error = e.getMessage();
         }
@@ -167,6 +172,7 @@ public class UserSearchController extends AbstractUserController {
                 response.error = "User Profile not retrievable...";
             }
         } catch (DatabaseException e) {
+            LOG.error("Error deleting saved search", e);
             response.success = false;
             response.error = e.getMessage();
         }
@@ -176,19 +182,19 @@ public class UserSearchController extends AbstractUserController {
     private String getQueryString(String query, String[] refinements, String start, User user) {
         List<ApiKey> apiKeys = apiKeyService.findByEmail(user.getEmail());
         String firstKey = "";
-        if (apiKeys.size() > 0) {
+        if (!apiKeys.isEmpty()) {
             firstKey = apiKeys.get(0).getId();
         }
         UrlBuilder ub = null;
         try {
             String resultRowCount = "50";
             ub = europeanaUrlService.getApi2SearchJson(firstKey, query, resultRowCount);
+            ub.addParam("qf", refinements, true);
+            ub.addParam("start", start, true);
+            return StringUtils.replace(ub.toString(), "?", "&", 0);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            LOG.error("Error retrieving saved search", e);
         }
-
-        ub.addParam("qf", refinements, true);
-        ub.addParam("start", start, true);
-        return StringUtils.replace(ub.toString(), "?", "&", 0);
+        return null;
     }
 }

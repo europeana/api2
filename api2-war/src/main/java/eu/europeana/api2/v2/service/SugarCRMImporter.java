@@ -58,8 +58,6 @@ public class SugarCRMImporter {
 
     private static final  Logger LOG = Logger.getLogger(SugarCRMImporter.class);
 
-    @Resource(name = "api_db_mongo_cache")
-    private Mongo mongo;
     @Resource
     private SugarWsClient sugarwsClient;
     @Resource
@@ -455,34 +453,6 @@ public class SugarCRMImporter {
      */
     public void setSugarwsClient(SugarWsClient sugarwsClient) {
         this.sugarwsClient = sugarwsClient;
-    }
-
-    /**
-     * Use a local instance if MongoDB version cannot be injected from Spring
-     * from Spring Context (useful in Unit Testing)
-     */
-    @PostConstruct
-    public void initLocal() {
-        if (datastore == null) {
-            LOG.info("SugarCRMCache datasource is null");
-            if (mongo == null) {
-                LOG.info("SugarCRMCache mongo is null");
-                try {
-                    LOG.info("Creating new MongoClient for SugarCRMCache");
-                    mongo = new MongoClient();
-                } catch (MongoException e) {
-                    LOG.error("Error creating mongo client", e);
-                }
-            }
-        }
-
-        if (datastore != null) {
-            datastore.getDB().getCollection("DataSet").createIndex("identifier");
-            datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.name");
-            datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.country_c");
-            datastore.getDB().getCollection("DataSet").createIndex("savedsugarcrmFields.sales_stage");
-            datastore.getDB().getCollection("Provider").createIndex("identifier");
-        }
     }
 
 }
