@@ -91,7 +91,9 @@ public class HierarchyRunner {
             return JsonUtils.toJson(new ApiError(e), callback);
         }
 
-        log.info("Limit: " + (System.currentTimeMillis() - t1));
+        if (log.isDebugEnabled()) {
+            log.debug("Limit: " + (System.currentTimeMillis() - t1));
+        }
         t1 = System.currentTimeMillis();
 
         HierarchicalResult hierarchicalResult = new HierarchicalResult(wskey, limitResponse.getRequestNumber());
@@ -100,7 +102,9 @@ public class HierarchyRunner {
             hierarchicalResult.addParam("profile", profile);
         }
 
-        log.info("Init object: " + (System.currentTimeMillis() - t1));
+        if (log.isDebugEnabled()) {
+            log.debug("Init object: " + (System.currentTimeMillis() - t1));
+        }
         t1 = System.currentTimeMillis();
 
         try{
@@ -120,8 +124,10 @@ public class HierarchyRunner {
                         limitResponse.getRequestNumber()), callback);
             }
 
-            log.info("get self: " + (System.currentTimeMillis() - t1));
-            t1 = System.currentTimeMillis();
+        if (log.isDebugEnabled()) {
+            log.debug("get self: " + (System.currentTimeMillis() - t1));
+        }
+        t1 = System.currentTimeMillis();
 
             if (recordType.equals(RecordType.HIERARCHY_CHILDREN)) {
                 if (hierarchicalResult.self.getChildrenCount() > 0) {
@@ -228,6 +234,7 @@ public class HierarchyRunner {
                 }
             }
         } catch (Neo4JException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("Neo4JException thrown: " + e.getMessage());
             if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
             // TODO re-enable mail sending at some time?
@@ -236,12 +243,17 @@ public class HierarchyRunner {
                     " for record %s", rdfAbout), -1L), callback);
 
         }
-        log.info("get main: " + (System.currentTimeMillis() - t1));
+        if (log.isDebugEnabled()) {
+            log.debug("get main: " + (System.currentTimeMillis() - t1));
+        }
         t1 = System.currentTimeMillis();
+
 
         hierarchicalResult.statsDuration = (System.currentTimeMillis() - t0);
         ModelAndView json = JsonUtils.toJson(hierarchicalResult, callback);
-        log.info("toJson: " + (System.currentTimeMillis() - t1));
+        if (log.isDebugEnabled()) {
+            log.debug("toJson: " + (System.currentTimeMillis() - t1));
+        }
         return json;
     }
 
