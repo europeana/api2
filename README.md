@@ -21,31 +21,33 @@ The JavaDoc will be generated once the upcoming code overhaul is complete.
 ## Build
 To build (requires the [CoreLib](https://github.com/europeana/corelib) dependency):
 
-```bash
-$ git clone https://github.com/europeana/api2.git
-$ cd api2/
-```
-
-If your instance will be deployed, you need to copy the file
-
-properties/test/template-europeana.properties -> properties/test/europeana.properties
-
-and
-
-template-manifest.yml -> manifest.yml
-
-And make necessary changes
-
 Configure your maven settings: http://artifactory.eanadev.org/artifactory/webapp/mavensettings.html?1
+
 ```bash
-$ mvn clean install -DskipTests
+$ git clone https://github.com/europeana/corelib.git
+$ cd corelib
+$ mvn clean install
+
+$ git clone https://github.com/europeana/api2.git
+$ cd api2
+$ mvn clean install
 ```
 
-Futher details on building can be found on the [Deploy](https://github.com/europeana/api2/wiki/Deploy) page of the wiki (but check the [Setup](https://github.com/europeana/api2/wiki/Setup) first!.
+## Deploy
+To deploy your instance you can use the docker files in docker folder. This image contains Tomcat, Postgresql and Neo4j 
+database server. However at the moment we do not have a Mongo database, Solr engine, mail server and object storage 
+provider in Docker yet (last 2 are optional).
+
+The addresses and login credentials of all these services are specified in the europeana.properties file located in the
+/api2/api2-war/src/main/resources/ folder. For the moment you still need to fill in all the 'REMOVED' values (login 
+credentials for services that are not dockerized yet). **Make sure you never commit these changes!**
+It's safer to place these login credentials in a europeana.user.properties file in the same folder because this file
+is set to be ignored by git. All settings in the europeana.user.properties will override those in the europeana.properties.
+
 
 ## LICENSE
 
-Copyright 2007-2016 The Europeana Foundation
+Copyright 2007-2017 The Europeana Foundation
 
 Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved by the European Commission;
 You may not use this work except in compliance with the Licence.
@@ -53,13 +55,3 @@ You may not use this work except in compliance with the Licence.
 You may obtain a copy of the Licence at: [http://joinup.ec.europa.eu/software/page/eupl](http://joinup.ec.europa.eu/software/page/eupl)
 
 Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, without warranties or conditions of any kind, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
-
-## Thank you JetBrains!
-
-We've been granted an open source license to use [JetBrains'](https://www.jetbrains.com) IDE's for our work on the Europeana code base:
-
-![](https://raw.githubusercontent.com/Luthien-in-edhil/jetbrainsicons/master/icon_IntelliJIDEA.png) [IntelliJ](https://www.jetbrains.com/idea/) Java IDE
-
-![](https://raw.githubusercontent.com/Luthien-in-edhil/jetbrainsicons/master/icon_PyCharm.png) [PyCharm](https://www.jetbrains.com/pycharm/) Python IDE
-
-![](https://raw.githubusercontent.com/Luthien-in-edhil/jetbrainsicons/master/icon_RubyMine.png) [RubyMine](https://www.jetbrains.com/ruby/) Ruby IDE
