@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api2.utils.VersionUtils;
 import eu.europeana.api2.v2.model.VersionInfoResult;
 import eu.europeana.corelib.search.SearchService;
 import org.apache.log4j.Logger;
@@ -12,14 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Controller for showing api and corelib build information (for debugging purposes only).
@@ -42,8 +35,8 @@ public class VersionController {
     public VersionInfoResult getVersion() {
         VersionInfoResult result = new VersionInfoResult();
         try {
-            result.setApiBuildInfo(getVersion(VersionInfoResult.class) + " " + getCreationDate(VersionInfoResult.class));
-            result.setCorelibBuildInfo(getVersion(SearchService.class) + " " + getCreationDate(SearchService.class));
+            result.setApiBuildInfo(VersionUtils.getVersion(VersionInfoResult.class) + " " + VersionUtils.getCreationDate(VersionInfoResult.class));
+            result.setCorelibBuildInfo(VersionUtils.getVersion(SearchService.class) + " " + VersionUtils.getCreationDate(SearchService.class));
         } catch (IOException | URISyntaxException e) {
             LOG.warn("Error retrieving api or corelib build information", e);
         }
@@ -67,41 +60,5 @@ public class VersionController {
         }
         return result;
     }
-
-    private String getVersion(Class clazz) {
-        // Try reading info from manifes first, this only works with certain maven settings
-        // (see also http://stackoverflow.com/questions/2712970/get-maven-artifact-version-at-runtime#2713013)
-        String result = clazz.getPackage().getImplementationVersion();
-        if (result == null) {
-            result = clazz.getPackage().getSpecificationVersion();
-        }
-        // fallback: check if there is a version in the filename (which is usually the case if it's packaged in a jar)
-        if (result == null) {
-            result = stripVersionFileName(clazz.getProtectionDomain().getCodeSource().getLocation().getPath());
-        }
-        return result;
-    }
-
-    private String getCreationDate(Class clazz) throws IOException, URISyntaxException {
-        Path file = Paths.get(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());
-        BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
-        ZoneId timezone = ZoneId.of("CET");
-        LocalDateTime fileTime = LocalDateTime.ofInstant(attr.creationTime().toInstant(), timezone);
-        StringBuilder timeString = new StringBuilder(fileTime.toLocalDate().toString());
-        timeString.append(' ').append(fileTime.toLocalTime())
-                  .append(' ').append(timezone.getId());
-        return timeString.toString();
-    }
-
-    private String stripVersionFileName(String fileName) {
-        Pattern pattern = Pattern.compile("[\\d][.][.\\d*]*(-SNAPSHOT)?");
-        Matcher matcher = pattern.matcher(fileName);
-        if (matcher.find()) {
-            return matcher.group();
-        }
-        return null;
-
-    }
-
 
 }

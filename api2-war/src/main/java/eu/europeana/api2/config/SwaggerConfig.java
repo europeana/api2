@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.config;
 
+import eu.europeana.api2.utils.VersionUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import org.apache.commons.lang.StringUtils;
@@ -67,17 +68,18 @@ public class SwaggerConfig {
     }
 
     ApiInfo apiInfo() {
+        String version = VersionUtils.getVersion(this.getClass());
         return new ApiInfo(
         "Europeana REST API",
         "This Swagger API console provides an overview of an interface to the Europeana REST API. " +
                 "You can build and test anything from the simplest search to a complex query using facetList " +
                 "such as dates, geotags and permissions. For more help and information, head to our " +
                 "comprehensive <a href=\"http://labs.europeana.eu/api/\">online documentation</a>.",
-        "2.3.0",
+                StringUtils.isNotEmpty(version) ? version : "version unknown",
         "http://www.europeana.eu/portal/en/rights.html",
         "http://labs.europeana.eu/api",
         "API terms of use",
-        "http://www.europeana.eu/portal/en/rights/api.html" );
+        "http://www.europeana.eu/portal/en/rights/api.html");
     }
 
     private String getApiPath(){
