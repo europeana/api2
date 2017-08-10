@@ -1,7 +1,5 @@
 package eu.europeana.api2.config;
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
 import eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler;
 import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.service.SugarCRMImporter;
@@ -17,8 +15,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.net.UnknownHostException;
 
 
 /**
@@ -46,6 +42,17 @@ public class AppConfig {
     private String region;
     @Value("${s3.bucket}")
     private String bucket;
+
+//    @Value("${socks.host}")
+//    String  host;
+//    @Value("#{socks.port}")
+//    String  port;
+//    @Value("${socks.user}")
+//    String  user;
+//    @Value("${socks.password}")
+//    String  password;
+//    @Value("${socks.useauth}")
+//    Boolean useauth;
 
     /**
      * Read and setup europeana.properties files.
@@ -94,6 +101,11 @@ public class AppConfig {
     public SugarCRMCache sugarCRMCache() {
         return new SugarCRMCache();
     }
+
+//    @Bean(name = "socks_proxy_config")
+//    public SocksProxyConfig socksProxyConfig() {
+//        return new SocksProxyConfig(host, port, user, password, useauth);
+//    }
 
     /**
      * The ObjectStorageClient allows access to our Storage Provider where thumbnails and sitemap files are stored

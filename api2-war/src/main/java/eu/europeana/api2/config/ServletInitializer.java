@@ -44,12 +44,17 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     public void onStartup(ServletContext servletContext) throws ServletException {
         super.onStartup(servletContext);
         registerProxyFilter(servletContext, "springSecurityFilterChain");
+        configureSocksProxy();
     }
 
     private void registerProxyFilter(ServletContext servletContext, String name) {
         DelegatingFilterProxy filter = new DelegatingFilterProxy(name);
         filter.setContextAttribute("org.springframework.web.servlet.FrameworkServlet.CONTEXT.dispatcher");
         servletContext.addFilter(name, filter).addMappingForUrlPatterns(null, false, "/*");
+    }
+
+    private void configureSocksProxy(){
+        SocksProxyConfig spc = new SocksProxyConfig();
     }
 
 }
