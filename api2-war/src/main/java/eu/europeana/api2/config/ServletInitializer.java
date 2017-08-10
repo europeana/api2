@@ -44,7 +44,7 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     public void onStartup(ServletContext servletContext) throws ServletException {
         super.onStartup(servletContext);
         registerProxyFilter(servletContext, "springSecurityFilterChain");
-        configureSocksProxy();
+//        configureSocksProxy();
     }
 
     private void registerProxyFilter(ServletContext servletContext, String name) {
@@ -53,8 +53,8 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
         servletContext.addFilter(name, filter).addMappingForUrlPatterns(null, false, "/*");
     }
 
-    private void configureSocksProxy(){
-        SocksProxyConfig spc = new SocksProxyConfig();
-    }
+//    private void configureSocksProxy(){
+//        SocksProxyConfig spc = new SocksProxyConfig();
+//    }
 
 }

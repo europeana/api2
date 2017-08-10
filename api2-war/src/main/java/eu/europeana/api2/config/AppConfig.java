@@ -43,17 +43,6 @@ public class AppConfig {
     @Value("${s3.bucket}")
     private String bucket;
 
-//    @Value("${socks.host}")
-//    String  host;
-//    @Value("#{socks.port}")
-//    String  port;
-//    @Value("${socks.user}")
-//    String  user;
-//    @Value("${socks.password}")
-//    String  password;
-//    @Value("${socks.useauth}")
-//    Boolean useauth;
-
     /**
      * Read and setup europeana.properties files.
      * The main properties are in the europeana.properties file, but since this is committed on GitHub this must not
@@ -101,11 +90,6 @@ public class AppConfig {
     public SugarCRMCache sugarCRMCache() {
         return new SugarCRMCache();
     }
-
-//    @Bean(name = "socks_proxy_config")
-//    public SocksProxyConfig socksProxyConfig() {
-//        return new SocksProxyConfig(host, port, user, password, useauth);
-//    }
 
     /**
      * The ObjectStorageClient allows access to our Storage Provider where thumbnails and sitemap files are stored
