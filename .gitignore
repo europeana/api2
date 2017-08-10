@@ -17,3 +17,4 @@ docker/docker-compose.yml
 docker/tomcat/api.war
 
 .gitignore
+/api2-war/src/main/webapp/docs/
