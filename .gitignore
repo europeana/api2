@@ -16,5 +16,5 @@
 docker/docker-compose.yml
 docker/tomcat/api.war
 
-.gitignore
+# Swagger UI
 /api2-war/src/main/webapp/docs/
