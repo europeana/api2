@@ -1,7 +1,5 @@
 package eu.europeana.api2.config;
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
 import eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler;
 import eu.europeana.api2.v2.service.SugarCRMCache;
 import eu.europeana.api2.v2.service.SugarCRMImporter;
@@ -17,8 +15,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.net.UnknownHostException;
 
 
 /**
