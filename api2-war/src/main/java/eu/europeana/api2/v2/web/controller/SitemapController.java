@@ -17,148 +17,95 @@
 
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.domain.StorageObject;
+import eu.europeana.api2.v2.web.SiteMapNotFoundException;
 import eu.europeana.features.ObjectStorageClient;
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.jclouds.io.Payload;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.Optional;
 
 /**
- * Created by luthien on 07/12/2015.
+ * Handles requests for sitemap files
+ * @author luthien, created on 07/12/2015.
+ * @author Patrick Ehlert, major refactoring on 21/08/2017
  */
-@Controller
+@RestController
 public class SitemapController {
 
-    private final Logger log = Logger.getLogger(this.getClass());
-    public static String ACTIVE_SITEMAP_FILE = "europeana-sitemap-active-xml-file.txt";
-    ;
+    private static final Logger LOG = Logger.getLogger(SitemapController.class);
 
-    @SuppressWarnings("SpringJavaAutowiringInspection")
+    public static final String INDEX_FILE = "europeana-sitemap-index-hashed.xml";
+
+    public static final String ACTIVE_SITEMAP_FILE = "europeana-sitemap-active-xml-file.txt";
+
+
     @Resource(name = "api_object_storage_client")
     private ObjectStorageClient objectStorageClient;
 
     /**
-     * Generate the sitemap index file. This file groups multiple sitemap files to adhere to the
-     * 50,000 URLs / 10MB (10,485,760 bytes) sitemap limit. This index itself may not list more than
-     * 50,000 Sitemaps and must be no larger than 10MB (10,485,760 bytes). The sitemaps are split by
-     * id3hash (the first 3 letters of the record), and further split into files of maximum
-     * MAX_URLS_PER_SITEMAP if these groups exceed 50,000 URLs.
+     * Return the sitemap index file
      *
      * @param response The {@link HttpServletResponse}
      * @throws IOException For any file-related exceptions
+     * @return contents of sitemap index file
      */
     @RequestMapping("/europeana-sitemap-index-hashed.xml")
-    public void handleSitemapIndexHashed(HttpServletResponse response) throws IOException {
-        String cacheFile = "europeana-sitemap-index-hashed.xml";
-        // Generate the requested sitemap if it's outdated / doesn't exist (and is not currently being
-        // created)
-        // Read the sitemap from file
+    public String handleSitemapIndex(HttpServletResponse response) throws IOException {
         try {
-            readCachedSitemap(response.getOutputStream(), objectStorageClient, cacheFile);
+            return getFileContents(INDEX_FILE);
         } catch (SiteMapNotFoundException e) {
-            log.error(e);
+            LOG.error("Sitemap index file not found", e);
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return null;
         }
     }
 
     /**
-     * Generate the individual sitemaps, containing the actual record IDs. Each file needs to adhere
-     * to the 50,000 URLs / 10MB (10,485,760 bytes) sitemap limit. Each sitemap is split by id3hash
-     * (the first 3 letters of the record); an id3hash may be split over multiple files if there are
-     * more than 50,000 records (the current implementation uses approx. 5.8 MB for 50,000 URLs, so
-     * the size is not the limiting factor).
+     * Return a sitemap file
      *
      * @param from     start index
      * @param to       end indexw
      * @param response The {@link HttpServletResponse}
      * @throws IOException
+     * @return contents of sitemap file
      */
     @RequestMapping("/europeana-sitemap-hashed.xml")
-    public void handleSitemap(@RequestParam(value = "from", required = true) String from, @RequestParam(value = "to", required = true) String to, HttpServletResponse response) throws Exception {
-        ServletOutputStream out = response.getOutputStream();
-        String cacheFile = null;
+    public String handleSitemapFile(@RequestParam(value = "from", required = true) String from,
+                                  @RequestParam(value = "to", required = true) String to,
+                                  HttpServletResponse response) throws IOException {
         try {
-            cacheFile = getActiveFile() + "?from=" + from + "&to=" + to;
+            // first check which is the active deployment; blue or green
+            String fileName = getActiveDeployment() + "?from=" + from + "&to=" + to;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Retrieving sitemap file "+ fileName);
+            }
+            return getFileContents(fileName);
         } catch (SiteMapNotFoundException e) {
-            log.error(ACTIVE_SITEMAP_FILE + "could not be found");
+            LOG.error("Sitemap file not found", e);
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            out.println(e.toString());
+            return null;
         }
+    }
 
-        try {
-            readCachedSitemap(out, objectStorageClient, cacheFile);
-        } catch (IOException e) {
-            log.error(e);
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            out.println(e.toString());
+    private String getFileContents(String file) throws SiteMapNotFoundException {
+        if (!objectStorageClient.getWithoutBody(file).isPresent()) {
+            throw new SiteMapNotFoundException("File " + file + " not found!");
+        } else {
+            return new String(objectStorageClient.getContent(file));
         }
     }
 
     /**
-     * Read a cached sitemap, and copy its content to the output stream
-     *
-     * @param out
-     * @param cacheFile
+     * The active sitemap file stores either the value 'blue' or 'green' so we know which deployment of the files we
+     * need to retrieve
+     * @return
+     * @throws SiteMapNotFoundException
      */
-    private void readCachedSitemap(ServletOutputStream out, ObjectStorageClient objectStorageClient, String cacheFile) throws IOException, SiteMapNotFoundException {
-        InputStream in = null;
-        Payload payload = null;
-        try {
-            StringWriter writer = new StringWriter();
-            Optional<StorageObject> storageObject = objectStorageClient.get(cacheFile);
-            if (!storageObject.isPresent()) {
-                throw new SiteMapNotFoundException("Error while reading sitemap file " + cacheFile + " from the ObjectStorage provider");
-            }
-            StorageObject storageObjectValue = storageObject.get();
-            payload = storageObjectValue.getPayload();
-            in = payload.openStream();
-            IOUtils.copy(in, writer);
-            out.println(writer.toString());
-            out.flush();
-            in.close();
-            payload.close();
-        } catch (IOException e) {
-            throw new IOException("Error while reading sitemap file " + cacheFile + " from the ObjectStorage provider", e);
-        } finally {
-            IOUtils.closeQuietly(in);
-            IOUtils.closeQuietly(payload);
-        }
-    }
-
-    private String getActiveFile() throws IOException, SiteMapNotFoundException {
-        String result = "";
-        InputStream in = null;
-        Payload payload = null;
-        try {
-            StringWriter writer = new StringWriter();
-            Optional<StorageObject> storageObject = objectStorageClient.get(ACTIVE_SITEMAP_FILE);
-            if (!storageObject.isPresent()) {
-                throw new SiteMapNotFoundException("Error while reading sitemap file " + ACTIVE_SITEMAP_FILE + " from the ObjectStorage provider");
-            }
-            StorageObject storageObjectValue = storageObject.get();
-            payload = storageObjectValue.getPayload();
-            in = payload.openStream();
-            IOUtils.copy(in, writer);
-            result = writer.toString();
-            in.close();
-            payload.close();
-        } catch (IOException e) {
-            throw new IOException("Error while reading active sitemap file " + ACTIVE_SITEMAP_FILE + " from the ObjectStorage provider", e);
-        } finally {
-            IOUtils.closeQuietly(in);
-            IOUtils.closeQuietly(payload);
-        }
-        return result;
+    private String getActiveDeployment() throws SiteMapNotFoundException {
+        return getFileContents(ACTIVE_SITEMAP_FILE);
     }
 }
