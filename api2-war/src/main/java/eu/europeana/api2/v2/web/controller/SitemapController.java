@@ -20,7 +20,9 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.v2.web.SiteMapNotFoundException;
 import eu.europeana.features.ObjectStorageClient;
 import org.apache.log4j.Logger;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,10 +40,8 @@ public class SitemapController {
 
     private static final Logger LOG = Logger.getLogger(SitemapController.class);
 
-    public static final String INDEX_FILE = "europeana-sitemap-index-hashed.xml";
-
-    public static final String ACTIVE_SITEMAP_FILE = "europeana-sitemap-active-xml-file.txt";
-
+    private static final String INDEX_FILE = "europeana-sitemap-index-hashed.xml";
+    private static final String ACTIVE_SITEMAP_FILE = "europeana-sitemap-active-xml-file.txt";
 
     @Resource(name = "api_object_storage_client")
     private ObjectStorageClient objectStorageClient;
@@ -53,7 +53,8 @@ public class SitemapController {
      * @throws IOException For any file-related exceptions
      * @return contents of sitemap index file
      */
-    @RequestMapping("/europeana-sitemap-index-hashed.xml")
+    @RequestMapping(value = "/europeana-sitemap-index-hashed.xml",
+                    method = RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
     public String handleSitemapIndex(HttpServletResponse response) throws IOException {
         try {
             return getFileContents(INDEX_FILE);
@@ -65,20 +66,21 @@ public class SitemapController {
     }
 
     /**
-     * Return a sitemap file
+     * Return a sitemap file. Note that the to and from are fixed values, a list of all files with to/from values
+     * can be found in the sitemap index
      *
      * @param from     start index
-     * @param to       end indexw
+     * @param to       end index
      * @param response The {@link HttpServletResponse}
      * @throws IOException
      * @return contents of sitemap file
      */
-    @RequestMapping("/europeana-sitemap-hashed.xml")
+    @RequestMapping(value = "/europeana-sitemap-hashed.xml",
+                    method = RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
     public String handleSitemapFile(@RequestParam(value = "from", required = true) String from,
-                                  @RequestParam(value = "to", required = true) String to,
+                                    @RequestParam(value = "to", required = true) String to,
                                   HttpServletResponse response) throws IOException {
         try {
-            // first check which is the active deployment; blue or green
             String fileName = getActiveDeployment() + "?from=" + from + "&to=" + to;
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Retrieving sitemap file "+ fileName);
@@ -91,11 +93,11 @@ public class SitemapController {
         }
     }
 
-    private String getFileContents(String file) throws SiteMapNotFoundException {
+    private String getFileContents(String file) throws SiteMapNotFoundException, IOException {
         if (!objectStorageClient.getWithoutBody(file).isPresent()) {
             throw new SiteMapNotFoundException("File " + file + " not found!");
         } else {
-            return new String(objectStorageClient.getContent(file));
+            return new String(objectStorageClient.getContent(file), "UTF-8");
         }
     }
 
@@ -105,7 +107,7 @@ public class SitemapController {
      * @return
      * @throws SiteMapNotFoundException
      */
-    private String getActiveDeployment() throws SiteMapNotFoundException {
+    private String getActiveDeployment() throws SiteMapNotFoundException, IOException {
         return getFileContents(ACTIVE_SITEMAP_FILE);
     }
 }
