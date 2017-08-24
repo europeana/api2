@@ -82,10 +82,7 @@
             <artifactId>corelib-search</artifactId>
             <version>${version.corelib}</version>
         </dependency>
-        <dependency>
-            <groupId>eu.europeana</groupId>
-            <artifactId>object-storage</artifactId>
-        </dependency>
+
         <!-- OTHER -->
         <dependency>
             <groupId>com.google.guava</groupId>
