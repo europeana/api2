@@ -92,34 +92,35 @@ public class ThumbnailController {
         // 2017-06-13 as part of ticket 638 we retrieve the entire mediafile and put the eTag and lastModified in our response
         // However we need to see if this will really have a positive effect on the load (see also ticket #659)
         
-        MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, Boolean.TRUE);
-        byte[] mediaContent;
-        if (mediaFile == null) {
-            headers.setContentType(MediaType.IMAGE_PNG);
-            mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
-            result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
-        } else {
-            // this check automatically sets an ETag and last-Modified in our response header and returns a 304
-            // (but only when clients include the If_Modified_Since header in their request)
-            if (webRequest.checkNotModified(mediaFile.getContentMd5(), mediaFile.getCreatedAt().getMillis())) {
-                // no need to do anything, just return result = null
-            } else {
-                // All stored thumbnails are JPEG.
-                headers.setContentType(MediaType.IMAGE_JPEG);
-                mediaContent = mediaFile.getContent();
-                result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
-            }
-        }
-
-//        byte[] mediaContent = mediaStorageService.retrieveContent(mediaFileId);
-//        if (mediaContent == null || mediaContent.length == 0) {
-//            // All default not found thumbnails are PNG.
+//        MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, Boolean.TRUE);
+//        byte[] mediaContent;
+//        if (mediaFile == null) {
 //            headers.setContentType(MediaType.IMAGE_PNG);
 //            mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
+//            result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
 //        } else {
-//            // All stored thumbnails are JPEG.
-//            headers.setContentType(MediaType.IMAGE_JPEG);
+//            // this check automatically sets an ETag and last-Modified in our response header and returns a 304
+//            // (but only when clients include the If_Modified_Since header in their request)
+//            //if (webRequest.checkNotModified(mediaFile.getContentMd5(), mediaFile.getCreatedAt().getMillis())) {
+//                // no need to do anything, just return result = null
+//            //} else {
+//                // All stored thumbnails are JPEG.
+//                headers.setContentType(MediaType.IMAGE_JPEG);
+//                mediaContent = mediaFile.getContent();
+//                result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
+//            //}
 //        }
+
+        byte[] mediaContent = mediaStorageService.retrieveContent(mediaFileId);
+        if (mediaContent == null || mediaContent.length == 0) {
+            // All default not found thumbnails are PNG.
+            headers.setContentType(MediaType.IMAGE_PNG);
+            mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
+        } else {
+            // All stored thumbnails are JPEG.
+            headers.setContentType(MediaType.IMAGE_JPEG);
+        }
+        result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
 
         if (LOG.isDebugEnabled()) {
             Long duration = (System.nanoTime() - startTime) / 1000;
