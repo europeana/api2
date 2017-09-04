@@ -17,7 +17,7 @@ STATICA_PASSWORD=$(awk -F'[/@:]' '{print $5}' <<< ${STATICA_URL})
 STATICA_MASK=${STATICA_MASK:-0.0.0.0/0}
 STATICA_XMASK=${STATICA_XMASK}
 
-export SOCKS_CONF="${SOCKS_DIR}/socks.conf"
+export SOCKS_CONF="${SOCKS_DIR}/eu.europeana.corelib.web.socks.conf"
 export SOCKS_LIBDIR="${SOCKS_DIR}/lib"
 export SOCKS_USERNAME="${STATICA_USERNAME}"
 export SOCKS_PASSWORD="${STATICA_PASSWORD}"
