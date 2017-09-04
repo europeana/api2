@@ -38,6 +38,7 @@ import org.springframework.web.context.request.WebRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -76,8 +77,6 @@ public class ThumbnailController {
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
             WebRequest webRequest, HttpServletResponse response) throws IOException {
 
-        // 2017-05-12 Timing debug statements added as part of ticket #613.
-        // Can be removed when it's confirmed that timing is improved
         long startTime = 0;
         if (LOG.isDebugEnabled()) {
             startTime = System.nanoTime();
@@ -88,10 +87,6 @@ public class ThumbnailController {
         final String mediaFileId = computeResourceUrl(url, size);
 
         ResponseEntity result = null;
-
-        // 2017-06-13 as part of ticket 638 we retrieve the entire mediafile and put the eTag and lastModified in our response
-        // However we need to see if this will really have a positive effect on the load (see also ticket #659)
-        
         MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, Boolean.TRUE);
         byte[] mediaContent;
         if (mediaFile == null) {
@@ -110,16 +105,6 @@ public class ThumbnailController {
                 result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
             }
         }
-
-//        byte[] mediaContent = mediaStorageService.retrieveContent(mediaFileId);
-//        if (mediaContent == null || mediaContent.length == 0) {
-//            // All default not found thumbnails are PNG.
-//            headers.setContentType(MediaType.IMAGE_PNG);
-//            mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
-//        } else {
-//            // All stored thumbnails are JPEG.
-//            headers.setContentType(MediaType.IMAGE_JPEG);
-//        }
 
         if (LOG.isDebugEnabled()) {
             Long duration = (System.nanoTime() - startTime) / 1000;
@@ -152,21 +137,21 @@ public class ThumbnailController {
     }
 
 
-    private String getMD5(String input) {
+    private String getMD5(String resourceUrl, String input) {
         final MessageDigest messageDigest;
         String temp;
         try {
             messageDigest = MessageDigest.getInstance("MD5");
             messageDigest.reset();
-            messageDigest.update(input.getBytes());
+            messageDigest.update(input.getBytes("UTF-8"));
             final byte[] resultByte = messageDigest.digest();
             StringBuilder sb = new StringBuilder();
             for (byte aResultByte : resultByte) {
                 sb.append(Integer.toString((aResultByte & 0xff) + 0x100, 16).substring(1));
             }
             temp = sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            LOG.error("Cannot find MD5 algorithm", e);
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
+            LOG.error("Error determining MD5 for resource "+resourceUrl, e);
             temp = input;
         }
 
@@ -200,6 +185,6 @@ public class ThumbnailController {
      */
     private String computeResourceUrl(final String resourceUrl, final String resourceSize) {
         String urlText = (resourceUrl == null ? "" : resourceUrl);
-        return getMD5(urlText) + "-" + (StringUtils.equalsIgnoreCase(resourceSize, "w200") ? "MEDIUM" : "LARGE");
+        return getMD5(resourceUrl, urlText) + "-" + (StringUtils.equalsIgnoreCase(resourceSize, "w200") ? "MEDIUM" : "LARGE");
     }
 }
