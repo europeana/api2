@@ -109,7 +109,8 @@ public class ExceptionControllerAdvice {
     @ExceptionHandler(value = {Exception.class})
     public ModelAndView defaultExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e)
             throws Exception {
-        LOG.error("Caught exception: "+ e.getMessage() +" Stacktrace: "+ Throwables.getStackTraceAsString(e));
+        LOG.error("Caught exception: "+ e.getMessage());
+        LOG.error("Stacktrace: "+ Throwables.getStackTraceAsString(e));
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         String requestFormat = ControllerUtils.getRequestFormat(request);
 
