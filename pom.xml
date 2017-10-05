@@ -26,13 +26,12 @@
     <parent>
        <artifactId>europeana-parent-pom</artifactId>
         <groupId>eu.europeana</groupId>
-        <version>1.6</version>
+        <version>1.7</version>
     </parent>
     <properties>
         <version.springWebService>2.2.4.RELEASE</version.springWebService>
         <!--NOTE change version if API version differs from the corelib version!-->
         <version.corelib>2.6.6-SNAPSHOT</version.corelib>
-        <version.objectStorage>1.4</version.objectStorage>
     </properties>
     <modules>
         <module>api2-model</module>
