@@ -14,12 +14,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.env.Environment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -48,10 +49,16 @@ public class AppConfig {
     private String bucket;
 
     @Autowired
-    private Environment env;
+    private ConfigurableEnvironment env;
 
     @PostConstruct
     public void logSpringProfiles() {
+        // In Pivotal the 'cloud' profile is set automatically as active thus overriding the 'default' profile
+        // That's why we set 'default' explicitely here.
+        List<String> activeProfiles = Arrays.asList(env.getActiveProfiles());
+        if (!activeProfiles.isEmpty() && !activeProfiles.contains("metis")) {
+            env.addActiveProfile("default");
+        }
         LOG.info("Active Spring profiles:" + Arrays.toString(env.getActiveProfiles()));
         LOG.info("Default Spring profiles:" + Arrays.toString(env.getDefaultProfiles()));
     }
