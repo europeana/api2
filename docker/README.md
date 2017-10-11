@@ -1,8 +1,8 @@
 #Using the Dockerized API development environment
 
-You can use docker to quickly setup an API development environment. The docker environment consists of 4 components:
- - Tomcat server
+You can use Docker to quickly setup an API development environment. The docker environment consists of 4 components:
  - Apache webserver
+ - Tomcat server
  - Neo4j database
  - Postgresql database
  
@@ -11,17 +11,21 @@ The postgresql database is prefilled with an api key (api2demo/verysecret) and t
 We assume you have Docker already installed on your computer. You need docker-compose version 1.8.0 or later to 
 be able to run it ([installation instructions here](https://github.com/docker/compose/releases)).
 
-Configure the api2/api2-war/src/main/resources/europeana.properties (fill in the username/passwords of external services)
+## Build the api
+- Configure the api2/api2-war/src/main/resources/europeana.properties (fill in the username/passwords of external services)
+- Run `maven install`
+- Docker will use the files in the api/target folder
 
 ##Starting docker
 - Go to the docker folder and execute the command: `docker-compose up`
-
 
 ##Usage:
  - If you press <kbd>Ctrl</kbd>+<kbd>C</kbd> in the terminal then docker will stop, preserving your current containers. You can restart by
    executing docker-compose up again. If you want to do a clean start you can throw your old containers away first with
    this command: `docker rm docker_webserver_1 docker_appserver_1 docker_graph-database_1 docker_relational-database_1`
  - For debugging use Java/Tomcat port = 8000
+ - By default we enable SLL and re-route all http-requests to https. To disable this simply comment out the line `RUN a2enmod ssl` 
+in the Apache Dockerfile. You may also need to clear your browser cache, as previously visited urls may cache the SSL redirect.
 
 ##Favorite Docker commands:
 
