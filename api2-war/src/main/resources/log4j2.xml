@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <!-- Use the JSON layout pattern for production (logging to ELK) -->
+            <PatternLayout pattern="{&quot;@timestamp&quot;:&quot;%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}&quot;,&quot;level&quot;:&quot;%-5p&quot;,&quot;thread&quot;:&quot;%t&quot;,&quot;class&quot;:&quot;%C&quot;, &quot;code_line_number&quot;:&quot;%L&quot;,&quot;message&quot;:&quot;%m&quot;}%n" />
+
+            <!-- Use this pattern for local debugging -->
+            <!--<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %logger{36} - %msg%n" />-->
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+        </Root>
+        <!-- Ignore SugarCrmImporter updates that are triggered every minute -->
+        <Logger name="eu.europeana.api2.v2.service.SugarCRMImporter" level="WARN"/>
+    </Loggers>
+</Configuration>
