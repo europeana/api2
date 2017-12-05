@@ -22,9 +22,9 @@ import eu.europeana.corelib.domain.MediaFile;
 import eu.europeana.corelib.web.service.MediaStorageService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,11 +36,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 
 /**
  * Retrieves image thumbnails.
@@ -49,7 +54,9 @@ import java.security.NoSuchAlgorithmException;
 @RestController
 public class ThumbnailController {
 
-    private static final Logger LOG = Logger.getLogger(ThumbnailController.class);
+    private static final Logger LOG = LogManager.getLogger(ThumbnailController.class);
+
+    private static final String IIIF_HOST_NAME = "iiif.europeana.eu";
 
     private MediaStorageService mediaStorageService;
 
@@ -80,45 +87,119 @@ public class ThumbnailController {
         long startTime = 0;
         if (LOG.isDebugEnabled()) {
             startTime = System.nanoTime();
+            LOG.debug("Thumbnail url = {}, size = {}, type = {}", url, size, type);
         }
 
         ControllerUtils.addResponseHeaders(response);
         final HttpHeaders headers = new HttpHeaders();
-        final String mediaFileId = computeResourceUrl(url, size);
+        MediaFile mediaFile = null;
 
-        ResponseEntity result = null;
-        MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, Boolean.TRUE);
-        byte[] mediaContent;
-        if (mediaFile == null) {
+
+        if (ThumbnailController.isIiifRecordUrl(url)) {
+            // Try to download IIIF thumbnail directly (see EA-892)
+            try {
+                String width = (StringUtils.equalsIgnoreCase(size, "w200") ? "200" : "400");
+                URI iiifUri = ThumbnailController.getIiifThumbnailUrl(url, width);
+                LOG.debug("IIIF url = {} ", iiifUri.getPath());
+                mediaFile = downloadImage(iiifUri);
+            } catch (URISyntaxException e) {
+                LOG.error("Error reading IIIF thumbnail url", e);
+            } catch (IOException io) {
+                LOG.error("Error retrieving IIIF thumbnail image", io);
+            }
+        } else {
+            // Try to download regular file from S3
+            final String mediaFileId = computeResourceUrl(url, size);
+            mediaFile = mediaStorageService.retrieve(mediaFileId, Boolean.TRUE);
+        }
+
+         // check if we have an image
+         byte[] mediaContent;
+         ResponseEntity result;
+         if (mediaFile == null) {
             headers.setContentType(MediaType.IMAGE_PNG);
             mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
             result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
         } else {
-            // this check automatically sets an ETag and last-Modified in our response header and returns a 304
+            headers.setContentType(MediaType.IMAGE_JPEG);
+            mediaContent = mediaFile.getContent();
+            result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
+
+            // finally check if we should return the image, or a 304 based
+            // the check below automatically sets an ETag and last-Modified in our response header and returns a 304
             // (but only when clients include the If_Modified_Since header in their request)
-            if (webRequest.checkNotModified(mediaFile.getContentMd5(), mediaFile.getCreatedAt().getMillis())) {
-                // no need to do anything, just return result = null
-            } else {
-                // All stored thumbnails are JPEG.
-                headers.setContentType(MediaType.IMAGE_JPEG);
-                mediaContent = mediaFile.getContent();
-                result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
+            if (mediaFile.getCreatedAt() == null) {
+                if (webRequest.checkNotModified(mediaFile.getContentMd5())) {
+                    result = null;
+                }
+            } else if (webRequest.checkNotModified(mediaFile.getContentMd5(), mediaFile.getCreatedAt().getMillis())) {
+                result = null;
             }
-        }
+         }
+
+
 
         if (LOG.isDebugEnabled()) {
             Long duration = (System.nanoTime() - startTime) / 1000;
             if (MediaType.IMAGE_PNG.equals(headers.getContentType())) {
-                LOG.debug("Total thumbnail request time (missing media): " +duration);
+                LOG.debug("Total thumbnail request time (missing media): {}",duration);
             } else {
                 if (result == null) {
-                    LOG.debug("Total thumbnail request time (from s3 + return 304): " +duration);
+                    LOG.debug("Total thumbnail request time (from s3 + return 304): {}", duration);
                 } else {
-                    LOG.debug("Total thumbnail request time (from s3 + return 200): " + duration);
+                    LOG.debug("Total thumbnail request time (from s3 + return 200): {}", duration);
                 }
             }
         }
         return result;
+    }
+
+    /**
+     * Check if the provided url is a thumbnail hosted on iiif.europeana.eu.
+     * @param url
+     * @return true if the provided url is a thumbnail hosted on iiif.europeana.eu, otherwise false
+     */
+    public static boolean isIiifRecordUrl(String url) {
+        String urlLowercase = url.toLowerCase(Locale.getDefault());
+        return (urlLowercase.startsWith("http://"+IIIF_HOST_NAME) || urlLowercase.startsWith("https://"+IIIF_HOST_NAME));
+    }
+
+    /**
+     * All 3 million IIIF newspaper thumbnails have not been processed yet in CRF (see also Jira EA-892) but the
+     * edmPreview field will point to the default IIIF image url, so if we slightly alter that url the IIIF
+     * API will generate a thumbnail in the appropriate size for us on-the-fly
+     * Note that this is a temporary solution until all newspaper thumbnails are processed by CRF.
+     * @param url
+     * @param width, desired image width
+     * @return thumbnail URI for iiif urls, otherwise null
+     * @throws URISyntaxException
+     */
+    public static URI getIiifThumbnailUrl(String url, String width) throws URISyntaxException {
+        // all urls are encoded so they start with either http:// or https://
+        // and end with /full/full/0/default.<extension>.
+        if (url != null && isIiifRecordUrl(url)) {
+            return new URI(url.replace("/full/full/0/default.", "/full/" +width+ ",/0/default."));
+        }
+        return null;
+    }
+
+    /**
+     * Download (IIIF) image from external location
+     * @param uri
+     * @return
+     * @throws IOException
+     */
+    private MediaFile downloadImage(URI uri) throws IOException {
+        try (InputStream in = new BufferedInputStream(uri.toURL().openStream());
+            ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buf = new byte[1024];
+            int n = 0;
+            while (-1 != (n = in.read(buf))) {
+                out.write(buf, 0, n);
+            }
+            // for now we don't do anything with LastModified
+            return new MediaFile(null, null, null,getMD5(uri.getPath()), uri.getPath(), null, out.toByteArray(), null, null, null, 0);
+        }
     }
 
     /**
@@ -137,25 +218,23 @@ public class ThumbnailController {
     }
 
 
-    private String getMD5(String resourceUrl, String input) {
-        final MessageDigest messageDigest;
-        String temp;
+    private String getMD5(String resourceUrl) {
+        String resource = (resourceUrl == null ? "" : resourceUrl);
+        MessageDigest messageDigest;
         try {
             messageDigest = MessageDigest.getInstance("MD5");
             messageDigest.reset();
-            messageDigest.update(input.getBytes("UTF-8"));
+            messageDigest.update(resource.getBytes(StandardCharsets.UTF_8));
             final byte[] resultByte = messageDigest.digest();
             StringBuilder sb = new StringBuilder();
             for (byte aResultByte : resultByte) {
                 sb.append(Integer.toString((aResultByte & 0xff) + 0x100, 16).substring(1));
             }
-            temp = sb.toString();
-        } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
-            LOG.error("Error determining MD5 for resource "+resourceUrl, e);
-            temp = input;
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("Error determining MD5 for resource {}", resourceUrl, e);
         }
-
-        return temp;
+        return resourceUrl;
     }
 
     //@Cacheable
@@ -184,7 +263,6 @@ public class ThumbnailController {
      * @return
      */
     private String computeResourceUrl(final String resourceUrl, final String resourceSize) {
-        String urlText = (resourceUrl == null ? "" : resourceUrl);
-        return getMD5(resourceUrl, urlText) + "-" + (StringUtils.equalsIgnoreCase(resourceSize, "w200") ? "MEDIUM" : "LARGE");
+        return getMD5(resourceUrl) + "-" + (StringUtils.equalsIgnoreCase(resourceSize, "w200") ? "MEDIUM" : "LARGE");
     }
 }
