@@ -92,11 +92,13 @@ public class ThumbnailController {
 
         ControllerUtils.addResponseHeaders(response);
         final HttpHeaders headers = new HttpHeaders();
-        MediaFile mediaFile = null;
 
+        // Always try to download the thumbnail from S3 first
+        final String mediaFileId = computeResourceUrl(url, size);
+        MediaFile mediaFile = mediaStorageService.retrieve(mediaFileId, Boolean.TRUE);
 
-        if (ThumbnailController.isIiifRecordUrl(url)) {
-            // Try to download IIIF thumbnail directly (see EA-892)
+        // Alternatively try to generate a IIIF thumbnail (see EA-892)
+        if (mediaFile == null && ThumbnailController.isIiifRecordUrl(url)) {
             try {
                 String width = (StringUtils.equalsIgnoreCase(size, "w200") ? "200" : "400");
                 URI iiifUri = ThumbnailController.getIiifThumbnailUrl(url, width);
@@ -107,13 +109,9 @@ public class ThumbnailController {
             } catch (IOException io) {
                 LOG.error("Error retrieving IIIF thumbnail image", io);
             }
-        } else {
-            // Try to download regular file from S3
-            final String mediaFileId = computeResourceUrl(url, size);
-            mediaFile = mediaStorageService.retrieve(mediaFileId, Boolean.TRUE);
         }
 
-         // check if we have an image
+         // Check if we have an image, if not show default 'type' icon
          byte[] mediaContent;
          ResponseEntity result;
          if (mediaFile == null) {
@@ -121,11 +119,12 @@ public class ThumbnailController {
             mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
             result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
         } else {
+            // prepare final response
             headers.setContentType(MediaType.IMAGE_JPEG);
             mediaContent = mediaFile.getContent();
             result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
 
-            // finally check if we should return the image, or a 304 based
+            // finally check if we should return the full response, or a 304
             // the check below automatically sets an ETag and last-Modified in our response header and returns a 304
             // (but only when clients include the If_Modified_Since header in their request)
             if (mediaFile.getCreatedAt() == null) {
@@ -136,8 +135,6 @@ public class ThumbnailController {
                 result = null;
             }
          }
-
-
 
         if (LOG.isDebugEnabled()) {
             Long duration = (System.nanoTime() - startTime) / 1000;
