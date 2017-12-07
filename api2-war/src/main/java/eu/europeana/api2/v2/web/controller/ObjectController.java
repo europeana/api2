@@ -112,7 +112,6 @@ public class ObjectController {
      * @param profile        supported types are 'params' and 'similar'
      * @param wskey
      * @param callback
-     * @param hierarchyTimeout maximum time allowed to retrieve hierarchical information
      * @param webRequest
      * @param servletRequest
      * @param response
@@ -126,11 +125,10 @@ public class ObjectController {
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
                                @RequestParam(value = "wskey", required = true) String wskey,
                                @RequestParam(value = "callback", required = false) String callback,
-                               @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
                                WebRequest webRequest,
                                HttpServletRequest servletRequest,
                                HttpServletResponse response) throws ApiLimitException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, profile, hierarchyTimeout, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, wskey, profile, callback, webRequest, servletRequest);
         try {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT, data, response);
         } catch (EuropeanaException e) {
@@ -202,7 +200,7 @@ public class ObjectController {
                                      HttpServletRequest servletRequest,
                                      HttpServletResponse response) throws ApiLimitException {
 
-        RequestData data = new RequestData(collectionId, recordId, wskey, format, null, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
         try {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
         } catch (EuropeanaException e) {
@@ -232,7 +230,7 @@ public class ObjectController {
                                   WebRequest webRequest,
                                   HttpServletRequest servletRequest,
                                   HttpServletResponse response) throws ApiLimitException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, null, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
         try {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
         } catch (EuropeanaException e) {
@@ -265,7 +263,7 @@ public class ObjectController {
                           WebRequest webRequest,
                           HttpServletRequest servletRequest,
                           HttpServletResponse response) throws ApiLimitException, EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, null, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
         // output can be an SrwResponse (status 200)
         Object out = handleRecordRequest(RecordType.OBJECT_SRW, data, response);
         if (out instanceof SrwResponse) {
@@ -292,7 +290,7 @@ public class ObjectController {
         ControllerUtils.addResponseHeaders(response);
 
         // retrieve record data
-        FullBean bean = retrieveRecord(data.europeanaObjectId, data.hierarchyTimeout);
+        FullBean bean = retrieveRecord(data.europeanaObjectId);
         if (bean == null) {
             ModelAndView result;
             // record not found, check if we can redirect
@@ -300,7 +298,7 @@ public class ObjectController {
 
             // 2017-07-06 code PE: inserted as temp workaround until we resolve #662 (see also comment below)
             if (newId != null) {
-                bean = retrieveRecord(newId, 0);
+                bean = retrieveRecord(newId);
             }
             if (bean == null) {
                 // -- end of insert
@@ -423,9 +421,9 @@ public class ObjectController {
         return srwResponse;
     }
 
-    private FullBean retrieveRecord(String europeanaId, Integer hierarchyTimeout) throws MongoRuntimeException, MongoDBException, Neo4JException {
+    private FullBean retrieveRecord(String europeanaId) throws MongoRuntimeException, MongoDBException, Neo4JException {
         long     startTime = System.currentTimeMillis();
-        FullBean result    = searchService.findById(europeanaId, false, (hierarchyTimeout == null ? 0 : hierarchyTimeout));
+        FullBean result    = searchService.findById(europeanaId, false);
         if (LOG.isDebugEnabled()) {
             LOG.debug("SearchService findByID took " + (System.currentTimeMillis() - startTime) + " ms");
         }
@@ -525,16 +523,14 @@ public class ObjectController {
         protected String             profile; // called format in json-ld
         protected String             wskey;
         protected LimitResponse      apikeyCheckResponse;
-        protected Integer            hierarchyTimeout;
         protected String             callback;
         protected WebRequest         webRequest;
         protected HttpServletRequest servletRequest;
 
-        public RequestData(String collectionId, String recordId, String wskey, String profile, Integer hierarchyTimeout, String callback, WebRequest webRequest, HttpServletRequest servletRequest) {
+        public RequestData(String collectionId, String recordId, String wskey, String profile, String callback, WebRequest webRequest, HttpServletRequest servletRequest) {
             this.europeanaObjectId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
             this.wskey = wskey;
             this.profile = profile;
-            this.hierarchyTimeout = hierarchyTimeout;
             this.callback = callback;
             this.webRequest = webRequest;
             this.servletRequest = servletRequest;
