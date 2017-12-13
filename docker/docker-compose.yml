@@ -45,7 +45,8 @@ services:
       #Debugging port
       JPDA_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000
 
-    #   Mount point for application in tomcat(the target folder on your workspace is directly mounted to the tomcat container)
+    # Mount point for application in tomcat
+    # (the target folder on your workspace is directly mounted to the tomcat container)
     volumes:
       - ../api2-war/target/api:/tomcat/webapps/api
     links:
@@ -54,7 +55,7 @@ services:
     # Map ports from tomcat container to the local machine
     ports:
     #local:container
-      #Tomcat port
+      #Tomcat http port
       - "8080:8080"
       #Debug port
       - "8000:8000"
@@ -75,4 +76,5 @@ services:
           - appserver:api-tomcat-server
     ports:
       - "80:80"
+      - "443:443"
     restart: always
