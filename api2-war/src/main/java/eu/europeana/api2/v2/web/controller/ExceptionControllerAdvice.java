@@ -54,11 +54,12 @@ public class ExceptionControllerAdvice {
      */
     @ExceptionHandler(value = {MissingServletRequestParameterException.class})
     public ModelAndView missingParameterErrorHandler (HttpServletRequest request, HttpServletResponse response, MissingServletRequestParameterException ex) {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         String requestFormat = ControllerUtils.getRequestFormat(request);
 
         String errorMsg;
         if ("wskey".equalsIgnoreCase(ex.getParameterName())) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             errorMsg = "No API key provided";
         } else {
             errorMsg = "Required parameter '" + ex.getParameterName() + "' missing";
