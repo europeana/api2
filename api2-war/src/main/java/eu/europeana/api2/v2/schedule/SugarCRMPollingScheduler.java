@@ -54,7 +54,7 @@ public class SugarCRMPollingScheduler {
         firstRunComplete = true;
     }
 
-    @Scheduled(fixedRate = 600_000)
+    @Scheduled(fixedRate = 300_000)
     public void frequentUpdateTask() {
         if (firstRunComplete) {
             try {
