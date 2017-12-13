@@ -400,12 +400,18 @@ public class SearchController {
                 result.addParam("rows", rows);
                 result.addParam("sort", sort);
             }
-            if (log.isDebugEnabled()) log.debug("got response " + result.items.size());
+            if (log.isDebugEnabled()) {
+                log.debug("got response " + result.items.size());
+            }
             return JsonUtils.toJson(result, callback);
 
         } catch (SolrTypeException e) {
-            if(e.getProblem().equals(ProblemType.SEARCH_LIMIT_REACHED)) log.error(wskey + " [search.json] " + ProblemType.SEARCH_LIMIT_REACHED.getMessage());
-            else log.error(wskey + " [search.json] ", e);
+            if(e.getProblem().equals(ProblemType.PAGINATION_LIMIT_REACHED)) {
+                // not a real error so we log it as a warning instead
+                log.warn(wskey + " [search.json] " + ProblemType.PAGINATION_LIMIT_REACHED.getMessage());
+            } else {
+                log.error(wskey + " [search.json] ", e);
+            }
             response.setStatus(400);
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
 

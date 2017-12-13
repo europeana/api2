@@ -18,7 +18,8 @@ package eu.europeana.api2.v2.schedule;
 
 import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
@@ -33,7 +34,7 @@ import javax.annotation.Resource;
  */
 public class SugarCRMPollingScheduler {
 
-    private Logger log = Logger.getLogger(this.getClass());
+    private static final Logger LOG = LogManager.getLogger(SugarCRMPollingScheduler.class);
 
     @Resource
     private SugarCRMImporter sugarCRMImporter;
@@ -48,19 +49,19 @@ public class SugarCRMPollingScheduler {
         try {
             sugarCRMImporter.populateRepositoryFromScratch();
         } catch (JIXBQueryResultException e) {
-            log.error("Re-population of MongoDB Cache from SugarCRM failed: " + e.getMessage(), e);
+            LOG.error("Re-population of MongoDB Cache from SugarCRM failed: {}", e.getMessage(), e);
         }
         firstRunComplete = true;
     }
 
-    @Scheduled(fixedRate = 100000)
+    @Scheduled(fixedRate = 300_000)
     public void frequentUpdateTask() {
         if (firstRunComplete) {
             try {
                 sugarCRMImporter.pollProviders();
                 sugarCRMImporter.pollCollections();
             } catch (JIXBQueryResultException e) {
-                log.error("Frequently scheduled update for provider/collections failed: " + e.getMessage(), e);
+                LOG.error("Scheduled update for provider/collections failed: {}", e.getMessage(), e);
             }
         }
     }

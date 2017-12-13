@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.v2.web.controller;
 
+import com.google.common.base.Throwables;
 import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
@@ -108,7 +109,8 @@ public class ExceptionControllerAdvice {
     @ExceptionHandler(value = {Exception.class})
     public ModelAndView defaultExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e)
             throws Exception {
-        LOG.error("Caught exception:", e);
+        LOG.error("Caught exception: "+ e.getMessage());
+        LOG.error("Stacktrace: "+ Throwables.getStackTraceAsString(e));
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         String requestFormat = ControllerUtils.getRequestFormat(request);
 

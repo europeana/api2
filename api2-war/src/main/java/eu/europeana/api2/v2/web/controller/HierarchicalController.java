@@ -67,6 +67,9 @@ public class HierarchicalController {
         return new HierarchyRunner();
     }
 
+    // we allow only 20 requests at a time (per server instance), more are automatically placed in a queue
+    private final ExecutorService timeoutExecutorService = Executors.newFixedThreadPool(20);
+
     @ApiOperation(value = "returns the object itself")
     @RequestMapping(value = "/{collectionId}/{recordId}/self.json", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -190,7 +193,6 @@ public class HierarchicalController {
                             (hierarchyTimeout < MIN_HIERARCHY_TIMEOUT ? MIN_HIERARCHY_TIMEOUT :
                              (hierarchyTimeout > MAX_HIERARCHY_TIMEOUT ? MAX_HIERARCHY_TIMEOUT : hierarchyTimeout)));
         try {
-            final ExecutorService timeoutExecutorService = Executors.newSingleThreadExecutor();
             Future<ModelAndView> myFlexibleFriend = timeoutExecutorService.submit(()
                     -> mrBean.call(recordType, rdfAbout, profile, wskey, limit, offset, callback, request,
                     response, log, apiKeyUtils, searchService));

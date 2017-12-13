@@ -18,7 +18,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>api2</artifactId>
-    <version>2.6.5</version>
+    <version>2.6.6</version>
     <packaging>pom</packaging>
     <name>Europeana API2 parent</name>
     <url>http://www.europeana.eu</url>
@@ -26,13 +26,12 @@
     <parent>
        <artifactId>europeana-parent-pom</artifactId>
         <groupId>eu.europeana</groupId>
-        <version>1.6</version>
+        <version>1.7</version>
     </parent>
     <properties>
         <version.springWebService>2.2.4.RELEASE</version.springWebService>
         <!--NOTE change version if API version differs from the corelib version!-->
-        <version.corelib>2.6.5</version.corelib>
-        <version.objectStorage>1.4</version.objectStorage>
+        <version.corelib>2.6.6</version.corelib>
     </properties>
     <modules>
         <module>api2-model</module>
@@ -42,8 +41,8 @@
     <scm>
         <connection>scm:git:git@github.com:europeana/api2.git</connection>
         <developerConnection>scm:git:git@github.com:europeana/api2.git</developerConnection>
-        <tag>api2-2.6.4</tag>
         <url>https://github.com/europeana/api2</url>
+        <tag>HEAD</tag>
     </scm>
 
     <profiles>

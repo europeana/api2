@@ -7,15 +7,19 @@ import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import javax.annotation.PostConstruct;
+import java.util.Arrays;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -42,6 +46,15 @@ public class AppConfig {
     private String region;
     @Value("${s3.bucket}")
     private String bucket;
+
+    @Autowired
+    private Environment env;
+
+    @PostConstruct
+    public void logSpringProfiles() {
+        LOG.info("Active Spring profiles:" + Arrays.toString(env.getActiveProfiles()));
+        LOG.info("Default Spring profiles:" + Arrays.toString(env.getDefaultProfiles()));
+    }
 
     /**
      * Read and setup europeana.properties files.
