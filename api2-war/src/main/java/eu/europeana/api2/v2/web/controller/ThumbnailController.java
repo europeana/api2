@@ -79,8 +79,8 @@ public class ThumbnailController {
      */
     @RequestMapping(value = "/v2/thumbnail-by-url.json", method = RequestMethod.GET)
     public ResponseEntity<byte[]> thumbnailByUrl(
-            @RequestParam(value = "uri", required = false) String url,
-            @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
+            @RequestParam(value = "uri", required = true) String url,
+            @RequestParam(value = "size", required = false, defaultValue = "w400") String size,
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
             WebRequest webRequest, HttpServletResponse response) throws IOException {
 
