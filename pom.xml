@@ -31,7 +31,7 @@
     <properties>
         <version.springWebService>2.2.4.RELEASE</version.springWebService>
         <!--NOTE change version if API version differs from the corelib version!-->
-        <version.corelib>2.6.6-SNAPSHOT</version.corelib>
+        <version.corelib>2.6.6</version.corelib>
     </properties>
     <modules>
         <module>api2-model</module>
@@ -41,8 +41,8 @@
     <scm>
         <connection>scm:git:git@github.com:europeana/api2.git</connection>
         <developerConnection>scm:git:git@github.com:europeana/api2.git</developerConnection>
-        <tag>HEAD</tag>
         <url>https://github.com/europeana/api2</url>
+        <tag>HEAD</tag>
     </scm>
 
     <profiles>
