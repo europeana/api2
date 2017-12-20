@@ -158,7 +158,7 @@ public class HierarchyRunner {
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
                 long tgetsiblings = System.currentTimeMillis();
-                hierarchicalResult.followingSiblings = searchService.getFollowingSiblings(rdfAbout, limit);
+                hierarchicalResult.followingSiblings = searchService.getFollowingSiblings(rdfAbout, offset, limit);
                 log.info("Get siblings: " + (System.currentTimeMillis() - tgetsiblings));
                 if (hierarchicalResult.followingSiblings == null || hierarchicalResult.followingSiblings.isEmpty()) {
                     hierarchicalResult.message = "This record has no following siblings";
@@ -170,7 +170,7 @@ public class HierarchyRunner {
                     log.info("Get siblingsCount: " + (System.currentTimeMillis() - tgetsiblingsCount));
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_PRECEDING_SIBLINGS)) {
-                hierarchicalResult.precedingSiblings = searchService.getPrecedingSiblings(rdfAbout, limit);
+                hierarchicalResult.precedingSiblings = searchService.getPrecedingSiblings(rdfAbout, offset, limit);
                 if (hierarchicalResult.precedingSiblings == null || hierarchicalResult.precedingSiblings.isEmpty()) {
                     hierarchicalResult.message = "This record has no preceding siblings";
                     hierarchicalResult.success = false;
