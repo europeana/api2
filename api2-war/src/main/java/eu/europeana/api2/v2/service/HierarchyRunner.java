@@ -25,20 +25,19 @@ import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
+import eu.europeana.corelib.neo4j.entity.Neo4jBean;
+import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.neo4j.exception.Neo4JException;
+import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.exception.EmailServiceException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
-import eu.europeana.corelib.neo4j.entity.Neo4jBean;
-import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
-import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.service.EmailService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -46,7 +45,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Future;
 
 /**
  * Im Luthien hain echant 30/06/15
