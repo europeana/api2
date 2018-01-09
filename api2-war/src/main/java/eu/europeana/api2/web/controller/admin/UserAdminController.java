@@ -23,10 +23,12 @@ import java.security.Principal;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
+ * @deprecated 2018-01-09 old MyEuropeana functionality
  */
 @RestController
 @RequestMapping("/admin/user")
 @SwaggerIgnore
+@Deprecated
 public class UserAdminController {
 
     @Resource
@@ -204,12 +206,20 @@ public class UserAdminController {
         return null;
     }
 
+    /**
+     *
+     * @param passwordReset
+     * @param principal
+     * @return
+     * @deprecated 2018-01-09 old MyEuropeana functionality
+     */
     @RequestMapping(
             path = {"/forgot"},
             method = {RequestMethod.POST},
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @Deprecated
     public ApiResponse forgotPassword(
             @RequestBody UserPasswordReset passwordReset,
             Principal principal
@@ -229,6 +239,13 @@ public class UserAdminController {
         return response;
     }
 
+    /**
+     *
+     * @param passwordReset
+     * @param principal
+     * @return
+     * @deprecated 2018-01-09 old MyEuropeana functionality
+     */
     @RequestMapping(
             path = {"/resetpassword"},
             method = {RequestMethod.POST},

@@ -21,6 +21,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @deprecated 2018-01-09 search with coordinates functionality
  */
 public class Point {
 

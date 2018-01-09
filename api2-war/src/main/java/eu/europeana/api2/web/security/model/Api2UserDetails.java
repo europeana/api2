@@ -24,6 +24,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
+/**
+ * @deprecated 2018-01-09 old MyEuropeana functionality
+ */
+@Deprecated
 public class Api2UserDetails implements UserDetails {
     private static final long serialVersionUID = -925096405395777537L;
 

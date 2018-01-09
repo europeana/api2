@@ -32,9 +32,12 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
 
+/**
+ * @deprecated 2018-01-09 old MyEuropeana functionality
+ */
 @Controller
 @Api(value = "my_data", description = " ")
-//@SwaggerSelect
+@Deprecated
 public class MyDataProfileController extends AbstractUserController {
 
     @ApiOperation(value = "lets the user fetch their profile", nickname = "fetchMyDataProfile")

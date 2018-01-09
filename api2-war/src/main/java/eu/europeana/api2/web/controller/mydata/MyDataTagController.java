@@ -45,10 +45,11 @@ import java.util.List;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @deprecated 2018-01-09 old MyEuropeana functionality
  */
 @Controller
 @Api(value = "my_data", description = " ")
-//@SwaggerSelect
+@Deprecated
 public class MyDataTagController extends AbstractUserController {
 
     private Logger log = Logger.getLogger(MyDataTagController.class);

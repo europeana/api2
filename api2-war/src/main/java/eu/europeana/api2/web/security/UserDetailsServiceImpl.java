@@ -31,7 +31,11 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
+/**
+ * @deprecated 2018-01-09 old MyEuropeana functionality
+ */
 @Service("api2_userDetailsService")
+@Deprecated
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Resource

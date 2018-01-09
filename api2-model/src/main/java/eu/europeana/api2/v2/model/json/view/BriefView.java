@@ -304,7 +304,13 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return urlService.getApi2RecordJson(wskey, getId()).toString();
     }
 
+    /**
+     *
+     * @return
+     * @deprecated 2018-01-09 old functionality
+     */
     @SuppressWarnings("unused")
+    @Deprecated
     public String getGuid() {
         return LinkUtils.addCampaignCodes(urlService.getPortalRecord(false, getId()), wskey);
     }

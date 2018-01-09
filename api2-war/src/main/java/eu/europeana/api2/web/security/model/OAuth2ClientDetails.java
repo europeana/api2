@@ -27,7 +27,9 @@ import java.util.Set;
 
 /**
  * The client details
+ * @deprecated 2018-01-09 old MyEuropeana functionality
  */
+@Deprecated
 public class OAuth2ClientDetails extends BaseClientDetails {
     private static final long serialVersionUID = -5687602758230210358L;
 

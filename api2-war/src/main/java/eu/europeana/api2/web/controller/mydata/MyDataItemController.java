@@ -42,10 +42,11 @@ import java.util.Set;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @deprecated 2018-01-09 old MyEuropeana functionality
  */
 @Controller
-//@SwaggerSelect
 @Api(value = "my_data", description = " ")
+@Deprecated
 public class MyDataItemController extends AbstractUserController {
 
     @ApiOperation(value = "lets the user list their data items", nickname = "listMyDataItems")

@@ -19,6 +19,10 @@ package eu.europeana.api2.model.utils;
 
 import eu.europeana.corelib.web.utils.UrlBuilder;
 
+/**
+ * @deprecated 2018-01-09 old MyEuropeana functionality
+ */
+@Deprecated
 public class LinkUtils {
 
 	public static String addCampaignCodes(UrlBuilder url, String wskey) {

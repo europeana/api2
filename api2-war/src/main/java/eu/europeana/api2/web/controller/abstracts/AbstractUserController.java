@@ -35,6 +35,10 @@ import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.abstracts.EuropeanaUserObject;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 
+/**
+ * @deprecated 2018-01-09 old MyEuropeana functionality
+ */
+@Deprecated
 public abstract class AbstractUserController {
 
 	@Resource(name = "corelib_db_userService")
