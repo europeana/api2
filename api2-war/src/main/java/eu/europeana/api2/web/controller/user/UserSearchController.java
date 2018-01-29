@@ -48,11 +48,12 @@ import java.util.List;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @deprecated 2018-01-09 old MyEuropeana functionality*
  */
 @Controller
 @RequestMapping(value = "/user/savedsearch")
 @Api(value = "my_europeana")
-//@SwaggerSelect
+@Deprecated
 public class UserSearchController extends AbstractUserController {
 
     private static final Logger LOG = Logger.getLogger(UserSearchController.class);

@@ -7,7 +7,9 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Lúthien (maike.dulk@europeana.eu)
+ * @deprecated 2018-01-09 old MyEuropeana functionality
  */
+@Deprecated
 @JsonInclude(NON_EMPTY)
 public class UserPasswordReset extends UserEntity {
 

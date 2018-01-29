@@ -47,11 +47,12 @@ import static eu.europeana.corelib.utils.EuropeanaUriUtils.createEuropeanaId;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @deprecated 2018-01-09 old MyEuropeana functionality*
  */
 @Controller
 @RequestMapping(value = "/user/tag")
 @Api(value = "my_europeana", description = " ")
-//@SwaggerSelect
+@Deprecated
 public class UserTagController extends AbstractUserController {
 
     private Logger log = Logger.getLogger(UserTagController.class);

@@ -26,8 +26,10 @@ import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @deprecated 2018-01-09 search with coordinates functionality
  */
 @XmlRootElement(name = "kml")
+@Deprecated
 public class KmlResponse {
 
 	@XmlElement(name = "Document")

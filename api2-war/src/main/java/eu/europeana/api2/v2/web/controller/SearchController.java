@@ -525,10 +525,12 @@ public class SearchController {
 	/**
 	 *
 	 * @return the JSON response
+     * @deprecated 2018-01-09 search with coordinates functionality
 	 */
 	@SwaggerIgnore
 	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET}, produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
+    @Deprecated
     public KmlResponse searchKml(
 			@RequestParam(value = "query", required = true) String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinementArray,

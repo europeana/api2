@@ -40,8 +40,10 @@ import static org.springframework.security.config.http.SessionCreationPolicy.IF_
  * @see https://drive.google.com/file/d/0B7lriE2YnGwUOWdzMGd3czR4eUE/view?usp=sharing
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  * @author Jeroen Jeurissen (enlightenedsoftware.nl)
+ * @deprecated 2018-01-09 old MyEuropeana functionality
  */
 @Configuration
+@Deprecated
 public class OAuth2ServerConfig {
 
     @Configuration

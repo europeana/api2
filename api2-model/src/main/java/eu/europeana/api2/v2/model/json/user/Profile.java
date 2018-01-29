@@ -25,7 +25,11 @@ import java.util.Date;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
+/**
+ * @deprecated 2018-01-09 old MyEuropeana functionality
+ */
 @JsonInclude(NON_EMPTY)
+@Deprecated
 public class Profile extends ApiResponse {
 
     public String email;

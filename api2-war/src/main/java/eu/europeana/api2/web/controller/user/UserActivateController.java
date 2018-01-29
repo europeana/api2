@@ -13,10 +13,11 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
+ * @deprecated 2018-01-09 old MyEuropeana functionality*
  */
 @Controller
 @RequestMapping(value = "/user/activate")
-//@SwaggerIgnore - note that classes are not included by default, so it's not necessary to explicitly tag them
+@Deprecated
 public class UserActivateController {
 
     @Resource

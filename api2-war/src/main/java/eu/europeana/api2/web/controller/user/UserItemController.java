@@ -47,11 +47,12 @@ import static eu.europeana.corelib.utils.EuropeanaUriUtils.createEuropeanaId;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @deprecated 2018-01-09 old MyEuropeana functionality*
  */
 @Controller
 @RequestMapping(value = "/user/saveditem")
-//@SwaggerSelect
 @Api(value = "my_europeana", description = " ")
+@Deprecated
 public class UserItemController extends AbstractUserController {
 
     private Logger log = Logger.getLogger(UserItemController.class);

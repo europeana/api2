@@ -26,6 +26,10 @@ import eu.europeana.corelib.definitions.model.ThumbSize;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.utils.ImageUtils;
 
+/**
+ * @deprecated 2018-01-09 replaced by ThumbnailController.getDefaultThumbnailForNotFoundResourceByType
+ */
+@Deprecated
 public enum DefaultImage {
 
 	TT(ThumbSize.TINY, DocType.TEXT, "/images/item-text-tiny.gif"),

@@ -42,6 +42,10 @@ public class SecurityConfig {
     @Order(1)
     @ComponentScan(basePackageClasses = UserDetailsServiceImpl.class)
 
+    /**
+     * @deprecated 2018-01-09 old MyEuropeana functionality
+     */
+    @Deprecated
     public static class OAuthLoginConfig extends WebSecurityConfigurerAdapter {
 
         @Override
