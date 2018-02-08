@@ -102,7 +102,7 @@ public class ThumbnailController {
             try {
                 String width = (StringUtils.equalsIgnoreCase(size, "w200") ? "200" : "400");
                 URI iiifUri = ThumbnailController.getIiifThumbnailUrl(url, width);
-                LOG.debug("IIIF url = {} ", iiifUri.getPath());
+                LOG.debug("IIIF url = {} ", (iiifUri == null ? "null" : iiifUri.getPath()));
                 mediaFile = downloadImage(iiifUri);
             } catch (URISyntaxException e) {
                 LOG.error("Error reading IIIF thumbnail url", e);
@@ -174,7 +174,7 @@ public class ThumbnailController {
     public static URI getIiifThumbnailUrl(String url, String width) throws URISyntaxException {
         // all urls are encoded so they start with either http:// or https://
         // and end with /full/full/0/default.<extension>.
-        if (url != null && isIiifRecordUrl(url)) {
+        if (isIiifRecordUrl(url)) {
             return new URI(url.replace("/full/full/0/default.", "/full/" +width+ ",/0/default."));
         }
         return null;
@@ -190,7 +190,7 @@ public class ThumbnailController {
         try (InputStream in = new BufferedInputStream(uri.toURL().openStream());
             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             byte[] buf = new byte[1024];
-            int n = 0;
+            int n;
             while (-1 != (n = in.read(buf))) {
                 out.write(buf, 0, n);
             }
@@ -214,14 +214,13 @@ public class ThumbnailController {
         return result;
     }
 
-
+    @SuppressWarnings("squid:S2070") // we have to use MD5 here
     private String getMD5(String resourceUrl) {
-        String resource = (resourceUrl == null ? "" : resourceUrl);
         MessageDigest messageDigest;
         try {
             messageDigest = MessageDigest.getInstance("MD5");
             messageDigest.reset();
-            messageDigest.update(resource.getBytes(StandardCharsets.UTF_8));
+            messageDigest.update(resourceUrl.getBytes(StandardCharsets.UTF_8));
             final byte[] resultByte = messageDigest.digest();
             StringBuilder sb = new StringBuilder();
             for (byte aResultByte : resultByte) {
