@@ -19,7 +19,7 @@
 
     <artifactId>api2-model</artifactId>
     <groupId>eu.europeana.api2</groupId>
-    <name>Europeana API2 data model</name>
+    <name>Europeana Search, Record, Hierarchical and Thumbnail API data model</name>
     <url>http://www.europeana.eu</url>
 
     <parent>

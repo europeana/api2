@@ -14,20 +14,22 @@
   ~ any kind, either express or implied.
   ~ See the Licence for the specific language governing permissions and limitations under
   ~ the Licence.
-  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  -->
+    <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>eu.europeana.api2</groupId>
-    <artifactId>api2-war</artifactId>
-    <packaging>war</packaging>
-    <name>Europeana API2 WAR</name>
-    <url>http://www.europeana.eu</url>
 
     <parent>
-        <artifactId>api2</artifactId>
         <groupId>eu.europeana</groupId>
+        <artifactId>api2</artifactId>
         <version>2.6.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
+
+    <groupId>eu.europeana.api2</groupId>
+    <artifactId>api2-war</artifactId>
+    <packaging>war</packaging>
+    <name>Europeana Search, Record, Hierarchical and Thumbnail API WAR</name>
+    <url>http://www.europeana.eu</url>
 
     <dependencies>
         <dependency>

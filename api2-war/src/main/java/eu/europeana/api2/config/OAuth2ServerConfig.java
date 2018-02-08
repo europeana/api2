@@ -26,6 +26,8 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 
+import java.sql.Connection;
+
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
 
@@ -108,11 +110,13 @@ public class OAuth2ServerConfig {
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
             // log to which db we are connected
-            String dbUrl = oauthDataSource.getConnection().getMetaData().getURL();
-            if (dbUrl.contains("password")) {
-                dbUrl = dbUrl.substring(0, dbUrl.indexOf("password"));
+            try (Connection con = oauthDataSource.getConnection()) {
+                String dbUrl = con.getMetaData().getURL();
+                if (dbUrl.contains("password")) {
+                    dbUrl = dbUrl.substring(0, dbUrl.indexOf("password"));
+                }
+                Logger.getLogger(AuthorizationServerConfiguration.class).info("Connected to " + dbUrl);
             }
-            Logger.getLogger(AuthorizationServerConfiguration.class).info("Connected to " + dbUrl);
 
             clients
                     .withClientDetails(clientDetailsService);
