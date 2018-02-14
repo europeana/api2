@@ -157,8 +157,11 @@ public class ThumbnailController {
      * @return true if the provided url is a thumbnail hosted on iiif.europeana.eu, otherwise false
      */
     public static boolean isIiifRecordUrl(String url) {
-        String urlLowercase = url.toLowerCase(Locale.getDefault());
-        return (urlLowercase.startsWith("http://"+IIIF_HOST_NAME) || urlLowercase.startsWith("https://"+IIIF_HOST_NAME));
+        if (url != null) {
+            String urlLowercase = url.toLowerCase(Locale.getDefault());
+            return (urlLowercase.startsWith("http://" + IIIF_HOST_NAME) || urlLowercase.startsWith("https://" + IIIF_HOST_NAME));
+        }
+        return false;
     }
 
     /**
