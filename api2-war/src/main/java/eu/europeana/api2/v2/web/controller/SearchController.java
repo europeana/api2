@@ -181,9 +181,11 @@ public class SearchController {
         if (_qf != null && _qf.length != refinementArray.length) refinementArray = _qf;
 
         if (StringUtils.isNotBlank(theme)){
-//            if (ArrayUtils.isNotEmpty(refinementArray)){
-            refinementArray = (String[]) ArrayUtils.add(refinementArray, "collection:" + theme);
-//            }
+            if (StringUtils.containsAny(theme, "+ #%^&*-='\"<>`!@[]{}\\/|")){
+                return JsonUtils.toJson(new ApiError("", "Parameter 'theme' accepts one value only"), callback);
+            } else {
+                refinementArray = (String[]) ArrayUtils.add(refinementArray, "collection:" + theme);
+            }
         }
 
         // exclude sorting on timestamp, #238
@@ -418,6 +420,12 @@ public class SearchController {
             if(e.getProblem().equals(ProblemType.PAGINATION_LIMIT_REACHED)) {
                 // not a real error so we log it as a warning instead
                 log.warn(wskey + " [search.json] " + ProblemType.PAGINATION_LIMIT_REACHED.getMessage());
+            } else if (e.getProblem().equals(ProblemType.INVALID_THEME)) {
+                // not a real error so we log it as a warning instead
+                log.warn(wskey + " [search.json] " + ProblemType.INVALID_THEME.getMessage());
+                return JsonUtils.toJson(new ApiError(wskey, "Theme '" +
+                      StringUtils.substringBetween(e.getCause().getCause().toString(), "Collection \"","\" not defined") +
+                "' is not defined"), callback);
             } else {
                 log.error(wskey + " [search.json] ", e);
             }
