@@ -102,8 +102,10 @@ public class ThumbnailController {
             try {
                 String width = (StringUtils.equalsIgnoreCase(size, "w200") ? "200" : "400");
                 URI iiifUri = ThumbnailController.getIiifThumbnailUrl(url, width);
-                LOG.debug("IIIF url = {} ", (iiifUri == null ? "null" : iiifUri.getPath()));
-                mediaFile = downloadImage(iiifUri);
+                if (iiifUri != null) {
+                    LOG.debug("IIIF url = {} ", iiifUri.getPath());
+                    mediaFile = downloadImage(iiifUri);
+                }
             } catch (URISyntaxException e) {
                 LOG.error("Error reading IIIF thumbnail url", e);
             } catch (IOException io) {
