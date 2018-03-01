@@ -74,7 +74,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -99,7 +100,7 @@ import java.util.*;
 @Api(tags = {"Search"}, description = " ")
 public class SearchController {
 
-	private Logger log = Logger.getLogger(SearchController.class);
+	private static final Logger LOG = LogManager.getLogger(SearchController.class);
 
     @Resource
     private SearchService searchService;
@@ -159,8 +160,8 @@ public class SearchController {
         queryString = queryString.trim();
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
-        if (log.isInfoEnabled()) {
-            log.info("QUERY: |" + queryString + "|");
+        if (LOG.isInfoEnabled()) {
+            LOG.info("QUERY: |" + queryString + "|");
         }
 
         // check other parameters
@@ -400,23 +401,23 @@ public class SearchController {
                 result.addParam("rows", rows);
                 result.addParam("sort", sort);
             }
-            if (log.isDebugEnabled()) {
-                log.debug("got response " + result.items.size());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("got response " + result.items.size());
             }
             return JsonUtils.toJson(result, callback);
 
         } catch (SolrTypeException e) {
             if(e.getProblem().equals(ProblemType.PAGINATION_LIMIT_REACHED)) {
                 // not a real error so we log it as a warning instead
-                log.warn(wskey + " [search.json] " + ProblemType.PAGINATION_LIMIT_REACHED.getMessage());
+                LOG.warn(wskey + " [search.json] " + ProblemType.PAGINATION_LIMIT_REACHED.getMessage());
             } else {
-                log.error(wskey + " [search.json] ", e);
+                LOG.error(wskey + " [search.json] ", e);
             }
             response.setStatus(400);
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
 
         } catch (Exception e) {
-            log.error(wskey + " [search.json] " + e.getClass().getSimpleName(), e);
+            LOG.error(wskey + " [search.json] " + e.getClass().getSimpleName(), e);
             response.setStatus(400);
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
         }
@@ -445,7 +446,7 @@ public class SearchController {
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletResponse response) {
         ControllerUtils.addResponseHeaders(response);
-        if (log.isInfoEnabled()) log.info("phrases: " + phrases);
+        if (LOG.isInfoEnabled()) LOG.info("phrases: " + phrases);
         Suggestions apiResponse = new Suggestions(null);
         try {
             apiResponse.items = searchService.suggestions(query, count);
@@ -493,7 +494,7 @@ public class SearchController {
                 if (!allQueryFacetsMap.isEmpty()) facetFields.addAll(allQueryFacetsMap);
             }
 
-            if (log.isDebugEnabled()) log.debug("beans: " + beans.size());
+            if (LOG.isDebugEnabled()) LOG.debug("beans: " + beans.size());
 
             response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, "facets") ||
@@ -591,8 +592,8 @@ public class SearchController {
 			@RequestParam(value = "searchTerms", required = true) String queryString,
 			@RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "count", required = false, defaultValue = "12") int count) {
-        if (log.isDebugEnabled()) {
-            log.debug("openSearch query with terms: " + queryString);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("openSearch query with terms: " + queryString);
         }
 		RssResponse rss = new RssResponse();
 		Channel channel = rss.channel;
@@ -617,15 +618,15 @@ public class SearchController {
                 channel.items.add(item);
             }
         } catch (SolrTypeException e) {
-            log.error("Error executing opensearch query", e);
+            LOG.error("Error executing opensearch query", e);
             channel.totalResults.value = 0;
             Item item = new Item();
             item.title = "Error";
             item.description = e.getMessage();
             channel.items.add(item);
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Returning rss result: "+rss);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Returning rss result: "+rss);
         }
         return rss;
     }
@@ -660,7 +661,7 @@ public class SearchController {
 		if  (queryTerms == null || "".equalsIgnoreCase(queryTerms) || "".equals(getIdFromQueryTerms(queryTerms))){
 			response.setStatus(400);
 			String errorMsg = "error: Query ('" + queryTerms + "') is malformed, can't retrieve collection ID";
-			log.error(errorMsg);
+			LOG.error(errorMsg);
 			FieldTripItem item = new FieldTripItem();
 			item.title = "Error";
 			item.description = errorMsg;
@@ -671,7 +672,7 @@ public class SearchController {
 			Map<String, String> gftChannelAttributes = configuration.getGftChannelAttributes(collectionID);
 
         if (gftChannelAttributes.isEmpty() || gftChannelAttributes.size() < 5) {
-            log.error("error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
+            LOG.error("error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
             channel.title = "error retrieving attributes";
             channel.description = "error retrieving attributes";
             channel.language = "--";
@@ -707,7 +708,7 @@ public class SearchController {
 					}
 				}
 			} catch (SolrTypeException|MissingResourceException e) {
-				log.error("error: " + e.getLocalizedMessage());
+				LOG.error("error: " + e.getLocalizedMessage());
 				FieldTripItem item = new FieldTripItem();
 				item.title = "Error";
 				item.description = e.getMessage();
