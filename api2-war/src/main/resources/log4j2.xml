@@ -15,5 +15,6 @@
         </Root>
         <!-- Ignore SugarCrmImporter updates that are triggered every minute -->
         <Logger name="eu.europeana.api2.v2.service.SugarCRMImporter" level="WARN"/>
+        <Logger name="eu.europeana.corelib.search.impl.WebMetaInfo" level="DEBUG"/>
     </Loggers>
 </Configuration>
