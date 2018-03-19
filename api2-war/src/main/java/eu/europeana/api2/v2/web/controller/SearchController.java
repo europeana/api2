@@ -137,6 +137,7 @@ public class SearchController {
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
             @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
             @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
+            @RequestParam(value = "theme", required = false) String theme,
             @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
             @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
@@ -150,6 +151,8 @@ public class SearchController {
 
         // do apikey check before anything else
         LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
+
+//        String[] refinementAndThemeArray;
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -176,6 +179,14 @@ public class SearchController {
         // (https://jira.springsource.org/browse/SPR-7963)
         String[] _qf = request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinementArray.length) refinementArray = _qf;
+
+        if (StringUtils.isNotBlank(theme)){
+            if (StringUtils.containsAny(theme, "+ #%^&*-='\"<>`!@[]{}\\/|")){
+                return JsonUtils.toJson(new ApiError("", "Parameter 'theme' accepts one value only"), callback);
+            } else {
+                refinementArray = (String[]) ArrayUtils.add(refinementArray, "collection:" + theme);
+            }
+        }
 
         // exclude sorting on timestamp, #238
         if (sort != null && (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp "))) sort = "";
@@ -409,6 +420,12 @@ public class SearchController {
             if(e.getProblem().equals(ProblemType.PAGINATION_LIMIT_REACHED)) {
                 // not a real error so we log it as a warning instead
                 log.warn(wskey + " [search.json] " + ProblemType.PAGINATION_LIMIT_REACHED.getMessage());
+            } else if (e.getProblem().equals(ProblemType.INVALID_THEME)) {
+                // not a real error so we log it as a warning instead
+                log.warn(wskey + " [search.json] " + ProblemType.INVALID_THEME.getMessage());
+                return JsonUtils.toJson(new ApiError(wskey, "Theme '" +
+                      StringUtils.substringBetween(e.getCause().getCause().toString(), "Collection \"","\" not defined") +
+                "' is not defined"), callback);
             } else {
                 log.error(wskey + " [search.json] ", e);
             }
