@@ -423,7 +423,7 @@ public class SearchController {
                 LOG.warn(wskey + " [search.json] " + ProblemType.PAGINATION_LIMIT_REACHED.getMessage());
             } else if (e.getProblem().equals(ProblemType.INVALID_THEME)) {
                 // not a real error so we log it as a warning instead
-                log.warn(wskey + " [search.json] " + ProblemType.INVALID_THEME.getMessage());
+                LOG.warn(wskey + " [search.json] " + ProblemType.INVALID_THEME.getMessage());
                 return JsonUtils.toJson(new ApiError(wskey, "Theme '" +
                       StringUtils.substringBetween(e.getCause().getCause().toString(), "Collection \"","\" not defined") +
                 "' is not defined"), callback);
