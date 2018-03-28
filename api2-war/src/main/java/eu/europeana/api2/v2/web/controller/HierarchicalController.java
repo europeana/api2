@@ -22,9 +22,10 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.service.HierarchyRunner;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.search.SearchService;
+import eu.europeana.corelib.search.Neo4jSearchService;
 import io.swagger.annotations.ApiOperation;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -38,7 +39,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -50,14 +56,17 @@ import java.util.concurrent.*;
 @RequestMapping(value = "/v2/record")
 public class HierarchicalController {
 
-    private static Logger log = Logger.getLogger(HierarchicalController.class);
-
-    @Resource
-    private SearchService searchService;
+    private static final Logger LOG = LogManager.getLogger(HierarchicalController.class);
 
     private static final int DEFAULT_HIERARCHY_TIMEOUT = 8000;
-    private static final int MAX_HIERARCHY_TIMEOUT = 20000;
+    private static final int MAX_HIERARCHY_TIMEOUT = 20_000;
     private static final int MIN_HIERARCHY_TIMEOUT = 400;
+
+    // we allow only 20 requests at a time (per server instance), more are automatically placed in a queue
+    private final ExecutorService timeoutExecutorService = Executors.newFixedThreadPool(20);
+
+    @Resource
+    private Neo4jSearchService searchService;
 
     @Resource
     private ApiKeyUtils apiKeyUtils;
@@ -67,8 +76,6 @@ public class HierarchicalController {
         return new HierarchyRunner();
     }
 
-    // we allow only 20 requests at a time (per server instance), more are automatically placed in a queue
-    private final ExecutorService timeoutExecutorService = Executors.newFixedThreadPool(20);
 
     @ApiOperation(value = "returns the object itself")
     @RequestMapping(value = "/{collectionId}/{recordId}/self.json", method = RequestMethod.GET,
@@ -195,21 +202,21 @@ public class HierarchicalController {
         try {
             Future<ModelAndView> myFlexibleFriend = timeoutExecutorService.submit(()
                     -> mrBean.call(recordType, rdfAbout, profile, wskey, limit, offset, callback, request,
-                    response, log, apiKeyUtils, searchService));
+                    response, apiKeyUtils, searchService));
             return myFlexibleFriend.get(hierarchyTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             response.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
-            log.error("InterruptedException thrown: " + e.getMessage());
-            if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
+            LOG.warn("InterruptedException thrown: {}", e.getMessage());
+            if (null != e.getCause()) LOG.error("Cause: {}", e.getCause());
             return generateErrorHierarchy(rdfAbout, wskey, callback, "InterruptedException thrown when processing");
         } catch (TimeoutException e) {
             response.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
-            log.error("TimeoutException thrown: " + e.getMessage());
-            if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
+            LOG.warn("TimeoutException thrown: {}", e.getMessage());
+            if (null != e.getCause()) LOG.error("Cause: {}", e.getCause());
             return generateErrorHierarchy(rdfAbout, wskey, callback, "TimeoutException thrown when processing");
         } catch (ExecutionException e) {
-            log.error("ExecutionExeption thrown: " + e.getMessage());
-            if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
+            LOG.warn("ExecutionExeption thrown: {}", e.getMessage());
+            if (null != e.getCause()) LOG.error("Cause: {}", e.getCause());
             ModelAndView gimmeJustTheRecordThen = new ModelAndView("redirect:/v2/record" + rdfAbout + ".json");
             redirectAttrs.addAttribute("profile", profile);
             redirectAttrs.addAttribute("wskey", wskey);
@@ -220,8 +227,7 @@ public class HierarchicalController {
 
     private ModelAndView generateErrorHierarchy(String rdfAbout, String wskey, String callback,
                                                 String message) {
-        return JsonUtils.toJson(new ApiError(wskey, String.format(message + " record %s",
-                rdfAbout), 999L), callback);
+        return JsonUtils.toJson(new ApiError(wskey, message + " record " + rdfAbout, 999L), callback);
 
     }
 
