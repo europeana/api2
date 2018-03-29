@@ -1,4 +1,0 @@
-Version: ${project.version}
-Branch: ${scmBranch}
-BuildNumber: ${buildNumber}
-Timestamp: ${timestamp}

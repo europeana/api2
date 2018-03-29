@@ -3,7 +3,9 @@ package eu.europeana.api2.v2.model;
 /**
  * Version and build information object returned by versionController
  * Created by patrick on 23-3-17.
+ * @Deprecated replaced by the /info endpoint
  */
+@Deprecated
 public class VersionInfoResult {
 
     private String apiBuildInfo;
