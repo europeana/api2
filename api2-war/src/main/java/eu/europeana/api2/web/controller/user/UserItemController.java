@@ -28,7 +28,8 @@ import eu.europeana.corelib.neo4j.exception.Neo4JException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,14 +48,15 @@ import static eu.europeana.corelib.utils.EuropeanaUriUtils.createEuropeanaId;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @deprecated 2018-01-09 old MyEuropeana functionality*
  */
 @Controller
 @RequestMapping(value = "/user/saveditem")
-//@SwaggerSelect
 @Api(value = "my_europeana", description = " ")
+@Deprecated
 public class UserItemController extends AbstractUserController {
 
-    private Logger log = Logger.getLogger(UserItemController.class);
+    private static final Logger LOG = LogManager.getLogger(UserItemController.class);
 
     @ApiOperation(value = "list a user's data items", nickname = "listUserItems")
     @RequestMapping(
@@ -133,8 +135,8 @@ public class UserItemController extends AbstractUserController {
             response.success = false;
             response.error = e.getMessage();
         } catch (Neo4JException e) {
-            log.error("Neo4JException thrown: " + e.getMessage());
-            log.error("Cause: " + e.getCause());
+            LOG.error("Neo4JException thrown: " + e.getMessage());
+            LOG.error("Cause: " + e.getCause());
         }
         return JsonUtils.toJson(response, callback);
     }
@@ -145,7 +147,7 @@ public class UserItemController extends AbstractUserController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             method = RequestMethod.DELETE
     )
-    private ModelAndView delete(
+    public ModelAndView delete(
             @PathVariable Long itemId,
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
@@ -158,7 +160,7 @@ public class UserItemController extends AbstractUserController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             method = RequestMethod.DELETE
     )
-    private ModelAndView delete(
+    public ModelAndView delete(
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "callback", required = false) String callback,

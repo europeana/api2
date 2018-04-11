@@ -13,9 +13,11 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Lúthien (maike.dulk@europeana.eu).
+ * @deprecated 2018-01-09 old MyEuropeana functionality*
  */
 @Controller
 @RequestMapping(value = "/user/password")
+@Deprecated
 public class UserPasswordController {
 
     @Resource

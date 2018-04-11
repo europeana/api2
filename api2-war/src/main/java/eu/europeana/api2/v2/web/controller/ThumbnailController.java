@@ -79,8 +79,8 @@ public class ThumbnailController {
      */
     @RequestMapping(value = "/v2/thumbnail-by-url.json", method = RequestMethod.GET)
     public ResponseEntity<byte[]> thumbnailByUrl(
-            @RequestParam(value = "uri", required = false) String url,
-            @RequestParam(value = "size", required = false, defaultValue = "FULL_DOC") String size,
+            @RequestParam(value = "uri", required = true) String url,
+            @RequestParam(value = "size", required = false, defaultValue = "w400") String size,
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
             WebRequest webRequest, HttpServletResponse response) throws IOException {
 
@@ -102,8 +102,10 @@ public class ThumbnailController {
             try {
                 String width = (StringUtils.equalsIgnoreCase(size, "w200") ? "200" : "400");
                 URI iiifUri = ThumbnailController.getIiifThumbnailUrl(url, width);
-                LOG.debug("IIIF url = {} ", iiifUri.getPath());
-                mediaFile = downloadImage(iiifUri);
+                if (iiifUri != null) {
+                    LOG.debug("IIIF url = {} ", iiifUri.getPath());
+                    mediaFile = downloadImage(iiifUri);
+                }
             } catch (URISyntaxException e) {
                 LOG.error("Error reading IIIF thumbnail url", e);
             } catch (IOException io) {
@@ -157,8 +159,11 @@ public class ThumbnailController {
      * @return true if the provided url is a thumbnail hosted on iiif.europeana.eu, otherwise false
      */
     public static boolean isIiifRecordUrl(String url) {
-        String urlLowercase = url.toLowerCase(Locale.getDefault());
-        return (urlLowercase.startsWith("http://"+IIIF_HOST_NAME) || urlLowercase.startsWith("https://"+IIIF_HOST_NAME));
+        if (url != null) {
+            String urlLowercase = url.toLowerCase(Locale.getDefault());
+            return (urlLowercase.startsWith("http://" + IIIF_HOST_NAME) || urlLowercase.startsWith("https://" + IIIF_HOST_NAME));
+        }
+        return false;
     }
 
     /**
@@ -174,7 +179,7 @@ public class ThumbnailController {
     public static URI getIiifThumbnailUrl(String url, String width) throws URISyntaxException {
         // all urls are encoded so they start with either http:// or https://
         // and end with /full/full/0/default.<extension>.
-        if (url != null && isIiifRecordUrl(url)) {
+        if (isIiifRecordUrl(url)) {
             return new URI(url.replace("/full/full/0/default.", "/full/" +width+ ",/0/default."));
         }
         return null;
@@ -190,7 +195,7 @@ public class ThumbnailController {
         try (InputStream in = new BufferedInputStream(uri.toURL().openStream());
             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             byte[] buf = new byte[1024];
-            int n = 0;
+            int n;
             while (-1 != (n = in.read(buf))) {
                 out.write(buf, 0, n);
             }
@@ -214,14 +219,13 @@ public class ThumbnailController {
         return result;
     }
 
-
+    @SuppressWarnings("squid:S2070") // we have to use MD5 here
     private String getMD5(String resourceUrl) {
-        String resource = (resourceUrl == null ? "" : resourceUrl);
         MessageDigest messageDigest;
         try {
             messageDigest = MessageDigest.getInstance("MD5");
             messageDigest.reset();
-            messageDigest.update(resource.getBytes(StandardCharsets.UTF_8));
+            messageDigest.update(resourceUrl.getBytes(StandardCharsets.UTF_8));
             final byte[] resultByte = messageDigest.digest();
             StringBuilder sb = new StringBuilder();
             for (byte aResultByte : resultByte) {

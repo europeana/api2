@@ -25,20 +25,20 @@ import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
+import eu.europeana.corelib.neo4j.entity.Neo4jBean;
+import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.neo4j.exception.Neo4JException;
+import eu.europeana.corelib.search.Neo4jSearchService;
 import eu.europeana.corelib.web.exception.EmailServiceException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
-import eu.europeana.corelib.neo4j.entity.Neo4jBean;
-import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
-import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.service.EmailService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -46,7 +46,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Future;
 
 /**
  * Im Luthien hain echant 30/06/15
@@ -57,23 +56,26 @@ import java.util.concurrent.Future;
 
 public class HierarchyRunner {
 
+    private static final Logger LOG = LogManager.getLogger(HierarchyRunner.class);
+
+    private static final int MAX_LIMIT = 100;
+    //TODO factor exception email handling out to generic functionality
+    private static final String SUBJECTPREFIX = "Europeana exception email handler: ";
+
     @Resource(name = "corelib_web_emailService")
     private EmailService emailService;
 
-    private static final int MAX_LIMIT = 100;
-    private SearchService searchService;
-    //TODO factor exception email handling out to generic functionality
-    private final String SUBJECTPREFIX = "Europeana exception email handler: ";
+    private Neo4jSearchService searchService;
 
     @Async
     public ModelAndView call(RecordType recordType,
                                      String rdfAbout, String profile,
                                      String wskey, int limit, int offset, String callback,
                                      HttpServletRequest request, HttpServletResponse response,
-                                     Logger log, ApiKeyUtils apiKeyUtils, SearchService searchService) {
+                                     ApiKeyUtils apiKeyUtils, Neo4jSearchService searchService) {
 
         this.searchService = searchService;
-        log.info("Running thread for " + rdfAbout);
+        LOG.debug("Running thread for {}", rdfAbout);
 
 
         long t0 = System.currentTimeMillis();
@@ -91,8 +93,8 @@ public class HierarchyRunner {
             return JsonUtils.toJson(new ApiError(e), callback);
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Limit: " + (System.currentTimeMillis() - t1));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Limit: {}", (System.currentTimeMillis() - t1));
         }
         t1 = System.currentTimeMillis();
 
@@ -102,8 +104,8 @@ public class HierarchyRunner {
             hierarchicalResult.addParam("profile", profile);
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Init object: " + (System.currentTimeMillis() - t1));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Init object: {}", (System.currentTimeMillis() - t1));
         }
         t1 = System.currentTimeMillis();
 
@@ -119,13 +121,12 @@ public class HierarchyRunner {
             } else {
                 hierarchicalResult.success = false;
                 response.setStatus(404);
-                return JsonUtils.toJson(new ApiError(wskey,
-                        String.format("Invalid record identifier: %s", rdfAbout),
+                return JsonUtils.toJson(new ApiError(wskey, "Invalid record identifier: "+ rdfAbout,
                         limitResponse.getRequestNumber()), callback);
             }
 
-        if (log.isDebugEnabled()) {
-            log.debug("get self: " + (System.currentTimeMillis() - t1));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("get self: {} ", (System.currentTimeMillis() - t1));
         }
         t1 = System.currentTimeMillis();
 
@@ -158,8 +159,8 @@ public class HierarchyRunner {
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
                 long tgetsiblings = System.currentTimeMillis();
-                hierarchicalResult.followingSiblings = searchService.getFollowingSiblings(rdfAbout, limit);
-                log.info("Get siblings: " + (System.currentTimeMillis() - tgetsiblings));
+                hierarchicalResult.followingSiblings = searchService.getFollowingSiblings(rdfAbout, offset, limit);
+                LOG.info("Get siblings: {}", (System.currentTimeMillis() - tgetsiblings));
                 if (hierarchicalResult.followingSiblings == null || hierarchicalResult.followingSiblings.isEmpty()) {
                     hierarchicalResult.message = "This record has no following siblings";
                     hierarchicalResult.success = false;
@@ -167,10 +168,10 @@ public class HierarchyRunner {
                 } else {
                     long tgetsiblingsCount = System.currentTimeMillis();
                     addChildrenCount(hierarchicalResult.followingSiblings);
-                    log.info("Get siblingsCount: " + (System.currentTimeMillis() - tgetsiblingsCount));
+                    LOG.info("Get siblingsCount: {}", (System.currentTimeMillis() - tgetsiblingsCount));
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_PRECEDING_SIBLINGS)) {
-                hierarchicalResult.precedingSiblings = searchService.getPrecedingSiblings(rdfAbout, limit);
+                hierarchicalResult.precedingSiblings = searchService.getPrecedingSiblings(rdfAbout, offset, limit);
                 if (hierarchicalResult.precedingSiblings == null || hierarchicalResult.precedingSiblings.isEmpty()) {
                     hierarchicalResult.message = "This record has no preceding siblings";
                     hierarchicalResult.success = false;
@@ -181,7 +182,7 @@ public class HierarchyRunner {
             } else if (recordType.equals(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS)) {
                 Neo4jStructBean struct = searchService.getInitialStruct(rdfAbout);
                 if (struct == null) {
-                    hierarchicalResult.message = String.format("This record has no hierarchical structure %s", rdfAbout);
+                    hierarchicalResult.message = "This record has no hierarchical structure "+ rdfAbout;
                     hierarchicalResult.success = false;
                     response.setStatus(404);
                 } else {
@@ -235,30 +236,30 @@ public class HierarchyRunner {
             }
         } catch (Neo4JException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            log.error("Neo4JException thrown: " + e.getMessage());
-            if (null != e.getCause()) log.error("Cause: " + e.getCause().toString());
+            LOG.error("Neo4JException thrown: {}", e.getMessage());
+            if (null != e.getCause()) LOG.error("Cause: {}", e.getCause());
             // TODO re-enable mail sending at some time?
 //            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)) sendExceptionEmail(e);
-            return JsonUtils.toJson(new ApiError(wskey, String.format("Neo4JException thrown: " + e.getMessage() +
-                    " for record %s", rdfAbout), -1L), callback);
+            return JsonUtils.toJson(new ApiError(wskey, "Neo4JException thrown: " + e.getMessage() +
+                    " for record " + rdfAbout, -1L), callback);
 
         }
-        if (log.isDebugEnabled()) {
-            log.debug("get main: " + (System.currentTimeMillis() - t1));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("get main: {}", (System.currentTimeMillis() - t1));
         }
         t1 = System.currentTimeMillis();
 
 
         hierarchicalResult.statsDuration = (System.currentTimeMillis() - t0);
         ModelAndView json = JsonUtils.toJson(hierarchicalResult, callback);
-        if (log.isDebugEnabled()) {
-            log.debug("toJson: " + (System.currentTimeMillis() - t1));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("toJson: {}", (System.currentTimeMillis() - t1));
         }
         return json;
     }
 
     private void addChildrenCount(List<Neo4jBean> beans) throws Neo4JException {
-        if (beans != null && beans.size() > 0) {
+        if (beans != null && !beans.isEmpty()) {
             for (Neo4jBean bean : beans) {
                 if (bean.hasChildren()) {
                     bean.setChildrenCount(searchService.getChildrenCount(bean.getId()));
@@ -277,7 +278,7 @@ public class HierarchyRunner {
         try {
             emailService.sendException(header, body);
         } catch (EmailServiceException es) {
-            es.printStackTrace();
+            LOG.error("Error sending email", e);
         }
     }
 }

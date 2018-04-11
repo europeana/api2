@@ -34,6 +34,10 @@ public class ObjectResult extends ApiResponse {
 
     public FullBean object;
 
+    /**
+     * @deprecated since January 2018 - similarItems is not being used anymore
+     */
+    @Deprecated
     public List<? extends BriefBean> similarItems;
 
     public ObjectResult(String apikey, long requestNumber) {

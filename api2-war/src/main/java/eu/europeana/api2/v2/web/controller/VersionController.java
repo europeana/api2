@@ -13,13 +13,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.util.Properties;
 
 /**
  * Controller for showing api and corelib build information (for debugging purposes only).
  * If there is a build.txt file we return the information in that, otherwise we try to extract version information
  * from (jar) manifest or filename
  * Created by Patrick Ehlert on 24-3-17.
+ * @Deprecated replaced by the /info endpoint
  */
+@Deprecated
 @RestController
 public class VersionController {
 
@@ -41,22 +44,25 @@ public class VersionController {
             LOG.warn("Error retrieving api or corelib build information", e);
         }
 
-        // get more accurate build information from api build.txt file (if we can)
-        InputStream is = this.getClass().getResourceAsStream("/../../build.txt");
-        if (is == null) {
-            LOG.warn("No api2 build.txt file found!");
-        } else {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                    sb.append(' ');
+        // get more detailed build information from api build.properties file (if we can)
+        Properties buildProperties = new Properties();
+        try (InputStream stream = this.getClass().getClassLoader().getResourceAsStream("build.properties")) {
+            if (stream != null) {
+                buildProperties.load(stream);
+                StringBuilder s = new StringBuilder();
+                for (String propName : buildProperties.stringPropertyNames()) {
+                    // skip application name
+                    if (!"info.app.name".equalsIgnoreCase(propName)) {
+                        s.append(buildProperties.getProperty(propName));
+                        s.append(" ");
+                    }
                 }
-                result.setApiBuildInfo(sb.toString());
-            } catch (IOException e) {
-                LOG.error("Error reading API2 build.txt file", e);
+                result.setApiBuildInfo(s.toString());
+            } else {
+                LOG.warn("build.properties file not found");
             }
+        } catch (IOException e) {
+            LOG.error("Error reading API2 build.properties file", e);
         }
         return result;
     }

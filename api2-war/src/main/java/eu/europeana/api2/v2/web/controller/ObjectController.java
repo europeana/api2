@@ -29,7 +29,6 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.xml.srw.SrwResponse;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
-import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.FullDoc;
@@ -370,9 +369,9 @@ public class ObjectController {
             objectResult.addParam("profile", data.profile);
         }
 
-        if (StringUtils.containsIgnoreCase(data.profile, Profile.SIMILAR.getName())) {
-            objectResult.similarItems = getSimilarItems(data.europeanaObjectId, data.wskey);
-        }
+//        if (StringUtils.containsIgnoreCase(data.profile, Profile.SIMILAR.getName())) {
+//            objectResult.similarItems = getSimilarItems(data.europeanaObjectId, data.wskey);
+//        }
 
         objectResult.object = new FullView(bean, data.profile, data.wskey);
         objectResult.statsDuration = System.currentTimeMillis() - startTime;
@@ -480,6 +479,14 @@ public class ObjectController {
         return url.toString();
     }
 
+    /**
+     *
+     * @param europeanaId
+     * @param wskey
+     * @return
+     * @deprecated January 2018 - getSimilarItems isn't used anymore
+     */
+    @Deprecated
     private List<BriefView> getSimilarItems(String europeanaId, String wskey) {
         List<BriefView> result = new ArrayList<>();
         try {

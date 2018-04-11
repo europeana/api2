@@ -22,7 +22,8 @@ import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -43,7 +44,7 @@ import java.util.Map;
 @ControllerAdvice
 public class ExceptionControllerAdvice {
 
-    private static final Logger LOG = Logger.getLogger(ExceptionControllerAdvice.class);
+    private static final Logger LOG = LogManager.getLogger(ExceptionControllerAdvice.class);
 
     /**
      * Handles all required parameter missing problems (e.g. APIkey missing)
@@ -54,11 +55,12 @@ public class ExceptionControllerAdvice {
      */
     @ExceptionHandler(value = {MissingServletRequestParameterException.class})
     public ModelAndView missingParameterErrorHandler (HttpServletRequest request, HttpServletResponse response, MissingServletRequestParameterException ex) {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         String requestFormat = ControllerUtils.getRequestFormat(request);
 
         String errorMsg;
         if ("wskey".equalsIgnoreCase(ex.getParameterName())) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             errorMsg = "No API key provided";
         } else {
             errorMsg = "Required parameter '" + ex.getParameterName() + "' missing";
@@ -109,8 +111,8 @@ public class ExceptionControllerAdvice {
     @ExceptionHandler(value = {Exception.class})
     public ModelAndView defaultExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e)
             throws Exception {
-        LOG.error("Caught exception: "+ e.getMessage());
-        LOG.error("Stacktrace: "+ Throwables.getStackTraceAsString(e));
+        LOG.error("Caught exception: {}, {}", e.getMessage(), Throwables.getStackTraceAsString(e));
+        LOG.error("Stacktrace: {}", Throwables.getStackTraceAsString(e));
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         String requestFormat = ControllerUtils.getRequestFormat(request);
 

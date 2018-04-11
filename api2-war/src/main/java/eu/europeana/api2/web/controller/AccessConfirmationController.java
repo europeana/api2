@@ -38,9 +38,11 @@ import java.util.Map;
 
 /**
  * Controller for retrieving the model for and displaying the confirmation page for access to a protected resource.
+ * @deprecated 2018-01-09 old MyEuropeana functionality*
  */
 @Controller
 @SessionAttributes("authorizationRequest")
+@Deprecated
 public class AccessConfirmationController {
 
     @Resource

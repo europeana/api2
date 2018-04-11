@@ -35,7 +35,7 @@ public class ThumbnailControllerTest {
     }
 
     /**
-     * Test if we generate IIIF image thumbnaisl urls correctly
+     * Test if we generate IIIF image thumbnail urls correctly
      */
     @Test
     public void GetIiifThumbnailTest() throws URISyntaxException {

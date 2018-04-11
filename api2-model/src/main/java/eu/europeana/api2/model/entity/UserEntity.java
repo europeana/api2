@@ -1,11 +1,12 @@
 package eu.europeana.api2.model.entity;
 
 import eu.europeana.corelib.definitions.users.Role;
-import org.apache.commons.lang3.EnumUtils;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
+ * @deprecated 2018-01-09 old MyEuropeana functionality
  */
+@Deprecated
 public class UserEntity {
 
     protected Long   id;

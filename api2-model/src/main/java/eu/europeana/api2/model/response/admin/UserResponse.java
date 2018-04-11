@@ -8,7 +8,9 @@ import java.util.List;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
+ * @deprecated 2018-01-09 old MyEuropeana functionality
  */
+@Deprecated
 public class UserResponse extends ApiResponse {
 
     public UserResponse() {

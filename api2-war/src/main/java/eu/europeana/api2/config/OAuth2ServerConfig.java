@@ -26,6 +26,8 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 
+import java.sql.Connection;
+
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED;
 
@@ -40,8 +42,10 @@ import static org.springframework.security.config.http.SessionCreationPolicy.IF_
  * @see https://drive.google.com/file/d/0B7lriE2YnGwUOWdzMGd3czR4eUE/view?usp=sharing
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  * @author Jeroen Jeurissen (enlightenedsoftware.nl)
+ * @deprecated 2018-01-09 old MyEuropeana functionality
  */
 @Configuration
+@Deprecated
 public class OAuth2ServerConfig {
 
     @Configuration
@@ -106,11 +110,13 @@ public class OAuth2ServerConfig {
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
             // log to which db we are connected
-            String dbUrl = oauthDataSource.getConnection().getMetaData().getURL();
-            if (dbUrl.contains("password")) {
-                dbUrl = dbUrl.substring(0, dbUrl.indexOf("password"));
+            try (Connection con = oauthDataSource.getConnection()) {
+                String dbUrl = con.getMetaData().getURL();
+                if (dbUrl.contains("password")) {
+                    dbUrl = dbUrl.substring(0, dbUrl.indexOf("password"));
+                }
+                Logger.getLogger(AuthorizationServerConfiguration.class).info("Connected to " + dbUrl);
             }
-            Logger.getLogger(AuthorizationServerConfiguration.class).info("Connected to " + dbUrl);
 
             clients
                     .withClientDetails(clientDetailsService);

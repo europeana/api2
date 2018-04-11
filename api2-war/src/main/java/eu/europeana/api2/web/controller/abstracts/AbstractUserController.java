@@ -24,8 +24,7 @@ import javax.annotation.Resource;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 
 import eu.europeana.api2.model.utils.LinkUtils;
@@ -35,6 +34,10 @@ import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.abstracts.EuropeanaUserObject;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 
+/**
+ * @deprecated 2018-01-09 old MyEuropeana functionality
+ */
+@Deprecated
 public abstract class AbstractUserController {
 
 	@Resource(name = "corelib_db_userService")
@@ -61,7 +64,8 @@ public abstract class AbstractUserController {
 			if (apiKey != null) {
 				user = userService.findByEmail(apiKey.getEmail());
 			}
-		} catch (DatabaseException ignored) {
+		} catch (DatabaseException e) {
+			LogManager.getLogger(AbstractUserController.class).error("Error checking API key: {}", e.getMessage(), e);
 		}
 		return user;
 	}

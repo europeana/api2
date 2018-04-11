@@ -17,66 +17,68 @@
   --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>api2-model</artifactId>
-    <groupId>eu.europeana.api2</groupId>
-    <name>Europeana API2 data model</name>
-    <url>http://www.europeana.eu</url>
-
     <parent>
-        <artifactId>api2</artifactId>
         <groupId>eu.europeana</groupId>
-        <version>2.6.6</version>
+        <artifactId>api2</artifactId>
+        <version>2.6.7</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
+
+    <groupId>eu.europeana.api2</groupId>
+    <artifactId>api2-model</artifactId>
+    <name>Europeana Search, Record, Hierarchical and Thumbnail API data model</name>
+
+    <organization><name>Europeana Foundation</name></organization>
+    <url>http://www.europeana.eu</url>
 
     <dependencies>
         <!-- CORELIB -->
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-definitions</artifactId>
-            <version>${version.corelib}</version>
+            <version>${corelib.version}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-hierarchies</artifactId>
-            <version>${version.corelib}</version>
+            <version>${corelib.version}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-web</artifactId>
-            <version>${version.corelib}</version>
+            <version>${corelib.version}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-storage</artifactId>
-            <version>${version.corelib}</version>
+            <version>${corelib.version}</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-common-storage</artifactId>
-            <version>${version.corelib}</version>
+            <version>${corelib.version}</version>
         </dependency>
         <!-- OTHER -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${version.jackson}</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${version.jackson}</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>${version.jackson}</version>
+            <version>${jackson.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-oxm</artifactId>
-            <version>${version.springCore}</version>
+            <version>${springCore.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
