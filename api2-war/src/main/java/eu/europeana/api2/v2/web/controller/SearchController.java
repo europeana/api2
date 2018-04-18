@@ -189,9 +189,6 @@ public class SearchController {
             }
         }
 
-        // exclude sorting on timestamp, #238
-        if (sort != null && (sort.equalsIgnoreCase("timestamp") || sort.toLowerCase().startsWith("timestamp "))) sort = "";
-
         List<String> colourPalette = new ArrayList();
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         colourPalette.replaceAll(String::toUpperCase);
