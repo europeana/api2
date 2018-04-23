@@ -37,8 +37,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 
 /**
  * Controller for redirects urls (e.g. values of edmIsShownAt and edmIsShownBy fields)
@@ -92,22 +90,20 @@ public class RedirectController {
     /**
      * We don't allow redirecting to just any url. The url has to be in the Europeana Solr index as a value of the
      * provider_aggregation_edm_isShownAt field
-     * @param encodedUrl
+     * @param url
      * @return true if url is in the Europeana Solr index, otherwise false
      */
-    private boolean isInEuropeana(String encodedUrl) {
+    private boolean isInEuropeana(String url) {
         try {
-            String decodedUrl = URLDecoder.decode(encodedUrl, "UTF-8");
             // it's important to call escapeQueryChars to prevent people messing up the query by adding illegal characters
-            Query query = new Query("provider_aggregation_edm_isShownAt:\"" +ClientUtils.escapeQueryChars(decodedUrl)+ "\"")
+            Query query = new Query("provider_aggregation_edm_isShownAt:\"" +ClientUtils.escapeQueryChars(url)+ "\"")
                     .setApiQuery(true)
                     .setFacetsAllowed(false)
                     .setSpellcheckAllowed(false)
                     .setSort(null);
             ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
+            LOG.debug("Redirect query = {}", query.getExecutedQuery());
             return resultSet.getResultSize() > 0;
-        } catch (UnsupportedEncodingException uee) {
-            LOG.error("Unsupported encoding", uee);
         } catch (SolrTypeException ste) {
             LOG.error("Error checking if url is in Solr index", ste);
         }
