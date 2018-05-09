@@ -194,11 +194,12 @@ public class HierarchicalController {
                                           HttpServletRequest request, HttpServletResponse response,
                                           RedirectAttributes redirectAttrs, int hierarchyTimeout) {
 
+
         String                  rdfAbout = "/" + collectionId + "/" + recordId;
         HierarchyRunner mrBean = hierarchyRunnerBean();
         hierarchyTimeout = (hierarchyTimeout == 0 ? DEFAULT_HIERARCHY_TIMEOUT :
-                            (hierarchyTimeout < MIN_HIERARCHY_TIMEOUT ? MIN_HIERARCHY_TIMEOUT :
-                             (hierarchyTimeout > MAX_HIERARCHY_TIMEOUT ? MAX_HIERARCHY_TIMEOUT : hierarchyTimeout)));
+                           (hierarchyTimeout < MIN_HIERARCHY_TIMEOUT ? MIN_HIERARCHY_TIMEOUT :
+                           (hierarchyTimeout > MAX_HIERARCHY_TIMEOUT ? MAX_HIERARCHY_TIMEOUT : hierarchyTimeout)));
         try {
             Future<ModelAndView> myFlexibleFriend = timeoutExecutorService.submit(()
                     -> mrBean.call(recordType, rdfAbout, profile, wskey, limit, offset, callback, request,
@@ -217,16 +218,11 @@ public class HierarchicalController {
         } catch (ExecutionException e) {
             LOG.warn("ExecutionExeption thrown: {}", e.getMessage());
             if (null != e.getCause()) LOG.error("Cause: {}", e.getCause());
-            ModelAndView gimmeJustTheRecordThen = new ModelAndView("redirect:/v2/record" + rdfAbout + ".json");
-            redirectAttrs.addAttribute("profile", profile);
-            redirectAttrs.addAttribute("wskey", wskey);
-            redirectAttrs.addAttribute("callback", callback);
-            return gimmeJustTheRecordThen;
+            return generateErrorHierarchy(rdfAbout, wskey, callback, "ExecutionExeption thrown when processing");
         }
     }
 
-    private ModelAndView generateErrorHierarchy(String rdfAbout, String wskey, String callback,
-                                                String message) {
+    private ModelAndView generateErrorHierarchy(String rdfAbout, String wskey, String callback, String message) {
         return JsonUtils.toJson(new ApiError(wskey, message + " record " + rdfAbout, 999L), callback);
 
     }
