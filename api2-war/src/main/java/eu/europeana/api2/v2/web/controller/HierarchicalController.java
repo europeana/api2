@@ -201,6 +201,10 @@ public class HierarchicalController {
                            (hierarchyTimeout < MIN_HIERARCHY_TIMEOUT ? MIN_HIERARCHY_TIMEOUT :
                            (hierarchyTimeout > MAX_HIERARCHY_TIMEOUT ? MAX_HIERARCHY_TIMEOUT : hierarchyTimeout)));
         try {
+            // TODO Just for testing purposes ... remove this when merging!!
+            if (callback.equalsIgnoreCase("krak")){
+                throw new ExecutionException(new Throwable(callback));
+            }
             Future<ModelAndView> myFlexibleFriend = timeoutExecutorService.submit(()
                     -> mrBean.call(recordType, rdfAbout, profile, wskey, limit, offset, callback, request,
                     response, apiKeyUtils, searchService));
