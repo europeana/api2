@@ -214,10 +214,12 @@ public class HierarchicalController {
     private ModelAndView generateErrorHierarchy(String rdfAbout, String wskey, String callback, String message, Exception e) {
         StringBuilder logMsg = new StringBuilder(message);
         if (e.getMessage() != null) {
-            logMsg.append(" Message: "+e.getMessage());
+            logMsg.append(" Message: ");
+            logMsg.append(e.getMessage());
         }
         if (e.getCause() != null) {
-            logMsg.append(" Cause: "+e.getMessage());
+            logMsg.append(" Cause: ");
+            logMsg.append(e.getCause());
         }
         LOG.error(logMsg.toString());
 
