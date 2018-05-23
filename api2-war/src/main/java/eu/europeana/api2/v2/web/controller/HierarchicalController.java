@@ -24,6 +24,7 @@ import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.search.Neo4jSearchService;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Bean;
@@ -202,7 +203,7 @@ public class HierarchicalController {
                            (hierarchyTimeout > MAX_HIERARCHY_TIMEOUT ? MAX_HIERARCHY_TIMEOUT : hierarchyTimeout)));
         try {
             // TODO Just for testing purposes ... remove this when merging!!
-            if (callback.equalsIgnoreCase("krak")){
+            if (StringUtils.containsIgnoreCase(callback, "krak")){
                 throw new ExecutionException(new Throwable(callback));
             }
             Future<ModelAndView> myFlexibleFriend = timeoutExecutorService.submit(()
