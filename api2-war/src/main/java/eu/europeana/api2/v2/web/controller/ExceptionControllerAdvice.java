@@ -111,8 +111,7 @@ public class ExceptionControllerAdvice {
     @ExceptionHandler(value = {Exception.class})
     public ModelAndView defaultExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e)
             throws Exception {
-        LOG.error("Caught exception: {}, {}", e.getMessage(), Throwables.getStackTraceAsString(e));
-        LOG.error("Stacktrace: {}", Throwables.getStackTraceAsString(e));
+        LOG.error("Caught exception: {}", e);
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         String requestFormat = ControllerUtils.getRequestFormat(request);
 
