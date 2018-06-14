@@ -45,7 +45,6 @@ import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.exception.DatabaseException;
-import eu.europeana.corelib.db.exception.LimitReachedException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
@@ -563,12 +562,9 @@ public class SearchController {
 
         try {
             ApiKey apiKey = apiService.findByID(wskey);
-            apiService.checkReachedLimit(apiKey);
+            apiService.checkNotEmpty(apiKey);
         } catch (DatabaseException e) {
             response.setStatus(401);
-            throw new Exception(e);
-        } catch (LimitReachedException e) {
-            response.setStatus(429);
             throw new Exception(e);
         }
         KmlResponse kmlResponse = new KmlResponse();
