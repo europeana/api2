@@ -22,15 +22,15 @@
         <artifactId>europeana-parent-pom</artifactId>
         <version>2.0</version>
     </parent>
-
+    
     <artifactId>api2</artifactId>
-    <version>2.6.7_EA1101</version>
+    <version>2.7.0</version>
     <packaging>pom</packaging>
     <name>Europeana Search, Record, Hierarchical and Thumbnail API</name>
     <url>http://www.europeana.eu</url>
 
     <properties>
-        <corelib.version>2.6.7</corelib.version>
+        <corelib.version>2.7.0</corelib.version>
 
         <httpclient.version>4.5.2</httpclient.version>
         <jackson.version>2.6.5</jackson.version>
