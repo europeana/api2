@@ -6,9 +6,9 @@ import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
-import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +22,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.sql.DataSource;
 import java.util.Arrays;
 
 /**
@@ -62,38 +61,18 @@ public class AppConfig {
         LOG.info("Active Spring profiles:" + Arrays.toString(env.getActiveProfiles()));
         LOG.info("Default Spring profiles:" + Arrays.toString(env.getDefaultProfiles()));
 
-        if (postgres instanceof org.apache.tomcat.jdbc.pool.DataSource) {
-            LOG.info("org.apache.tomcat.jdbc.pool.DataSource");
-            org.apache.tomcat.jdbc.pool.DataSource pg = (org.apache.tomcat.jdbc.pool.DataSource) postgres;
-            LOG.info("Postgres Datasource: minIdle = {}, maxIdle = {}, maxActive = {} ", pg.getMinIdle(),
-                    pg.getMaxIdle(), pg.getMaxActive());
-            LOG.info("Postgres Datasource: getInitialSize = {}", pg.getInitialSize());
-            LOG.info("Postgres Datasource: getMaxWait = {}", pg.getMaxWait());
-            LOG.info("Postgres Datasource!: getMinEvictableIdleTimeMillis() = {}", pg.getMinEvictableIdleTimeMillis());
-            LOG.info("Postgres Datasource!: getTimeBetweenEvictionRunsMillis = {}", pg.getTimeBetweenEvictionRunsMillis());
-            LOG.info("Postgres Datasource: getNumActive = {}, getNumIdle = {}, getNumTestsPerEvictionRun = {}", pg.getNumActive()
-                    , pg.getNumIdle(), pg.getNumTestsPerEvictionRun());
-            LOG.info("Postgres Datasource: getValidationQuery = {}", pg.getValidationQuery());
-            LOG.info("Postgres Datasource: getValidationQueryTimeout = {}", pg.getValidationQueryTimeout());
-            LOG.info("Postgres Datasource: getDefaultReadOnly = {}", pg.getDefaultReadOnly());
-            LOG.info("Postgres Datasource: getDefaultAutoCommit = {}", pg.getDefaultAutoCommit());
-
-        } else if (postgres instanceof BasicDataSource) {
-            LOG.info("org.apache.commons.dbcp.BasicDataSource");
-            BasicDataSource pg = (BasicDataSource) postgres;
-            LOG.info("Postgres Datasource: minIdle = {}, maxIdle = {}, maxActive = {} ", pg.getMinIdle(),
-                    pg.getMaxIdle(), pg.getMaxActive());
-            LOG.info("Postgres Datasource: getInitialSize = {}", pg.getInitialSize());
-            LOG.info("Postgres Datasource: getMaxWait = {}", pg.getMaxWait());
-            LOG.info("Postgres Datasource!: getMinEvictableIdleTimeMillis() = {}", pg.getMinEvictableIdleTimeMillis());
-            LOG.info("Postgres Datasource!: getTimeBetweenEvictionRunsMillis = {}", pg.getTimeBetweenEvictionRunsMillis());
-            LOG.info("Postgres Datasource: getNumActive = {}, getNumIdle = {}, getNumTestsPerEvictionRun = {}", pg.getNumActive()
-                    , pg.getNumIdle(), pg.getNumTestsPerEvictionRun());
-            LOG.info("Postgres Datasource: getValidationQuery = {}", pg.getValidationQuery());
-            LOG.info("Postgres Datasource: getValidationQueryTimeout = {}", pg.getValidationQueryTimeout());
-            LOG.info("Postgres Datasource: getDefaultReadOnly = {}", pg.getDefaultReadOnly());
-            LOG.info("Postgres Datasource: getDefaultAutoCommit = {}", pg.getDefaultAutoCommit());
-        }
+        LOG.info("Postgres Datasource: minIdle = {}, maxIdle = {}, maxActive = {} ", this.postgres.getMinIdle(),
+                this.postgres.getMaxIdle(), this.postgres.getMaxActive());
+        LOG.info("Postgres Datasource: getInitialSize = {}", this.postgres.getInitialSize());
+        LOG.info("Postgres Datasource: getMaxWait = {}", this.postgres.getMaxWait());
+        LOG.info("Postgres Datasource: getMinEvictableIdleTimeMillis() = {}", this.postgres.getMinEvictableIdleTimeMillis());
+        LOG.info("Postgres Datasource: getTimeBetweenEvictionRunsMillis = {}", this.postgres.getTimeBetweenEvictionRunsMillis());
+        LOG.info("Postgres Datasource: getNumActive = {}, getNumIdle = {}, getNumTestsPerEvictionRun = {}", this.postgres.getNumActive()
+                , this.postgres.getNumIdle(), this.postgres.getNumTestsPerEvictionRun());
+        LOG.info("Postgres Datasource: getValidationQuery = {}", this.postgres.getValidationQuery());
+        LOG.info("Postgres Datasource: getValidationQueryTimeout = {}", this.postgres.getValidationQueryTimeout());
+        LOG.info("Postgres Datasource: getDefaultReadOnly = {}", this.postgres.getDefaultReadOnly());
+        LOG.info("Postgres Datasource: getDefaultAutoCommit = {}", this.postgres.getDefaultAutoCommit());
     }
 
     /**
