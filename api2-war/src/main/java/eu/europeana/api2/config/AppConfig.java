@@ -6,7 +6,9 @@ import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
-import org.apache.log4j.Logger;
+import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +21,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.sql.DataSource;
 import java.util.Arrays;
 
 /**
@@ -36,7 +40,7 @@ import java.util.Arrays;
 @PropertySource("classpath:europeana.properties")
 public class AppConfig {
 
-    private static final Logger LOG = Logger.getLogger(AppConfig.class);
+    private static final Logger LOG = LogManager.getLogger(AppConfig.class);
 
     @Value("${s3.key}")
     private String key;
@@ -47,13 +51,47 @@ public class AppConfig {
     @Value("${s3.bucket}")
     private String bucket;
 
+    @Resource(name = "corelib_db_dataSource")
+    private BasicDataSource postgres;
+
     @Autowired
     private Environment env;
 
     @PostConstruct
     public void logSpringProfiles() {
+
+
         LOG.info("Active Spring profiles:" + Arrays.toString(env.getActiveProfiles()));
         LOG.info("Default Spring profiles:" + Arrays.toString(env.getDefaultProfiles()));
+
+        LOG.info("Postgres Datasource: minIdle = {}, maxIdle = {}, maxActive = {} ", postgres.getMinIdle(),
+                postgres.getMaxIdle(), postgres.getMaxActive());
+        LOG.info("Postgres Datasource: getInitialSize = {}", postgres.getInitialSize());
+        LOG.info("Postgres Datasource: getMaxWait = {}", postgres.getMaxWait());
+        LOG.info("Postgres Datasource!: getMinEvictableIdleTimeMillis() = {}", postgres.getMinEvictableIdleTimeMillis());
+        LOG.info("Postgres Datasource!: getTimeBetweenEvictionRunsMillis = {}", postgres.getTimeBetweenEvictionRunsMillis());
+        LOG.info("Postgres Datasource: getNumActive = {}, getNumIdle = {}, getNumTestsPerEvictionRun = {}", postgres.getNumActive()
+                , postgres.getNumIdle(), postgres.getNumTestsPerEvictionRun());
+        LOG.info("Postgres Datasource: getValidationQuery = {}", postgres.getValidationQuery());
+        LOG.info("Postgres Datasource: getValidationQueryTimeout = {}", postgres.getValidationQueryTimeout());
+        LOG.info("Postgres Datasource: getDefaultReadOnly = {}", postgres.getDefaultReadOnly());
+        LOG.info("Postgres Datasource: getDefaultAutoCommit = {}", postgres.getDefaultAutoCommit());
+
+        LOG.info("Postgres Datasource: getMaxOpenPreparedStatements = {}", postgres.getMaxOpenPreparedStatements());
+
+        LOG.info("Postgres Datasource: getRemoveAbandoned = {}", postgres.getRemoveAbandoned());
+        LOG.info("Postgres Datasource: getRemoveAbandonedTimeout = {}", postgres.getRemoveAbandonedTimeout());
+        LOG.info("Postgres Datasource: getLogAbandoned = {}", postgres.getLogAbandoned());
+
+        postgres.setRemoveAbandoned(true);
+        postgres.setLogAbandoned(true);
+
+        LOG.info("Changing remove abandoned");
+        LOG.info("Postgres Datasource: getRemoveAbandoned = {}", postgres.getRemoveAbandoned());
+        LOG.info("Postgres Datasource: getRemoveAbandonedTimeout = {}", postgres.getRemoveAbandonedTimeout());
+        LOG.info("Postgres Datasource: getLogAbandoned = {}", postgres.getLogAbandoned());
+
+
     }
 
     /**
