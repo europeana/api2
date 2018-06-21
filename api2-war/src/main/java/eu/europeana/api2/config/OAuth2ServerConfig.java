@@ -109,15 +109,6 @@ public class OAuth2ServerConfig {
 
         @Override
         public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-            // log to which db we are connected
-            try (Connection con = oauthDataSource.getConnection()) {
-                String dbUrl = con.getMetaData().getURL();
-                if (dbUrl.contains("password")) {
-                    dbUrl = dbUrl.substring(0, dbUrl.indexOf("password"));
-                }
-                Logger.getLogger(AuthorizationServerConfiguration.class).info("Connected to " + dbUrl);
-            }
-
             clients
                     .withClientDetails(clientDetailsService);
         }

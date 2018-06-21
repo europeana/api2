@@ -22,6 +22,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
@@ -57,9 +59,20 @@ public class AppConfig {
     private Environment env;
 
     @PostConstruct
-    public void logSpringProfiles() {
+    public void logConfiguration() {
         LOG.info("Active Spring profiles:" + Arrays.toString(env.getActiveProfiles()));
         LOG.info("Default Spring profiles:" + Arrays.toString(env.getDefaultProfiles()));
+
+        // log to which db we are connected
+        try (Connection con = postgres.getConnection()) {
+            String dbUrl = con.getMetaData().getURL();
+            if (dbUrl.contains("password")) {
+                dbUrl = dbUrl.substring(0, dbUrl.indexOf("password"));
+            }
+            LOG.info("Connected to " + dbUrl);
+        } catch (SQLException e) {
+            LOG.error("Error checking database connection", e);
+        }
 
         LOG.info("Postgres Datasource: minIdle = {}, maxIdle = {}, maxActive = {} ", this.postgres.getMinIdle(),
                 this.postgres.getMaxIdle(), this.postgres.getMaxActive());
@@ -73,6 +86,12 @@ public class AppConfig {
         LOG.info("Postgres Datasource: getValidationQueryTimeout = {}", this.postgres.getValidationQueryTimeout());
         LOG.info("Postgres Datasource: getDefaultReadOnly = {}", this.postgres.getDefaultReadOnly());
         LOG.info("Postgres Datasource: getDefaultAutoCommit = {}", this.postgres.getDefaultAutoCommit());
+        LOG.info("Postgres Datasource: getDefaultAutoCommit = {}", this.postgres.getDefaultAutoCommit());
+
+        this.postgres.setMaxIdle(50);
+        this.postgres.setMaxActive(50);
+
+        LOG.info("Postgres Datasource: maxIdle = {}, maxActive = {} ", this.postgres.getMaxIdle(), this.postgres.getMaxActive());
     }
 
     /**
