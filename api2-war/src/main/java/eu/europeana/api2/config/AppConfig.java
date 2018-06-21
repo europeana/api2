@@ -6,7 +6,9 @@ import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +21,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
@@ -36,7 +41,7 @@ import java.util.Arrays;
 @PropertySource("classpath:europeana.properties")
 public class AppConfig {
 
-    private static final Logger LOG = Logger.getLogger(AppConfig.class);
+    private static final Logger LOG = LogManager.getLogger(AppConfig.class);
 
     @Value("${s3.key}")
     private String key;
@@ -47,13 +52,47 @@ public class AppConfig {
     @Value("${s3.bucket}")
     private String bucket;
 
+    @Resource(name = "corelib_db_dataSource")
+    private DataSource postgres;
+
     @Autowired
     private Environment env;
 
     @PostConstruct
-    public void logSpringProfiles() {
+    public void logConfiguration() {
         LOG.info("Active Spring profiles:" + Arrays.toString(env.getActiveProfiles()));
         LOG.info("Default Spring profiles:" + Arrays.toString(env.getDefaultProfiles()));
+
+        // log to which db we are connected
+        try (Connection con = postgres.getConnection()) {
+            String dbUrl = con.getMetaData().getURL();
+            if (dbUrl.contains("password")) {
+                dbUrl = dbUrl.substring(0, dbUrl.indexOf("password"));
+            }
+            LOG.info("Connected to " + dbUrl);
+        } catch (SQLException e) {
+            LOG.error("Error checking database connection", e);
+        }
+
+        LOG.info("Postgres Datasource: minIdle = {}", this.postgres.getMaxIdle());
+        LOG.info("Postgres Datasource: getInitialSize = {}", this.postgres.getInitialSize());
+        LOG.info("Postgres Datasource: getMaxWait = {}", this.postgres.getMaxWait());
+        LOG.info("Postgres Datasource: getMinEvictableIdleTimeMillis() = {}", this.postgres.getMinEvictableIdleTimeMillis());
+        LOG.info("Postgres Datasource: getTimeBetweenEvictionRunsMillis = {}", this.postgres.getTimeBetweenEvictionRunsMillis());
+        LOG.info("Postgres Datasource: getValidationQuery = {}", this.postgres.getValidationQuery());
+        LOG.info("Postgres Datasource: getValidationQueryTimeout = {}", this.postgres.getValidationQueryTimeout());
+        LOG.info("Postgres Datasource: getDefaultReadOnly = {}", this.postgres.getDefaultReadOnly());
+        LOG.info("Postgres Datasource: getDefaultAutoCommit = {}", this.postgres.getDefaultAutoCommit());
+        LOG.info("Postgres Datasource: getDefaultAutoCommit = {}", this.postgres.getDefaultAutoCommit());
+        LOG.info("Postgres Datasource: getNumActive = {}, getNumIdle = {}, getNumTestsPerEvictionRun = {}", this.postgres.getNumActive()
+                , this.postgres.getNumIdle(), this.postgres.getNumTestsPerEvictionRun());
+
+        // When deploying on CF, the Spring Auto-reconfiguration framework will ignore all original datasource properties
+        // and reset maxIdle and maxActive to 4 (see also the warning in the logs). We need to override these properties.
+        // We are setting to 16, so we can scale up to 6 instances (postgres has threshold of 100 connections)
+        this.postgres.setMaxIdle(16);
+        this.postgres.setMaxActive(16);
+        LOG.info("Postgres Datasource: maxIdle = {}, maxActive = {} ", this.postgres.getMaxIdle(), this.postgres.getMaxActive());
     }
 
     /**
