@@ -107,7 +107,7 @@ public class AppConfig {
         LOG.info("  defaultReadOnly = {}", this.postgres.getDefaultReadOnly());
         this.postgres.setMinIdle(1);
         this.postgres.setMaxIdle(5);
-        this.postgres.setMaxActive(16);
+        this.postgres.setMaxActive(10);
         LOG.info("  minIdle = {}, maxIdle = {}, maxActive = {} ", this.postgres.getMinIdle(),
                 this.postgres.getMaxIdle(), this.postgres.getMaxActive());
 
