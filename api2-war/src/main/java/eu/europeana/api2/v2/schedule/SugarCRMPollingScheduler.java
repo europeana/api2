@@ -41,9 +41,6 @@ public class SugarCRMPollingScheduler {
     @Resource
     private SugarCRMImporter sugarCRMImporter;
 
-    @Resource(name = "corelib_db_dataSource")
-    private DataSource postgres;
-
     private boolean firstRunComplete = false;
 
     /**
@@ -57,11 +54,6 @@ public class SugarCRMPollingScheduler {
             LOG.error("Re-population of MongoDB Cache from SugarCRM failed: {}", e.getMessage(), e);
         }
         firstRunComplete = true;
-    }
-
-    @Scheduled(fixedRate = 60_000)
-    public void debugJdbcThreadUsage() {
-        LOG.info("Postgres threads: idle = {}, active = {}", postgres.getNumIdle(), postgres.getNumActive());
     }
 
     @Scheduled(fixedRate = 300_000)
