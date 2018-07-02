@@ -19,10 +19,13 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 
@@ -43,6 +46,11 @@ public class AppConfig {
 
     private static final Logger LOG = LogManager.getLogger(AppConfig.class);
 
+    private static final String APP_NAME_IN_POSTGRES = "PostgreSQL JDBC Driver";
+    private static final String QUERY_FILTER_STALE_SESSION =
+                    " AND state in ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled')" +
+                    " AND current_timestamp - state_change > interval '5 minutes'";
+
     @Value("${s3.key}")
     private String key;
     @Value("${s3.secret}")
@@ -51,6 +59,9 @@ public class AppConfig {
     private String region;
     @Value("${s3.bucket}")
     private String bucket;
+
+    @Value("${postgres.max.stale.sessions:}")
+    private Integer pgMaxStaleSessions;
 
     @Resource(name = "corelib_db_dataSource")
     private DataSource postgres;
@@ -74,25 +85,102 @@ public class AppConfig {
             LOG.error("Error checking database connection", e);
         }
 
-        LOG.info("Postgres Datasource: minIdle = {}", this.postgres.getMaxIdle());
-        LOG.info("Postgres Datasource: getInitialSize = {}", this.postgres.getInitialSize());
-        LOG.info("Postgres Datasource: getMaxWait = {}", this.postgres.getMaxWait());
-        LOG.info("Postgres Datasource: getMinEvictableIdleTimeMillis() = {}", this.postgres.getMinEvictableIdleTimeMillis());
-        LOG.info("Postgres Datasource: getTimeBetweenEvictionRunsMillis = {}", this.postgres.getTimeBetweenEvictionRunsMillis());
-        LOG.info("Postgres Datasource: getValidationQuery = {}", this.postgres.getValidationQuery());
-        LOG.info("Postgres Datasource: getValidationQueryTimeout = {}", this.postgres.getValidationQueryTimeout());
-        LOG.info("Postgres Datasource: getDefaultReadOnly = {}", this.postgres.getDefaultReadOnly());
-        LOG.info("Postgres Datasource: getDefaultAutoCommit = {}", this.postgres.getDefaultAutoCommit());
-        LOG.info("Postgres Datasource: getDefaultAutoCommit = {}", this.postgres.getDefaultAutoCommit());
-        LOG.info("Postgres Datasource: getNumActive = {}, getNumIdle = {}, getNumTestsPerEvictionRun = {}", this.postgres.getNumActive()
-                , this.postgres.getNumIdle(), this.postgres.getNumTestsPerEvictionRun());
+        LOG.info("Default Postgres Datasource settings (or settings from CF environment):");
+        LOG.info("  getAbandonWhenPercentageFull() = {}", this.postgres.getAbandonWhenPercentageFull());
+        LOG.info("  getDefaultReadOnly = {}", this.postgres.getDefaultReadOnly());
+        LOG.info("  getDefaultAutoCommit = {}", this.postgres.getDefaultAutoCommit());
+        LOG.info("  getMaxAge = {}", this.postgres.getMaxAge());
+        LOG.info("  getMaxWait = {}", this.postgres.getMaxWait());
+        LOG.info("  getMinEvictableIdleTimeMillis() = {}", this.postgres.getMinEvictableIdleTimeMillis());
+        LOG.info("  getNumTestsPerEvictionRun = {}", this.postgres.getNumTestsPerEvictionRun());
+        LOG.info("  getTimeBetweenEvictionRunsMillis = {}", this.postgres.getTimeBetweenEvictionRunsMillis());
+        LOG.info("  getValidationQuery = {}", this.postgres.getValidationQuery());
+        LOG.info("  getValidationQueryTimeout = {}", this.postgres.getValidationQueryTimeout());
+        LOG.info("  getValidationInterval = {}", this.postgres.getValidationInterval());
+        LOG.info("  getLogValidationErrors = {}", this.postgres.getLogValidationErrors());
 
         // When deploying on CF, the Spring Auto-reconfiguration framework will ignore all original datasource properties
         // and reset maxIdle and maxActive to 4 (see also the warning in the logs). We need to override these properties.
-        // We are setting to 16, so we can scale up to 6 instances (postgres has threshold of 100 connections)
-        this.postgres.setMaxIdle(16);
+        // We are setting to 10, so we can scale up to 10 instances (postgres has threshold of 100 connections)
+        LOG.info("Programmatically overriding settings:");
+        this.postgres.setDefaultReadOnly(true);
+        LOG.info("  defaultReadOnly = {}", this.postgres.getDefaultReadOnly());
+        this.postgres.setMinIdle(1);
+        this.postgres.setMaxIdle(5);
         this.postgres.setMaxActive(16);
-        LOG.info("Postgres Datasource: maxIdle = {}, maxActive = {} ", this.postgres.getMaxIdle(), this.postgres.getMaxActive());
+        LOG.info("  minIdle = {}, maxIdle = {}, maxActive = {} ", this.postgres.getMinIdle(),
+                this.postgres.getMaxIdle(), this.postgres.getMaxActive());
+
+        // enable clean-up of threads that run longer than 120 secs -> this can leave sessions hanging on the postgresql
+        // database side!!
+        this.postgres.setTestOnBorrow(true);
+        //    this.postgres.setRemoveAbandoned(true);
+        //    this.postgres.setRemoveAbandonedTimeout(120); // sec
+        //    this.postgres.setLogAbandoned(true);
+        LOG.info("  isTestOnBorrow = {}, isRemoveAbandoned = {}, removeAbandonedTimeout = {}, logAbandoned = {} ",
+                this.postgres.isTestOnBorrow(), this.postgres.isRemoveAbandoned(), this.postgres.getRemoveAbandonedTimeout(),
+                this.postgres.isLogAbandoned());
+
+    }
+
+    @Scheduled(fixedRate = 60_000)
+    public void debugJdbcThreadUsage() {
+        long nrAbandoned = postgres.getRemoveAbandonedCount();
+        long nrActive = postgres.getNumActive();
+        long nrIdle = postgres.getIdle();
+        Integer dbTotalSessions = getNrSessionsOnPostgresDb(false);
+        Integer dbStaleSession = getNrSessionsOnPostgresDb(true);
+        if (nrAbandoned == 0 && nrActive < 4 && dbStaleSession == 0) {
+            LOG.info("Postgres threads: API idle = {}, active = {}, removeAbandoned = {} - PostgresDb totalSessions = {}, staleSessions = {})",
+                    nrIdle, nrActive, nrAbandoned, dbTotalSessions, dbStaleSession);
+        } else {
+            // normally nrActive never goes above 2 in production, so nrActive > 4 means very likely hanging threads
+            // removeAbanondedCount > 0 means hanging threads were removed
+            LOG.error("Postgres threads: API idle = {}, active = {}, removeAbandoned = {} - PostgresDb totalSessions = {}, staleSessions = {})",
+                    nrIdle, nrActive, nrAbandoned, dbTotalSessions, dbStaleSession);
+        }
+
+        if (pgMaxStaleSessions != null && dbStaleSession > pgMaxStaleSessions) {
+            LOG.warn("{} stale postgres sessions terminated", removeHangingSessionOnPostgresDb());
+        }
+    }
+
+    private Integer getNrSessionsOnPostgresDb(boolean staleOnly) {
+        Integer result = null;
+        String query = "SELECT count(pid) FROM pg_stat_activity WHERE application_name = ?";
+        if (staleOnly) {
+            query = query + QUERY_FILTER_STALE_SESSION;
+        }
+        try (Connection con = postgres.getConnection();
+            PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, APP_NAME_IN_POSTGRES);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                result = rs.getInt(1);
+            } else {
+                LOG.error("Postgres database didn't return session data");
+            }
+        } catch (SQLException e) {
+            LOG.error("Error checking number of sessions in postgres database", e);
+        }
+        return result;
+    }
+
+    private Integer removeHangingSessionOnPostgresDb() {
+        Integer result = null;
+        try (Connection con = postgres.getConnection();
+            PreparedStatement ps = con.prepareStatement("SELECT pg_terminate_backend(pid) FROM pg_stat_activity " +
+                     "WHERE application_name = ? " + QUERY_FILTER_STALE_SESSION)) {
+            ps.setString(1, APP_NAME_IN_POSTGRES);
+            ResultSet rs = ps.executeQuery();
+            result = 0;
+            while (rs.next()) {
+                result++;
+            }
+        } catch (SQLException e) {
+            LOG.error("Error removing stale sessions in postgres database", e);
+        }
+        return result;
     }
 
     /**
