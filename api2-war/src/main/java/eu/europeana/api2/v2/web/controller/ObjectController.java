@@ -500,7 +500,7 @@ public class ObjectController {
                 BriefView view                = new BriefView(b, similarItemsProfile, wskey);
                 result.add(view);
             }
-        } catch (SolrServerException e) {
+        } catch (EuropeanaException e) {
             LOG.error("Error retrieving similar items: " + e.getLocalizedMessage(), e);
         }
         return result;

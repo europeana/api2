@@ -51,7 +51,6 @@ import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
-import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
 import eu.europeana.corelib.search.SearchService;
@@ -62,6 +61,8 @@ import eu.europeana.corelib.solr.bean.impl.BriefBeanImpl;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 import eu.europeana.corelib.solr.bean.impl.RichBeanImpl;
 import eu.europeana.corelib.utils.StringArrayUtils;
+import eu.europeana.corelib.web.exception.EuropeanaException;
+import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
@@ -87,7 +88,12 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.MissingResourceException;
 
 
 /**
@@ -450,6 +456,7 @@ public class SearchController {
         return ApiBeanImpl.class;
     }
 
+    @Deprecated // July 3rd 2018, not in use anymore
     @ApiOperation(value = "get autocompletion recommendations for search queries", nickname = "suggestions")
     @RequestMapping(value = "/v2/suggestions.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView suggestionsJson(
@@ -464,7 +471,7 @@ public class SearchController {
         try {
             apiResponse.items = searchService.suggestions(query, count);
             apiResponse.itemsCount = apiResponse.items.size();
-        } catch (SolrTypeException e) {
+        } catch (EuropeanaException e) {
             return JsonUtils.toJson(new ApiError(null, e.getMessage()), callback);
         }
         return JsonUtils.toJson(apiResponse, callback);
@@ -476,7 +483,7 @@ public class SearchController {
             String profile,
             Query query,
             Class<T> clazz)
-            throws SolrTypeException {
+            throws EuropeanaException {
         FacetWrangler wrangler = new FacetWrangler();
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
@@ -613,8 +620,7 @@ public class SearchController {
 		channel.query.startPage = start;
 
         try {
-            Query query =
-                    new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true)
+            Query query = new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true)
                             .setPageSize(count).setStart(start - 1).setFacetsAllowed(false)
                             .setSpellcheckAllowed(false);
             ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
@@ -627,7 +633,7 @@ public class SearchController {
                 item.link = item.guid;
                 channel.items.add(item);
             }
-        } catch (SolrTypeException e) {
+        } catch (EuropeanaException e) {
             LOG.error("Error executing opensearch query", e);
             channel.totalResults.value = 0;
             Item item = new Item();
@@ -717,7 +723,7 @@ public class SearchController {
 						channel.items.add(fieldTripUtils.createItem(bean));
 					}
 				}
-			} catch (SolrTypeException|MissingResourceException e) {
+			} catch (EuropeanaException|MissingResourceException e) {
 				LOG.error("error: " + e.getLocalizedMessage());
 				FieldTripItem item = new FieldTripItem();
 				item.title = "Error";

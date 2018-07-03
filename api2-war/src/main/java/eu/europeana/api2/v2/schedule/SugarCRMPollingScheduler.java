@@ -17,7 +17,6 @@
 package eu.europeana.api2.v2.schedule;
 
 import eu.europeana.api2.v2.service.SugarCRMImporter;
-import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -47,8 +46,9 @@ public class SugarCRMPollingScheduler {
     @PostConstruct
     public void scheduleFirstRun() {
         try {
+            LOG.info("Re-populating MongoDB SugarCRM cache");
             sugarCRMImporter.populateRepositoryFromScratch();
-        } catch (JIXBQueryResultException e) {
+        } catch (Exception e) {
             LOG.error("Re-population of MongoDB Cache from SugarCRM failed: {}", e.getMessage(), e);
         }
         firstRunComplete = true;
@@ -60,7 +60,7 @@ public class SugarCRMPollingScheduler {
             try {
                 sugarCRMImporter.pollProviders();
                 sugarCRMImporter.pollCollections();
-            } catch (JIXBQueryResultException e) {
+            } catch (Exception e) {
                 LOG.error("Scheduled update for provider/collections failed: {}", e.getMessage(), e);
             }
         }
