@@ -440,6 +440,164 @@ public class ObjectController {
         // @type is filled automatically based on the interface
 
         // proxies
+        addProxies(bean, ob);
+
+        // providedCHOs
+        addProvidedCHOs(bean, ob);
+
+        // aggregations
+        addAggregations(bean, webResources, ob);
+
+        // Europeana aggregation
+        addEuropeanaAggregation(bean, ob);
+
+        // Agents
+        addAgents(bean, ob);
+
+        // Places
+        addPlaces(bean, ob);
+
+        List<Thing> concepts = new ArrayList<>();
+        // Concept
+        addConcepts(bean, ob, concepts);
+
+        objects.add(ob.build());
+        objects.addAll(webResources);
+        objects.addAll(concepts);
+
+        try {
+            jsonld = serializer.serialize(objects);
+        } catch (JsonLdSyntaxException e) {
+            e.printStackTrace();
+        }
+        return JsonUtils.toJson(jsonld, data.callback);
+    }
+
+    private void addConcepts(FullBean bean, CreativeWork.Builder ob, List<Thing> concepts) {
+        for (Concept concept : bean.getConcepts()) {
+            Thing.Builder tb = CoreFactory.newThingBuilder();
+            // skos:prefLabel
+            addProperty(ob, concept.getPrefLabel(), CoreConstants.PROPERTY_NAME);
+            // skos:altLabel
+            addProperty(ob, concept.getAltLabel(), CoreConstants.PROPERTY_ALTERNATE_NAME);
+            concepts.add(tb.build());
+        }
+    }
+
+    private void addPlaces(FullBean bean, CreativeWork.Builder ob) {
+        for (Place place : bean.getPlaces()) {
+            // TODO
+        }
+    }
+
+    private void addAgents(FullBean bean, CreativeWork.Builder ob) {
+        for (Agent agent : bean.getAgents()) {
+            // TODO
+        }
+    }
+
+    private void addEuropeanaAggregation(FullBean bean, CreativeWork.Builder ob) {
+        EuropeanaAggregation aggregation = bean.getEuropeanaAggregation();
+        // edm:country
+        addProperty(ob, aggregation.getEdmCountry(), CoreConstants.PROPERTY_ADDRESS_COUNTRY);
+        // edm:landingPage
+        addProperty(ob, aggregation.getEdmLandingPage(), CoreConstants.PROPERTY_URL);
+        // edm:preview
+        addProperty(ob, aggregation.getEdmPreview(), CoreConstants.PROPERTY_THUMBNAIL_URL);
+        // dc:creator
+        addProperty(ob, aggregation.getDcCreator(), CoreConstants.PROPERTY_CREATOR);
+    }
+
+    private void addAggregations(FullBean bean, List<Thing> webResources, CreativeWork.Builder ob) {
+        for (Aggregation aggregation : bean.getAggregations()) {
+            // edm:dataProvider
+            addProperty(ob, aggregation.getEdmDataProvider(), CoreConstants.PROPERTY_PROVIDER);
+            // edm:hasView
+            addProperty(ob, aggregation.getHasView(), CoreConstants.PROPERTY_URL);
+            // edm:isShownAt
+            addProperty(ob, aggregation.getEdmIsShownAt(), CoreConstants.PROPERTY_URL);
+            // edm:isShownBy
+            addProperty(ob, aggregation.getEdmIsShownBy(), CoreConstants.PROPERTY_CONTENT_URL);
+            // edm:object
+            addProperty(ob, aggregation.getEdmObject(), CoreConstants.PROPERTY_IMAGE);
+            // edm:provider
+            addProperty(ob, aggregation.getEdmProvider(), CoreConstants.PROPERTY_PROVIDER);
+            // edm:intermediateProvider
+            addProperty(ob, aggregation.getEdmIntermediateProvider(), CoreConstants.PROPERTY_PROVIDER);
+
+            // web resources
+            addWebResources(webResources, aggregation);
+        }
+    }
+
+    private void addWebResources(List<Thing> webResources, Aggregation aggregation) {
+        for (WebResource resource : aggregation.getWebResources()) {
+            Thing.Builder tb = null;
+            if (resource.getAbout().equals(aggregation.getEdmIsShownAt())) {
+                tb = CoreFactory.newWebPageBuilder();
+            } else {
+                WebResourceMetaInfo info = ((WebResourceImpl)resource).getWebResourceMetaInfo();
+                if (info != null) {
+                    if (info.getAudioMetaInfo() != null) {
+                        tb = CoreFactory.newAudioObjectBuilder();
+                    } else if (info.getImageMetaInfo() != null) {
+                        tb = CoreFactory.newImageObjectBuilder();
+                    } else if (info.getVideoMetaInfo() != null) {
+                        tb = CoreFactory.newVideoObjectBuilder();
+                    } else {
+                        tb = CoreFactory.newMediaObjectBuilder();
+                    }
+                } else {
+                    tb = CoreFactory.newMediaObjectBuilder();
+                }
+            }
+            // id
+            tb.setJsonLdId(resource.getAbout());
+            // rdf:about
+            addProperty(tb, resource.getAbout(), CoreConstants.PROPERTY_URL);
+            // dc:creator
+            addProperty(tb, resource.getDcCreator(), CoreConstants.PROPERTY_CREATOR);
+            // dc:description
+            addProperty(tb, resource.getDcDescription(), CoreConstants.PROPERTY_DESCRIPTION);
+            // dc:source
+            addProperty(tb, resource.getDcSource(), CoreConstants.PROPERTY_ENCODES_CREATIVE_WORK);
+            // dcterms:created
+            addProperty(tb, resource.getDctermsCreated(), CoreConstants.PROPERTY_DATE_CREATED);
+            // dcterms:hasPart
+            addProperty(tb, resource.getDctermsHasPart(), CoreConstants.PROPERTY_HAS_PART);
+            // dcterms:isPartOf - missing in resource
+            // dcterms:issued
+            addProperty(tb, resource.getDctermsIssued(), CoreConstants.PROPERTY_DATE_PUBLISHED);
+            // edm:isNextInSequence
+            addProperty(tb, resource.getIsNextInSequence(), CoreConstants.PROPERTY_PREVIOUS_ITEM);
+            // edm:rights
+            addProperty(tb, resource.getWebResourceEdmRights(), CoreConstants.PROPERTY_LICENSE);
+            // owl:sameAs
+            addProperty(tb, resource.getOwlSameAs(), CoreConstants.PROPERTY_SAME_AS);
+            // ebucore:hasMimeType
+            addProperty(tb, resource.getEbucoreHasMimeType(), CoreConstants.PROPERTY_FILE_FORMAT);
+            // ebucore:fileByteSize
+            addProperty(tb, resource.getEbucoreFileByteSize(), CoreConstants.PROPERTY_CONTENT_SIZE);
+            // ebucore:duration
+            addProperty(tb, resource.getEbucoreDuration(), CoreConstants.PROPERTY_DURATION);
+            // ebucore:width
+            addProperty(tb, resource.getEbucoreWidth(), CoreConstants.PROPERTY_WIDTH);
+            // ebucore:height
+            addProperty(tb, resource.getEbucoreHeight(), CoreConstants.PROPERTY_HEIGHT);
+            // ebucore:bitRate
+            addProperty(tb, resource.getEbucoreBitRate(), CoreConstants.PROPERTY_BITRATE);
+            webResources.add(tb.build());
+        }
+    }
+
+    private void addProvidedCHOs(FullBean bean, CreativeWork.Builder ob) {
+        for (ProvidedCHO providedCHO : bean.getProvidedCHOs()) {
+            // owl:sameAs
+            addProperty(ob, providedCHO.getOwlSameAs(), CoreConstants.PROPERTY_SAME_AS);
+        }
+    }
+
+    private void addProxies(FullBean bean, CreativeWork.Builder ob) {
         for (Proxy proxy : bean.getProxies()) {
             // dc:title
             addProperty(ob, proxy.getDcTitle(), CoreConstants.PROPERTY_NAME);
@@ -493,132 +651,6 @@ public class ObjectController {
             // edm:year
             addProperty(ob, proxy.getYear(), CoreConstants.PROPERTY_DATE_CREATED);
         }
-
-        // providedCHOs
-        for (ProvidedCHO providedCHO : bean.getProvidedCHOs()) {
-            // owl:sameAs
-            addProperty(ob, providedCHO.getOwlSameAs(), CoreConstants.PROPERTY_SAME_AS);
-        }
-
-        // aggregations
-        for (Aggregation aggregation : bean.getAggregations()) {
-            // edm:dataProvider
-            addProperty(ob, aggregation.getEdmDataProvider(), CoreConstants.PROPERTY_PROVIDER);
-            // edm:hasView
-            addProperty(ob, aggregation.getHasView(), CoreConstants.PROPERTY_URL);
-            // edm:isShownAt
-            addProperty(ob, aggregation.getEdmIsShownAt(), CoreConstants.PROPERTY_URL);
-            // edm:isShownBy
-            addProperty(ob, aggregation.getEdmIsShownBy(), CoreConstants.PROPERTY_CONTENT_URL);
-            // edm:object
-            addProperty(ob, aggregation.getEdmObject(), CoreConstants.PROPERTY_IMAGE);
-            // edm:provider
-            addProperty(ob, aggregation.getEdmProvider(), CoreConstants.PROPERTY_PROVIDER);
-            // edm:intermediateProvider
-            addProperty(ob, aggregation.getEdmIntermediateProvider(), CoreConstants.PROPERTY_PROVIDER);
-
-            // web resources
-            for (WebResource resource : aggregation.getWebResources()) {
-                Thing.Builder tb = null;
-                if (resource.getAbout().equals(aggregation.getEdmIsShownAt())) {
-                    tb = CoreFactory.newWebPageBuilder();
-                } else {
-                    WebResourceMetaInfo info = ((WebResourceImpl)resource).getWebResourceMetaInfo();
-                    if (info != null) {
-                        if (info.getAudioMetaInfo() != null) {
-                            tb = CoreFactory.newAudioObjectBuilder();
-                        } else if (info.getImageMetaInfo() != null) {
-                            tb = CoreFactory.newImageObjectBuilder();
-                        } else if (info.getVideoMetaInfo() != null) {
-                            tb = CoreFactory.newVideoObjectBuilder();
-                        } else {
-                            tb = CoreFactory.newMediaObjectBuilder();
-                        }
-                    } else {
-                        tb = CoreFactory.newMediaObjectBuilder();
-                    }
-                }
-                // id
-                tb.setJsonLdId(resource.getAbout());
-                // rdf:about
-                addProperty(tb, resource.getAbout(), CoreConstants.PROPERTY_URL);
-                // dc:creator
-                addProperty(tb, resource.getDcCreator(), CoreConstants.PROPERTY_CREATOR);
-                // dc:description
-                addProperty(tb, resource.getDcDescription(), CoreConstants.PROPERTY_DESCRIPTION);
-                // dc:source
-                addProperty(tb, resource.getDcSource(), CoreConstants.PROPERTY_ENCODES_CREATIVE_WORK);
-                // dcterms:created
-                addProperty(tb, resource.getDctermsCreated(), CoreConstants.PROPERTY_DATE_CREATED);
-                // dcterms:hasPart
-                addProperty(tb, resource.getDctermsHasPart(), CoreConstants.PROPERTY_HAS_PART);
-                // dcterms:isPartOf - missing in resource
-                // dcterms:issued
-                addProperty(tb, resource.getDctermsIssued(), CoreConstants.PROPERTY_DATE_PUBLISHED);
-                // edm:isNextInSequence
-                addProperty(tb, resource.getIsNextInSequence(), CoreConstants.PROPERTY_PREVIOUS_ITEM);
-                // edm:rights
-                addProperty(tb, resource.getWebResourceEdmRights(), CoreConstants.PROPERTY_LICENSE);
-                // owl:sameAs
-                addProperty(tb, resource.getOwlSameAs(), CoreConstants.PROPERTY_SAME_AS);
-                // ebucore:hasMimeType
-                addProperty(tb, resource.getEbucoreHasMimeType(), CoreConstants.PROPERTY_FILE_FORMAT);
-                // ebucore:fileByteSize
-                addProperty(tb, resource.getEbucoreFileByteSize(), CoreConstants.PROPERTY_CONTENT_SIZE);
-                // ebucore:duration
-                addProperty(tb, resource.getEbucoreDuration(), CoreConstants.PROPERTY_DURATION);
-                // ebucore:width
-                addProperty(tb, resource.getEbucoreWidth(), CoreConstants.PROPERTY_WIDTH);
-                // ebucore:height
-                addProperty(tb, resource.getEbucoreHeight(), CoreConstants.PROPERTY_HEIGHT);
-                // ebucore:bitRate
-                addProperty(tb, resource.getEbucoreBitRate(), CoreConstants.PROPERTY_BITRATE);
-                webResources.add(tb.build());
-            }
-        }
-
-        // Europeana aggregation
-        EuropeanaAggregation aggregation = bean.getEuropeanaAggregation();
-        // edm:country
-        addProperty(ob, aggregation.getEdmCountry(), CoreConstants.PROPERTY_ADDRESS_COUNTRY);
-        // edm:landingPage
-        addProperty(ob, aggregation.getEdmLandingPage(), CoreConstants.PROPERTY_URL);
-        // edm:preview
-        addProperty(ob, aggregation.getEdmPreview(), CoreConstants.PROPERTY_THUMBNAIL_URL);
-        // dc:creator
-        addProperty(ob, aggregation.getDcCreator(), CoreConstants.PROPERTY_CREATOR);
-
-        // Agents
-        for (Agent agent : bean.getAgents()) {
-            // TODO
-        }
-
-        // Places
-        for (Place place : bean.getPlaces()) {
-            // TODO
-        }
-
-        List<Thing> concepts = new ArrayList<>();
-        // Concept
-        for (Concept concept : bean.getConcepts()) {
-            Thing.Builder tb = CoreFactory.newThingBuilder();
-            // skos:prefLabel
-            addProperty(ob, concept.getPrefLabel(), CoreConstants.PROPERTY_NAME);
-            // skos:altLabel
-            addProperty(ob, concept.getAltLabel(), CoreConstants.PROPERTY_ALTERNATE_NAME);
-            concepts.add(tb.build());
-        }
-
-        objects.add(ob.build());
-        objects.addAll(webResources);
-        objects.addAll(concepts);
-
-        try {
-            jsonld = serializer.serialize(objects);
-        } catch (JsonLdSyntaxException e) {
-            e.printStackTrace();
-        }
-        return JsonUtils.toJson(jsonld, data.callback);
     }
 
     private void addProperty(Thing.Builder ob, Map<String, List<String>> map, String property) {
