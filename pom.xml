@@ -34,7 +34,7 @@
 
         <!-- Set different SonarQube properties so Metis branch can be distinguished from UIM version -->
         <sonar.projectKey>eu.europeana:api2-metis</sonar.projectKey>
-        <sonar.projectName>Europeana Search, Record, Hierarchical and Thumbnail API</sonar.projectName>
+        <sonar.projectName>Europeana Search, Record, Hierarchical and Thumbnail API (for Metis)</sonar.projectName>
 
         <httpclient.version>4.5.2</httpclient.version>
         <jackson.version>2.6.5</jackson.version>
