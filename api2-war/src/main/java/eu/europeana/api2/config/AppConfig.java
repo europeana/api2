@@ -6,6 +6,7 @@ import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.tomcat.jdbc.pool.DataSource;
@@ -94,31 +95,35 @@ public class AppConfig {
         LOG.info("  getMinEvictableIdleTimeMillis() = {}", this.postgres.getMinEvictableIdleTimeMillis());
         LOG.info("  getNumTestsPerEvictionRun = {}", this.postgres.getNumTestsPerEvictionRun());
         LOG.info("  getTimeBetweenEvictionRunsMillis = {}", this.postgres.getTimeBetweenEvictionRunsMillis());
-        LOG.info("  getValidationQuery = {}", this.postgres.getValidationQuery());
-        LOG.info("  getValidationQueryTimeout = {}", this.postgres.getValidationQueryTimeout());
-        LOG.info("  getValidationInterval = {}", this.postgres.getValidationInterval());
-        LOG.info("  getLogValidationErrors = {}", this.postgres.getLogValidationErrors());
 
         // When deploying on CF, the Spring Auto-reconfiguration framework will ignore all original datasource properties
         // and reset maxIdle and maxActive to 4 (see also the warning in the logs). We need to override these properties.
         // We are setting to 10, so we can scale up to 10 instances (postgres has threshold of 100 connections)
         LOG.info("Programmatically overriding settings:");
-        this.postgres.setDefaultReadOnly(true);
-        LOG.info("  defaultReadOnly = {}", this.postgres.getDefaultReadOnly());
-        this.postgres.setMinIdle(1);
-        this.postgres.setMaxIdle(5);
+        this.postgres.setMinIdle(0);
+        this.postgres.setMaxIdle(2);
         this.postgres.setMaxActive(10);
         LOG.info("  minIdle = {}, maxIdle = {}, maxActive = {} ", this.postgres.getMinIdle(),
                 this.postgres.getMaxIdle(), this.postgres.getMaxActive());
 
-        // enable clean-up of threads that run longer than 120 secs -> this can leave sessions hanging on the postgresql
-        // database side!!
+        // Check thread before using it. This is vital in case there are connection resets!
         this.postgres.setTestOnBorrow(true);
-        //    this.postgres.setRemoveAbandoned(true);
-        //    this.postgres.setRemoveAbandonedTimeout(120); // sec
-        //    this.postgres.setLogAbandoned(true);
-        LOG.info("  isTestOnBorrow = {}, isRemoveAbandoned = {}, removeAbandonedTimeout = {}, logAbandoned = {} ",
-                this.postgres.isTestOnBorrow(), this.postgres.isRemoveAbandoned(), this.postgres.getRemoveAbandonedTimeout(),
+        // The shorter the interval the more overhead, but also less problems when a connection is reset
+        this.postgres.setValidationInterval(1000);
+        // ValidationQuery has to be set, otherwise testOnBorrow won't work!
+        if (StringUtils.isEmpty(this.postgres.getValidationQuery())) {
+            this.postgres.setValidationQuery("SELECT 1");
+        }
+        LOG.info("  isTestOnBorrow = {}, validationInterval = {}, validationQuery = {}, validationQueryTimeout = {}, logValidationError = {}",
+                this.postgres.isTestOnBorrow(),
+                this.postgres.getValidationInterval(),
+                this.postgres.getValidationQuery(),
+                this.postgres.getValidationQueryTimeout(),
+                this.postgres.getLogValidationErrors());
+
+        LOG.info("  isRemoveAbandoned = {}, removeAbandonedTimeout = {}, logAbandoned = {} ",
+                this.postgres.isRemoveAbandoned(),
+                this.postgres.getRemoveAbandonedTimeout(),
                 this.postgres.isLogAbandoned());
 
     }
@@ -154,11 +159,12 @@ public class AppConfig {
         try (Connection con = postgres.getConnection();
             PreparedStatement ps = con.prepareStatement(query)) {
             ps.setString(1, APP_NAME_IN_POSTGRES);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                result = rs.getInt(1);
-            } else {
-                LOG.error("Postgres database didn't return session data");
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    result = rs.getInt(1);
+                } else {
+                    LOG.error("Postgres database didn't return session data");
+                }
             }
         } catch (SQLException e) {
             LOG.error("Error checking number of sessions in postgres database", e);
@@ -172,10 +178,11 @@ public class AppConfig {
             PreparedStatement ps = con.prepareStatement("SELECT pg_terminate_backend(pid) FROM pg_stat_activity " +
                      "WHERE application_name = ? " + QUERY_FILTER_STALE_SESSION)) {
             ps.setString(1, APP_NAME_IN_POSTGRES);
-            ResultSet rs = ps.executeQuery();
-            result = 0;
-            while (rs.next()) {
-                result++;
+            try (ResultSet rs = ps.executeQuery()) {
+                result = 0;
+                while (rs.next()) {
+                    result++;
+                }
             }
         } catch (SQLException e) {
             LOG.error("Error removing stale sessions in postgres database", e);
