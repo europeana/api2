@@ -37,7 +37,9 @@ import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBQueryResultException;
  * @author Georgios Markakis (gwarkx@hotmail.com)
  *
  * @since Nov 4, 2013
+ * @deprecated July 2018 replaced by Metis
  */
+@Deprecated
 public abstract class AbstractSugarCRMCacheTest {
 
 	protected static MongodExecutable mongodExe;

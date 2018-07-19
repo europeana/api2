@@ -40,7 +40,9 @@ import eu.europeana.uim.sugarcrmclient.ws.exceptions.JIXBLoginFailureException;
  * @author Georgios Markakis (gwarkx@hotmail.com)
  *
  *         Nov 12, 2013
+ * @deprecated July 2018 replaced by Metis
  */
+@Deprecated
 public abstract class SugarCRMCacheIntegrationTest extends
 		AbstractSugarCRMCacheTest {
 

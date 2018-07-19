@@ -39,7 +39,9 @@ import eu.europeana.uim.sugarcrmclient.internal.helpers.ClientUtils;
  * @author Georgios Markakis (gwarkx@hotmail.com)
  * 
  * @since Oct 30, 2013
+ * @deprecated july 2018 replaced by Metis
  */
+@Deprecated
 public class SugarCRMCache {
 
 	@Resource(name = "corelib_db_morphia_datastore_sugarcrmcache")

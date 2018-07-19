@@ -30,7 +30,9 @@ import javax.annotation.Resource;
  *
  * @author Georgios Markakis (gwarkx@hotmail.com)
  * @since Oct 30, 2013
+ * @deprecated july 2018 replaced by Metis
  */
+@Deprecated
 public class SugarCRMPollingScheduler {
 
     private static final Logger LOG = LogManager.getLogger(SugarCRMPollingScheduler.class);

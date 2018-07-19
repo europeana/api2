@@ -73,10 +73,12 @@ import java.util.Date;
  *
  * @author Georgios Markakis (gwarkx@hotmail.com)
  * @since Sep 24, 2013
+ * @deprecated July 2018 replaced by Metis
  */
-@Controller
-@Api(tags = {"Providers and Datasets"})
-@SwaggerSelect
+//@Controller
+//@Api(tags = {"Providers and Datasets"})
+//@SwaggerSelect
+@Deprecated
 public class SugarCRMController {
 
 	private static final Logger LOG = LogManager.getLogger(SugarCRMController.class);
@@ -100,8 +102,8 @@ public class SugarCRMController {
      * @param httpResponse
      * @return JSON response
      */
-	@ApiOperation(value = "get the list of Europeana data providers", nickname = "listProviders")
-	@RequestMapping(value = "/v2/providers.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
+//	@ApiOperation(value = "get the list of Europeana data providers", nickname = "listProviders")
+//	@RequestMapping(value = "/v2/providers.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView findproviders(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -152,8 +154,8 @@ public class SugarCRMController {
      * @param httpResponse
      * @return JSON response
      */
-	@ApiOperation(value = "get information about a specific Europeana provider", nickname = "getProvider")
-	@RequestMapping(value = "/v2/provider/{id}.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
+//	@ApiOperation(value = "get information about a specific Europeana provider", nickname = "getProvider")
+//	@RequestMapping(value = "/v2/provider/{id}.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView findprovidersByID(
 			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
@@ -190,8 +192,8 @@ public class SugarCRMController {
      * @param httpResponse
      * @return JSON response
      */
-	@ApiOperation(value = "get the list of datasets provided by a specific provider", nickname = "listProviderDatasets")
-	@RequestMapping(value = "/v2/provider/{id}/datasets.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
+//	@ApiOperation(value = "get the list of datasets provided by a specific provider", nickname = "listProviderDatasets")
+//	@RequestMapping(value = "/v2/provider/{id}/datasets.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView findDatasetsPerProvider(
 			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,
@@ -232,8 +234,8 @@ public class SugarCRMController {
      * @param httpResponse
      * @return JSON response
      */
-	@ApiOperation(value = "get the list of Europeana datasets", nickname = "listDatasets")
-	@RequestMapping(value = "/v2/datasets.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
+//	@ApiOperation(value = "get the list of Europeana datasets", nickname = "listDatasets")
+//	@RequestMapping(value = "/v2/datasets.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView findDatasets(
 			@RequestParam(value = "wskey", required = false) String wskey,
 			@RequestParam(value = "callback", required = false) String callback,
@@ -276,8 +278,8 @@ public class SugarCRMController {
      * @param httpResponse
      * @return JSON response
      */
-	@ApiOperation(value = "get information about a specific dataset", nickname = "getDataset")
-	@RequestMapping(value = "/v2/dataset/{id}.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
+//	@ApiOperation(value = "get information about a specific dataset", nickname = "getDataset")
+//	@RequestMapping(value = "/v2/dataset/{id}.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView findDatasetsById(
 			@PathVariable String id,
 			@RequestParam(value = "wskey", required = false) String wskey,

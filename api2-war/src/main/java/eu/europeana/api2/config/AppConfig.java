@@ -1,8 +1,5 @@
 package eu.europeana.api2.config;
 
-import eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler;
-import eu.europeana.api2.v2.service.SugarCRMCache;
-import eu.europeana.api2.v2.service.SugarCRMImporter;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
@@ -221,28 +218,30 @@ public class AppConfig {
         return new ApiKeyUtils();
     }
 
+    // ** SugarCRM was deprecated and deactivated on July 2018 for the Metis branch **
+
     /**
      * The SugarCRMPollingScheduler regularly invokes the SugarCRMImporter
      * @return SugarCRMPollingScheduler bean
      */
-    @Bean
-    public SugarCRMPollingScheduler sugarCRMPollingScheduler() {
-        return new SugarCRMPollingScheduler();
-    }
-
-    /**
-     *  The SugarCRMIMporter connects to sugarCRM to check if data on providers or datasets is changed
-     *  @return  SugarCRMImporter bean
-     */
-    @Bean
-    public SugarCRMImporter sugarCRMImporter() {
-        return new SugarCRMImporter();
-    }
-
-    @Bean
-    public SugarCRMCache sugarCRMCache() {
-        return new SugarCRMCache();
-    }
+//    @Bean
+//    public SugarCRMPollingScheduler sugarCRMPollingScheduler() {
+//        return new SugarCRMPollingScheduler();
+//    }
+//
+//    /**
+//     *  The SugarCRMIMporter connects to sugarCRM to check if data on providers or datasets is changed
+//     *  @return  SugarCRMImporter bean
+//     */
+//    @Bean
+//    public SugarCRMImporter sugarCRMImporter() {
+//        return new SugarCRMImporter();
+//    }
+//
+//    @Bean
+//    public SugarCRMCache sugarCRMCache() {
+//        return new SugarCRMCache();
+//    }
 
     /**
      * The ObjectStorageClient allows access to our Storage Provider where thumbnails and sitemap files are stored

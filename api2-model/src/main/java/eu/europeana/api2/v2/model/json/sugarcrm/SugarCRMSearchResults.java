@@ -24,8 +24,10 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 /**
  * @author Georgios Markakis (gwarkx@hotmail.com)
  * @since Sep 24, 2013
+ * @deprecated july 2018 replaced by Metis
  */
 @JsonInclude(NON_EMPTY)
+@Deprecated
 public class SugarCRMSearchResults<T> extends AbstractSearchResults<T> {
 
     public SugarCRMSearchResults(String apikey) {

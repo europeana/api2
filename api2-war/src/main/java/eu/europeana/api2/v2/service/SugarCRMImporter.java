@@ -42,7 +42,9 @@ import java.util.List;
 
 /**
  * Imports provider and collections data from the Europeana SugarCRM system and stores it in a Mongo cache db
+ * @deprecated july 2018 replaced by Metis
  */
+@Deprecated
 public class SugarCRMImporter {
 
 
