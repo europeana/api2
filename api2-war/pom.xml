@@ -290,14 +290,6 @@
             <version>${swagger.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.github.mautini/schemaorg-java -->
-        <dependency>
-            <groupId>com.github.mautini</groupId>
-            <artifactId>schemaorg-java</artifactId>
-            <version>1.0.1</version>
-            <!--<type>pom</type>-->
-        </dependency>
-
         <!-- Test depenencies -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -333,7 +325,6 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
