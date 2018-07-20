@@ -22,10 +22,6 @@ import com.github.jsonldjava.core.JSONLDProcessingError;
 import com.github.jsonldjava.core.Options;
 import com.github.jsonldjava.impl.JenaRDFParser;
 import com.github.jsonldjava.utils.JSONUtils;
-import com.google.schemaorg.JsonLdFactory;
-import com.google.schemaorg.JsonLdSerializer;
-import com.google.schemaorg.JsonLdSyntaxException;
-import com.google.schemaorg.core.*;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import eu.europeana.api2.ApiLimitException;
@@ -45,22 +41,16 @@ import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
-import eu.europeana.corelib.definitions.edm.entity.*;
-import eu.europeana.corelib.definitions.edm.entity.Place;
-import eu.europeana.corelib.definitions.edm.model.metainfo.WebResourceMetaInfo;
-import eu.europeana.corelib.definitions.jibx.ProxyType;
-import eu.europeana.corelib.definitions.jibx.RDF;
 import eu.europeana.corelib.edm.exceptions.BadDataException;
-import eu.europeana.corelib.neo4j.exception.Neo4JException;
-import eu.europeana.corelib.search.impl.WebMetaInfo;
-import eu.europeana.corelib.solr.entity.WebResourceImpl;
-import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
+import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
+import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
+import eu.europeana.corelib.neo4j.exception.Neo4JException;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
+import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -83,7 +73,9 @@ import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -428,269 +420,8 @@ public class ObjectController {
     }
 
     private ModelAndView generateSchemaOrg(FullBean bean, RequestData data, HttpServletResponse response) {
-        String jsonld = null;
-        JsonLdSerializer serializer = new JsonLdSerializer(true /* setPrettyPrinting */);
-
-        List<Thing> objects = new ArrayList<>();
-        List<Thing> webResources = new ArrayList<>();
-
-        CreativeWork.Builder ob = CoreFactory.newCreativeWorkBuilder();
-        // @id
-        ob.setJsonLdId("http://data.europeana.eu" + bean.getProvidedCHOs().get(0).getAbout());
-        // @type is filled automatically based on the interface
-
-        // proxies
-        addProxies(bean, ob);
-
-        // providedCHOs
-        addProvidedCHOs(bean, ob);
-
-        // aggregations
-        addAggregations(bean, webResources, ob);
-
-        // Europeana aggregation
-        addEuropeanaAggregation(bean, ob);
-
-        // Agents
-        addAgents(bean, ob);
-
-        // Places
-        addPlaces(bean, ob);
-
-        List<Thing> concepts = new ArrayList<>();
-        // Concept
-        addConcepts(bean, ob, concepts);
-
-        objects.add(ob.build());
-        objects.addAll(webResources);
-        objects.addAll(concepts);
-
-        try {
-            jsonld = serializer.serialize(objects);
-        } catch (JsonLdSyntaxException e) {
-            e.printStackTrace();
-        }
+        String jsonld = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
         return JsonUtils.toJson(jsonld, data.callback);
-    }
-
-    private void addConcepts(FullBean bean, CreativeWork.Builder ob, List<Thing> concepts) {
-        for (Concept concept : bean.getConcepts()) {
-            Thing.Builder tb = CoreFactory.newThingBuilder();
-            // skos:prefLabel
-            addProperty(ob, concept.getPrefLabel(), CoreConstants.PROPERTY_NAME);
-            // skos:altLabel
-            addProperty(ob, concept.getAltLabel(), CoreConstants.PROPERTY_ALTERNATE_NAME);
-            concepts.add(tb.build());
-        }
-    }
-
-    private void addPlaces(FullBean bean, CreativeWork.Builder ob) {
-        for (Place place : bean.getPlaces()) {
-            // TODO
-        }
-    }
-
-    private void addAgents(FullBean bean, CreativeWork.Builder ob) {
-        for (Agent agent : bean.getAgents()) {
-            // TODO
-        }
-    }
-
-    private void addEuropeanaAggregation(FullBean bean, CreativeWork.Builder ob) {
-        EuropeanaAggregation aggregation = bean.getEuropeanaAggregation();
-        // edm:country
-        addProperty(ob, aggregation.getEdmCountry(), CoreConstants.PROPERTY_ADDRESS_COUNTRY);
-        // edm:landingPage
-        addProperty(ob, aggregation.getEdmLandingPage(), CoreConstants.PROPERTY_URL);
-        // edm:preview
-        addProperty(ob, aggregation.getEdmPreview(), CoreConstants.PROPERTY_THUMBNAIL_URL);
-        // dc:creator
-        addProperty(ob, aggregation.getDcCreator(), CoreConstants.PROPERTY_CREATOR);
-    }
-
-    private void addAggregations(FullBean bean, List<Thing> webResources, CreativeWork.Builder ob) {
-        for (Aggregation aggregation : bean.getAggregations()) {
-            // edm:dataProvider
-            addProperty(ob, aggregation.getEdmDataProvider(), CoreConstants.PROPERTY_PROVIDER);
-            // edm:hasView
-            addProperty(ob, aggregation.getHasView(), CoreConstants.PROPERTY_URL);
-            // edm:isShownAt
-            addProperty(ob, aggregation.getEdmIsShownAt(), CoreConstants.PROPERTY_URL);
-            // edm:isShownBy
-            addProperty(ob, aggregation.getEdmIsShownBy(), CoreConstants.PROPERTY_CONTENT_URL);
-            // edm:object
-            addProperty(ob, aggregation.getEdmObject(), CoreConstants.PROPERTY_IMAGE);
-            // edm:provider
-            addProperty(ob, aggregation.getEdmProvider(), CoreConstants.PROPERTY_PROVIDER);
-            // edm:intermediateProvider
-            addProperty(ob, aggregation.getEdmIntermediateProvider(), CoreConstants.PROPERTY_PROVIDER);
-
-            // web resources
-            addWebResources(webResources, aggregation);
-        }
-    }
-
-    private void addWebResources(List<Thing> webResources, Aggregation aggregation) {
-        for (WebResource resource : aggregation.getWebResources()) {
-            Thing.Builder tb = null;
-            if (resource.getAbout().equals(aggregation.getEdmIsShownAt())) {
-                tb = CoreFactory.newWebPageBuilder();
-            } else {
-                WebResourceMetaInfo info = ((WebResourceImpl)resource).getWebResourceMetaInfo();
-                if (info != null) {
-                    if (info.getAudioMetaInfo() != null) {
-                        tb = CoreFactory.newAudioObjectBuilder();
-                    } else if (info.getImageMetaInfo() != null) {
-                        tb = CoreFactory.newImageObjectBuilder();
-                    } else if (info.getVideoMetaInfo() != null) {
-                        tb = CoreFactory.newVideoObjectBuilder();
-                    } else {
-                        tb = CoreFactory.newMediaObjectBuilder();
-                    }
-                } else {
-                    tb = CoreFactory.newMediaObjectBuilder();
-                }
-            }
-            // id
-            tb.setJsonLdId(resource.getAbout());
-            // rdf:about
-            addProperty(tb, resource.getAbout(), CoreConstants.PROPERTY_URL);
-            // dc:creator
-            addProperty(tb, resource.getDcCreator(), CoreConstants.PROPERTY_CREATOR);
-            // dc:description
-            addProperty(tb, resource.getDcDescription(), CoreConstants.PROPERTY_DESCRIPTION);
-            // dc:source
-            addProperty(tb, resource.getDcSource(), CoreConstants.PROPERTY_ENCODES_CREATIVE_WORK);
-            // dcterms:created
-            addProperty(tb, resource.getDctermsCreated(), CoreConstants.PROPERTY_DATE_CREATED);
-            // dcterms:hasPart
-            addProperty(tb, resource.getDctermsHasPart(), CoreConstants.PROPERTY_HAS_PART);
-            // dcterms:isPartOf - missing in resource
-            // dcterms:issued
-            addProperty(tb, resource.getDctermsIssued(), CoreConstants.PROPERTY_DATE_PUBLISHED);
-            // edm:isNextInSequence
-            addProperty(tb, resource.getIsNextInSequence(), CoreConstants.PROPERTY_PREVIOUS_ITEM);
-            // edm:rights
-            addProperty(tb, resource.getWebResourceEdmRights(), CoreConstants.PROPERTY_LICENSE);
-            // owl:sameAs
-            addProperty(tb, resource.getOwlSameAs(), CoreConstants.PROPERTY_SAME_AS);
-            // ebucore:hasMimeType
-            addProperty(tb, resource.getEbucoreHasMimeType(), CoreConstants.PROPERTY_FILE_FORMAT);
-            // ebucore:fileByteSize
-            addProperty(tb, resource.getEbucoreFileByteSize(), CoreConstants.PROPERTY_CONTENT_SIZE);
-            // ebucore:duration
-            addProperty(tb, resource.getEbucoreDuration(), CoreConstants.PROPERTY_DURATION);
-            // ebucore:width
-            addProperty(tb, resource.getEbucoreWidth(), CoreConstants.PROPERTY_WIDTH);
-            // ebucore:height
-            addProperty(tb, resource.getEbucoreHeight(), CoreConstants.PROPERTY_HEIGHT);
-            // ebucore:bitRate
-            addProperty(tb, resource.getEbucoreBitRate(), CoreConstants.PROPERTY_BITRATE);
-            webResources.add(tb.build());
-        }
-    }
-
-    private void addProvidedCHOs(FullBean bean, CreativeWork.Builder ob) {
-        for (ProvidedCHO providedCHO : bean.getProvidedCHOs()) {
-            // owl:sameAs
-            addProperty(ob, providedCHO.getOwlSameAs(), CoreConstants.PROPERTY_SAME_AS);
-        }
-    }
-
-    private void addProxies(FullBean bean, CreativeWork.Builder ob) {
-        for (Proxy proxy : bean.getProxies()) {
-            // dc:title
-            addProperty(ob, proxy.getDcTitle(), CoreConstants.PROPERTY_NAME);
-            // dc:description
-            addProperty(ob, proxy.getDcDescription(), CoreConstants.PROPERTY_DESCRIPTION);
-            // dc:creator
-            addProperty(ob, proxy.getDcCreator(), CoreConstants.PROPERTY_CREATOR);
-            // dc:contributor
-            addProperty(ob, proxy.getDcContributor(), CoreConstants.PROPERTY_CONTRIBUTOR);
-            // dc:coverage
-            addProperty(ob, proxy.getDcCoverage(), CoreConstants.PROPERTY_ABOUT);
-            // dc:language
-            addProperty(ob, proxy.getDcLanguage(), CoreConstants.PROPERTY_IN_LANGUAGE);
-            // dc:publisher
-            addProperty(ob, proxy.getDcPublisher(), CoreConstants.PROPERTY_PUBLISHER);
-            // dc:subject
-            addProperty(ob, proxy.getDcSubject(), CoreConstants.PROPERTY_ABOUT);
-            // dc:type
-            addProperty(ob, proxy.getDcType(), CoreConstants.PROPERTY_ABOUT);
-            // dcterms:alternative
-            addProperty(ob, proxy.getDctermsAlternative(), CoreConstants.PROPERTY_ALTERNATE_NAME);
-            // dcterms:created
-            addProperty(ob, proxy.getDctermsCreated(), CoreConstants.PROPERTY_DATE_CREATED);
-            // dcterms:hasPart
-            addProperty(ob, proxy.getDctermsHasPart(), CoreConstants.PROPERTY_HAS_PART);
-            // dcterms:isFormatOf
-            addProperty(ob, proxy.getDctermsIsFormatOf(), CoreConstants.PROPERTY_EXAMPLE_OF_WORK);
-            // dcterms:isPartOf
-            addProperty(ob, proxy.getDctermsIsPartOf(), CoreConstants.PROPERTY_IS_PART_OF);
-            // dcterms:issued
-            addProperty(ob, proxy.getDctermsIssued(), CoreConstants.PROPERTY_DATE_PUBLISHED);
-            // dcterms:references
-            addProperty(ob, proxy.getDctermsReferences(), CoreConstants.PROPERTY_MENTIONS);
-            // dcterms:spatial - cannot map to spatialCoverage
-            // dcterms:temporal
-            addProperty(ob, proxy.getDctermsTemporal(), CoreConstants.PROPERTY_ABOUT);
-            // edm:hasType
-            addProperty(ob, proxy.getEdmHasType(), CoreConstants.PROPERTY_ABOUT);
-            // edm:incorporates
-            addProperty(ob, proxy.getEdmIncorporates(), CoreConstants.PROPERTY_HAS_PART);
-            // edm:isDerivativeOf
-            addProperty(ob, proxy.getEdmIsDerivativeOf(), CoreConstants.PROPERTY_IS_BASED_ON_URL);
-            // edm:isNextInSequence
-            addProperty(ob, proxy.getEdmIsNextInSequence(), CoreConstants.PROPERTY_PREVIOUS_ITEM);
-            // edm:isRepresentationOf
-            addProperty(ob, proxy.getEdmIsRepresentationOf(), CoreConstants.PROPERTY_ABOUT);
-            // edm:isSuccessorOf
-            addProperty(ob, proxy.getEdmIsSuccessorOf(), CoreConstants.PROPERTY_PREVIOUS_ITEM);
-            // edm:realizes
-            addProperty(ob, proxy.getEdmRealizes(), CoreConstants.PROPERTY_EXAMPLE_OF_WORK);
-            // edm:year
-            addProperty(ob, proxy.getYear(), CoreConstants.PROPERTY_DATE_CREATED);
-        }
-    }
-
-    private void addProperty(Thing.Builder ob, Map<String, List<String>> map, String property) {
-        if (map != null) {
-            for (List<String> valueList : map.values()) {
-                for (String value : valueList) {
-                    if (!value.isEmpty()) {
-                        ob.addProperty(property, value);
-                    }
-                }
-            }
-        }
-    }
-
-    private void addProperty(Thing.Builder ob, String[] values, String property) {
-        if (values != null) {
-            for (String value : values) {
-                if (!value.isEmpty()) {
-                    ob.addProperty(property, value);
-                }
-            }
-        }
-    }
-
-    private void addProperty(Thing.Builder ob, String value, String property) {
-        if (value != null && !value.isEmpty()) {
-            ob.addProperty(property, value);
-        }
-    }
-
-    private void addProperty(Thing.Builder ob, Long value, String property) {
-        if (value != null) {
-            ob.addProperty(property, String.valueOf(value));
-        }
-    }
-
-    private void addProperty(Thing.Builder ob, Integer value, String property) {
-        if (value != null) {
-            ob.addProperty(property, String.valueOf(value));
-        }
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
