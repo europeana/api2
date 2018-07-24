@@ -30,7 +30,7 @@
     <url>http://www.europeana.eu</url>
 
     <properties>
-        <corelib.version>2.8.0-SNAPSHOT</corelib.version>
+        <corelib.version>2.8.0</corelib.version>
 
         <!-- Set different SonarQube properties so Metis branch can be distinguished from UIM version -->
         <sonar.projectKey>eu.europeana:api2-metis</sonar.projectKey>
