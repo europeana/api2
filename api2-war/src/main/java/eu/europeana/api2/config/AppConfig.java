@@ -123,6 +123,10 @@ public class AppConfig {
                 this.postgres.getValidationQueryTimeout(),
                 this.postgres.getLogValidationErrors());
 
+        // Remove any threads that are running more than 120 seconds
+        this.postgres.setRemoveAbandoned(true);
+        this.postgres.setRemoveAbandonedTimeout(120); // sec
+        this.postgres.setLogAbandoned(true);
         LOG.info("  isRemoveAbandoned = {}, removeAbandonedTimeout = {}, logAbandoned = {} ",
                 this.postgres.isRemoveAbandoned(),
                 this.postgres.getRemoveAbandonedTimeout(),
