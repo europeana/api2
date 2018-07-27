@@ -450,6 +450,7 @@ public class SearchController {
         return ApiBeanImpl.class;
     }
 
+    @Deprecated // July 3rd 2018, not in use anymore
     @ApiOperation(value = "get autocompletion recommendations for search queries", nickname = "suggestions")
     @RequestMapping(value = "/v2/suggestions.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView suggestionsJson(

@@ -45,6 +45,7 @@ import eu.europeana.corelib.db.service.OAuth2TokenService;
 /**
  * Implementation of oAuth TokenStore. Manages the persistency of access tokens
  */
+@Deprecated
 @Service
 public class ApiTokenStore implements TokenStore {
 
@@ -53,16 +54,19 @@ public class ApiTokenStore implements TokenStore {
 
 	private AuthenticationKeyGenerator authenticationKeyGenerator = new DefaultAuthenticationKeyGenerator();
 
-	@Scheduled(cron="0 2 * * * *")
+	@Deprecated
+	//@Scheduled(cron="0 2 * * * *")
 	public void cleanExpiredTokens() {
 		oAuth2TokenService.cleanExpiredTokens();
 	}
 
+	@Deprecated
 	@Override
 	public OAuth2Authentication readAuthentication(OAuth2AccessToken token) {
 		return readAuthentication(token.getValue());
 	}
 
+	@Deprecated
 	@Override
 	public OAuth2Authentication readAuthentication(String token) {
 		// in SQL it would be "SELECT token_id, authentication FROM oauth_access_token WHERE token_id = ?";
@@ -74,6 +78,7 @@ public class ApiTokenStore implements TokenStore {
 		return authentication;
 	}
 
+	@Deprecated
 	@Override
 	public void storeAccessToken(OAuth2AccessToken token, OAuth2Authentication authentication) {
 		// "insert into oauth_access_token (token_id, token, authentication_id, user_name, client_id, authentication, refresh_token) values (?, ?, ?, ?, ?, ?, ?)";
@@ -91,6 +96,7 @@ public class ApiTokenStore implements TokenStore {
 		oAuth2TokenService.store(entity);
 	}
 
+	@Deprecated
 	@Override
 	public OAuth2AccessToken readAccessToken(String tokenValue) {
 		// "select token_id, token from oauth_access_token where token_id = ?";
@@ -102,16 +108,19 @@ public class ApiTokenStore implements TokenStore {
 		return accessToken;
 	}
 
+	@Deprecated
 	@Override
 	public void removeAccessToken(OAuth2AccessToken token) {
 		removeAccessToken(token.getValue());
 	}
 
+	@Deprecated
 	public void removeAccessToken(String tokenValue) {
 		// "delete from oauth_access_token where token_id = ?";
 		oAuth2TokenService.removeAccessToken(extractTokenKey(tokenValue));
 	}
 
+	@Deprecated
 	@Override
 	public void storeRefreshToken(OAuth2RefreshToken refreshToken, OAuth2Authentication authentication) {
 		// "insert into oauth_refresh_token (token_id, token, authentication) values (?, ?, ?)";
@@ -121,6 +130,7 @@ public class ApiTokenStore implements TokenStore {
 		oAuth2TokenService.store(entity);
 	}
 
+	@Deprecated
 	@Override
 	public OAuth2RefreshToken readRefreshToken(String tokenValue) {
 		// "select token_id, token from oauth_refresh_token where token_id = ?";
@@ -132,11 +142,13 @@ public class ApiTokenStore implements TokenStore {
 		return refreshToken;
 	}
 
+	@Deprecated
 	@Override
 	public OAuth2Authentication readAuthenticationForRefreshToken(OAuth2RefreshToken token) {
 		return readAuthenticationForRefreshToken(token.getValue());
 	}
 
+	@Deprecated
 	public OAuth2Authentication readAuthenticationForRefreshToken(String tokenValue) {
 		//"select token_id, authentication from oauth_refresh_token where token_id = ?";
 		OAuth2Authentication authentication = null;
@@ -146,27 +158,32 @@ public class ApiTokenStore implements TokenStore {
 		}
 		return authentication;
 	}
-	
+
+	@Deprecated
 	@Override
 	public void removeRefreshToken(OAuth2RefreshToken token) {
 		removeRefreshToken(token.getValue());
 	}
 
+	@Deprecated
 	public void removeRefreshToken(String tokenValue) {
 		// "delete from oauth_refresh_token where token_id = ?";
 		oAuth2TokenService.removeRefreshToken(extractTokenKey(tokenValue));
 	}
 
+	@Deprecated
 	@Override
 	public void removeAccessTokenUsingRefreshToken(OAuth2RefreshToken refreshToken) {
 		removeAccessTokenUsingRefreshToken(refreshToken.getValue());
 	}
 
+	@Deprecated
 	public void removeAccessTokenUsingRefreshToken(String refreshToken) {
 		// "delete from oauth_access_token where refresh_token = ?"
 		oAuth2TokenService.removeAccessTokenByRefreshTokenId(extractTokenKey(refreshToken));
 	}
 
+	@Deprecated
 	@Override
 	public OAuth2AccessToken getAccessToken(OAuth2Authentication authentication) {
 		// "select token_id, token from oauth_access_token where authentication_id = ?";
@@ -187,7 +204,7 @@ public class ApiTokenStore implements TokenStore {
 		return accessToken;
 	}
 
-
+	@Deprecated
 	@Override
 	public Collection<OAuth2AccessToken> findTokensByClientId(String clientId) {
 		// "select token_id, token from oauth_access_token where client_id = ?";
@@ -254,6 +271,7 @@ public class ApiTokenStore implements TokenStore {
 		}
 	}
 
+	@Deprecated
 	@Override
 	public Collection<OAuth2AccessToken> findTokensByClientIdAndUserName(
 			String clientId, String userName) {
