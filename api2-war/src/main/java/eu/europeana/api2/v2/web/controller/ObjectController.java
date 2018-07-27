@@ -429,7 +429,9 @@ public class ObjectController {
         }
 
         // ugly solution for EA-1257, but it works
-        ItemFix.apply(result);
+        if (result != null) {
+            ItemFix.apply(result);
+        }
         return result;
     }
 
