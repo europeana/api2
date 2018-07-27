@@ -28,6 +28,7 @@ import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.xml.srw.SrwResponse;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.model.ItemFix;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.BriefView;
@@ -426,6 +427,9 @@ public class ObjectController {
         if (LOG.isDebugEnabled()) {
             LOG.debug("SearchService findByID took " + (System.currentTimeMillis() - startTime) + " ms");
         }
+
+        // ugly solution for EA-1257, but it works
+        ItemFix.apply(result);
         return result;
     }
 
