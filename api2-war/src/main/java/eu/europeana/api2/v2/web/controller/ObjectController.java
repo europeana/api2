@@ -391,7 +391,7 @@ public class ObjectController {
                 output = generateSrw(bean);
                 break;
             case OBJECT_SCHEMA_ORG:
-                output = generateSchemaOrg(bean, data, response);
+                output = generateSchemaOrg(bean, data);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown record output type: " + recordType);
@@ -420,7 +420,7 @@ public class ObjectController {
         return JsonUtils.toJson(objectResult, data.callback);
     }
 
-    private ModelAndView generateSchemaOrg(FullBean bean, RequestData data, HttpServletResponse response) {
+    private ModelAndView generateSchemaOrg(FullBean bean, RequestData data) {
         String jsonld = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
         return JsonUtils.toJson(jsonld, data.callback);
     }
