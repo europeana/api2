@@ -42,14 +42,15 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.exceptions.BadDataException;
-import eu.europeana.corelib.neo4j.exception.Neo4JException;
-import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
+import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
+import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
+import eu.europeana.corelib.neo4j.exception.Neo4JException;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
+import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -72,7 +73,10 @@ import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides record information in all kinds of formats; json, json-ld, rdf and srw
@@ -204,6 +208,40 @@ public class ObjectController {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
         } catch (EuropeanaException e) {
             LOG.error("Error retrieving record JSON-LD", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": " + e.getMessage(), data.apikeyCheckResponse.getRequestNumber()), data.callback);
+        }
+    }
+
+    /***
+     * Retrieve a record in Schema.org JSON-LD format.
+     * @param collectionId
+     * @param recordId
+     * @param wskey
+     * @param format supported types are 'compacted', 'flattened' and 'normalized'
+     * @param callback
+     * @param webRequest
+     * @param servletRequest
+     * @param response
+     * @return
+     * @throws ApiLimitException
+     */
+    @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
+    @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
+                                     @PathVariable String recordId,
+                                     @RequestParam(value = "wskey", required = true) String wskey,
+                                     @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
+                                     @RequestParam(value = "callback", required = false) String callback,
+                                     WebRequest webRequest,
+                                     HttpServletRequest servletRequest,
+                                     HttpServletResponse response) throws ApiLimitException {
+
+        RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
+        try {
+            return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
+        } catch (EuropeanaException e) {
+            LOG.error("Error retrieving record Schema.org JSON-LD", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": " + e.getMessage(), data.apikeyCheckResponse.getRequestNumber()), data.callback);
         }
@@ -351,6 +389,9 @@ public class ObjectController {
             case OBJECT_SRW:
                 output = generateSrw(bean);
                 break;
+            case OBJECT_SCHEMA_ORG:
+                output = generateSchemaOrg(bean, data);
+                break;
             default:
                 throw new IllegalArgumentException("Unknown record output type: " + recordType);
         }
@@ -376,6 +417,11 @@ public class ObjectController {
         objectResult.object = new FullView(bean, data.profile, data.wskey);
         objectResult.statsDuration = System.currentTimeMillis() - startTime;
         return JsonUtils.toJson(objectResult, data.callback);
+    }
+
+    private ModelAndView generateSchemaOrg(FullBean bean, RequestData data) {
+        String jsonld = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
+        return JsonUtils.toJson(jsonld, data.callback);
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
