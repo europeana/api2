@@ -307,7 +307,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     /* January 2018: method potentially deprecated!?
        GUID is a field that was introduced years ago, but there isn't any documentation on it. It's unclear if it's still used */
     public String getGuid() {
-        return LinkUtils.addCampaignCodes(urlService.getPortalRecord(false, getId()), wskey);
+        return LinkUtils.addCampaignCodes(urlService.getPortalRecord(getId()), wskey);
     }
 
     @Override
