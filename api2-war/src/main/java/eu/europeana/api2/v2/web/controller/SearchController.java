@@ -621,7 +621,7 @@ public class SearchController {
             channel.totalResults.value = resultSet.getResultSize();
             for (BriefBean bean : resultSet.getResults()) {
                 Item item = new Item();
-                item.guid = urlService.getPortalRecord(false, bean.getId()).toString();
+                item.guid = urlService.getPortalRecord(bean.getId()).toString();
                 item.title = getTitle(bean);
                 item.description = getDescription(bean);
                 item.link = item.guid;

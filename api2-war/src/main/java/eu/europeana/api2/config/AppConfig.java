@@ -134,7 +134,7 @@ public class AppConfig {
 
     }
 
-    @Scheduled(fixedRate = 60_000)
+    @Scheduled(fixedRate = 120_000)
     public void debugJdbcThreadUsage() {
         long nrAbandoned = postgres.getRemoveAbandonedCount();
         long nrActive = postgres.getNumActive();

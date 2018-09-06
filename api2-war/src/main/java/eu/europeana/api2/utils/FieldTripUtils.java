@@ -59,7 +59,7 @@ public class FieldTripUtils {
      */
     public FieldTripItem createItem(RichBean bean) {
         FieldTripItem item = new FieldTripItem();
-        item.guid = urlService.getPortalRecord(false, bean.getId()).toString();
+        item.guid = urlService.getPortalRecord(bean.getId()).toString();
         item.title = getTitle(bean);
         item.description = extractDescription(bean.getDcDescription());
         item.images = getThumbnail(bean);
