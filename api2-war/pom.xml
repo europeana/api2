@@ -84,6 +84,11 @@
             <artifactId>corelib-search</artifactId>
             <version>${corelib.version}</version>
         </dependency>
+        <dependency>
+            <groupId>eu.europeana.corelib</groupId>
+            <artifactId>corelib-schemaorg</artifactId>
+            <version>${corelib.version}</version>
+        </dependency>
 
         <!-- OTHER -->
         <dependency>
