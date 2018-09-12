@@ -47,16 +47,6 @@
         <!-- CORELIB -->
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-sugarcrm-client</artifactId>
-            <version>${corelib.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-sugarcrm-bindings</artifactId>
-            <version>${corelib.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-db</artifactId>
             <version>${corelib.version}</version>
         </dependency>

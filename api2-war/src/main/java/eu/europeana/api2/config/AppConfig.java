@@ -36,7 +36,6 @@ import java.util.Arrays;
         "classpath:corelib-solr-context.xml",
         "classpath:corelib-utils-context.xml",
         "classpath:corelib-web-context.xml",
-        "classpath:spring-sugarcrmclient.xml"
 })
 @EnableScheduling
 @PropertySource("classpath:europeana.properties")
@@ -217,31 +216,6 @@ public class AppConfig {
     public ApiKeyUtils apiKeyUtils() {
         return new ApiKeyUtils();
     }
-
-    // ** SugarCRM was deprecated and deactivated on July 2018 for the Metis branch **
-
-    /**
-     * The SugarCRMPollingScheduler regularly invokes the SugarCRMImporter
-     * @return SugarCRMPollingScheduler bean
-     */
-//    @Bean
-//    public SugarCRMPollingScheduler sugarCRMPollingScheduler() {
-//        return new SugarCRMPollingScheduler();
-//    }
-//
-//    /**
-//     *  The SugarCRMIMporter connects to sugarCRM to check if data on providers or datasets is changed
-//     *  @return  SugarCRMImporter bean
-//     */
-//    @Bean
-//    public SugarCRMImporter sugarCRMImporter() {
-//        return new SugarCRMImporter();
-//    }
-//
-//    @Bean
-//    public SugarCRMCache sugarCRMCache() {
-//        return new SugarCRMCache();
-//    }
 
     /**
      * The ObjectStorageClient allows access to our Storage Provider where thumbnails and sitemap files are stored
