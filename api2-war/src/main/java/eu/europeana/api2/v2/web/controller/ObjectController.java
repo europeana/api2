@@ -43,11 +43,8 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.exceptions.BadDataException;
-import eu.europeana.corelib.edm.exceptions.MongoDBException;
-import eu.europeana.corelib.edm.exceptions.MongoRuntimeException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
-import eu.europeana.corelib.neo4j.exception.Neo4JException;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
@@ -58,7 +55,6 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -467,7 +463,7 @@ public class ObjectController {
         return srwResponse;
     }
 
-    private FullBean retrieveRecord(String europeanaId) throws MongoRuntimeException, MongoDBException, Neo4JException {
+    private FullBean retrieveRecord(String europeanaId) throws EuropeanaException {
         long     startTime = System.currentTimeMillis();
         FullBean result    = searchService.findById(europeanaId, false);
         if (LOG.isDebugEnabled()) {
