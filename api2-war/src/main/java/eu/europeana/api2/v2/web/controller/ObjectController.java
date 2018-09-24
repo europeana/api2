@@ -364,7 +364,7 @@ public class ObjectController {
         }
 
         // check modified
-        // 2017-07-10 PE: Decided to postpone the modified check for now (see also ticket 676)
+        // 2017-07-10 PE: Decided to postpone the modified check for now (see also ticket 676 / EA-680)
         //if (bean.getTimestampUpdated() != null && data.webRequest.checkNotModified(bean.getTimestampUpdated().getTime()))
         {
             // checkNotModified method will set LastModified header automatically and will return 304 - Not modified if necessary
