@@ -35,11 +35,11 @@ import static org.springframework.security.config.http.SessionCreationPolicy.IF_
 /**
  * OAuth Authorization Code Grant server
  * OAuth 2 Introduction:
- * @see https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2
+ * see https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2
  * Oauth 2.0 protocol details:
- * @see https://tools.ietf.org/html/rfc6749#section-4.1
+ * see https://tools.ietf.org/html/rfc6749#section-4.1
  * Europeana Infrastructure diagram:
- * @see https://drive.google.com/file/d/0B7lriE2YnGwUOWdzMGd3czR4eUE/view?usp=sharing
+ * see https://drive.google.com/file/d/0B7lriE2YnGwUOWdzMGd3czR4eUE/view?usp=sharing
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  * @author Jeroen Jeurissen (enlightenedsoftware.nl)
  * @deprecated 2018-01-09 old MyEuropeana functionality
@@ -116,7 +116,7 @@ public class OAuth2ServerConfig {
         @Override
         public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
             endpoints
-                    .tokenStore(tokenStore())
+                    //.tokenStore(tokenStore())
                     .userApprovalHandler(userApprovalHandler)
                     .authorizationCodeServices(authorizationCodeServices())
                     .authenticationManager(authenticationManager);
@@ -127,12 +127,12 @@ public class OAuth2ServerConfig {
             oauthServer.realm("europeana/client");
         }
 
-        @Bean
-        public TokenStore tokenStore() {
-            return new ApiTokenStore();
-        }
-
-        //        @Bean(name = "api2_oauth2_clientDetailsService")
+//        @Bean
+//        public TokenStore tokenStore() {
+//            return new ApiTokenStore();
+//        }
+//
+//        @Bean(name = "api2_oauth2_clientDetailsService")
 //        public ClientDetailsService clientDetailsService() {
 //            return new OAuth2ClientDetailsService();
 //        }
@@ -149,7 +149,7 @@ public class OAuth2ServerConfig {
         @Resource(name = "api2_oauth2_clientDetailsService")
         private ClientDetailsService clientDetailsService;
 
-        @Resource
+        //@Resource
         private TokenStore tokenStore;
 
         @Bean
