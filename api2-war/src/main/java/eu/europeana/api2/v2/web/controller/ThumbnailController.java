@@ -108,12 +108,15 @@ public class ThumbnailController {
             // finally check if we should return the full response, or a 304
             // the check below automatically sets an ETag and last-Modified in our response header and returns a 304
             // (but only when clients include the If_Modified_Since header in their request)
-            if (mediaFile.getCreatedAt() == null) {
-                if (webRequest.checkNotModified(mediaFile.getContentMd5())) {
+            if (mediaFile.getLastModified() != null && mediaFile.getETag() != null) {
+                if (webRequest.checkNotModified(mediaFile.getETag(), mediaFile.getLastModified().getMillis())) {
                     result = null;
                 }
-            } else if (webRequest.checkNotModified(mediaFile.getContentMd5(), mediaFile.getCreatedAt().getMillis())) {
-                result = null;
+            }
+            else if (mediaFile.getETag() != null) {
+                if (webRequest.checkNotModified(mediaFile.getETag())) {
+                    result = null;
+                }
             }
         }
 
@@ -135,13 +138,15 @@ public class ThumbnailController {
     private MediaFile retrieveThumbnail(String url, String size) {
         MediaFile mediaFile = null;
         final String mediaFileId = computeResourceUrl(url, size);
+        LOG.debug("id = {}", mediaFileId);
 
         // 1. Check Metis storage first (IBM Cloud S3) because that has the newest thumbnails
-        mediaFile = metisMediaStorage.retrieveAsMediaFile(mediaFileId, Boolean.TRUE);
+        mediaFile = metisMediaStorage.retrieveAsMediaFile(mediaFileId, url, Boolean.TRUE);
 
-        // 2. Try the old UIM/CRF meida storage (Amazon S3) second
+        // 2. Try the old UIM/CRF media storage (Amazon S3) second
         if (mediaFile == null) {
-            mediaFile = uimMediaStorage.retrieveAsMediaFile(mediaFileId, Boolean.TRUE);
+            mediaFile = uimMediaStorage.retrieveAsMediaFile(mediaFileId, url, Boolean.TRUE);
+            LOG.debug("UIM thumbnail = {}", mediaFile);
         }
 
         // 3. We retrieve IIIF thumbnails by downloading a requested size from eCloud
@@ -208,8 +213,8 @@ public class ThumbnailController {
             while (-1 != (n = in.read(buf))) {
                 out.write(buf, 0, n);
             }
-            // for now we don't do anything with LastModified
-            return new MediaFile(null, null, null,getMD5(uri.getPath()), uri.getPath(), null, out.toByteArray(), null, null, null, 0);
+            // for now we don't do anything with LastModified or ETag as this is not easily available for IIIF
+            return new MediaFile(getMD5(uri.getPath()), uri.getPath(), out.toByteArray());
         }
     }
 
