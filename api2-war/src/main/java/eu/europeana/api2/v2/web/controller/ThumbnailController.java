@@ -94,14 +94,13 @@ public class ThumbnailController {
         ResponseEntity<byte[]> result;
         ControllerUtils.addResponseHeaders(response);
         final HttpHeaders headers = new HttpHeaders();
-        // Check if we have an image, if not show default 'type' icon
         if (mediaFile == null) {
+            // if there is no image, we return the default 'type' icon
             headers.setContentType(MediaType.IMAGE_PNG);
             mediaContent = getDefaultThumbnailForNotFoundResourceByType(type);
             result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
         } else {
-            // prepare final response
-            headers.setContentType(MediaType.IMAGE_JPEG);
+            headers.setContentType(getMediaType(url));
             mediaContent = mediaFile.getContent();
             result = new ResponseEntity<>(mediaContent, headers, HttpStatus.OK);
 
@@ -112,8 +111,7 @@ public class ThumbnailController {
                 if (webRequest.checkNotModified(mediaFile.getETag(), mediaFile.getLastModified().getMillis())) {
                     result = null;
                 }
-            }
-            else if (mediaFile.getETag() != null) {
+            } else if (mediaFile.getETag() != null) {
                 if (webRequest.checkNotModified(mediaFile.getETag())) {
                     result = null;
                 }
@@ -165,6 +163,20 @@ public class ThumbnailController {
             }
         }
         return mediaFile;
+    }
+
+    /**
+     * Return the media type of the image that we are returning. Note that we base our return value solely on the
+     * extension in the original image url, so if that is not correct we could be returning the incorrect value
+     * @param url
+     * @return MediaType of the thumbnail image (png for PDF and PNG files, otherwise JPEG)
+     */
+    private MediaType getMediaType(String url) {
+        String urlLow = url.toLowerCase(Locale.GERMAN);
+        if (urlLow.endsWith(".png") || urlLow.endsWith(".pdf")) {
+            return MediaType.IMAGE_PNG;
+        }
+        return MediaType.IMAGE_JPEG;
     }
 
     /**
