@@ -140,6 +140,7 @@ public class ThumbnailController {
 
         // 1. Check Metis storage first (IBM Cloud S3) because that has the newest thumbnails
         mediaFile = metisMediaStorage.retrieveAsMediaFile(mediaFileId, url, Boolean.TRUE);
+        LOG.debug("Metis thumbnail = {}", mediaFile);
 
         // 2. Try the old UIM/CRF media storage (Amazon S3) second
         if (mediaFile == null) {
