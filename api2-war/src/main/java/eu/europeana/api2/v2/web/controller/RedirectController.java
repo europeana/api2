@@ -68,8 +68,6 @@ public class RedirectController {
     public Object handleRedirect(@PathVariable String apiKey, @RequestParam(value = "shownAt", required = true) String isShownAt,
             HttpServletResponse response) {
 
-        // Disabled while awaiting better implementation (ticket #1742)
-        // apiLogService.logApiRequest(wskey, id, RecordType.REDIRECT, profile);
         if (StringUtils.isBlank(isShownAt)) {
             return this.generateError(response, "Empty 'shownAt' parameter", apiKey);
         }

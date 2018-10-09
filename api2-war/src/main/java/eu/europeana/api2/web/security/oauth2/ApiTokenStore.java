@@ -46,10 +46,10 @@ import eu.europeana.corelib.db.service.OAuth2TokenService;
  * Implementation of oAuth TokenStore. Manages the persistency of access tokens
  */
 @Deprecated
-@Service
+//@Service
 public class ApiTokenStore implements TokenStore {
 
-	@Resource
+	//@Resource
 	private OAuth2TokenService oAuth2TokenService;
 
 	private AuthenticationKeyGenerator authenticationKeyGenerator = new DefaultAuthenticationKeyGenerator();

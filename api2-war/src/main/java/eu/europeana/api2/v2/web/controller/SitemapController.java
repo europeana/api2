@@ -43,7 +43,7 @@ public class SitemapController {
     private static final String INDEX_FILE = "europeana-sitemap-index-hashed.xml";
     private static final String ACTIVE_SITEMAP_FILE = "europeana-sitemap-active-xml-file.txt";
 
-    @Resource(name = "api_object_storage_client")
+    @Resource(name = "api_sitemap_object_storage")
     private ObjectStorageClient objectStorageClient;
 
     /**
