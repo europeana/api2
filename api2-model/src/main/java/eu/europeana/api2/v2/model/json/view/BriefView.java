@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import eu.europeana.api2.model.utils.Api2UrlService;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -34,15 +35,13 @@ import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
-import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 @JsonInclude(NON_EMPTY)
 @JsonPropertyOrder(alphabetic=true)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
-    protected EuropeanaUrlService urlService;
+    protected Api2UrlService urlService;
 
     protected String profile;
     protected String wskey;
@@ -53,7 +52,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         this.bean = bean;
         this.profile = profile;
         this.wskey = wskey;
-        urlService = EuropeanaUrlServiceImpl.getBeanInstance();
+        urlService = Api2UrlService.getBeanInstance();
     }
 
     public String getProfile() {
@@ -289,7 +288,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             if (bean.getEdmObject() != null) {
                 for (String object : bean.getEdmObject()) {
                     String tn = StringUtils.defaultIfBlank(object, "");
-                    final String url = urlService.getThumbnailUrl(tn, getType()).toString();
+                    final String url = urlService.getThumbnailUrl(tn, getType());
                     if (StringUtils.isNotBlank(url)) {
                         thumbs.add(url.trim());
                     }
@@ -301,13 +300,13 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     public String getLink() {
-        return urlService.getApi2RecordJson(wskey, getId()).toString();
+        return urlService.getRecordApi2Url(getId(), wskey);
     }
 
     /* January 2018: method potentially deprecated!?
        GUID is a field that was introduced years ago, but there isn't any documentation on it. It's unclear if it's still used */
     public String getGuid() {
-        return LinkUtils.addCampaignCodes(urlService.getPortalRecord(getId()), wskey);
+        return LinkUtils.addCampaignCodes(urlService.getRecordPortalUrl(getId()), wskey);
     }
 
     @Override
@@ -339,10 +338,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             if (StringUtils.isBlank(bean.getEdmIsShownAt()[0])) {
                 continue;
             }
-            String isShownAtLink = urlService.getApi2Redirect(
-                    wskey, isShownAt, provider, bean.getId(), profile)
-                    .toString();
-
+            String isShownAtLink = urlService.getRedirectUrl(wskey, isShownAt, provider, bean.getId(), profile);
             isShownAtLinks.add(isShownAtLink);
         }
         return isShownAtLinks.toArray(new String[isShownAtLinks.size()]);

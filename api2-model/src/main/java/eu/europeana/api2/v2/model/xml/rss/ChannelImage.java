@@ -19,7 +19,7 @@ package eu.europeana.api2.v2.model.xml.rss;
 
 import javax.xml.bind.annotation.XmlElement;
 
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
+import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
 
 @SuppressWarnings("unused")
 public class ChannelImage {
@@ -28,12 +28,9 @@ public class ChannelImage {
 	private String title = "Europeana Open Search";
 
 	@XmlElement(name = "link")
-	private String link = EuropeanaUrlService.URL_EUROPEANA;
+	private String link = EuropeanaStaticUrl.EUROPEANA_PORTAL_URL;
 
 	@XmlElement(name = "url")
-	private String url = EuropeanaUrlService.URL_EUROPEANA + "/portal/sp/img/europeana-logo-en.png";
+	private String url = "https://style.europeana.eu/images/europeana-logo-default.png";
 
-//	private int width = 206;
-//
-//	private int height = 123;
 }

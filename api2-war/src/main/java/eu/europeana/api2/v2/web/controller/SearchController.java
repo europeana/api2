@@ -19,6 +19,7 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
@@ -63,7 +64,6 @@ import eu.europeana.corelib.utils.StringArrayUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
@@ -116,7 +116,7 @@ public class SearchController {
     private Configuration configuration;
 
     @Resource
-    private EuropeanaUrlService urlService;
+    private Api2UrlService urlService;
 
     @Resource
     private ApiKeyUtils apiKeyUtils;
@@ -626,7 +626,7 @@ public class SearchController {
             channel.totalResults.value = resultSet.getResultSize();
             for (BriefBean bean : resultSet.getResults()) {
                 Item item = new Item();
-                item.guid = urlService.getPortalRecord(bean.getId()).toString();
+                item.guid = urlService.getRecordPortalUrl(bean.getId());
                 item.title = getTitle(bean);
                 item.description = getDescription(bean);
                 item.link = item.guid;

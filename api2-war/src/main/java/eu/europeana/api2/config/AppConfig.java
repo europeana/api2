@@ -1,5 +1,6 @@
 package eu.europeana.api2.config;
 
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
@@ -47,6 +48,11 @@ public class AppConfig {
     private static final String QUERY_FILTER_STALE_SESSION =
                     " AND state in ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled')" +
                     " AND current_timestamp - state_change > interval '5 minutes'";
+
+    @Value("${portal.baseUrl:}")
+    private String portalBaseUrl;
+    @Value("${api2.baseUrl:}")
+    private String api2BaseUrl;
 
     @Value("${s3.key}")
     private String key;
@@ -217,6 +223,19 @@ public class AppConfig {
         return new ApiKeyUtils();
     }
 
+
+    /**
+     * Setup service for generating API and Portal urls
+     * @return
+     */
+    @Bean
+    public Api2UrlService api2UrlService() {
+        Api2UrlService urlService = new Api2UrlService(portalBaseUrl, api2BaseUrl);
+        LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl());
+        LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl());
+        return urlService;
+    }
+
     /**
      * The ObjectStorageClient allows access to our Storage Provider where thumbnails and sitemap files are stored
      * At the moment we use Amazon S3
@@ -227,4 +246,5 @@ public class AppConfig {
         LOG.info("Creating new objectStorage client");
         return new S3ObjectStorageClient(key,secret,region,bucket);
     }
+
 }

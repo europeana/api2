@@ -27,6 +27,7 @@ import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 
+import eu.europeana.api2.model.utils.Api2UrlService;
 import org.apache.commons.lang.ArrayUtils;
 
 import eu.europeana.api2.model.xml.srw.SrwResponse;
@@ -38,9 +39,11 @@ import eu.europeana.corelib.definitions.edm.entity.EuropeanaAggregation;
 import eu.europeana.corelib.definitions.edm.entity.Place;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
 import eu.europeana.corelib.definitions.edm.entity.Timespan;
-import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
+/**
+ * This class is only used in old SRW responses
+ */
 @JsonPropertyOrder(alphabetic=true)
 public class FullDoc {
 
@@ -126,7 +129,7 @@ public class FullDoc {
 	private String[] enrichmentAgentLabel;
 
 	public FullDoc(FullBean bean) {
-		id = EuropeanaUrlServiceImpl.getBeanInstance().getPortalResolve(bean.getAbout());
+		id = Api2UrlService.getBeanInstance().getRecordResolveUrl(bean.getAbout());
 		europeanaCollectionName = bean.getEuropeanaCollectionName();
 		if (bean.getType() != null)
 			type = bean.getType().toString();
