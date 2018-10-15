@@ -36,14 +36,12 @@ import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
-import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
-import eu.europeana.corelib.edm.exceptions.BadDataException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.search.SearchService;
@@ -57,9 +55,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
@@ -73,9 +69,6 @@ import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -110,11 +103,13 @@ public class ObjectController {
      *
      * @param searchService
      * @param apiKeyUtils
+     * @param httpCacheUtils
      */
     @Autowired
-    public ObjectController(SearchService searchService, ApiKeyUtils apiKeyUtils) {
+    public ObjectController(SearchService searchService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
         this.searchService = searchService;
         this.apiKeyUtils = apiKeyUtils;
+        this.httpCacheUtils = httpCacheUtils;
     }
 
     /**
@@ -372,8 +367,8 @@ public class ObjectController {
 
         // NOTE for now I will stick to using the ISO string format because that includes milliseconds, whereas the
         // RFC 1123 format doesn't
-        String tsUpdated = httpCacheUtils.dateToZonedToISOString(bean.getTimestampUpdated());
-        String eTag = httpCacheUtils.getSHA256Hash(tsUpdated);
+        String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
+        String eTag = httpCacheUtils.generateETag(tsUpdated, true);
 
         // 4) & 5) check if object has been changed since last time:
         // - if “If-Modified-Since” is given, check if object has changed since

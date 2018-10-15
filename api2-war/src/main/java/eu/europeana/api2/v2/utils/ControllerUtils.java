@@ -19,11 +19,6 @@ package eu.europeana.api2.v2.utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Properties;
 
 /**
  * Class containing a number of useful controller utilities (mainly for setting headers)

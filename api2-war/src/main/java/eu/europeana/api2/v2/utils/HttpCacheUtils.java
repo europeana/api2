@@ -3,13 +3,9 @@ package eu.europeana.api2.v2.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.log4j.Logger;
-import org.springframework.http.HttpHeaders;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -17,10 +13,7 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Utility class for http caching functionality
@@ -34,13 +27,16 @@ public class HttpCacheUtils {
     private static final Properties       properties        = new Properties();
     private static final String           DATEUPDATEDFORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private static final SimpleDateFormat UPDATEFORMAT      = new SimpleDateFormat(DATEUPDATEDFORMAT, Locale.GERMAN);
+    private static final String           LOCALBUILDVERSION = "localbuildversion";
 
+    private static boolean useLocalBuildVersion = false;
 
     static{
         UPDATEFORMAT.setTimeZone(TimeZone.getTimeZone("GTM"));
         try {
             properties.load(HttpCacheUtils.class.getResourceAsStream("build.properties"));
-        } catch (IOException e) {
+        } catch (Exception e) {
+            useLocalBuildVersion = true;
             LOG.error("IOException trying to read build.properties");
         }
     }
@@ -68,14 +64,18 @@ public class HttpCacheUtils {
      */
     public String getSHA256Hash(String tsUpdated){
         MessageDigest digest = null;
+        String version = null;
+        if (useLocalBuildVersion) {
+            version = LOCALBUILDVERSION;
+        } else {
+            version = properties.getProperty("version");
+        }
         try {
             digest = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             LOG.error("Error creating SHA-265 hash", e);
         }
-        byte[] encodedhash = digest.digest(
-                (properties.getProperty("version") + tsUpdated)
-                        .getBytes(StandardCharsets.UTF_8));
+        byte[] encodedhash = digest.digest((version + tsUpdated).getBytes(StandardCharsets.UTF_8));
         return bytesToHex(encodedhash);
     }
 
@@ -89,59 +89,47 @@ public class HttpCacheUtils {
         return hexString.toString();
     }
 
+    // use this format: DateTimeFormatter.RFC_1123_DATE_TIME
+
     /**
      * Parses the date string received in a request header
      * @param dateString
-     * @return Date
+     * @return ZonedDateTime
      */
     private ZonedDateTime stringToZonedUTC(String dateString) {
         if (StringUtils.isEmpty(dateString)) {
             return null;
         }
         // Note that Apache DateUtils can parse all 3 date format patterns allowed by RFC 2616
-        Date headerDate = DateUtils.parseDate(dateString);
-        if (headerDate == null) {
+        Date date = DateUtils.parseDate(dateString);
+        if (date == null) {
             LOG.error("Error parsing request header Date string: " + dateString);
             return null;
         }
-        return headerDate.toInstant().atOffset(ZoneOffset.UTC).toZonedDateTime();
+        return dateToZonedUTC(date);
     }
 
-    public String dateToZonedToISOString(Date date){
-        return zonedToISOString(dateToZonedUTC(date));
-    }
-
+    /**
+     * Transforms a java.util.Date object to a ZonedDateTime object
+     * @param date
+     * @return ZonedDateTime
+     */
     private ZonedDateTime dateToZonedUTC(Date date){
-        return date.toInstant().atOffset(ZoneOffset.UTC).toZonedDateTime();
+        return date.toInstant().atOffset(ZoneOffset.UTC).toZonedDateTime().withNano(0);
     }
 
-    // TODO review if necessary
-    public static String dateToString(Date dateUpdate) {
-        return UPDATEFORMAT.format(dateUpdate);
-    }
-
-    // TODO review if necessary Formats the given date according to the RFC 1123 pattern.
-    public String dateToRFC1123String(Date dateHeader) {
-        return DateUtils.formatDate(dateHeader);
+    // Formats the given date according to the RFC 1123 pattern.
+    public String dateToRFC1123String(Date date) {
+        return DateUtils.formatDate(date);
     }
 
     /**
-     * TODO review if necessary
      * Formats the given date according to the RFC 1123 pattern (e.g. Thu, 4 Oct 2018 10:34:20 GMT)
      * @param lastModified
      * @return
      */
-    private String zonedToRFC1123String(ZonedDateTime lastModified) {
+    private static String headerDateToString(ZonedDateTime lastModified) {
         return lastModified.format(DateTimeFormatter.RFC_1123_DATE_TIME);
-    }
-
-    /**
-     * Formats the given date according to the RFC 1123 pattern (e.g. Thu, 4 Oct 2018 10:34:20 GMT)
-     * @param lastModified
-     * @return
-     */
-    private String zonedToISOString(ZonedDateTime lastModified) {
-        return lastModified.format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
     /**
@@ -205,11 +193,17 @@ public class HttpCacheUtils {
      * OR ("If-None-Match" header is supplied AND matches the object's eTag value) - otherwise false
      */
     public boolean checkNotModified(HttpServletRequest request, Date tsUpdated, String eTag){
-        ZonedDateTime zonedTsUpdated      = dateToZonedUTC(tsUpdated);
-        ZonedDateTime requestLastModified = stringToZonedUTC(request.getHeader("If-Modified-Since"));
-        return (( requestLastModified != null && requestLastModified.compareTo(zonedTsUpdated) > 0 ) ||
-                ( StringUtils.isNotEmpty(request.getHeader("If-None-Match")) &&
-                  StringUtils.equalsIgnoreCase(request.getHeader("If-None-Match"), eTag)));
+        if (StringUtils.isNotEmpty(request.getHeader("If-Modified-Since")) &&
+            Objects.requireNonNull(stringToZonedUTC(request.getHeader("If-Modified-Since")))
+                    .compareTo(dateToZonedUTC(tsUpdated)) >= 0){
+            return true;
+        } else return StringUtils.isNotEmpty(request.getHeader("If-None-Match")) && StringUtils.equalsIgnoreCase(
+                stripQuotes(request.getHeader("If-None-Match")),
+                stripQuotes(eTag));
+    }
+
+    private String stripQuotes(String eTag){
+        return StringUtils.stripEnd(StringUtils.stripStart(eTag, "\""), "\"");
     }
 
     /**
