@@ -332,7 +332,7 @@ public class ObjectController {
         ModelAndView result;
 
         // 1) Check if HTTP method is supported, HTTP 405 if not
-        if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) ||
+        if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) &&
             !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
             response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
             return null; // figure out what to return exactly in these cases
