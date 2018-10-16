@@ -180,6 +180,8 @@ public class FullView implements FullBean {
   public EuropeanaAggregation getEuropeanaAggregation() {
     EuropeanaAggregation europeanaAggregation = bean.getEuropeanaAggregation();
     europeanaAggregation.setId(null);
+
+    // set proper edmPreview
     String edmPreview = "";
     if (this.getAggregations().get(0).getEdmObject() != null) {
       String url = this.getAggregations().get(0).getEdmObject();
@@ -188,6 +190,9 @@ public class FullView implements FullBean {
       }
     }
     europeanaAggregation.setEdmPreview(edmPreview);
+
+    // set proper landingPage
+    europeanaAggregation.setEdmLandingPage(urlService.getRecordPortalUrl(getAbout()));
     return europeanaAggregation;
   }
 
