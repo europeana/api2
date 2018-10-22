@@ -17,13 +17,13 @@
 
 package eu.europeana.api2.utils;
 
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripImage;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.utils.StringArrayUtils;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -36,14 +36,14 @@ import java.util.regex.Pattern;
 
 public class FieldTripUtils {
 
-    private EuropeanaUrlService urlService;
+    private Api2UrlService urlService;
 
     private final static SimpleDateFormat FIELDTRIP_DATE_FORMATTER = new SimpleDateFormat("EEE, MMM d yyyy HH:mm:ss Z");
     private final static Pattern DESCRIPTION_PATTERN = Pattern.compile("(<description>)(.*?)(</description>)", Pattern.DOTALL);
     private final static Pattern ATTRIBUTION_PATTERN = Pattern.compile("(<attribution>)(.*?)(</attribution>)", Pattern.DOTALL);
 
 
-    public FieldTripUtils(EuropeanaUrlService urlService) {
+    public FieldTripUtils(Api2UrlService urlService) {
         this.urlService = urlService;
     }
 
@@ -59,7 +59,7 @@ public class FieldTripUtils {
      */
     public FieldTripItem createItem(RichBean bean) {
         FieldTripItem item = new FieldTripItem();
-        item.guid = urlService.getPortalRecord(bean.getId()).toString();
+        item.guid = urlService.getRecordPortalUrl(bean.getId());
         item.title = getTitle(bean);
         item.description = extractDescription(bean.getDcDescription());
         item.images = getThumbnail(bean);

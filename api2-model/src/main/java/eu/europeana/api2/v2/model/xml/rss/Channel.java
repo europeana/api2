@@ -22,13 +22,13 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
 
+import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
 import org.apache.commons.lang.StringUtils;
 
 import eu.europeana.api2.v2.model.xml.definitions.Namespaces;
 import eu.europeana.api2.v2.model.xml.rss.atom.AtomLink;
 import eu.europeana.api2.v2.model.xml.rss.opensearch.Query;
 import eu.europeana.api2.v2.model.xml.rss.opensearch.Statistic;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -42,7 +42,7 @@ public class Channel {
 	private String title = "Europeana Open Search";
 
 	@XmlElement
-	private String link = EuropeanaUrlService.URL_EUROPEANA;
+	private String link = EuropeanaStaticUrl.EUROPEANA_PORTAL_URL;
 
 	@XmlElement
 	private String description = "Europeana Open Search results";

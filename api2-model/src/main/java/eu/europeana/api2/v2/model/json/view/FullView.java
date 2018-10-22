@@ -16,13 +16,12 @@ package eu.europeana.api2.v2.model.json.view;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.*;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.utils.DateUtils;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
-import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 import org.apache.commons.lang.StringUtils;
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
@@ -39,7 +38,7 @@ public class FullView implements FullBean {
   private FullBean bean;
   private String profile;
   private String apiKey;
-  private EuropeanaUrlService europeanaUrlService;
+  private Api2UrlService urlService;
   private Date timestampCreated;
   private Date timestampUpdated;
   private boolean urlified = false;
@@ -48,7 +47,7 @@ public class FullView implements FullBean {
     this.bean = bean;
     this.profile = profile;
     this.apiKey = apiKey;
-    europeanaUrlService = EuropeanaUrlServiceImpl.getBeanInstance();
+    this.urlService = Api2UrlService.getBeanInstance();
     extractTimestampCreated();
     extractTimestampUpdated();
   }
@@ -138,8 +137,7 @@ public class FullView implements FullBean {
       String isShownAt = item.getEdmIsShownAt();
       if (!urlified && isShownAt != null) {
         String provider = item.getEdmProvider().values().iterator().next().get(0);
-        String isShownAtLink = europeanaUrlService
-            .getApi2Redirect(apiKey, isShownAt, provider, bean.getAbout(), profile).toString();
+        String isShownAtLink = urlService.getRedirectUrl(apiKey, isShownAt, provider, bean.getAbout(), profile);
         item.setEdmIsShownAt(isShownAtLink);
         urlified = true; // do this ONLY ONCE
       }
@@ -182,14 +180,19 @@ public class FullView implements FullBean {
   public EuropeanaAggregation getEuropeanaAggregation() {
     EuropeanaAggregation europeanaAggregation = bean.getEuropeanaAggregation();
     europeanaAggregation.setId(null);
+
+    // set proper edmPreview
     String edmPreview = "";
     if (this.getAggregations().get(0).getEdmObject() != null) {
       String url = this.getAggregations().get(0).getEdmObject();
       if (StringUtils.isNotBlank(url)) {
-        edmPreview = europeanaUrlService.getThumbnailUrl(url, getType()).toString();
+        edmPreview = urlService.getThumbnailUrl(url, getType());
       }
     }
     europeanaAggregation.setEdmPreview(edmPreview);
+
+    // set proper landingPage
+    europeanaAggregation.setEdmLandingPage(urlService.getRecordPortalUrl(getAbout()));
     return europeanaAggregation;
   }
 
