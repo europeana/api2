@@ -584,8 +584,6 @@ public class SearchController {
                     Long.toString(resultSet.getResultSize());
             kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
             kmlResponse.setItems(resultSet.getResults());
-            // Disabled while awaiting better implementation (ticket #1742)
-            // apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH_KML, "kml");
         } catch (SolrTypeException e) {
             response.setStatus(500);
             throw new Exception(e);

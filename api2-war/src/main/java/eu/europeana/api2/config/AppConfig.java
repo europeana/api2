@@ -49,18 +49,18 @@ public class AppConfig {
                     " AND state in ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled')" +
                     " AND current_timestamp - state_change > interval '5 minutes'";
 
+
     @Value("${portal.baseUrl:}")
     private String portalBaseUrl;
     @Value("${api2.baseUrl:}")
     private String api2BaseUrl;
-
-    @Value("${s3.key}")
+    @Value("${sitemap.s3.key}")
     private String key;
-    @Value("${s3.secret}")
+    @Value("${sitemap.s3.secret}")
     private String secret;
-    @Value("${s3.region}")
+    @Value("${sitemap.s3.region}")
     private String region;
-    @Value("${s3.bucket}")
+    @Value("${sitemap.s3.bucket}")
     private String bucket;
 
     @Value("${postgres.max.stale.sessions:}")
@@ -241,9 +241,9 @@ public class AppConfig {
      * At the moment we use Amazon S3
      * @return ObjectStorageClient bean
      */
-    @Bean(name = "api_object_storage_client")
+    @Bean(name = "api_sitemap_object_storage")
     public ObjectStorageClient objectStorageClient(){
-        LOG.info("Creating new objectStorage client");
+        LOG.info("Creating new sitemap objectStorage client");
         return new S3ObjectStorageClient(key,secret,region,bucket);
     }
 

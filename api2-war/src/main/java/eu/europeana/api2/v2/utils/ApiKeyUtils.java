@@ -65,21 +65,11 @@ public class ApiKeyUtils {
                 LOG.debug("Setting default request number; (checklimit disabled): " + requestNumber);
             }
 
-            // t = System.currentTimeMillis();
-//       requestNumber = apiService.checkReachedLimit(apiKey);
-            // log.info("checkReachedLimit: " + (System.currentTimeMillis() - t));
-            // t = System.currentTimeMillis();
-            // apiLogService.logApiRequest(wskey, url, recordType, profile);
-            // log.info("logApiRequest: " + (System.currentTimeMillis() - t));
         } catch (DatabaseException e) {
             LOG.error("Error retrieving apikey", e);
-            // apiLogService.logApiRequest(wskey, url, recordType, profile);
             ApiLimitException ex = new ApiLimitException(wskey, e.getMessage(), requestNumber, HttpStatus.UNAUTHORIZED.value());
             ex.initCause(e);
             throw ex;
-            // } catch (LimitReachedException e) {
-            // apiLogService.logApiRequest(wskey, url, RecordType.LIMIT, recordType.toString());
-            // throw new ApiLimitException(wskey, apiCall, e.getMessage(), requestNumber, 429);
         }
         return new LimitResponse(apiKey, requestNumber);
     }
