@@ -366,22 +366,38 @@ public class ObjectController {
         }
 
         // NOTE for now I will stick to using the ISO string format because that includes milliseconds, whereas the
-        // RFC 1123 format doesn't
+        // RFC 1123 format doesn't. ETag is created from timestamp + api version.
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
         String eTag = httpCacheUtils.generateETag(tsUpdated, true);
 
-        // 4) & 5) check if object has been changed since last time:
-        // - if “If-Modified-Since” is given, check if object has changed since
-        // - if "If-None-Match" is given, check if it differs from eTag
-        // in those cases: proceed. Otherwise: stop and return HTTP 304
-        if (httpCacheUtils.checkNotModified(data.servletRequest, bean.getTimestampUpdated(), eTag)){
+        // First check if “If-Modified-Since” is present
+
+
+
+
+
+        // - if "If-None-Match" is given, check there's a matching eTag in there OR == '*"
+        // - AND / OR if “If-Modified-Since” is given, check if object has changed since
+        // in those cases: proceed. Otherwise: stop and return HTTP 304 + cache headers
+        if (httpCacheUtils.doesAnyIfNoneMatch(data.servletRequest, eTag) &&
+            !httpCacheUtils.isModifiedSince(data.servletRequest, bean.getTimestampUpdated())) {
+            // add headers, except Content-Type (that differs per recordType)
+            response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated, ALLOWED, "no-cache");
+            if (StringUtils.isNotBlank(data.servletRequest.getHeader("Origin"))){
+                response = httpCacheUtils.addCorsHeaders(response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, "600");
+            }
             response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-            return null; // figure out what to return exactly in these cases
-        // 6) if "If-Match" is given, check if matches the eTag OR is "*"
-        // if so: proceed. Otherwise: stop and return HTTP 412
-        } else if (httpCacheUtils.checkPreconditionFailed(data.servletRequest, eTag)){
+            return null;
+        // if "If-Match" is given, check if matches the eTag OR is "*"
+        // yes: proceed; no: stop and return HTTP 412 - no cache headers
+        } else if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
             response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
-            return null; // figure out what to return exactly in these cases
+            return null;
+        // check if “If-Modified-Since” is present and on or after timestamp_updated
+        // yes: return HTTP 304 no: continue
+        } else if (httpCacheUtils.isNotModifiedSince(data.servletRequest, bean.getTimestampUpdated())){
+            response.setStatus(HttpServletResponse.SC_NOT_MODIFIED); // no cache headers
+            return null;
         }
 
         // add headers, except Content-Type (that differs per recordType)

@@ -28,6 +28,10 @@ public class HttpCacheUtils {
     private static final String           DATEUPDATEDFORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private static final SimpleDateFormat UPDATEFORMAT      = new SimpleDateFormat(DATEUPDATEDFORMAT, Locale.GERMAN);
     private static final String           LOCALBUILDVERSION = "localbuildversion";
+    private static final String           IFNONEMATCH       = "If-None-Match";
+    private static final String           IFMATCH           = "If-Match";
+    private static final String           IFMODIFIEDSINCE   = "If-Modified-Since";
+    private static final String           ANY               = "\"*\"";
 
     private static boolean useLocalBuildVersion = false;
 
@@ -185,37 +189,77 @@ public class HttpCacheUtils {
     }
 
     /**
-     * Please note that this method does not yet support multiple values supplied in the "If-None-Match" header
-     * @param request      incoming HttpServletRequest
-     * @param tsUpdated    Date representing the FullBean's timestamp_updated
-     * @param eTag         String with the calculated eTag of the requested data
-     * @return boolean true if ("If-Modified-Since" header is supplied AND object is modified after that date)
-     * OR ("If-None-Match" header is supplied AND matches the object's eTag value) - otherwise false
+     * Supports multiple values in the "If-None-Match" header
+     * @param  request      incoming HttpServletRequest
+     * @param  eTag         String with the calculated eTag of the requested data
+     * @return boolean true IF ( If-None-Match header is supplied AND
+     *                           ( contains matching eTag OR == "*" ) )
+     *         Otherwise false
      */
-    public boolean checkNotModified(HttpServletRequest request, Date tsUpdated, String eTag){
-        if (StringUtils.isNotEmpty(request.getHeader("If-Modified-Since")) &&
-            Objects.requireNonNull(stringToZonedUTC(request.getHeader("If-Modified-Since")))
-                    .compareTo(dateToZonedUTC(tsUpdated)) >= 0){
+    public boolean doesAnyIfNoneMatch(HttpServletRequest request, String eTag){
+        return ( StringUtils.isNotBlank(request.getHeader(IFNONEMATCH)) &&
+                 ( doesAnyETagMatch(request.getHeader(IFNONEMATCH), eTag)));
+    }
+
+    /**
+     * @param  request      incoming HttpServletRequest
+     * @param  tsUpdated    Date representing the FullBean's timestamp_updated
+     * @return boolean true IF If-Modified-Since header is supplied AND
+     *                         is after or on the timestamp_updated
+     *         Otherwise false
+     */
+    public boolean isNotModifiedSince(HttpServletRequest request, Date tsUpdated){
+        return ( StringUtils.isNotBlank(request.getHeader(IFMODIFIEDSINCE)) &&
+                 Objects.requireNonNull(stringToZonedUTC(request.getHeader(IFMODIFIEDSINCE)))
+                        .compareTo(dateToZonedUTC(tsUpdated)) >= 0 );
+    }
+
+    /**
+     * @param  request      incoming HttpServletRequest
+     * @param  tsUpdated    Date representing the FullBean's timestamp_updated
+     * @return boolean true IF If-Modified-Since header is supplied AND
+     *                         is earlier the timestamp_updated
+     *         Otherwise false
+     */
+    public boolean isModifiedSince(HttpServletRequest request, Date tsUpdated){
+        return ( StringUtils.isNotBlank(request.getHeader(IFMODIFIEDSINCE)) &&
+                 Objects.requireNonNull(stringToZonedUTC(request.getHeader(IFMODIFIEDSINCE)))
+                         .compareTo(dateToZonedUTC(tsUpdated)) < 0 );
+    }
+
+    /**
+     * Supports multiple values in the "If-Match" header
+     * @param request      incoming HttpServletRequest
+     * @param eTag         String with the calculated eTag of the requested data
+     * @return boolean true IF ("If-Match" header is supplied AND
+     *                         NOT (contains matching eTag OR == "*") )
+     *         otherwise false
+     */
+    public boolean doesPreconditionFail(HttpServletRequest request, String eTag){
+        return (StringUtils.isNotBlank(request.getHeader(IFMATCH)) &&
+                (!doesAnyETagMatch(request.getHeader(IFMATCH), eTag)));
+    }
+
+    private boolean doesAnyETagMatch(String eTags, String eTagToMatch){
+        if (StringUtils.equals(ANY, eTags)){
             return true;
-        } else return StringUtils.isNotEmpty(request.getHeader("If-None-Match")) && StringUtils.equalsIgnoreCase(
-                stripQuotes(request.getHeader("If-None-Match")),
-                stripQuotes(eTag));
+        }
+        if (StringUtils.isNoneBlank(eTags, eTagToMatch)){
+            for (String eTag : StringUtils.stripAll(StringUtils.split(eTags, ","))){
+                if (StringUtils.equalsIgnoreCase(spicAndSpan(eTag),spicAndSpan(eTagToMatch))){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static String spicAndSpan(String header){
+        return StringUtils.remove(StringUtils.stripStart(header, "W/"), "\"");
     }
 
     private String stripQuotes(String eTag){
         return StringUtils.stripEnd(StringUtils.stripStart(eTag, "\""), "\"");
-    }
-
-    /**
-     * @param request      incoming HttpServletRequest
-     * @param eTag         String with the calculated eTag of the requested data
-     * @return boolean true if ("If-Match" header is supplied AND (does NOT match the object's eTag value OR is "*") -
-     * otherwise false
-     */
-    public boolean checkPreconditionFailed(HttpServletRequest request, String eTag){
-        return (StringUtils.isNotEmpty(request.getHeader("If-Match")) &&
-                 (!StringUtils.equalsIgnoreCase(request.getHeader("If-Match"), eTag) &&
-                  !StringUtils.equalsIgnoreCase(request.getHeader("If-Match"), "*")));
     }
 
 
