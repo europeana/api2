@@ -281,16 +281,31 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return bean.getId();
     }
 
+    /**
+     * We need to convert all edmPreview values (which are original image urls) to proper API thumbnail urls
+     * If there are no edmPreview values, we use edmObject instead.
+     * Ideally a secondary fallback is edmIsShownBy but that is not present in BriefBean (only in RichBean and FUllBean)
+     * @return
+     */
     private String[] getThumbnails() {
         if (thumbnails == null) {
             List<String> thumbs = new ArrayList<>();
 
-            if (bean.getEdmObject() != null) {
+            /// first try edmPreview from Corelib (Solr)
+            if (bean.getEdmPreview() != null) {
+                for (String preview : bean.getEdmPreview()) {
+                    if (StringUtils.isNotEmpty(preview)) {
+                        System.err.println("BriefView, edmPreview orig = "+preview +", result = "+urlService.getThumbnailUrl(preview, getType()));
+                        thumbs.add(urlService.getThumbnailUrl(preview, getType()));
+                    }
+                }
+            }
+            // second try edmObject
+            if (thumbs.size() == 0 && bean.getEdmObject() != null) {
                 for (String object : bean.getEdmObject()) {
-                    String tn = StringUtils.defaultIfBlank(object, "");
-                    final String url = urlService.getThumbnailUrl(tn, getType());
-                    if (StringUtils.isNotBlank(url)) {
-                        thumbs.add(url.trim());
+                    if (StringUtils.isNotEmpty(object)) {
+                        System.err.println("BriefView, edmObj orig = "+object +", result = "+urlService.getThumbnailUrl(object, getType()));
+                        thumbs.add(urlService.getThumbnailUrl(object, getType()));
                     }
                 }
             }
