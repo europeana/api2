@@ -35,13 +35,16 @@ import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 @JsonInclude(NON_EMPTY)
 @JsonPropertyOrder(alphabetic=true)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
-    protected Api2UrlService urlService;
+    private static final Logger         LOG = LogManager.getLogger(FullView.class);
+    protected            Api2UrlService urlService;
 
     protected String profile;
     protected String wskey;
@@ -295,16 +298,22 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             if (bean.getEdmPreview() != null) {
                 for (String preview : bean.getEdmPreview()) {
                     if (StringUtils.isNotEmpty(preview)) {
-                        System.err.println("BriefView, edmPreview orig = "+preview +", result = "+urlService.getThumbnailUrl(preview, getType()));
+                        LOG.debug("BriefView, edmPreview orig = " +
+                                  preview +
+                                  ", result = " +
+                                  urlService.getThumbnailUrl(preview, getType()));
                         thumbs.add(urlService.getThumbnailUrl(preview, getType()));
                     }
                 }
             }
             // second try edmObject
-            if (thumbs.size() == 0 && bean.getEdmObject() != null) {
+            if (thumbs.isEmpty() && bean.getEdmObject() != null) {
                 for (String object : bean.getEdmObject()) {
                     if (StringUtils.isNotEmpty(object)) {
-                        System.err.println("BriefView, edmObj orig = "+object +", result = "+urlService.getThumbnailUrl(object, getType()));
+                        LOG.debug("BriefView, edmObj orig = " +
+                                  object +
+                                  ", result = " +
+                                  urlService.getThumbnailUrl(object, getType()));
                         thumbs.add(urlService.getThumbnailUrl(object, getType()));
                     }
                 }
