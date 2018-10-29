@@ -298,10 +298,8 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             if (bean.getEdmPreview() != null) {
                 for (String preview : bean.getEdmPreview()) {
                     if (StringUtils.isNotEmpty(preview)) {
-                        LOG.debug("BriefView, edmPreview orig = " +
-                                  preview +
-                                  ", result = " +
-                                  urlService.getThumbnailUrl(preview, getType()));
+                        LOG.debug("BriefView, edmPreview orig = {}, result = {}",
+                                  preview, urlService.getThumbnailUrl(preview, getType()));
                         thumbs.add(urlService.getThumbnailUrl(preview, getType()));
                     }
                 }
@@ -310,10 +308,8 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             if (thumbs.isEmpty() && bean.getEdmObject() != null) {
                 for (String object : bean.getEdmObject()) {
                     if (StringUtils.isNotEmpty(object)) {
-                        LOG.debug("BriefView, edmObj orig = " +
-                                  object +
-                                  ", result = " +
-                                  urlService.getThumbnailUrl(object, getType()));
+                        LOG.debug("BriefView, edmObj orig = {}, result = {}",
+                                  object, urlService.getThumbnailUrl(object, getType()));
                         thumbs.add(urlService.getThumbnailUrl(object, getType()));
                     }
                 }
