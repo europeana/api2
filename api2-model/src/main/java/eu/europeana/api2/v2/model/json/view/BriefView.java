@@ -35,13 +35,16 @@ import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 @JsonInclude(NON_EMPTY)
 @JsonPropertyOrder(alphabetic=true)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
-    protected Api2UrlService urlService;
+    private static final Logger         LOG = LogManager.getLogger(FullView.class);
+    protected            Api2UrlService urlService;
 
     protected String profile;
     protected String wskey;
@@ -281,16 +284,33 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return bean.getId();
     }
 
+    /**
+     * We need to convert all edmPreview values (which are original image urls) to proper API thumbnail urls
+     * If there are no edmPreview values, we use edmObject instead.
+     * Ideally a secondary fallback is edmIsShownBy but that is not present in BriefBean (only in RichBean and FUllBean)
+     * @return
+     */
     private String[] getThumbnails() {
         if (thumbnails == null) {
             List<String> thumbs = new ArrayList<>();
 
-            if (bean.getEdmObject() != null) {
+            /// first try edmPreview from Corelib (Solr)
+            if (bean.getEdmPreview() != null) {
+                for (String preview : bean.getEdmPreview()) {
+                    if (StringUtils.isNotEmpty(preview)) {
+                        LOG.debug("BriefView, edmPreview orig = {}, result = {}",
+                                  preview, urlService.getThumbnailUrl(preview, getType()));
+                        thumbs.add(urlService.getThumbnailUrl(preview, getType()));
+                    }
+                }
+            }
+            // second try edmObject
+            if (thumbs.isEmpty() && bean.getEdmObject() != null) {
                 for (String object : bean.getEdmObject()) {
-                    String tn = StringUtils.defaultIfBlank(object, "");
-                    final String url = urlService.getThumbnailUrl(tn, getType());
-                    if (StringUtils.isNotBlank(url)) {
-                        thumbs.add(url.trim());
+                    if (StringUtils.isNotEmpty(object)) {
+                        LOG.debug("BriefView, edmObj orig = {}, result = {}",
+                                  object, urlService.getThumbnailUrl(object, getType()));
+                        thumbs.add(urlService.getThumbnailUrl(object, getType()));
                     }
                 }
             }
