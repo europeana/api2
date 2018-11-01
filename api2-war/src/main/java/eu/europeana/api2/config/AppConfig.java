@@ -2,6 +2,7 @@ package eu.europeana.api2.config;
 
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
+import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
 import org.apache.commons.lang.StringUtils;
@@ -234,6 +235,15 @@ public class AppConfig {
         LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl());
         LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl());
         return urlService;
+    }
+
+    /**
+     * Utility methods to help HTTP caching processing
+     * @return HttpCacheUtils bean
+     */
+    @Bean
+    public HttpCacheUtils httpCacheUtils() {
+        return new HttpCacheUtils();
     }
 
     /**

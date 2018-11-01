@@ -36,13 +36,12 @@ import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
-import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
-import eu.europeana.corelib.edm.exceptions.BadDataException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.search.SearchService;
@@ -53,7 +52,7 @@ import eu.europeana.corelib.web.utils.RequestUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -70,10 +69,7 @@ import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Provides record information in all kinds of formats; json, json-ld, rdf and srw
@@ -87,21 +83,33 @@ import java.util.Map;
 public class ObjectController {
 
     private static final Logger LOG = Logger.getLogger(ObjectController.class);
+    private static final String ALLOWED = "GET, HEAD";
+    private static final String ALLOWHEADERS = "If-Match, If-None-Match, If-Modified-Since";
+    private static final String EXPOSEHEADERS = "Allow, ETag, Last-Modified, Link";
+    private static final String MEDIA_TYPE_JSONLD_UTF8 = "application/ld+json; charset=UTF-8";
+    private static final String MEDIA_TYPE_RDF_UTF8 = "application/rdf+xml; charset=UTF-8";
+
+
+
 
     private SearchService searchService;
 
     private ApiKeyUtils apiKeyUtils;
+
+    private HttpCacheUtils httpCacheUtils;
 
     /**
      * Create a new ObjectController
      *
      * @param searchService
      * @param apiKeyUtils
+     * @param httpCacheUtils
      */
     @Autowired
-    public ObjectController(SearchService searchService, ApiKeyUtils apiKeyUtils) {
+    public ObjectController(SearchService searchService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
         this.searchService = searchService;
         this.apiKeyUtils = apiKeyUtils;
+        this.httpCacheUtils = httpCacheUtils;
     }
 
     /**
@@ -119,7 +127,7 @@ public class ObjectController {
      * @throws ApiLimitException
      */
     @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
-    @RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.json", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ModelAndView record(@PathVariable String collectionId,
                                @PathVariable String recordId,
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
@@ -164,7 +172,7 @@ public class ObjectController {
      * @throws ApiLimitException
      */
     @SwaggerIgnore
-    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld", method = RequestMethod.GET, produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey", required = true) String wskey,
@@ -190,7 +198,7 @@ public class ObjectController {
      * @throws ApiLimitException
      */
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
-    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld", method = RequestMethod.GET, produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey", required = true) String wskey,
@@ -224,7 +232,7 @@ public class ObjectController {
      * @throws ApiLimitException
      */
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
-    @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld", method = RequestMethod.GET, produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey", required = true) String wskey,
@@ -257,7 +265,7 @@ public class ObjectController {
      * @throws ApiLimitException
      */
     @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
-    @RequestMapping(value = "/{collectionId}/{recordId}.rdf", method = RequestMethod.GET, produces = "application/rdf+xml")
+    @RequestMapping(value = "/{collectionId}/{recordId}.rdf", method = RequestMethod.GET, produces = MEDIA_TYPE_RDF_UTF8)
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "wskey", required = true) String wskey,
@@ -308,68 +316,116 @@ public class ObjectController {
     }
 
 
+
     /**
      * The larger part of handling a record is the same for all types of output, so this method handles all the common
      * functionality like setting CORS headers, checking API key, retrieving the record for mongo and setting 301 or 404 if necessary
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
             throws ApiLimitException, EuropeanaException {
+
+        ModelAndView result;
+
+        // 1) Check if HTTP method is supported, HTTP 405 if not
+        if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) &&
+            !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
+            response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return null; // figure out what to return exactly in these cases
+        }
+
         long startTime = System.currentTimeMillis();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Retrieving record with id " + data.europeanaObjectId + ", type = " + recordType);
         }
 
-        // check apikey and add default headers
-        data.apikeyCheckResponse = apiKeyUtils.checkLimit(data.wskey, data.servletRequest.getRequestURL().toString(), recordType, data.profile);
-        ControllerUtils.addResponseHeaders(response);
+        // 2) check apikey, HTTP 401 if invalid or missing
+        data.apikeyCheckResponse = apiKeyUtils.checkLimit(
+                data.wskey, data.servletRequest.getRequestURL().toString(), recordType, data.profile);
 
         // retrieve record data
-        FullBean bean = retrieveRecord(data.europeanaObjectId);
-        if (bean == null) {
-            ModelAndView result;
-            // record not found, check if we can redirect
-            String newId = findNewId(data.europeanaObjectId);
+        FullBean bean = searchService.fetchFullBean(data.europeanaObjectId);
 
-            // 2017-07-06 code PE: inserted as temp workaround until we resolve #662 (see also comment below)
-            if (newId != null) {
-                bean = retrieveRecord(newId);
+        // 3) Check if record exists, HTTP 404 if not
+        if (Objects.isNull(bean)) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            if (recordType == RecordType.OBJECT_RDF) {
+                Map<String, Object> model = new HashMap<>();
+                model.put("error", "Non-existing record identifier");
+                result = new ModelAndView("rdf", model);
+            } else if (recordType == RecordType.OBJECT_SRW) {
+                // no official supported way to return xml error message yet
+                result = null;
+            } else {
+                result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: "
+                        + data.europeanaObjectId, data.apikeyCheckResponse.getRequestNumber()), data.callback);
             }
-            if (bean == null) {
-                // -- end of insert
-
-
-                //if (newId == null) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                if (recordType == RecordType.OBJECT_RDF) {
-                    Map<String, Object> model = new HashMap<>();
-                    model.put("error", "Non-existing record identifier");
-                    result = new ModelAndView("rdf", model);
-                } else if (recordType == RecordType.OBJECT_SRW) {
-                    // no official supported way to return xml error message yet
-                    result = null;
-                } else {
-                    result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: "
-                            + data.europeanaObjectId, data.apikeyCheckResponse.getRequestNumber()), data.callback);
-                }
-                return result;
-                // 2017-07-06 PE: Code below was implemented as part of ticket #662. However as collections does not support his yet,
-                // activation of this functionality is postponed
-                //} else {
-                //  response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-                //  response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, newId));
-                //  result = null;
-                //}
-            }
-            //return result;
+            return result;
+        } else {
+            // ugly solution for EA-1257, but it works
+            ItemFix.apply(bean);
         }
+
+        // NOTE for now I will stick to using the ISO string format because that includes milliseconds, whereas the
+        // RFC 1123 format doesn't. ETag is created from timestamp + api version.
+        String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
+        String eTag = httpCacheUtils.generateETag(tsUpdated, true);
+
+        // First check if “If-Modified-Since” is present
+
+
+
+
+
+        // - if "If-None-Match" is given, check there's a matching eTag in there OR == '*"
+        // - AND / OR if “If-Modified-Since” is given, check if object has changed since
+        // in those cases: proceed. Otherwise: stop and return HTTP 304 + cache headers
+        if (httpCacheUtils.doesAnyIfNoneMatch(data.servletRequest, eTag) &&
+            !httpCacheUtils.isModifiedSince(data.servletRequest, bean.getTimestampUpdated())) {
+            // add headers, except Content-Type (that differs per recordType)
+            response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated, ALLOWED, "no-cache");
+            if (StringUtils.isNotBlank(data.servletRequest.getHeader("Origin"))){
+                response = httpCacheUtils.addCorsHeaders(response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, "600");
+            }
+            response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+            return null;
+        // if "If-Match" is given, check if matches the eTag OR is "*"
+        // yes: proceed; no: stop and return HTTP 412 - no cache headers
+        } else if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
+            response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
+            return null;
+        // check if “If-Modified-Since” is present and on or after timestamp_updated
+        // yes: return HTTP 304 no: continue
+        } else if (httpCacheUtils.isNotModifiedSince(data.servletRequest, bean.getTimestampUpdated())){
+            response.setStatus(HttpServletResponse.SC_NOT_MODIFIED); // no cache headers
+            return null;
+        }
+
+        // add headers, except Content-Type (that differs per recordType)
+        response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated, ALLOWED, "no-cache");
+
+        if (StringUtils.isNotBlank(data.servletRequest.getHeader("Origin"))){
+            response = httpCacheUtils.addCorsHeaders(response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, "600");
+        }
+
+
+
+        // TODO review below comments from previous tickets (re-, de-, or non-implemented)
+
+        // 2017-07-06 PE: Code below was implemented as part of ticket #662. However as collections does not support his yet,
+        // activation of this functionality is postponed
+
+        //  response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        //  response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, newId));
+        //  result = null;
 
         // check modified
         // 2017-07-10 PE: Decided to postpone the modified check for now (see also ticket 676 / EA-680)
         //if (bean.getTimestampUpdated() != null && data.webRequest.checkNotModified(bean.getTimestampUpdated().getTime()))
-        {
-            // checkNotModified method will set LastModified header automatically and will return 304 - Not modified if necessary
-            // (but only when clients include the If_Modified_Since header in their request)
-        }
+
+        // checkNotModified method will set LastModified header automatically and will return 304 - Not modified if necessary
+        // (but only when clients include the If_Modified_Since header in their request)
+
+
 
         // generate output depending on type of record
         Object output;
@@ -398,6 +454,7 @@ public class ObjectController {
         }
         return output;
     }
+
 
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
         ObjectResult objectResult = new ObjectResult(data.wskey, data.apikeyCheckResponse.getRequestNumber());
@@ -461,29 +518,6 @@ public class ObjectController {
             LOG.error("Error generating xml", e);
         }
         return srwResponse;
-    }
-
-    private FullBean retrieveRecord(String europeanaId) throws EuropeanaException {
-        long     startTime = System.currentTimeMillis();
-        FullBean result    = searchService.findById(europeanaId, false);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("SearchService findByID took " + (System.currentTimeMillis() - startTime) + " ms");
-        }
-
-        // ugly solution for EA-1257, but it works
-        if (result != null) {
-            ItemFix.apply(result);
-        }
-        return result;
-    }
-
-    private String findNewId(String europeanaId) throws BadDataException {
-        long   startTime = System.currentTimeMillis();
-        String newId     = searchService.resolveId(europeanaId);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("SearchService find newId took " + (System.currentTimeMillis() - startTime) + " ms");
-        }
-        return newId;
     }
 
     /**
