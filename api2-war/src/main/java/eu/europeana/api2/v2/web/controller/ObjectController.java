@@ -36,12 +36,14 @@ import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
+import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.edm.exceptions.BadDataException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.search.SearchService;
@@ -71,6 +73,9 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.*;
 
+import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
+import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
+
 /**
  * Provides record information in all kinds of formats; json, json-ld, rdf and srw
  *
@@ -88,9 +93,6 @@ public class ObjectController {
     private static final String EXPOSEHEADERS = "Allow, ETag, Last-Modified, Link";
     private static final String MEDIA_TYPE_JSONLD_UTF8 = "application/ld+json; charset=UTF-8";
     private static final String MEDIA_TYPE_RDF_UTF8 = "application/rdf+xml; charset=UTF-8";
-
-
-
 
     private SearchService searchService;
 
@@ -115,8 +117,9 @@ public class ObjectController {
     /**
      * Handles record.json GET requests. Each request should consists of at least a collectionId, a recordId and an api-key (wskey)
      *
-     * @param collectionId
-     * @param recordId
+     * @param collectionId   ID of data collection or data set
+     * @param recordId       ID of record, item - a.k.a. 'localId'
+     * @param wskey          pre-api term for 'apikey'
      * @param profile        supported types are 'params' and 'similar'
      * @param wskey
      * @param callback
@@ -131,7 +134,7 @@ public class ObjectController {
     public ModelAndView record(@PathVariable String collectionId,
                                @PathVariable String recordId,
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
-                               @RequestParam(value = "wskey", required = true) String wskey,
+                               @RequestParam(value = "wskey") String wskey,
                                @RequestParam(value = "callback", required = false) String callback,
                                WebRequest webRequest,
                                HttpServletRequest servletRequest,
@@ -160,9 +163,9 @@ public class ObjectController {
     /**
      * Retrieve a record in JSON-LD format (hidden alias for record.jsonld request)
      *
-     * @param collectionId
-     * @param recordId
-     * @param wskey
+     * @param collectionId   ID of data collection or data set
+     * @param recordId       ID of record, item - a.k.a. 'localId'
+     * @param wskey          pre-api term for 'apikey'
      * @param format
      * @param callback
      * @param webRequest
@@ -170,12 +173,12 @@ public class ObjectController {
      * @param response
      * @return
      * @throws ApiLimitException
-     */
+     */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @SwaggerIgnore
-    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld", method = RequestMethod.GET, produces = MEDIA_TYPE_JSONLD_UTF8)
+    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
-                                      @RequestParam(value = "wskey", required = true) String wskey,
+                                      @RequestParam(value = "wskey") String wskey,
                                       @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                       @RequestParam(value = "callback", required = false) String callback,
                                       WebRequest webRequest,
@@ -186,9 +189,9 @@ public class ObjectController {
 
     /***
      * Retrieve a record in JSON-LD format.
-     * @param collectionId
-     * @param recordId
-     * @param wskey
+     * @param collectionId   ID of data collection or data set
+     * @param recordId       ID of record, item - a.k.a. 'localId'
+     * @param wskey          pre-api term for 'apikey'
      * @param format supported types are 'compacted', 'flattened' and 'normalized'
      * @param callback
      * @param webRequest
@@ -196,12 +199,12 @@ public class ObjectController {
      * @param response
      * @return
      * @throws ApiLimitException
-     */
+     */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
-    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld", method = RequestMethod.GET, produces = MEDIA_TYPE_JSONLD_UTF8)
+    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
-                                     @RequestParam(value = "wskey", required = true) String wskey,
+                                     @RequestParam(value = "wskey") String wskey,
                                      @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                      @RequestParam(value = "callback", required = false) String callback,
                                      WebRequest webRequest,
@@ -220,22 +223,22 @@ public class ObjectController {
 
     /***
      * Retrieve a record in Schema.org JSON-LD format.
-     * @param collectionId
-     * @param recordId
-     * @param wskey
-     * @param format supported types are 'compacted', 'flattened' and 'normalized'
-     * @param callback
+     * @param collectionId   ID of data collection or data set
+     * @param recordId       ID of record, item - a.k.a. 'localId'
+     * @param wskey          pre-api term for 'apikey'
+     * @param format         supported types are 'compacted', 'flattened' and 'normalized'
+     * @param callback       repeats whatever you supply
      * @param webRequest
      * @param servletRequest
      * @param response
      * @return
      * @throws ApiLimitException
-     */
+     */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
-    @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld", method = RequestMethod.GET, produces = MEDIA_TYPE_JSONLD_UTF8)
+    @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                      @PathVariable String recordId,
-                                     @RequestParam(value = "wskey", required = true) String wskey,
+                                     @RequestParam(value = "wskey") String wskey,
                                      @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                      @RequestParam(value = "callback", required = false) String callback,
                                      WebRequest webRequest,
@@ -255,9 +258,9 @@ public class ObjectController {
     /**
      * Retrieve a record in RDF format
      *
-     * @param collectionId
-     * @param recordId
-     * @param wskey
+     * @param collectionId   ID of data collection or data set
+     * @param recordId       ID of record, item - a.k.a. 'localId'
+     * @param wskey          pre-api term for 'apikey'
      * @param webRequest
      * @param servletRequest
      * @param response
@@ -268,7 +271,7 @@ public class ObjectController {
     @RequestMapping(value = "/{collectionId}/{recordId}.rdf", method = RequestMethod.GET, produces = MEDIA_TYPE_RDF_UTF8)
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
-                                  @RequestParam(value = "wskey", required = true) String wskey,
+                                  @RequestParam(value = "wskey") String wskey,
                                   WebRequest webRequest,
                                   HttpServletRequest servletRequest,
                                   HttpServletResponse response) throws ApiLimitException {
@@ -285,9 +288,9 @@ public class ObjectController {
     /**
      * Provides records in SRU/SRW (XML) format.
      *
-     * @param collectionId
-     * @param recordId
-     * @param wskey
+     * @param collectionId   ID of data collection or data set
+     * @param recordId       ID of record, item - a.k.a. 'localId'
+     * @param wskey          pre-api term for 'apikey'
      * @param webRequest
      * @param servletRequest
      * @param response
@@ -314,8 +317,6 @@ public class ObjectController {
         // or output is a ModelAndView and status 404 or 301
         return null;
     }
-
-
 
     /**
      * The larger part of handling a record is the same for all types of output, so this method handles all the common
@@ -360,45 +361,42 @@ public class ObjectController {
                         + data.europeanaObjectId, data.apikeyCheckResponse.getRequestNumber()), data.callback);
             }
             return result;
-        } else {
-            // ugly solution for EA-1257, but it works
-            ItemFix.apply(bean);
         }
 
         // NOTE for now I will stick to using the ISO string format because that includes milliseconds, whereas the
         // RFC 1123 format doesn't. ETag is created from timestamp + api version.
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
-        String eTag = httpCacheUtils.generateETag(tsUpdated, true);
+        String eTag      = httpCacheUtils.generateETag(tsUpdated, true);
 
-        // First check if “If-Modified-Since” is present
-
-
-
-
-
-        // - if "If-None-Match" is given, check there's a matching eTag in there OR == '*"
-        // - AND / OR if “If-Modified-Since” is given, check if object has changed since
-        // in those cases: proceed. Otherwise: stop and return HTTP 304 + cache headers
-        if (httpCacheUtils.doesAnyIfNoneMatch(data.servletRequest, eTag) &&
-            !httpCacheUtils.isModifiedSince(data.servletRequest, bean.getTimestampUpdated())) {
-            // add headers, except Content-Type (that differs per recordType)
-            response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated, ALLOWED, "no-cache");
-            if (StringUtils.isNotBlank(data.servletRequest.getHeader("Origin"))){
-                response = httpCacheUtils.addCorsHeaders(response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, "600");
+        // If If-None-Match is present: check if it contains a matching eTag OR == '*"
+        // Yes: return HTTP 304 + cache headers. Ignore If-Modified-Since (RFC 7232)
+        if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFNONEMATCH))){
+            if (httpCacheUtils.doesAnyIfNoneMatch(data.servletRequest, eTag)) {
+                response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated, ALLOWED, "no-cache");
+                if (StringUtils.isNotBlank(data.servletRequest.getHeader("Origin"))){
+                    response = httpCacheUtils.addCorsHeaders(response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, "600");
+                }
+                response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+                return null;
             }
-            response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-            return null;
-        // if "If-Match" is given, check if matches the eTag OR is "*"
-        // yes: proceed; no: stop and return HTTP 412 - no cache headers
-        } else if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
-            response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
-            return null;
-        // check if “If-Modified-Since” is present and on or after timestamp_updated
+        // If If-Match is present: check if it contains a matching eTag OR == '*"
+        // Yes: proceed. No: return HTTP 412, no cache headers
+        } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))){
+            if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
+                response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
+                return null;
+            }
+        // check if If-Modified-Since is present and on or after timestamp_updated
         // yes: return HTTP 304 no: continue
         } else if (httpCacheUtils.isNotModifiedSince(data.servletRequest, bean.getTimestampUpdated())){
             response.setStatus(HttpServletResponse.SC_NOT_MODIFIED); // no cache headers
             return null;
         }
+
+        // ugly solution for EA-1257, but it works
+        ItemFix.apply(bean);
+        // now the FullBean can be processed (adding similar items and initiating the AttributionSnippet)
+        bean = searchService.processFullBean(bean, data.europeanaObjectId, false);
 
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated, ALLOWED, "no-cache");
@@ -406,26 +404,6 @@ public class ObjectController {
         if (StringUtils.isNotBlank(data.servletRequest.getHeader("Origin"))){
             response = httpCacheUtils.addCorsHeaders(response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, "600");
         }
-
-
-
-        // TODO review below comments from previous tickets (re-, de-, or non-implemented)
-
-        // 2017-07-06 PE: Code below was implemented as part of ticket #662. However as collections does not support his yet,
-        // activation of this functionality is postponed
-
-        //  response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        //  response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, newId));
-        //  result = null;
-
-        // check modified
-        // 2017-07-10 PE: Decided to postpone the modified check for now (see also ticket 676 / EA-680)
-        //if (bean.getTimestampUpdated() != null && data.webRequest.checkNotModified(bean.getTimestampUpdated().getTime()))
-
-        // checkNotModified method will set LastModified header automatically and will return 304 - Not modified if necessary
-        // (but only when clients include the If_Modified_Since header in their request)
-
-
 
         // generate output depending on type of record
         Object output;
@@ -454,7 +432,6 @@ public class ObjectController {
         }
         return output;
     }
-
 
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
         ObjectResult objectResult = new ObjectResult(data.wskey, data.apikeyCheckResponse.getRequestNumber());
@@ -521,23 +498,25 @@ public class ObjectController {
     }
 
     /**
+     * NOTE this method is called in commented-out code above, check those first before removing this
+     *
      * Reconstruct the original url and instead of the old EuropeanaId inserts the new provided one.
      * <p>
      * Original code snippet was copied from https://stackoverflow.com/a/5212336 and slightly adjusted.
      *
      * @param req
-     * @param oldId
-     * @param newId
-     * @return
+     * @param oldId old identifier
+     * @param newId new identifier
+     * @return String with redirect URL
      */
     private String generateRedirectUrl(HttpServletRequest req, String oldId, String newId) {
 
-        String scheme      = req.getScheme();             // http
-        String serverName  = req.getServerName();     // www.europeana.eu
-        int    serverPort  = req.getServerPort();        // 80
-        String requestUri  = req.getRequestURI();     // /api/v2/record/90402/BK_1978_399.json
-        String pathInfo    = req.getPathInfo();         //
-        String queryString = req.getQueryString();   // wskey=....
+        String scheme      = req.getScheme();      // http
+        String serverName  = req.getServerName();  // www.europeana.eu
+        int    serverPort  = req.getServerPort();  // 80
+        String requestUri  = req.getRequestURI();  // /api/v2/record/90402/BK_1978_399.json
+        String pathInfo    = req.getPathInfo();    //
+        String queryString = req.getQueryString(); // wskey=....
 
         requestUri = requestUri.replace(oldId, newId);
         // check if we really replaced the id to avoid infinite loops
@@ -608,15 +587,21 @@ public class ObjectController {
      * Helper class so we can pass all data around in 1 object (and not specify many parameters)
      */
     private static class RequestData {
-        protected String             europeanaObjectId;
-        protected String             profile; // called format in json-ld
-        protected String             wskey;
-        protected LimitResponse      apikeyCheckResponse;
-        protected String             callback;
-        protected WebRequest         webRequest;
-        protected HttpServletRequest servletRequest;
+        String             europeanaObjectId;
+        protected String   profile;             // called format in json-ld
+        String             wskey;
+        LimitResponse      apikeyCheckResponse;
+        protected String   callback;
+        WebRequest         webRequest;
+        HttpServletRequest servletRequest;
 
-        public RequestData(String collectionId, String recordId, String wskey, String profile, String callback, WebRequest webRequest, HttpServletRequest servletRequest) {
+        RequestData(String collectionId,
+                    String recordId,
+                    String wskey,
+                    String profile,
+                    String callback,
+                    WebRequest webRequest,
+                    HttpServletRequest servletRequest) {
             this.europeanaObjectId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
             this.wskey = wskey;
             this.profile = profile;

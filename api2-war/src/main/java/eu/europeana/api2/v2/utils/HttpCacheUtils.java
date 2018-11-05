@@ -23,20 +23,17 @@ import java.util.*;
  */
 public class HttpCacheUtils {
 
-    private static final Logger           LOG               = Logger.getLogger(HttpCacheUtils.class);
-    private static final Properties       properties        = new Properties();
-    private static final String           DATEUPDATEDFORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-    private static final SimpleDateFormat UPDATEFORMAT      = new SimpleDateFormat(DATEUPDATEDFORMAT, Locale.GERMAN);
-    private static final String           LOCALBUILDVERSION = "localbuildversion";
-    private static final String           IFNONEMATCH       = "If-None-Match";
-    private static final String           IFMATCH           = "If-Match";
-    private static final String           IFMODIFIEDSINCE   = "If-Modified-Since";
-    private static final String           ANY               = "\"*\"";
+    private static final Logger     LOG               = Logger.getLogger(HttpCacheUtils.class);
+    private static final Properties properties        = new Properties();
+    private static final String     LOCALBUILDVERSION = "localbuildversion";
+    public  static final String     IFNONEMATCH       = "If-None-Match";
+    public  static final String     IFMATCH           = "If-Match";
+    private static final String     IFMODIFIEDSINCE   = "If-Modified-Since";
+    private static final String     ANY               = "\"*\"";
 
     private static boolean useLocalBuildVersion = false;
 
     static{
-        UPDATEFORMAT.setTimeZone(TimeZone.getTimeZone("GTM"));
         try {
             properties.load(HttpCacheUtils.class.getResourceAsStream("build.properties"));
         } catch (Exception e) {
@@ -66,7 +63,7 @@ public class HttpCacheUtils {
      * @param  tsUpdated  String
      * @return SHA256Hash String
      */
-    public String getSHA256Hash(String tsUpdated){
+    private String getSHA256Hash(String tsUpdated){
         MessageDigest digest = null;
         String version = null;
         if (useLocalBuildVersion) {
@@ -96,7 +93,7 @@ public class HttpCacheUtils {
     // use this format: DateTimeFormatter.RFC_1123_DATE_TIME
 
     /**
-     * Parses the date string received in a request header
+     * Parses the given string into a ZonedDateTime object
      * @param dateString
      * @return ZonedDateTime
      */
@@ -115,13 +112,18 @@ public class HttpCacheUtils {
 
     /**
      * Transforms a java.util.Date object to a ZonedDateTime object
-     * @param date
-     * @return ZonedDateTime
+     * @param date input Date object
+     * @return ZonedDateTime representation of input date
      */
     private ZonedDateTime dateToZonedUTC(Date date){
         return date.toInstant().atOffset(ZoneOffset.UTC).toZonedDateTime().withNano(0);
     }
 
+    /**
+     * Formats the given java.util.Date according to the RFC 1123 pattern (e.g. Thu, 4 Oct 2018 10:34:20 GMT)
+     * @param date Date object to be formatted
+     * @return RFC 1123 patterned String representation
+     */
     // Formats the given date according to the RFC 1123 pattern.
     public String dateToRFC1123String(Date date) {
         return DateUtils.formatDate(date);
@@ -129,8 +131,8 @@ public class HttpCacheUtils {
 
     /**
      * Formats the given date according to the RFC 1123 pattern (e.g. Thu, 4 Oct 2018 10:34:20 GMT)
-     * @param lastModified
-     * @return
+     * @param lastModified ZonedDateTime object to be formatted
+     * @return RFC 1123 patterned String representation
      */
     private static String headerDateToString(ZonedDateTime lastModified) {
         return lastModified.format(DateTimeFormatter.RFC_1123_DATE_TIME);
@@ -211,7 +213,7 @@ public class HttpCacheUtils {
     public boolean isNotModifiedSince(HttpServletRequest request, Date tsUpdated){
         return ( StringUtils.isNotBlank(request.getHeader(IFMODIFIEDSINCE)) &&
                  Objects.requireNonNull(stringToZonedUTC(request.getHeader(IFMODIFIEDSINCE)))
-                        .compareTo(dateToZonedUTC(tsUpdated)) >= 0 );
+                         .compareTo(dateToZonedUTC(tsUpdated)) >= 0 );
     }
 
     /**
@@ -220,7 +222,11 @@ public class HttpCacheUtils {
      * @return boolean true IF If-Modified-Since header is supplied AND
      *                         is earlier the timestamp_updated
      *         Otherwise false
+     *         NOTE this method was used for implementing the If-Modified-Since exception on the If-None-Match header
+     *         processing specified in RFC 2616. It turns out that this RFC is obsolete and superseded by RFC 7232,
+     *         which simply states to ignore the If-Modified-Since when If-None-Match is available (and can be handled)
      */
+    @Deprecated
     public boolean isModifiedSince(HttpServletRequest request, Date tsUpdated){
         return ( StringUtils.isNotBlank(request.getHeader(IFMODIFIEDSINCE)) &&
                  Objects.requireNonNull(stringToZonedUTC(request.getHeader(IFMODIFIEDSINCE)))
@@ -254,13 +260,8 @@ public class HttpCacheUtils {
         return false;
     }
 
-    public static String spicAndSpan(String header){
+    private static String spicAndSpan(String header){
         return StringUtils.remove(StringUtils.stripStart(header, "W/"), "\"");
     }
-
-    private String stripQuotes(String eTag){
-        return StringUtils.stripEnd(StringUtils.stripStart(eTag, "\""), "\"");
-    }
-
 
 }
