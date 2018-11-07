@@ -6,10 +6,10 @@ import org.apache.log4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,21 +24,23 @@ import java.util.*;
 public class HttpCacheUtils {
 
     private static final Logger     LOG               = Logger.getLogger(HttpCacheUtils.class);
-    private static final Properties properties        = new Properties();
-    private static final String     LOCALBUILDVERSION = "localbuildversion";
     public  static final String     IFNONEMATCH       = "If-None-Match";
     public  static final String     IFMATCH           = "If-Match";
     private static final String     IFMODIFIEDSINCE   = "If-Modified-Since";
     private static final String     ANY               = "\"*\"";
-
-    private static boolean useLocalBuildVersion = false;
+    private static String apiVersion;
 
     static{
         try {
-            properties.load(HttpCacheUtils.class.getResourceAsStream("build.properties"));
-        } catch (Exception e) {
-            useLocalBuildVersion = true;
-            LOG.error("IOException trying to read build.properties");
+            Properties buildProps = new Properties();
+            buildProps.load(HttpCacheUtils.class.getResourceAsStream("build.properties"));
+            apiVersion = buildProps.getProperty("info.app.version");
+        } catch (IOException e) {
+            LOG.warn("Unable to read build.properties file", e);
+        }
+        if (StringUtils.isEmpty(apiVersion)) {
+            LOG.warn("Unable to read API version from build.properties, using current date instead");
+            apiVersion = DateUtils.formatDate(new Date());
         }
     }
 
@@ -46,10 +48,12 @@ public class HttpCacheUtils {
      * Generates an eTag surrounded with double quotes
      * @param data
      * @param weakETag if true then the eTag will start with W/
+     * @param includeApiVersion if true then the API_version will be included in the ETag calculation (this is
+     *                          recommended when calculating weak ETags)     *
      * @return
      */
-    public String generateETag(String data, boolean weakETag) {
-        String eTag = "\"" + getSHA256Hash(data) + "\"";
+    public String generateETag(String data, boolean weakETag, boolean includeApiVersion) {
+        String eTag = "\"" + getSHA256Hash(data, includeApiVersion) + "\"";
         if (weakETag) {
             return "W/"+eTag;
         }
@@ -60,31 +64,31 @@ public class HttpCacheUtils {
      * Calculates SHA256 hash based on:
      * (1) the API version as read from project.version in build.properties, and
      * (2) the record's timestamp_updated represented as String
-     * @param  tsUpdated  String
+     * @param  data  String
      * @return SHA256Hash String
      */
-    private String getSHA256Hash(String tsUpdated){
+    private String getSHA256Hash(String data, boolean includeApiVersion){
         MessageDigest digest = null;
-        String version = null;
-        if (useLocalBuildVersion) {
-            version = LOCALBUILDVERSION;
-        } else {
-            version = properties.getProperty("version");
-        }
         try {
             digest = MessageDigest.getInstance("SHA-256");
+            if (includeApiVersion) {
+                data = data + apiVersion;
+            }
+            byte[] encodedhash = digest.digest(data.getBytes(StandardCharsets.UTF_8));
+            return bytesToHex(encodedhash);
         } catch (NoSuchAlgorithmException e) {
             LOG.error("Error creating SHA-265 hash", e);
         }
-        byte[] encodedhash = digest.digest((version + tsUpdated).getBytes(StandardCharsets.UTF_8));
-        return bytesToHex(encodedhash);
+        return null;
     }
 
     private static String bytesToHex(byte[] hash) {
         StringBuffer hexString = new StringBuffer();
         for (int i = 0; i < hash.length; i++) {
             String hex = Integer.toHexString(0xff & hash[i]);
-            if(hex.length() == 1) hexString.append('0');
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
             hexString.append(hex);
         }
         return hexString.toString();
@@ -252,16 +256,12 @@ public class HttpCacheUtils {
         }
         if (StringUtils.isNoneBlank(eTags, eTagToMatch)){
             for (String eTag : StringUtils.stripAll(StringUtils.split(eTags, ","))){
-                if (StringUtils.equalsIgnoreCase(spicAndSpan(eTag),spicAndSpan(eTagToMatch))){
+                if (StringUtils.equalsIgnoreCase(eTag, eTagToMatch)){
                     return true;
                 }
             }
         }
         return false;
-    }
-
-    private static String spicAndSpan(String header){
-        return StringUtils.remove(StringUtils.stripStart(header, "W/"), "\"");
     }
 
 }

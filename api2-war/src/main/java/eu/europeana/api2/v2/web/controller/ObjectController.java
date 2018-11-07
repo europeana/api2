@@ -36,14 +36,12 @@ import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
-import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
-import eu.europeana.corelib.edm.exceptions.BadDataException;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.search.SearchService;
@@ -363,10 +361,17 @@ public class ObjectController {
             return result;
         }
 
-        // NOTE for now I will stick to using the ISO string format because that includes milliseconds, whereas the
-        // RFC 1123 format doesn't. ETag is created from timestamp + api version.
+        // 2017-07-06 PE: Code below was implemented as part of ticket #662. However as collections does not support this
+        // yet activation of this functionality is postponed.
+        //        if (!bean.getAbout().equals(data.europeanaObjectId)) {
+        //            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        //            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, bean.getAbout()));
+        //            return null;
+        //        }
+
+        // ETag is created from timestamp + api version.
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
-        String eTag      = httpCacheUtils.generateETag(tsUpdated, true);
+        String eTag      = httpCacheUtils.generateETag(data.europeanaObjectId+tsUpdated, true, true);
 
         // If If-None-Match is present: check if it contains a matching eTag OR == '*"
         // Yes: return HTTP 304 + cache headers. Ignore If-Modified-Since (RFC 7232)
