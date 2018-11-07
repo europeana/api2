@@ -2,11 +2,13 @@ package eu.europeana.api2.v2.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -23,7 +25,7 @@ import java.util.*;
  */
 public class HttpCacheUtils {
 
-    private static final Logger     LOG               = Logger.getLogger(HttpCacheUtils.class);
+    private static final Logger LOG                   = LogManager.getLogger(HttpCacheUtils.class);
     public  static final String     IFNONEMATCH       = "If-None-Match";
     public  static final String     IFMATCH           = "If-Match";
     private static final String     IFMODIFIEDSINCE   = "If-Modified-Since";
@@ -31,16 +33,22 @@ public class HttpCacheUtils {
     private static String apiVersion;
 
     static{
-        try {
-            Properties buildProps = new Properties();
-            buildProps.load(HttpCacheUtils.class.getResourceAsStream("build.properties"));
-            apiVersion = buildProps.getProperty("info.app.version");
+        try (InputStream is = HttpCacheUtils.class.getClassLoader().getResourceAsStream("build.properties")) {
+            if (is == null) {
+                LOG.warn("No build.properties file found.");
+            } else {
+                Properties buildProps = new Properties();
+                buildProps.load(is);
+                apiVersion = buildProps.getProperty("info.app.version");
+            }
         } catch (IOException e) {
-            LOG.warn("Unable to read build.properties file", e);
+            LOG.warn("Error reading build.properties file", e);
         }
         if (StringUtils.isEmpty(apiVersion)) {
-            LOG.warn("Unable to read API version from build.properties, using current date instead");
+            LOG.warn("Unable to read API version from build.properties file, using current date instead");
             apiVersion = DateUtils.formatDate(new Date());
+        } else {
+            LOG.info("API version = "+apiVersion);
         }
     }
 
