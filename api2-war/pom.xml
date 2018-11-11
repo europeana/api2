@@ -32,12 +32,6 @@
     <organization><name>Europeana Foundation</name></organization>
     <url>http://www.europeana.eu</url>
 
-    <properties>
-        <!-- Set different SonarQube properties so Metis branch can be distinguished from UIM version -->
-        <sonar.projectKey>eu.europeana.api2-metis:api2-war</sonar.projectKey>
-        <sonar.projectName>Europeana Search, Record, Hierarchical and Thumbnail API WAR</sonar.projectName>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>eu.europeana.api2</groupId>
