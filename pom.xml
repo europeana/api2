@@ -30,7 +30,7 @@
     <url>http://www.europeana.eu</url>
 
     <properties>
-        <corelib.version>2.8.4-SNAPSHOT</corelib.version>
+        <corelib.version>2.8.4</corelib.version>
 
         <httpclient.version>4.5.2</httpclient.version>
         <jackson.version>2.6.5</jackson.version>
