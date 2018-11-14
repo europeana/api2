@@ -313,9 +313,6 @@ public class SearchController {
                 result.addParam("rows", rows);
                 result.addParam("sort", sort);
             }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("got response " + result.items.size());
-            }
             return JsonUtils.toJson(result, callback);
 
         } catch (SolrTypeException e) {
@@ -484,6 +481,14 @@ public class SearchController {
         if (!otherMimeTypeRefinements.isEmpty()) {
             filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeRefinements));
         }
+        if (LOG.isDebugEnabled()) {
+            for (Integer filterTag : filterTags) {
+                if (filterTag != null) {
+                    LOG.debug("filterTag = " + Integer.toBinaryString(filterTag));
+                }
+            }
+        }
+
 
         return newRefinements.toArray(new String[0]);
     }
@@ -598,7 +603,7 @@ public class SearchController {
                 if (!allQueryFacetsMap.isEmpty()) facetFields.addAll(allQueryFacetsMap);
             }
 
-            if (LOG.isDebugEnabled()) LOG.debug("beans: " + beans.size());
+            if (LOG.isDebugEnabled()) LOG.debug("results: " + beans.size());
 
             response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, "facets") ||
