@@ -21,6 +21,7 @@ import java.security.Principal;
 
 import javax.annotation.Resource;
 
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
@@ -32,7 +33,6 @@ import eu.europeana.api2.v2.model.json.abstracts.UserObject;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.db.service.UserService;
 import eu.europeana.corelib.definitions.db.entity.relational.abstracts.EuropeanaUserObject;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
 
 /**
  * @deprecated 2018-01-09 old MyEuropeana functionality
@@ -47,7 +47,7 @@ public abstract class AbstractUserController {
 	protected ApiKeyService apiKeyService;
 	
 	@Resource
-	private EuropeanaUrlService urlService;
+	private Api2UrlService urlService;
 
 	protected String getApiId(Principal principal) {
 		if (principal instanceof OAuth2Authentication) {
@@ -84,8 +84,8 @@ public abstract class AbstractUserController {
 		to.dateSaved = from.getDateSaved();
 		to.type = from.getDocType();
 		to.edmPreview = from.getEuropeanaObject();
-		to.link = urlService.getApi2RecordJson(wskey, from.getEuropeanaUri()).toString();
-		to.guid = LinkUtils.addCampaignCodes(urlService.getPortalRecord(from.getEuropeanaUri()), wskey);
+		to.link = urlService.getRecordApi2Url(from.getEuropeanaUri(), wskey);
+		to.guid = LinkUtils.addCampaignCodes(urlService.getRecordPortalUrl(from.getEuropeanaUri()), wskey);
 	}
 
 }

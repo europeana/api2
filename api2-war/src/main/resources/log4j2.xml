@@ -10,14 +10,13 @@
             </PatternLayout>
 
             <!-- Use this pattern for local debugging -->
-            <!--<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %logger{36} - %msg%n" />-->
+            <!--<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %logger{36}:%L - %msg%n" />-->
         </Console>
     </Appenders>
     <Loggers>
         <Root level="INFO">
             <AppenderRef ref="Console"/>
         </Root>
-        <!-- Ignore SugarCrmImporter updates that are triggered every minute -->
-        <Logger name="eu.europeana.api2.v2.service.SugarCRMImporter" level="WARN"/>
+        <Logger name="eu.europeana.api2.v2.web.controller" level="INFO"/>
     </Loggers>
 </Configuration>

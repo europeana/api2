@@ -19,12 +19,12 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.SearchResults;
-import eu.europeana.api2.v2.model.json.Suggestions;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.RichView;
@@ -51,9 +51,9 @@ import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
-import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrTypeException;
+import eu.europeana.corelib.edm.utils.CountryUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.search.utils.SearchUtils;
@@ -62,8 +62,9 @@ import eu.europeana.corelib.solr.bean.impl.BriefBeanImpl;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 import eu.europeana.corelib.solr.bean.impl.RichBeanImpl;
 import eu.europeana.corelib.utils.StringArrayUtils;
+import eu.europeana.corelib.web.exception.EuropeanaException;
+import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
@@ -87,7 +88,14 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -101,6 +109,10 @@ public class SearchController {
 
 	private static final Logger LOG = LogManager.getLogger(SearchController.class);
 
+	// First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
+    // space or end of string)
+	private static final Pattern COUNTRY_PATTERN = Pattern.compile("COUNTRY:\"(.*?)\"|COUNTRY:(.*?)(&|\\s|$)");
+
     @Resource
     private SearchService searchService;
 
@@ -111,7 +123,7 @@ public class SearchController {
     private Configuration configuration;
 
     @Resource
-    private EuropeanaUrlService urlService;
+    private Api2UrlService urlService;
 
     @Resource
     private ApiKeyUtils apiKeyUtils;
@@ -160,10 +172,12 @@ public class SearchController {
             return JsonUtils.toJson(new ApiError("", "Empty query parameter"), callback);
         }
         queryString = queryString.trim();
+        queryString = fixCountryCapitalization(queryString);
+
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
-        if (LOG.isInfoEnabled()) {
-            LOG.info("QUERY: |" + queryString + "|");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("QUERY: |" + queryString + "|");
         }
 
         // check other parameters
@@ -178,7 +192,9 @@ public class SearchController {
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
         String[] _qf = request.getParameterMap().get("qf");
-        if (_qf != null && _qf.length != refinementArray.length) refinementArray = _qf;
+        if (_qf != null && _qf.length != refinementArray.length) {
+            refinementArray = _qf;
+        }
 
         if (StringUtils.isNotBlank(theme)){
             if (StringUtils.containsAny(theme, "+ #%^&*-='\"<>`!@[]{}\\/|")){
@@ -193,111 +209,6 @@ public class SearchController {
         colourPalette.replaceAll(String::toUpperCase);
 
         String colourPalettefilterQuery = "";
-        Boolean hasImageRefinements = false;
-        Boolean hasSoundRefinements = false;
-        Boolean hasVideoRefinements = false;
-        List<String> newRefinements = new ArrayList<>();
-        List<String> imageMimeTypeRefinements = new ArrayList<>();
-        List<String> soundMimeTypeRefinements = new ArrayList<>();
-        List<String> videoMimeTypeRefinements = new ArrayList<>();
-        List<String> otherMimeTypeRefinements = new ArrayList<>();
-        List<String> imageSizeRefinements = new ArrayList<>();
-        List<String> imageAspectRatioRefinements = new ArrayList<>();
-        List<String> soundDurationRefinements = new ArrayList<>();
-        List<String> videoDurationRefinements = new ArrayList<>();
-        List<String> imageColourSpaceRefinements = new ArrayList<>();
-        List<String> videoHDRefinements = new ArrayList<>();
-        List<String> soundHQRefinements = new ArrayList<>();
-        List<String> imageColourPaletteRefinements = new ArrayList<>(); //Note: ColourPalette is a parameter; imageColourPaletteRefinements are facets
-
-        // retrieves the faceted refinements from the QF part of the request and stores them separately
-        // the rest of the refinements is kept in the refinementArray
-        // NOTE prefixes are case sensitive, only uppercase cf:params are recognised
-        // ALSO NOTE that the suffixes are NOT case sensitive. They are all made lowercase, except 'colourpalette'
-        if (refinementArray != null) {
-            for (String qf : refinementArray) {
-                if (StringUtils.contains(qf, ":")){
-                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase();
-                    switch (StringUtils.substringBefore(qf, ":")) {
-                        case "MIME_TYPE":
-                            if (CommonTagExtractor.isImageMimeType(refinementValue)) {
-                                imageMimeTypeRefinements.add(refinementValue);
-                                hasImageRefinements = true;
-                            } else if (CommonTagExtractor.isSoundMimeType(refinementValue)) {
-                                soundMimeTypeRefinements.add(refinementValue);
-                                hasSoundRefinements = true;
-                            } else if (CommonTagExtractor.isVideoMimeType(refinementValue)) {
-                                videoMimeTypeRefinements.add(refinementValue);
-                                hasVideoRefinements = true;
-                            } else otherMimeTypeRefinements.add(refinementValue);
-                            break;
-                        case "IMAGE_SIZE":
-                            imageSizeRefinements.add(refinementValue);
-                            hasImageRefinements = true;
-                            break;
-                        case "IMAGE_COLOUR":
-                        case "IMAGE_COLOR":
-                            if (Boolean.valueOf(refinementValue)) {
-                                imageColourSpaceRefinements.add("rgb");
-                                hasImageRefinements = true;
-                            } else if (StringUtils.equalsIgnoreCase(refinementValue, "false")){
-                                imageColourSpaceRefinements.add("grayscale");
-                                hasImageRefinements = true;
-                            }
-                            break;
-                        case "COLOURPALETTE":
-                        case "COLORPALETTE":
-                            imageColourPaletteRefinements.add(refinementValue.toUpperCase());
-                            hasImageRefinements = true;
-                            break;
-                        case "IMAGE_ASPECTRATIO":
-                            imageAspectRatioRefinements.add(refinementValue);
-                            hasImageRefinements = true;
-                            break;
-                        case "SOUND_HQ":
-                            soundHQRefinements.add(Boolean.valueOf(refinementValue) ? "true" : "false");
-                            hasSoundRefinements = true;
-                            break;
-                        case "SOUND_DURATION":
-                            soundDurationRefinements.add(refinementValue);
-                            hasSoundRefinements = true;
-                            break;
-                        case "VIDEO_HD":
-                            videoHDRefinements.add(Boolean.valueOf(refinementValue) ? "true" : "false");
-                            hasVideoRefinements = true;
-                            break;
-                        case "VIDEO_DURATION":
-                            videoDurationRefinements.add(refinementValue);
-                            hasVideoRefinements = true;
-                            break;
-                        case "MEDIA":
-                            if (null == media) media = Boolean.valueOf(refinementValue);
-                            break;
-                        case "THUMBNAIL":
-                            if (null == thumbnail) thumbnail = Boolean.valueOf(refinementValue);
-                            break;
-                        case "TEXT_FULLTEXT":
-                            if (null == fullText) fullText = Boolean.valueOf(refinementValue);
-                            break;
-                        case "LANDINGPAGE":
-                            if (null == landingPage) landingPage = Boolean.valueOf(refinementValue);
-                            break;
-                        default:
-                            newRefinements.add(qf);
-                    }
-                } else {
-                    newRefinements.add(qf);
-                }
-            }
-        }
-        // these
-        if (null != media) newRefinements.add("has_media:" + media.toString());
-        if (null != thumbnail) newRefinements.add("has_thumbnails:" + thumbnail.toString());
-        if (null != fullText) newRefinements.add("is_fulltext:" + fullText.toString());
-        if (null != landingPage) newRefinements.add("has_landingpage:" + landingPage.toString());
-
-        refinementArray = newRefinements.toArray(new String[newRefinements.size()]);
-
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         if (!colourPalette.isEmpty()) {
             Iterator<Integer> it = FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator();
@@ -307,13 +218,7 @@ public class SearchController {
         }
 
         final List<Integer> filterTags = new ArrayList<>();
-
-        // Encode the faceted refinements ...
-        if (hasImageRefinements) filterTags.addAll(FakeTagsUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
-                imageAspectRatioRefinements, imageColourPaletteRefinements));
-        if (hasSoundRefinements) filterTags.addAll(FakeTagsUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
-        if (hasVideoRefinements) filterTags.addAll(FakeTagsUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
-        if (otherMimeTypeRefinements.size() > 0) filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeRefinements));
+        refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags);
 
         // add the CF filter facets to the query string like this: [existing-query] AND [refinement-1 OR refinement-2 OR
         // refinement-3 ... ]
@@ -408,9 +313,6 @@ public class SearchController {
                 result.addParam("rows", rows);
                 result.addParam("sort", sort);
             }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("got response " + result.items.size());
-            }
             return JsonUtils.toJson(result, callback);
 
         } catch (SolrTypeException e) {
@@ -436,6 +338,199 @@ public class SearchController {
         }
     }
 
+    /**
+     * Processes all qf parameters. Note that besides returning a new array of refinements we may add new filterTags to
+     * the provided filterTags list (if there are image, sound, video or mimetype refinements)
+     */
+    private String[] processQfParameters(String[] refinementArray, Boolean media, Boolean thumbnail, Boolean fullText,
+                                     Boolean landingPage, List<Integer> filterTags) {
+        Boolean hasImageRefinements = false;
+        Boolean hasSoundRefinements = false;
+        Boolean hasVideoRefinements = false;
+        List<String> newRefinements = new ArrayList<>();
+        List<String> imageMimeTypeRefinements = new ArrayList<>();
+        List<String> soundMimeTypeRefinements = new ArrayList<>();
+        List<String> videoMimeTypeRefinements = new ArrayList<>();
+        List<String> otherMimeTypeRefinements = new ArrayList<>();
+        List<String> imageSizeRefinements = new ArrayList<>();
+        List<String> imageAspectRatioRefinements = new ArrayList<>();
+        List<String> soundDurationRefinements = new ArrayList<>();
+        List<String> videoDurationRefinements = new ArrayList<>();
+        List<String> imageColourSpaceRefinements = new ArrayList<>();
+        List<String> videoHDRefinements = new ArrayList<>();
+        List<String> soundHQRefinements = new ArrayList<>();
+        List<String> imageColourPaletteRefinements = new ArrayList<>(); //Note: ColourPalette is a parameter; imageColourPaletteRefinements are facets
+
+        // retrieves the faceted refinements from the QF part of the request and stores them separately
+        // the rest of the refinements is kept in the refinementArray
+        // NOTE prefixes are case sensitive, only uppercase cf:params are recognised
+        // ALSO NOTE that the suffixes are NOT case sensitive. They are all made lowercase, except 'colourpalette'
+        if (refinementArray != null) {
+            for (String qf : refinementArray) {
+                if (StringUtils.contains(qf, ":")){
+                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase();
+                    switch (StringUtils.substringBefore(qf, ":")) {
+                        case "MIME_TYPE":
+                            if (CommonTagExtractor.isImageMimeType(refinementValue)) {
+                                imageMimeTypeRefinements.add(refinementValue);
+                                hasImageRefinements = true;
+                            } else if (CommonTagExtractor.isSoundMimeType(refinementValue)) {
+                                soundMimeTypeRefinements.add(refinementValue);
+                                hasSoundRefinements = true;
+                            } else if (CommonTagExtractor.isVideoMimeType(refinementValue)) {
+                                videoMimeTypeRefinements.add(refinementValue);
+                                hasVideoRefinements = true;
+                            } else otherMimeTypeRefinements.add(refinementValue);
+                            break;
+                        case "IMAGE_SIZE":
+                            imageSizeRefinements.add(refinementValue);
+                            hasImageRefinements = true;
+                            break;
+                        case "IMAGE_COLOUR":
+                        case "IMAGE_COLOR":
+                            if (Boolean.valueOf(refinementValue)) {
+                                imageColourSpaceRefinements.add("rgb");
+                                hasImageRefinements = true;
+                            } else if (StringUtils.equalsIgnoreCase(refinementValue, "false")){
+                                imageColourSpaceRefinements.add("grayscale");
+                                hasImageRefinements = true;
+                            }
+                            break;
+                        case "COLOURPALETTE":
+                        case "COLORPALETTE":
+                            imageColourPaletteRefinements.add(refinementValue.toUpperCase());
+                            hasImageRefinements = true;
+                            break;
+                        case "IMAGE_ASPECTRATIO":
+                            imageAspectRatioRefinements.add(refinementValue);
+                            hasImageRefinements = true;
+                            break;
+                        case "SOUND_HQ":
+                            soundHQRefinements.add(Boolean.valueOf(refinementValue) ? "true" : "false");
+                            hasSoundRefinements = true;
+                            break;
+                        case "SOUND_DURATION":
+                            soundDurationRefinements.add(refinementValue);
+                            hasSoundRefinements = true;
+                            break;
+                        case "VIDEO_HD":
+                            videoHDRefinements.add(Boolean.valueOf(refinementValue) ? "true" : "false");
+                            hasVideoRefinements = true;
+                            break;
+                        case "VIDEO_DURATION":
+                            videoDurationRefinements.add(refinementValue);
+                            hasVideoRefinements = true;
+                            break;
+                        case "MEDIA":
+                            if (null == media) {
+                                media = Boolean.valueOf(refinementValue);
+                            }
+                            break;
+                        case "THUMBNAIL":
+                            if (null == thumbnail) {
+                                thumbnail = Boolean.valueOf(refinementValue);
+                            }
+                            break;
+                        case "TEXT_FULLTEXT":
+                            if (null == fullText) {
+                                fullText = Boolean.valueOf(refinementValue);
+                            }
+                            break;
+                        case "LANDINGPAGE":
+                            if (null == landingPage) {
+                                landingPage = Boolean.valueOf(refinementValue);
+                            }
+                            break;
+                        case "COUNTRY":
+                            // Temporary fix for country capitalization for Metis (EA-1350)
+                            newRefinements.add(fixCountryCapitalization(qf));
+                            break;
+                        default:
+                            newRefinements.add(qf);
+                    }
+                } else {
+                    newRefinements.add(qf);
+                }
+            }
+        }
+        // add boolean properties as refinements
+        if (null != media) {
+            newRefinements.add("has_media:" + media.toString());
+        }
+        if (null != thumbnail) {
+            newRefinements.add("has_thumbnails:" + thumbnail.toString());
+        }
+        if (null != fullText) {
+            newRefinements.add("is_fulltext:" + fullText.toString());
+        }
+        if (null != landingPage) {
+            newRefinements.add("has_landingpage:" + landingPage.toString());
+        }
+
+        // Encode the faceted refinements ...
+        if (hasImageRefinements) {
+            filterTags.addAll(FakeTagsUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
+                    imageAspectRatioRefinements, imageColourPaletteRefinements));
+        }
+        if (hasSoundRefinements) {
+            filterTags.addAll(FakeTagsUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
+        }
+        if (hasVideoRefinements) {
+            filterTags.addAll(FakeTagsUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
+        }
+        if (!otherMimeTypeRefinements.isEmpty()) {
+            filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeRefinements));
+        }
+        if (LOG.isDebugEnabled()) {
+            for (Integer filterTag : filterTags) {
+                if (filterTag != null) {
+                    LOG.debug("filterTag = " + Integer.toBinaryString(filterTag));
+                }
+            }
+        }
+
+
+        return newRefinements.toArray(new String[0]);
+    }
+
+    /**
+     * Due to changed capitalization of country names between UIM and Metis data we need to convert lowercase country
+     * names (UIM) to camel-case names (Metis). This fix is to prevent errors during the UIM-to-Metis switch, but also
+     * to support saved queries for the time being. See also ticket EA-1350
+     * @param queryPart either query or qf part that is to be converted
+     * @return converted query or qf part
+     */
+    private String fixCountryCapitalization(String queryPart) {
+        String result = queryPart;
+        Matcher matcher = COUNTRY_PATTERN.matcher(result);
+        while (matcher.find()) {
+            // if group 1 has content then we found country with quotes, if group 2 has content then it's a country without quotes
+            String countryName = matcher.group(1);
+            boolean withQuotes = StringUtils.isNotEmpty(countryName);
+            if (!withQuotes) {
+                countryName = matcher.group(2);
+            }
+            StringBuilder s = new StringBuilder(result.substring(0, matcher.start()));
+            s.append("COUNTRY:");
+            if (withQuotes) {
+                s.append("\"");
+            }
+            s.append(CountryUtils.capitalizeCountry(countryName));
+            if (withQuotes) {
+                s.append("\"");
+            } else {
+                s.append(matcher.group(3)); // put back the &, space or + character
+            }
+            s.append(result.substring(matcher.end(), result.length()));
+            result = s.toString();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Found {} at {},{}, countryName is {}", matcher.group(), matcher.start(), matcher.end(), countryName);
+                LOG.debug("Converted to {}", result);
+            }
+        }
+        return result;
+    }
+
     private Class<? extends IdBean> selectBean(String profile) {
         Class<? extends IdBean> clazz;
         if (StringUtils.containsIgnoreCase(profile, "minimal")) clazz = BriefBean.class;
@@ -450,26 +545,26 @@ public class SearchController {
         return ApiBeanImpl.class;
     }
 
-    @Deprecated // July 3rd 2018, not in use anymore
-    @ApiOperation(value = "get autocompletion recommendations for search queries", nickname = "suggestions")
-    @RequestMapping(value = "/v2/suggestions.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView suggestionsJson(
-            @RequestParam(value = "query", required = true) String query,
-            @RequestParam(value = "rows", required = false, defaultValue = "10") int count,
-            @RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases,
-            @RequestParam(value = "callback", required = false) String callback,
-            HttpServletResponse response) {
-        ControllerUtils.addResponseHeaders(response);
-        if (LOG.isInfoEnabled()) LOG.info("phrases: " + phrases);
-        Suggestions apiResponse = new Suggestions(null);
-        try {
-            apiResponse.items = searchService.suggestions(query, count);
-            apiResponse.itemsCount = apiResponse.items.size();
-        } catch (SolrTypeException e) {
-            return JsonUtils.toJson(new ApiError(null, e.getMessage()), callback);
-        }
-        return JsonUtils.toJson(apiResponse, callback);
-    }
+//    @Deprecated // July 3rd 2018, not in use anymore
+//    @ApiOperation(value = "get autocompletion recommendations for search queries", nickname = "suggestions")
+//    @RequestMapping(value = "/v2/suggestions.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ModelAndView suggestionsJson(
+//            @RequestParam(value = "query", required = true) String query,
+//            @RequestParam(value = "rows", required = false, defaultValue = "10") int count,
+//            @RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases,
+//            @RequestParam(value = "callback", required = false) String callback,
+//            HttpServletResponse response) {
+//        ControllerUtils.addResponseHeaders(response);
+//        if (LOG.isInfoEnabled()) LOG.info("phrases: " + phrases);
+//        Suggestions apiResponse = new Suggestions(null);
+//        try {
+//            apiResponse.items = searchService.suggestions(query, count);
+//            apiResponse.itemsCount = apiResponse.items.size();
+//        } catch (EuropeanaException e) {
+//            return JsonUtils.toJson(new ApiError(null, e.getMessage()), callback);
+//        }
+//        return JsonUtils.toJson(apiResponse, callback);
+//    }
 
     @SuppressWarnings("unchecked")
     private <T extends IdBean> SearchResults<T> createResults(
@@ -477,7 +572,7 @@ public class SearchController {
             String profile,
             Query query,
             Class<T> clazz)
-            throws SolrTypeException {
+            throws EuropeanaException {
         FacetWrangler wrangler = new FacetWrangler();
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
@@ -508,7 +603,7 @@ public class SearchController {
                 if (!allQueryFacetsMap.isEmpty()) facetFields.addAll(allQueryFacetsMap);
             }
 
-            if (LOG.isDebugEnabled()) LOG.debug("beans: " + beans.size());
+            if (LOG.isDebugEnabled()) LOG.debug("results: " + beans.size());
 
             response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, "facets") ||
@@ -579,8 +674,6 @@ public class SearchController {
                     Long.toString(resultSet.getResultSize());
             kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
             kmlResponse.setItems(resultSet.getResults());
-            // Disabled while awaiting better implementation (ticket #1742)
-            // apiLogService.logApiRequest(wskey, query.getQuery(), RecordType.SEARCH_KML, "kml");
         } catch (SolrTypeException e) {
             response.setStatus(500);
             throw new Exception(e);
@@ -614,21 +707,20 @@ public class SearchController {
 		channel.query.startPage = start;
 
         try {
-            Query query =
-                    new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true)
+            Query query = new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true)
                             .setPageSize(count).setStart(start - 1).setFacetsAllowed(false)
                             .setSpellcheckAllowed(false);
             ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
             channel.totalResults.value = resultSet.getResultSize();
             for (BriefBean bean : resultSet.getResults()) {
                 Item item = new Item();
-                item.guid = urlService.getPortalRecord(bean.getId()).toString();
+                item.guid = urlService.getRecordPortalUrl(bean.getId());
                 item.title = getTitle(bean);
                 item.description = getDescription(bean);
                 item.link = item.guid;
                 channel.items.add(item);
             }
-        } catch (SolrTypeException e) {
+        } catch (EuropeanaException e) {
             LOG.error("Error executing opensearch query", e);
             channel.totalResults.value = 0;
             Item item = new Item();
@@ -718,7 +810,7 @@ public class SearchController {
 						channel.items.add(fieldTripUtils.createItem(bean));
 					}
 				}
-			} catch (SolrTypeException|MissingResourceException e) {
+			} catch (EuropeanaException|MissingResourceException e) {
 				LOG.error("error: " + e.getLocalizedMessage());
 				FieldTripItem item = new FieldTripItem();
 				item.title = "Error";

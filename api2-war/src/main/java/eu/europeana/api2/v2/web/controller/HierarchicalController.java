@@ -27,6 +27,7 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,6 +50,8 @@ import java.util.concurrent.TimeoutException;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  * @author Maike Dulk
  */
+
+@Lazy
 @Controller
 //@Api(value = "hierarchical_records", description = " ")
 //@SwaggerSelect

@@ -1,7 +1,7 @@
 package eu.europeana.api2.config;
 
 import eu.europeana.api2.config.filter.GetMethodConvertingFilter;
-import eu.europeana.corelib.web.context.VcapPropertyLoaderListener;
+import eu.europeana.corelib.web.context.VcapPropertyLoader;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -34,7 +34,7 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     protected WebApplicationContext createRootApplicationContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         context.register(AppConfig.class, OAuth2ServerConfig.class, SecurityConfig.class);
-        context.addApplicationListener(new VcapPropertyLoaderListener());
+        new VcapPropertyLoader();
         return context;
     }
 
