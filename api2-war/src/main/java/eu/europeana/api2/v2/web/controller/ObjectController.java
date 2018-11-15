@@ -69,7 +69,10 @@ import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
@@ -236,7 +239,7 @@ public class ObjectController {
     @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                      @PathVariable String recordId,
-                                     @RequestParam(value = "wskey") String wskey,
+                                     @RequestParam(value = "wskey", required = true) String wskey,
                                      @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                      @RequestParam(value = "callback", required = false) String callback,
                                      WebRequest webRequest,
