@@ -17,7 +17,5 @@
         <Root level="INFO">
             <AppenderRef ref="Console"/>
         </Root>
-        <!-- Ignore SugarCrmImporter updates that are triggered every minute -->
-        <Logger name="eu.europeana.api2.v2.service.SugarCRMImporter" level="WARN"/>
     </Loggers>
 </Configuration>

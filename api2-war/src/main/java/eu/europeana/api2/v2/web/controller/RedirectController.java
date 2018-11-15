@@ -21,9 +21,9 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
-import eu.europeana.corelib.edm.exceptions.SolrTypeException;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
+import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,8 +68,6 @@ public class RedirectController {
     public Object handleRedirect(@PathVariable String apiKey, @RequestParam(value = "shownAt", required = true) String isShownAt,
             HttpServletResponse response) {
 
-        // Disabled while awaiting better implementation (ticket #1742)
-        // apiLogService.logApiRequest(wskey, id, RecordType.REDIRECT, profile);
         if (StringUtils.isBlank(isShownAt)) {
             return this.generateError(response, "Empty 'shownAt' parameter", apiKey);
         }
@@ -104,7 +102,7 @@ public class RedirectController {
             ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
             LOG.debug("Redirect query = {}", query.getExecutedQuery());
             return resultSet.getResultSize() > 0;
-        } catch (SolrTypeException ste) {
+        } catch (EuropeanaException ste) {
             LOG.error("Error checking if url is in Solr index", ste);
         }
         // we return true so we maintain redirect functionality when Solr is down

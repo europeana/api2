@@ -1,9 +1,8 @@
 package eu.europeana.api2.config;
 
-import eu.europeana.api2.v2.schedule.SugarCRMPollingScheduler;
-import eu.europeana.api2.v2.service.SugarCRMCache;
-import eu.europeana.api2.v2.service.SugarCRMImporter;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
+import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.features.ObjectStorageClient;
 import eu.europeana.features.S3ObjectStorageClient;
 import org.apache.commons.lang.StringUtils;
@@ -39,7 +38,6 @@ import java.util.Arrays;
         "classpath:corelib-solr-context.xml",
         "classpath:corelib-utils-context.xml",
         "classpath:corelib-web-context.xml",
-        "classpath:spring-sugarcrmclient.xml"
 })
 @EnableScheduling
 @PropertySource("classpath:europeana.properties")
@@ -52,13 +50,18 @@ public class AppConfig {
                     " AND state in ('idle', 'idle in transaction', 'idle in transaction (aborted)', 'disabled')" +
                     " AND current_timestamp - state_change > interval '5 minutes'";
 
-    @Value("${s3.key}")
+
+    @Value("${portal.baseUrl:}")
+    private String portalBaseUrl;
+    @Value("${api2.baseUrl:}")
+    private String api2BaseUrl;
+    @Value("${sitemap.s3.key}")
     private String key;
-    @Value("${s3.secret}")
+    @Value("${sitemap.s3.secret}")
     private String secret;
-    @Value("${s3.region}")
+    @Value("${sitemap.s3.region}")
     private String region;
-    @Value("${s3.bucket}")
+    @Value("${sitemap.s3.bucket}")
     private String bucket;
 
     @Value("${postgres.max.stale.sessions:}")
@@ -134,7 +137,7 @@ public class AppConfig {
 
     }
 
-    @Scheduled(fixedRate = 120_000)
+    @Scheduled(fixedRate = 300_000) // 5 minutes
     public void debugJdbcThreadUsage() {
         long nrAbandoned = postgres.getRemoveAbandonedCount();
         long nrActive = postgres.getNumActive();
@@ -222,26 +225,25 @@ public class AppConfig {
     }
 
     /**
-     * The SugarCRMPollingScheduler regularly invokes the SugarCRMImporter
-     * @return SugarCRMPollingScheduler bean
+     * Utility methods to help HTTP caching processing
+     * @return HttpCacheUtils bean
      */
     @Bean
-    public SugarCRMPollingScheduler sugarCRMPollingScheduler() {
-        return new SugarCRMPollingScheduler();
+    public HttpCacheUtils httpCacheUtils() {
+        return new HttpCacheUtils();
     }
+
 
     /**
-     *  The SugarCRMIMporter connects to sugarCRM to check if data on providers or datasets is changed
-     *  @return  SugarCRMImporter bean
+     * Setup service for generating API and Portal urls
+     * @return
      */
     @Bean
-    public SugarCRMImporter sugarCRMImporter() {
-        return new SugarCRMImporter();
-    }
-
-    @Bean
-    public SugarCRMCache sugarCRMCache() {
-        return new SugarCRMCache();
+    public Api2UrlService api2UrlService() {
+        Api2UrlService urlService = new Api2UrlService(portalBaseUrl, api2BaseUrl);
+        LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl());
+        LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl());
+        return urlService;
     }
 
     /**
@@ -249,9 +251,10 @@ public class AppConfig {
      * At the moment we use Amazon S3
      * @return ObjectStorageClient bean
      */
-    @Bean(name = "api_object_storage_client")
+    @Bean(name = "api_sitemap_object_storage")
     public ObjectStorageClient objectStorageClient(){
-        LOG.info("Creating new objectStorage client");
+        LOG.info("Creating new sitemap objectStorage client");
         return new S3ObjectStorageClient(key,secret,region,bucket);
     }
+
 }

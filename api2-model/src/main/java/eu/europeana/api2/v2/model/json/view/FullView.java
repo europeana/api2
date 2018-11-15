@@ -16,14 +16,15 @@ package eu.europeana.api2.v2.model.json.view;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.*;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.utils.DateUtils;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
-import eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
@@ -32,14 +33,20 @@ import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
+/**
+ * A FullView is the API view of FullBean object. The FulLBean is retrieved directly from Mongo, but the API adds and
+ * alters specific fields, for example it generates proper API urls for the isShownAt and edmPreview fields
+ */
 @JsonInclude(NON_EMPTY)
 @JsonPropertyOrder(alphabetic=true)
 public class FullView implements FullBean {
 
+  private static final Logger LOG = LogManager.getLogger(FullView.class);
+
   private FullBean bean;
   private String profile;
   private String apiKey;
-  private EuropeanaUrlService europeanaUrlService;
+  private Api2UrlService urlService;
   private Date timestampCreated;
   private Date timestampUpdated;
   private boolean urlified = false;
@@ -48,7 +55,7 @@ public class FullView implements FullBean {
     this.bean = bean;
     this.profile = profile;
     this.apiKey = apiKey;
-    europeanaUrlService = EuropeanaUrlServiceImpl.getBeanInstance();
+    this.urlService = Api2UrlService.getBeanInstance();
     extractTimestampCreated();
     extractTimestampUpdated();
   }
@@ -138,8 +145,7 @@ public class FullView implements FullBean {
       String isShownAt = item.getEdmIsShownAt();
       if (!urlified && isShownAt != null) {
         String provider = item.getEdmProvider().values().iterator().next().get(0);
-        String isShownAtLink = europeanaUrlService
-            .getApi2Redirect(apiKey, isShownAt, provider, bean.getAbout(), profile).toString();
+        String isShownAtLink = urlService.getRedirectUrl(apiKey, isShownAt, provider, bean.getAbout(), profile);
         item.setEdmIsShownAt(isShownAtLink);
         urlified = true; // do this ONLY ONCE
       }
@@ -178,20 +184,32 @@ public class FullView implements FullBean {
     return bean.getAbout();
   }
 
-  @Override
-  public EuropeanaAggregation getEuropeanaAggregation() {
-    EuropeanaAggregation europeanaAggregation = bean.getEuropeanaAggregation();
-    europeanaAggregation.setId(null);
-    String edmPreview = "";
-    if (this.getAggregations().get(0).getEdmObject() != null) {
-      String url = this.getAggregations().get(0).getEdmObject();
-      if (StringUtils.isNotBlank(url)) {
-        edmPreview = europeanaUrlService.getThumbnailUrl(url, getType()).toString();
-      }
+    @Override
+    public EuropeanaAggregation getEuropeanaAggregation() {
+        EuropeanaAggregation europeanaAggregation = bean.getEuropeanaAggregation();
+        europeanaAggregation.setId(null);
+
+        // to set proper edmPreview we need to change edmPreview original image urls from Corelib into API thumbnail urls
+        String edmPreview = "";
+        // first try edmPreview, else edmObject and else edmIsShownBy
+        if (StringUtils.isNotEmpty(europeanaAggregation.getEdmPreview())) {
+            edmPreview = urlService.getThumbnailUrl(europeanaAggregation.getEdmPreview(), getType());
+            LOG.debug("edmPreview found: {}", europeanaAggregation.getEdmPreview());
+        } else if (StringUtils.isNotEmpty(this.getAggregations().get(0).getEdmObject())) {
+            edmPreview = urlService.getThumbnailUrl(this.getAggregations().get(0).getEdmObject(), getType());
+            LOG.debug("No edmPreview, but edmObject found: {}", this.getAggregations().get(0).getEdmObject());
+        } else if (StringUtils.isNotEmpty(this.getAggregations().get(0).getEdmIsShownBy())) {
+            edmPreview = urlService.getThumbnailUrl(this.getAggregations().get(0).getEdmIsShownBy(), getType());
+            LOG.debug("No edmPreview or edmObject, but edmIsShownBy found: {}", this.getAggregations().get(0).getEdmIsShownBy());
+        } else {
+            LOG.debug("No edmPreview, edmObject or edmIsShownBy found");
+        }
+        europeanaAggregation.setEdmPreview(edmPreview);
+
+        // set proper landingPage
+        europeanaAggregation.setEdmLandingPage(urlService.getRecordPortalUrl(getAbout()));
+        return europeanaAggregation;
     }
-    europeanaAggregation.setEdmPreview(edmPreview);
-    return europeanaAggregation;
-  }
 
   @Override
   public void setEuropeanaAggregation(EuropeanaAggregation europeanaAggregation) {}
@@ -340,7 +358,6 @@ public class FullView implements FullBean {
   @Override
   public void setServices(List<? extends Service> services) {
     bean.setServices(services);
-
   }
 
 }

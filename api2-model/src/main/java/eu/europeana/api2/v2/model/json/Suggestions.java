@@ -25,8 +25,10 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @deprecated as of September 2018
  */
 @JsonInclude(NON_EMPTY)
+@Deprecated
 public class Suggestions extends AbstractSearchResults<Term> {
 
 	public Suggestions(String apikey) {

@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import eu.europeana.api2.model.json.ApiError;
-import eu.europeana.corelib.db.exception.LimitReachedException;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -38,9 +37,4 @@ public class ExceptionController {
 		return new ApiError(null, "Invalid argument(s): " + ex.toString());
 	}
 
-	@ExceptionHandler(LimitReachedException.class)
-	@ResponseBody
-	public ApiError handleLimitReachedException() {
-		return new ApiError(null, "API Usage Limit Reached.");
-	}
 }

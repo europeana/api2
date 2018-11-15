@@ -17,7 +17,7 @@
 
 package eu.europeana.api2.v2.model.xml.definitions;
 
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
+import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
 
 public class Namespaces {
 
@@ -27,7 +27,7 @@ public class Namespaces {
 	public static final String NS_DCTERM = "http://purl.org/dc/terms/";
 	public static final String NS_FIELDTRIP = "http://www.fieldtripper.com/fieldtrip_rss";
 	public static final String NS_GEORSS = "http://www.georss.org/georss";
-	public static final String NS_EUROPEANA = EuropeanaUrlService.URL_EUROPEANA;
-	public static final String NS_ENRICHMENT = EuropeanaUrlService.URL_EUROPEANA + "/schemas/ese/enrichment/";
+	public static final String NS_EUROPEANA = EuropeanaStaticUrl.EUROPEANA_NAMESPACE_URL;
+	public static final String NS_ENRICHMENT = EuropeanaStaticUrl.EUROPEANA_NAMESPACE_URL + "/schemas/ese/enrichment/";
 
 }
