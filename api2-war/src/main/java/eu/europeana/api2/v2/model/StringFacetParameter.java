@@ -18,40 +18,26 @@
 package eu.europeana.api2.v2.model;
 
 /**
- * Data object for a name - integer value pair. It is used for storing Solr parameters
- * @author Peter.Kiraly@kb.nl
+ * Data object for a String - String value pair for the date range facet
+ * @author luthien
  */
 
-// TODO THIS IS A DUPLICATE CLASS (also in api-model)
 
-public class NumericFacetParameter {
-
+public class StringFacetParameter {
 
 	private String name;
+	private String value;
 
-	private Integer value;
-
-	public NumericFacetParameter(String name, Integer value) {
+	public StringFacetParameter(String name, String value) {
 		this.name = name;
 		this.value = value;
-	}
-
-	public NumericFacetParameter(String name, String value) {
-		Integer intValue = 0;
-		try {
-			intValue = Integer.parseInt(value);
-		} catch (NumberFormatException e) {
-			// 
-		}
-		this.name = name;
-		this.value = intValue;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public Integer getValue() {
+	public String getValue() {
 		return value;
 	}
 
