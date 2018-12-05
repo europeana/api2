@@ -10,6 +10,9 @@ import org.apache.commons.lang.StringUtils;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
+/**
+ * A RichView defines the fields that are returned in search results when using the 'rich' profile
+ */
 @JsonPropertyOrder(alphabetic=true)
 public class RichView extends ApiView implements RichBean {
 
