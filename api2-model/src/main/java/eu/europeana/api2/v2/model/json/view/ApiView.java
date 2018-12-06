@@ -44,10 +44,6 @@ public class ApiView extends BriefView implements ApiBean {
     private Map<String, List<String>> edmConceptPrefLabelLangAware;
     private Map<String, List<String>> edmConceptBroaderLabelLangAware;
     private Map<String, List<String>> edmPlaceAltLabelLangAware;
-    // temporary added for debugging purposes (see EA-1395)
-    private List<Map<String, String>> fulltext;
-    // temporary added for debugging purposes (see EA-1395)
-    private Map<String, List<String>> fulltextLangAware;
 
     public ApiView(ApiBean bean, String profile, String wskey) {
         super(bean, profile, wskey);
@@ -73,10 +69,6 @@ public class ApiView extends BriefView implements ApiBean {
         edmConceptPrefLabelLangAware = bean.getEdmConceptPrefLabelLangAware();
         edmConceptBroaderLabelLangAware = bean.getEdmConceptBroaderLabelLangAware();
         edmPlaceAltLabelLangAware = bean.getEdmPlaceAltLabelLangAware();
-        if (StringUtils.containsIgnoreCase(profile, "debug")) {
-            fulltext = bean.getFulltext();
-            fulltextLangAware = bean.getFulltextLangAware();
-        }
     }
 
     @Override
@@ -286,15 +278,4 @@ public class ApiView extends BriefView implements ApiBean {
         return edmPlaceAltLabelLangAware;
     }
 
-    @Override
-    // temporary added for debugging purposes (see EA-1395)
-    public List<Map<String, String>> getFulltext() {
-        return fulltext;
-    }
-
-    @Override
-    // temporary added for debugging purposes (see EA-1395)
-    public Map<String, List<String>> getFulltextLangAware() {
-        return fulltextLangAware;
-    }
 }
