@@ -301,7 +301,7 @@ public class SearchController {
         if (facetsRequested && !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
                     ( ArrayUtils.contains(solrFacets, "DATA_PROVIDER") ||
                       ArrayUtils.contains(solrFacets, "DEFAULT")
-                    ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", (String.valueOf(FacetParameterUtils.LIMIT_FOR_DATA_PROVIDER)));
+                    ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
 
         // do the search
         try {
