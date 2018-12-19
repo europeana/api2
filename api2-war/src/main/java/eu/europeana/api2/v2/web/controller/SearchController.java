@@ -284,7 +284,7 @@ public class SearchController {
                     .setDefaultFacetsRequested(defaultFacetsRequested)
                     .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested))
                     .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested))
-                    .setParameters(FacetParameterUtils.getDateRangeParams(parameterMap))
+                    .setFacetDateRangeParameters(FacetParameterUtils.getDateRangeParams(parameterMap))
                     .setTechnicalFacets(technicalFacets)
                     .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
                     .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))

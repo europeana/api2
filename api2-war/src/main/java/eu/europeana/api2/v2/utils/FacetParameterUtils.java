@@ -26,6 +26,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -49,14 +50,21 @@ public class FacetParameterUtils {
     private static final String FACET_RANGE_GAP = "facet.range.gap";
     private static final String FACET_MINCOUNT = "facet.mincount";
 
+    private static final long MAX_RANGE_FACETS = 30000l;
+
     private static List<String> defaultSolrFacetList;
     private static List<String> rangeFacetList;
+    private static List<String> rangeSpecifiers = Arrays.asList("start", "end", "gap");;
 
     static {
-        defaultSolrFacetList = new ArrayList<>();
-        rangeFacetList = new ArrayList<>();
-        for (SolrFacetType facet : SolrFacetType.values()) defaultSolrFacetList.add(facet.toString());
-        for (RangeFacetType facet : RangeFacetType.values()) rangeFacetList.add(facet.toString());
+        if (defaultSolrFacetList == null) {
+            defaultSolrFacetList = new ArrayList<>();
+            for (SolrFacetType facet : SolrFacetType.values()) defaultSolrFacetList.add(facet.toString());
+        }
+        if (rangeFacetList == null) {
+            rangeFacetList = new ArrayList<>();
+            for (RangeFacetType facet : RangeFacetType.values()) rangeFacetList.add(facet.toString());
+        }
     }
 
     /**
@@ -113,34 +121,68 @@ public class FacetParameterUtils {
     // facet.range=timestamp & &facet.range.start=0000-01-01T00:00:00Z & &facet.range.end=NOW & facet.range.gap=+1DAY
     public static Map<String, String> getDateRangeParams(Map<String, String[]> parameters) {
         Map<String, String> dateRangeParams = new HashMap<>();
-        List<String> facetsToRange = new ArrayList<>();
 
-        // retrieve the facets that need to be ranged
-        if (parameters.containsKey(FACET_RANGE)){
-            Collections.addAll(facetsToRange, StringUtils.stripAll(
-                    StringUtils.split(parameters.get(FACET_RANGE)[0], ',')));
-        } else {
-            return null;
-        }
-
-        // next: - loop through facetsToRange
-        // - check whether they occur in the rangeFacetList
-        // - find the start, end & gap parameters, either global or per field
-        // - apply defaults?
-        // construct Query parameters with them
-
+        // first, retrieve & validate field values from comma-separated facet.range parameter
+        List<String> facetsToRange = retrieveRangeFacetList(parameters, FACET_RANGE);
+        StringBuilder facetRangeValue = new StringBuilder();
         for (String facetToRange : facetsToRange) {
-            if (rangeFacetList.contains(facetToRange))
-
+            facetRangeValue.append(facetToRange);
+            facetRangeValue.append(",");
+        }
+        if (!facetsToRange.isEmpty()){
+            dateRangeParams.put(FACET_RANGE, StringUtils.chop(facetRangeValue.toString()));
         }
 
-        for (SolrFacetType solrFacet : SolrFacetType.values()) {
-
+        // and last, process the field-specific start, end & gap parameters
+        for (String facetToRange : facetsToRange){
+            for (String rangeSpecifier : rangeSpecifiers){
+                String globalSpecifier = FACET_RANGE + "." + rangeSpecifier;
+                String fieldSpecifier = "f." + facetToRange + "." + FACET_RANGE + "." + rangeSpecifier;
+                if (parameters.containsKey(fieldSpecifier) || parameters.containsKey(globalSpecifier)){
+                    dateRangeParams.put(fieldSpecifier, parameters.get(globalSpecifier)[0]);
+                }
+            }
+            try{
+                dateRangeParams.replace("f." + facetToRange + "." + FACET_RANGE + ".end",
+                                        DateMathParser.calculateSafeEndDate(
+                                                dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".start"),
+                                                dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".end"),
+                                                dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".gap"),
+                                                MAX_RANGE_FACETS
+                                        ));
+            } catch (ParseException e) {
+                return null;
+            }
         }
-//        for (String dateRangeFacet : dateRangeFacets) {
-//            saveStringFacetParam(dateRangeFacet, parameters, dateRangeParams);
-//        }
+        // can test
+        //        change 'facet.range=timestamp' by 'f.timestamp.facet.range=timestamp'
+        //        and I have notice the you don't have facet.field=timestamp
+        //        don't know if that's on purpose
+
+        // REMEMBER add facet.field=timestamp
         return dateRangeParams;
+    }
+
+    private static String facetUrlDecode(String value){
+        return StringUtils.replace(StringUtils.replace(value
+                , "%2F", "/")
+                , "%2B", "+");
+    }
+
+    // retrieve the facets that need to be ranged, but check them against the values in Enum RangeFacetType
+    private static List<String> retrieveRangeFacetList(Map<String, String[]> parameters, String pattern){
+        List<String> facetsToRangeTemp = new ArrayList<>();
+        List<String> facetsToRange = new ArrayList<>();
+        if (parameters.containsKey(pattern)){
+            Collections.addAll(facetsToRangeTemp, StringUtils.stripAll(
+                    StringUtils.split(parameters.get(pattern)[0], ',')));
+            for (String facetToRangeTemp : facetsToRangeTemp) {
+                if (rangeFacetList.contains(facetToRangeTemp)){
+                    facetsToRange.add(facetToRangeTemp);
+                }
+            }
+        }
+        return facetsToRange;
     }
 
 
