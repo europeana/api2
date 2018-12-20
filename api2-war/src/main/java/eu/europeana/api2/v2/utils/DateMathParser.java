@@ -18,6 +18,8 @@
 package eu.europeana.api2.v2.utils;
 
 
+import org.apache.commons.lang.StringUtils;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -101,11 +103,18 @@ public class DateMathParser {
     }
 
     public static String calculateSafeEndDate(String start, String end, String gapMath, long maxNrOfGaps) throws ParseException {
+
+        final DateMathParser p          = new DateMathParser();
         DateFormat           solrDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
         solrDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        Date                 startDate  = parseNoMath(start);
-        Date                 endDate    = parseNoMath(end);
-        final DateMathParser p          = new DateMathParser();
+
+        Date                 startDate  = solrDateFormat.parse(start);
+        Date                 endDate;
+        if (StringUtils.equalsIgnoreCase("now", end)){
+            endDate = new Date();
+        } else {
+            endDate = solrDateFormat.parse(end);
+        }
         p.setNow(startDate);
 
         Date gapDate = p.parseMath(gapMath);
@@ -227,8 +236,8 @@ public class DateMathParser {
         if (0==math.length()) {
             return getNow();
         }
-
-        ZoneId zoneId = zone.toZoneId();
+        // changed to always use UTC
+        ZoneId zoneId = UTC.toZoneId();
         // localDateTime is a date and time local to the timezone specified
         LocalDateTime localDateTime = ZonedDateTime.ofInstant(getNow().toInstant(), zoneId).toLocalDateTime();
 

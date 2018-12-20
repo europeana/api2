@@ -138,8 +138,10 @@ public class FacetParameterUtils {
             for (String rangeSpecifier : rangeSpecifiers){
                 String globalSpecifier = FACET_RANGE + "." + rangeSpecifier;
                 String fieldSpecifier = "f." + facetToRange + "." + FACET_RANGE + "." + rangeSpecifier;
-                if (parameters.containsKey(fieldSpecifier) || parameters.containsKey(globalSpecifier)){
+                if (parameters.containsKey(globalSpecifier)){
                     dateRangeParams.put(fieldSpecifier, parameters.get(globalSpecifier)[0]);
+                } else if (parameters.containsKey(fieldSpecifier)){
+                    dateRangeParams.put(fieldSpecifier, parameters.get(fieldSpecifier)[0]);
                 }
             }
             try{

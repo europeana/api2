@@ -609,9 +609,13 @@ public class SearchController {
             response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, "facets") ||
             StringUtils.containsIgnoreCase(profile, "portal")) {
-            response.facets = wrangler.consolidateFacetList(resultSet.getFacetFields(),
-                    query.getTechnicalFacets(), query.isDefaultFacetsRequested(),
-                    query.getTechnicalFacetLimits(), query.getTechnicalFacetOffsets());
+            response.facets = wrangler.consolidateFacetList(
+                      resultSet.getFacetFields()
+                    , resultSet.getRangeFacets()
+                    , query.getTechnicalFacets()
+                    , query.isDefaultFacetsRequested()
+                    , query.getTechnicalFacetLimits()
+                    , query.getTechnicalFacetOffsets());
         }
             if (StringUtils.containsIgnoreCase(profile, "breadcrumb") ||
                     StringUtils.containsIgnoreCase(profile, "portal")) {

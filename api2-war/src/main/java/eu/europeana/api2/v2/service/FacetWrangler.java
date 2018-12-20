@@ -24,6 +24,8 @@ import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.response.RangeFacet;
+
 import java.util.*;
 
 import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
@@ -50,9 +52,12 @@ public class FacetWrangler {
      * @param facetFields the List of facetfields as returned by Solr
      * @return a List of Facet objects representing both the regular, and the technical metadata facets
      */
-    public List<Facet> consolidateFacetList(List<FacetField> facetFields, List<String> requestedTechnicalFacets,
-                                                   boolean defaultFacetsRequested, Map<String, Integer> technicalFacetLimits,
-                                                   Map<String, Integer> technicalFacetOffsets) {
+    public List<Facet> consolidateFacetList(List<FacetField> facetFields,
+                                            List<RangeFacet> rangeFacets,
+                                            List<String> requestedTechnicalFacets,
+                                            boolean defaultFacetsRequested,
+                                            Map<String, Integer> technicalFacetLimits,
+                                            Map<String, Integer> technicalFacetOffsets) {
         if (facetFields == null || facetFields.isEmpty()) return null;
         final List<Facet>                                facetList          = new ArrayList<>();
 
