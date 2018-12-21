@@ -19,12 +19,14 @@ package eu.europeana.api2.v2.service;
 
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
+import eu.europeana.api2.v2.model.json.view.submodel.FacetRanger;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.response.RangeFacet;
+import org.apache.solr.client.solrj.response.RangeFacet.Count;
 
 import java.util.*;
 
@@ -58,12 +60,13 @@ public class FacetWrangler {
                                             boolean defaultFacetsRequested,
                                             Map<String, Integer> technicalFacetLimits,
                                             Map<String, Integer> technicalFacetOffsets) {
-        if (facetFields == null || facetFields.isEmpty()) return null;
+        if ((facetFields == null || facetFields.isEmpty()) &&
+                (rangeFacets == null || rangeFacets.isEmpty())) return null;
         final List<Facet>                                facetList          = new ArrayList<>();
 
         // loop through the list of Facet fields returned by Solr
         for (FacetField facetField : facetFields) {
-            if (facetField.getValues() != null) {
+            if (!facetField.getValues().isEmpty()) {
                 final Facet facet = new Facet();
                 facet.name = facetField.getName();
 
@@ -118,7 +121,6 @@ public class FacetWrangler {
                             facetValue.count = count.getCount();
                             facetValue.label = count.getName();
                             facet.fields.add(facetValue);
-                            continue;
                         }
                     }
                     // If the Solr facet contains values, it is added to the return Facet List
@@ -166,9 +168,45 @@ public class FacetWrangler {
             }
         }
 
+        // add RangeFacets when available
+        if (rangeFacets != null && !rangeFacets.isEmpty()) {
+            for (RangeFacet rangeFacet : rangeFacets) {
+                if (!rangeFacet.getCounts().isEmpty()) {
+                    final FacetRanger facetRanger = new FacetRanger();
+                    facetRanger.name = rangeFacet.getName();
+                    for (Object countObject : rangeFacet.getCounts()) {
+                        Count count = (Count) countObject;
+                        if (StringUtils.isNotEmpty(count.getValue()) && count.getCount() > 0) {
+                            final LabelFrequency rangeValue = new LabelFrequency();
+                            rangeValue.count = count.getCount();
+                            rangeValue.label = formatDateString(count.getValue(), rangeFacet.getGap());
+                            facetRanger.ranges.add(rangeValue);
+                        }
+                    }
+                    // If the Range facet contains values, it is added to the return Facet List
+                    if (!facetRanger.ranges.isEmpty()) facetList.add(facetRanger);
+                }
+            }
+        }
+
         // sort the List of Facets on #count, descending
         facetList.sort((f1, f2) -> Integer.compare(f2.fields.size(), f1.fields.size()));
         return facetList;
+    }
+
+    private String formatDateString(String value, Object gap){
+        String gapString = gap.toString();
+        // this splits eg "1883-01-01T00:00:00Z" in ["1883"],["01"], ["01"], ["00:00:00Z"]
+        String[] dateParts = StringUtils.split(value, "-T");
+        if (StringUtils.containsIgnoreCase(gapString, "YEAR")){
+            return dateParts[0];
+        } else if (StringUtils.containsIgnoreCase(gapString, "MONTH")){
+            return dateParts[0] + "-" + dateParts[1];
+        } else if (StringUtils.containsIgnoreCase(gapString, "DAY")){
+            return dateParts[0] + "-" + dateParts[1] + "-" + dateParts[2];
+        }
+        // if in doubt, return the whole string
+        return value;
     }
 
 
