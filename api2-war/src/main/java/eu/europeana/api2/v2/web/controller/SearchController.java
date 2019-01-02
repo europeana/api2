@@ -72,6 +72,7 @@ import eu.europeana.crf_faketags.extractor.CommonTagExtractor;
 import eu.europeana.crf_faketags.utils.FakeTagsUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -107,7 +108,13 @@ import java.util.regex.Pattern;
 @Api(tags = {"Search"}, description = " ")
 public class SearchController {
 
-	private static final Logger LOG = LogManager.getLogger(SearchController.class);
+	private static final Logger LOG         = LogManager.getLogger(SearchController.class);
+	private static final String SEARCHJSON  = " [search.json] ";
+    private static final String PORTAL      = "portal";
+    private static final String FACETS      = "facets";
+    private static final String DEBUG       = "debug";
+    private static final String SPELLING    = "spelling";
+    private static final String BREADCRUMB  = "breadcrumb";
 
 	// First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
@@ -141,8 +148,8 @@ public class SearchController {
 //	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
     @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
-			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "query", required = true) String queryString,
+			@RequestParam(value = "wskey") String wskey,
+			@RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
@@ -163,8 +170,6 @@ public class SearchController {
 
         // do apikey check before anything else
         LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
-
-//        String[] refinementAndThemeArray;
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -208,35 +213,29 @@ public class SearchController {
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         colourPalette.replaceAll(String::toUpperCase);
 
-        String colourPalettefilterQuery = "";
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
-        if (!colourPalette.isEmpty()) {
-            Iterator<Integer> it = FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator();
-            if (it.hasNext()) colourPalettefilterQuery = "filter_tags:" + it.next().toString();
-            while (it.hasNext()) colourPalettefilterQuery += " AND filter_tags:" + it.next().toString();
-            queryString += StringUtils.isNotBlank(queryString) ? " AND " + colourPalettefilterQuery: colourPalettefilterQuery ;
-        }
+        // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
+        queryString = filterQueryBuilder(FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator(),
+                                         queryString,
+                                         " AND ",
+                                         false);
 
         final List<Integer> filterTags = new ArrayList<>();
         refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags);
 
-        // add the CF filter facets to the query string like this: [existing-query] AND [refinement-1 OR refinement-2 OR
-        // refinement-3 ... ]
-        String filterTagQuery = "";
-        if (!filterTags.isEmpty()) {
-            Iterator<Integer> it = filterTags.iterator();
-            if (it.hasNext()) filterTagQuery = "filter_tags:" + it.next().toString();
-            while (it.hasNext()) filterTagQuery += " OR filter_tags:" + it.next().toString();
-            queryString += StringUtils.isNotBlank(queryString) ? " AND (" + filterTagQuery + ")" : filterTagQuery;
-        }
+        // add the CF filter facets to the query string like this:
+        // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
+        queryString = filterQueryBuilder(filterTags.iterator(),
+                                         queryString,
+                                         " OR ",
+                                         true);
 
-        // TODO this isn't right -> retrieve facets from parameters; set some facet conditions
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets = StringArrayUtils.splitWebParameter(mixedFacetArray);
 
 
-        boolean facetsRequested = StringUtils.containsIgnoreCase(profile, "portal") ||
-                StringUtils.containsIgnoreCase(profile, "facets");
+        boolean facetsRequested = StringUtils.containsIgnoreCase(profile, PORTAL) ||
+                StringUtils.containsIgnoreCase(profile, FACETS);
         boolean defaultFacetsRequested = facetsRequested &&
                 (ArrayUtils.isEmpty(mixedFacets) ||  ArrayUtils.contains(mixedFacets, "DEFAULT"));
         boolean defaultOrReusabilityFacetsRequested = defaultFacetsRequested ||
@@ -257,7 +256,7 @@ public class SearchController {
 			valueReplacements = RightReusabilityCategorizer.mapValueReplacements(reusabilities, true);
             refinementArray = (String[]) ArrayUtils.addAll(
                     refinementArray,
-                    valueReplacements.keySet().toArray(new String[valueReplacements.keySet().size()])
+                    valueReplacements.keySet().toArray(new String[0])
             );
         }
 
@@ -297,7 +296,7 @@ public class SearchController {
 
 		// reusability facet settings; spell check allowed, etcetera
         if (defaultOrReusabilityFacetsRequested) query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
-        if (StringUtils.containsIgnoreCase(profile, "portal") || StringUtils.containsIgnoreCase(profile, "spelling")) query.setSpellcheckAllowed(true);
+        if (StringUtils.containsIgnoreCase(profile, PORTAL) || StringUtils.containsIgnoreCase(profile, SPELLING)) query.setSpellcheckAllowed(true);
         if (facetsRequested && !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
                     ( ArrayUtils.contains(solrFacets, "DATA_PROVIDER") ||
                       ArrayUtils.contains(solrFacets, "DEFAULT")
@@ -319,24 +318,48 @@ public class SearchController {
         } catch (SolrTypeException e) {
             if(e.getProblem().equals(ProblemType.PAGINATION_LIMIT_REACHED)) {
                 // not a real error so we log it as a warning instead
-                LOG.warn(wskey + " [search.json] " + ProblemType.PAGINATION_LIMIT_REACHED.getMessage());
+                LOG.warn(wskey + SEARCHJSON + ProblemType.PAGINATION_LIMIT_REACHED.getMessage());
             } else if (e.getProblem().equals(ProblemType.INVALID_THEME)) {
                 // not a real error so we log it as a warning instead
-                LOG.warn(wskey + " [search.json] " + ProblemType.INVALID_THEME.getMessage());
+                LOG.warn(wskey + SEARCHJSON + ProblemType.INVALID_THEME.getMessage());
                 return JsonUtils.toJson(new ApiError(wskey, "Theme '" +
                       StringUtils.substringBetween(e.getCause().getCause().toString(), "Collection \"","\" not defined") +
                 "' is not defined"), callback);
             } else {
-                LOG.error(wskey + " [search.json] ", e);
+                LOG.error(wskey + SEARCHJSON, e);
             }
             response.setStatus(400);
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
 
         } catch (Exception e) {
-            LOG.error(wskey + " [search.json] " + e.getClass().getSimpleName(), e);
+            LOG.error(wskey + SEARCHJSON + e.getClass().getSimpleName(), e);
             response.setStatus(400);
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
         }
+    }
+
+    private String filterQueryBuilder(Iterator<Integer> it, String queryString, String andOrOr, boolean addBrackets){
+        StringBuilder filterQuery = new StringBuilder();
+        if (StringUtils.isNotBlank(queryString)){
+            filterQuery.append(queryString);
+            filterQuery.append(" AND ");
+        }
+        if (addBrackets){
+            filterQuery.append("(");
+        }
+        if (it.hasNext()){
+            filterQuery.append("filter_tags:");
+            filterQuery.append(it.next().toString());
+        }
+        while (it.hasNext()){
+            filterQuery.append(andOrOr);
+            filterQuery.append("filter_tags:");
+            filterQuery.append(it.next().toString());
+        }
+        if (addBrackets){
+            filterQuery.append(")");
+        }
+        return filterQuery.toString();
     }
 
     /**
@@ -345,15 +368,15 @@ public class SearchController {
      */
     private String[] processQfParameters(String[] refinementArray, Boolean media, Boolean thumbnail, Boolean fullText,
                                      Boolean landingPage, List<Integer> filterTags) {
-        Boolean hasImageRefinements = false;
-        Boolean hasSoundRefinements = false;
-        Boolean hasVideoRefinements = false;
-        List<String> newRefinements = new ArrayList<>();
+        boolean      hasImageRefinements      = false;
+        boolean      hasSoundRefinements      = false;
+        boolean      hasVideoRefinements      = false;
+        List<String> newRefinements           = new ArrayList<>();
         List<String> imageMimeTypeRefinements = new ArrayList<>();
         List<String> soundMimeTypeRefinements = new ArrayList<>();
         List<String> videoMimeTypeRefinements = new ArrayList<>();
         List<String> otherMimeTypeRefinements = new ArrayList<>();
-        List<String> imageSizeRefinements = new ArrayList<>();
+        List<String> imageSizeRefinements     = new ArrayList<>();
         List<String> imageAspectRatioRefinements = new ArrayList<>();
         List<String> soundDurationRefinements = new ArrayList<>();
         List<String> videoDurationRefinements = new ArrayList<>();
@@ -577,7 +600,7 @@ public class SearchController {
         FacetWrangler wrangler = new FacetWrangler();
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
-        if (StringUtils.containsIgnoreCase(profile, "debug")) {
+        if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
             resultSet = searchService.search(clazz, query, true);
         } else {
             resultSet = searchService.search(clazz, query);
@@ -607,32 +630,32 @@ public class SearchController {
             if (LOG.isDebugEnabled()) LOG.debug("results: " + beans.size());
 
             response.items = beans;
-        if (StringUtils.containsIgnoreCase(profile, "facets") ||
-            StringUtils.containsIgnoreCase(profile, "portal")) {
+        if (StringUtils.containsIgnoreCase(profile, FACETS) ||
+            StringUtils.containsIgnoreCase(profile, PORTAL)) {
             response.facets = wrangler.consolidateFacetList(
-                      resultSet.getFacetFields()
+                    resultSet.getFacetFields()
                     , resultSet.getRangeFacets()
                     , query.getTechnicalFacets()
                     , query.isDefaultFacetsRequested()
                     , query.getTechnicalFacetLimits()
                     , query.getTechnicalFacetOffsets());
         }
-            if (StringUtils.containsIgnoreCase(profile, "breadcrumb") ||
-                    StringUtils.containsIgnoreCase(profile, "portal")) {
+            if (StringUtils.containsIgnoreCase(profile, BREADCRUMB) ||
+                    StringUtils.containsIgnoreCase(profile, PORTAL)) {
                 response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
             }
-            if (StringUtils.containsIgnoreCase(profile, "spelling") ||
-                    StringUtils.containsIgnoreCase(profile, "portal")) {
+            if (StringUtils.containsIgnoreCase(profile, SPELLING) ||
+                    StringUtils.containsIgnoreCase(profile, PORTAL)) {
                 response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
             }
-        if (StringUtils.containsIgnoreCase(profile, "debug")) {
+        if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
             response.debug = resultSet.getSolrQueryString();
         }
 //        if (StringUtils.containsIgnoreCase(profile, "params")) {
 //            response.addParam("sort", resultSet.getSortField());
 //        }
 //        if (StringUtils.containsIgnoreCase(profile, "suggestions") ||
-//            StringUtils.containsIgnoreCase(profile, "portal")) {
+//            StringUtils.containsIgnoreCase(profile, PORTAL)) {
 //        }
         return response;
     }
@@ -647,10 +670,10 @@ public class SearchController {
     @ResponseBody
     @Deprecated
     public KmlResponse searchKml(
-			@RequestParam(value = "query", required = true) String queryString,
+			@RequestParam(value = "query") String queryString,
 			@RequestParam(value = "qf", required = false) String[] refinementArray,
 			@RequestParam(value = "start", required = false, defaultValue = "1") int start,
-			@RequestParam(value = "wskey", required = true) String wskey,
+			@RequestParam(value = "wskey") String wskey,
 			HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
@@ -698,7 +721,7 @@ public class SearchController {
 	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public RssResponse openSearchRss(
-			@RequestParam(value = "searchTerms", required = true) String queryString,
+			@RequestParam(value = "searchTerms") String queryString,
 			@RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
 			@RequestParam(value = "count", required = false, defaultValue = "12") int count) {
         if (LOG.isDebugEnabled()) {

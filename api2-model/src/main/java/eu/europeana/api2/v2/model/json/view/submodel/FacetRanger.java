@@ -30,7 +30,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
  */
 @JsonInclude(NON_EMPTY)
 public class FacetRanger extends Facet {
-    public String name;
 
     public List<LabelFrequency> ranges = new ArrayList<>();
 }
