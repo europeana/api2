@@ -10,6 +10,9 @@ import org.apache.commons.lang.StringUtils;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
+/**
+ * A RichView defines the fields that are returned in search results when using the 'rich' profile
+ */
 @JsonPropertyOrder(alphabetic=true)
 public class RichView extends ApiView implements RichBean {
 
@@ -19,6 +22,11 @@ public class RichView extends ApiView implements RichBean {
     private Map<String, List<String>> dcSubjectLangAware;
     private Map<String, List<String>> dcTypeLangAware;
 
+    // temporary added for debugging purposes (see EA-1395)
+    private List<Map<String, String>> fulltext;
+    // temporary added for debugging purposes (see EA-1395)
+    private Map<String, List<String>> fulltextLangAware;
+
     public RichView(RichBean bean, String profile, String wskey) {
         super(bean, profile, wskey);
         isShownBy = bean.getEdmIsShownBy();
@@ -26,6 +34,11 @@ public class RichView extends ApiView implements RichBean {
         dcTypeLangAware = bean.getDcTypeLangAware();
         dcSubjectLangAware = bean.getDcSubjectLangAware();
         dcDescriptionLangAware = bean.getDcDescriptionLangAware();
+
+        if (StringUtils.containsIgnoreCase(profile, "debug")) {
+            fulltext = bean.getFulltext();
+            fulltextLangAware = bean.getFulltextLangAware();
+        }
     }
 
     @Override
@@ -61,5 +74,17 @@ public class RichView extends ApiView implements RichBean {
     @Override
     public Map<String, List<String>> getDcSubjectLangAware() {
         return dcSubjectLangAware;
+    }
+
+    @Override
+    // temporary added for debugging purposes (see EA-1395)
+    public List<Map<String, String>> getFulltext() {
+        return fulltext;
+    }
+
+    @Override
+    // temporary added for debugging purposes (see EA-1395)
+    public Map<String, List<String>> getFulltextLangAware() {
+        return fulltextLangAware;
     }
 }

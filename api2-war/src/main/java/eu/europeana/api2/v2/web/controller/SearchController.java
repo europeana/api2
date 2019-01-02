@@ -72,7 +72,6 @@ import eu.europeana.crf_faketags.extractor.CommonTagExtractor;
 import eu.europeana.crf_faketags.utils.FakeTagsUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
