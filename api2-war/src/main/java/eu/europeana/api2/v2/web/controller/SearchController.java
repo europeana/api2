@@ -37,6 +37,7 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripImage;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
+import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.FacetParameterUtils;
@@ -74,6 +75,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -110,6 +112,7 @@ public class SearchController {
     private static final String DEBUG       = "debug";
     private static final String SPELLING    = "spelling";
     private static final String BREADCRUMB  = "breadcrumb";
+    private static final String HITS        = "hits";
 
 	// First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
@@ -160,6 +163,8 @@ public class SearchController {
             @RequestParam(value = "landingpage", required = false) Boolean landingPage,
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
+            @RequestParam(value = "hl.fl", required = false) String hlFl,
+            @RequestParam(value = "hl.selectors", required = false) String hlSelectors,
             HttpServletRequest request,
             HttpServletResponse response) throws ApiLimitException {
 
@@ -210,20 +215,24 @@ public class SearchController {
 
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
-        queryString = filterQueryBuilder(FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator(),
-                                         queryString,
-                                         " AND ",
-                                         false);
+        if (!colourPalette.isEmpty()) {
+           queryString = filterQueryBuilder(FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator(),
+                                            queryString,
+                                            " AND ",
+                                            false);
+        }
 
         final List<Integer> filterTags = new ArrayList<>();
         refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags);
 
         // add the CF filter facets to the query string like this:
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
-        queryString = filterQueryBuilder(filterTags.iterator(),
-                                         queryString,
-                                         " OR ",
-                                         true);
+        if (!filterTags.isEmpty()) {
+            queryString = filterQueryBuilder(filterTags.iterator(),
+                                            queryString,
+                                            " OR ",
+                                            true);
+        }
 
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets = StringArrayUtils.splitWebParameter(mixedFacetArray);
@@ -284,6 +293,12 @@ public class SearchController {
                     .setFacetsAllowed(true);
         } else {
             query.setFacetsAllowed(false);
+        }
+
+        if (StringUtils.containsIgnoreCase(profile, HITS)){
+            query.setParameter("hl", "on");
+            query.setParameter("hl.fl", StringUtils.isBlank(hlFl) ? "*" : hlFl);
+            query.setParameter("hl.selectors", StringUtils.isBlank(hlSelectors) ? "1" : hlSelectors);
         }
 
 		query.setValueReplacements(valueReplacements);
@@ -591,7 +606,6 @@ public class SearchController {
             Query query,
             Class<T> clazz)
             throws EuropeanaException {
-        FacetWrangler wrangler = new FacetWrangler();
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
         if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
@@ -616,7 +630,7 @@ public class SearchController {
             }
 
             List<FacetField> facetFields = resultSet.getFacetFields();
-            if (resultSet.getQueryFacets() != null) {
+            if (MapUtils.isNotEmpty(resultSet.getQueryFacets())) {
                 List<FacetField> allQueryFacetsMap = SearchUtils.extractQueryFacets(resultSet.getQueryFacets());
                 if (!allQueryFacetsMap.isEmpty()) facetFields.addAll(allQueryFacetsMap);
             }
@@ -625,7 +639,7 @@ public class SearchController {
 
             response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, FACETS) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
-            response.facets = wrangler.consolidateFacetList(resultSet.getFacetFields(),
+            response.facets = new FacetWrangler().consolidateFacetList(resultSet.getFacetFields(),
                                                             query.getTechnicalFacets(),
                                                             query.isDefaultFacetsRequested(),
                                                             query.getTechnicalFacetLimits(),
@@ -633,6 +647,9 @@ public class SearchController {
         }
         if (StringUtils.containsIgnoreCase(profile, BREADCRUMB) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
             response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
+        }
+        if (StringUtils.containsIgnoreCase(profile, HITS) && MapUtils.isNotEmpty(resultSet.getHighlighting())) {
+            response.hits = new HitMaker().createHitList(resultSet.getHighlighting());
         }
         if (StringUtils.containsIgnoreCase(profile, SPELLING) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
             response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());

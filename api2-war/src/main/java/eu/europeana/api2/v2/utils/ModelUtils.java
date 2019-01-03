@@ -40,11 +40,13 @@ import java.util.*;
  */
 public class ModelUtils {
 
-    final static public int FACET_LIMIT = 150;
+    private ModelUtils(){}
+
+    private static final int FACET_LIMIT = 150;
     // static goodies: Lists containing the enum Facet type names
-    protected final static List<String> technicalFacetList = new ArrayList<>();
-    protected final static List<String> solrFacetList = new ArrayList<>();
-    protected final static List<String> enumFacetList = new ArrayList<>();
+    private static final List<String> technicalFacetList = new ArrayList<>();
+    private static final List<String> solrFacetList = new ArrayList<>();
+    private static final List<String> enumFacetList = new ArrayList<>();
     static {
         for (final TechnicalFacetType technicalFacet : TechnicalFacetType.values()) {
             technicalFacetList.add(technicalFacet.name());
@@ -102,7 +104,7 @@ public class ModelUtils {
         return containsTechnicalFacet(Arrays.asList(mixedFacets));
     }
 
-    public static boolean containsTechnicalFacet(List<String> mixedFacets){
+    private static boolean containsTechnicalFacet(List<String> mixedFacets){
         return CollectionUtils.containsAny(mixedFacets, technicalFacetList);
     }
 
