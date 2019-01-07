@@ -34,12 +34,38 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @JsonInclude(NON_EMPTY)
 public class HighlightHit {
 
-    public String type = "Hit";
-    public String scope;
+    private String type = "Hit";
+    private String scope;
+    private List<HitSelector> selectors = new ArrayList<>();
+
 
     public HighlightHit(String scope){
         this.scope = scope;
     }
 
-    public List<HitSelector> selectors = new ArrayList<>();
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+    public List<HitSelector> getSelectors() {
+        return selectors;
+    }
+
+    public void setSelectors(List<HitSelector> selectors) {
+        this.selectors = selectors;
+    }
+
+
 }

@@ -73,6 +73,7 @@ import eu.europeana.crf_faketags.extractor.CommonTagExtractor;
 import eu.europeana.crf_faketags.utils.FakeTagsUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.collections.MapUtils;
@@ -176,6 +177,7 @@ public class SearchController {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return JsonUtils.toJson(new ApiError("", "Empty query parameter"), callback);
         }
+
         queryString = queryString.trim();
         queryString = fixCountryCapitalization(queryString);
 
@@ -296,9 +298,22 @@ public class SearchController {
         }
 
         if (StringUtils.containsIgnoreCase(profile, HITS)){
+            // check if hl.selectors is numeric
+            int nrSelectors;
+            if (StringUtils.isBlank(hlSelectors)){
+                nrSelectors = 1;
+            } else {
+                try{
+                    nrSelectors = Integer.parseInt(hlSelectors);
+                } catch (NumberFormatException nfe) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    return JsonUtils.toJson(new ApiError("", "Query parameter hl.selectors must be an integer"), callback);
+                }
+            }
             query.setParameter("hl", "on");
             query.setParameter("hl.fl", StringUtils.isBlank(hlFl) ? "*" : hlFl);
-            query.setParameter("hl.selectors", StringUtils.isBlank(hlSelectors) ? "1" : hlSelectors);
+            // this sets both the Solr parameter and a separate nrSelectors variable used to limit the result set with
+            query.setNrSelectors("hl.snippets", nrSelectors);
         }
 
 		query.setValueReplacements(valueReplacements);
@@ -640,16 +655,16 @@ public class SearchController {
             response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, FACETS) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
             response.facets = new FacetWrangler().consolidateFacetList(resultSet.getFacetFields(),
-                                                            query.getTechnicalFacets(),
-                                                            query.isDefaultFacetsRequested(),
-                                                            query.getTechnicalFacetLimits(),
-                                                            query.getTechnicalFacetOffsets());
+                                                                       query.getTechnicalFacets(),
+                                                                       query.isDefaultFacetsRequested(),
+                                                                       query.getTechnicalFacetLimits(),
+                                                                       query.getTechnicalFacetOffsets());
         }
         if (StringUtils.containsIgnoreCase(profile, BREADCRUMB) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
             response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
         }
         if (StringUtils.containsIgnoreCase(profile, HITS) && MapUtils.isNotEmpty(resultSet.getHighlighting())) {
-            response.hits = new HitMaker().createHitList(resultSet.getHighlighting());
+            response.hits = new HitMaker().createHitList(resultSet.getHighlighting(), query.getNrSelectors());
         }
         if (StringUtils.containsIgnoreCase(profile, SPELLING) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
             response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
