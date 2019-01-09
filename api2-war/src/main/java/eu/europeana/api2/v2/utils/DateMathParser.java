@@ -150,7 +150,7 @@ public class DateMathParser {
 
         if ((timespanMillis / gapMillis) > 0 && (timespanMillis / gapMillis) <= maxNrOfGaps){
             // everything's cool - timespan & gap are both positive or negative & gap count is not too large
-            return end;
+            return solrDateFormat.format(endDate);
         } else {
             // either gap has opposite sign of timespan and/or gap count is too large.
             // return a properly signed end date with max gaps range
