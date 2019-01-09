@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.v2.utils;
 
+import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.model.StringFacetParameter;
 import eu.europeana.api2.v2.model.NumericFacetParameter;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
@@ -36,21 +37,25 @@ import java.util.*;
  */
 public class FacetParameterUtils {
 
-    private static final String DEFAULT_LIMIT_KEY = "f.DEFAULT.facet.limit";
-    private static final String DEFAULT_OFFSET_KEY = "f.DEFAULT.facet.offset";
-    private static final int LIMIT_FOR_DATA_PROVIDER = 50;
-    private static final int LIMIT_FOR_DEFAULT = 50;
-    private static final int LIMIT_FOR_CUSTOM = 50;
-    private static final int LIMIT_FOR_TECH_DEFAULT = 50;
-    private static final int LIMIT_FOR_TECH_CUSTOM = 50;
+    private static final String DEFAULT_LIMIT_KEY       = "f.DEFAULT.facet.limit";
+    private static final String DEFAULT_OFFSET_KEY      = "f.DEFAULT.facet.offset";
+    private static final int LIMIT_FOR_DATA_PROVIDER    = 50;
+    private static final int LIMIT_FOR_DEFAULT          = 50;
+    private static final int LIMIT_FOR_CUSTOM           = 50;
+    private static final int LIMIT_FOR_TECH_DEFAULT     = 50;
+    private static final int LIMIT_FOR_TECH_CUSTOM      = 50;
 
-    private static final String FACET_RANGE = "facet.range";
-    private static final String FACET_RANGE_START = "facet.range.start";
-    private static final String FACET_RANGE_END = "facet.range.end";
-    private static final String FACET_RANGE_GAP = "facet.range.gap";
-    private static final String FACET_MINCOUNT = "facet.mincount";
+    private static final String FACET_RANGE             = "facet.range";
+    private static final String FACET_RANGE_START       = "facet.range.start";
+    private static final String FACET_RANGE_END         = "facet.range.end";
+    private static final String FACET_RANGE_GAP         = "facet.range.gap";
+    private static final String FACET_MINCOUNT          = "facet.mincount";
 
-    private static final long MAX_RANGE_FACETS = 30000l;
+    private static final String DEFAULT_START           = "0001-01-01T00:00:00Z"; // year 0 does not exist
+    private static final String DEFAULT_END             = "now";
+    private static final String DEFAULT_GAP             = "+1YEAR";
+
+    private static final long MAX_RANGE_FACETS          = 30000l;
 
     private static List<String> defaultSolrFacetList;
     private static List<String> rangeFacetList;
@@ -119,7 +124,7 @@ public class FacetParameterUtils {
 
     // NOTE that there can be more than one facet range parameter for every field, eg:
     // facet.range=timestamp & &facet.range.start=0000-01-01T00:00:00Z & &facet.range.end=NOW & facet.range.gap=+1DAY
-    public static Map<String, String> getDateRangeParams(Map<String, String[]> parameters) {
+    public static Map<String, String> getDateRangeParams(Map<String, String[]> parameters) throws DateMathParseException {
         Map<String, String> dateRangeParams = new HashMap<>();
 
         // first, retrieve & validate field values from comma-separated facet.range parameter
@@ -142,27 +147,38 @@ public class FacetParameterUtils {
                     dateRangeParams.put(fieldSpecifier, parameters.get(globalSpecifier)[0]);
                 } else if (parameters.containsKey(fieldSpecifier)){
                     dateRangeParams.put(fieldSpecifier, parameters.get(fieldSpecifier)[0]);
+                } else {
+                    dateRangeParams.put(fieldSpecifier, getDefaultValue(rangeSpecifier));
                 }
             }
-            try{
-                dateRangeParams.replace("f." + facetToRange + "." + FACET_RANGE + ".end",
-                                        DateMathParser.calculateSafeEndDate(
-                                                dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".start"),
-                                                dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".end"),
-                                                dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".gap"),
-                                                MAX_RANGE_FACETS
-                                        ));
-            } catch (ParseException e) {
-                return null;
-            }
-        }
-        // can test
-        //        change 'facet.range=timestamp' by 'f.timestamp.facet.range=timestamp'
-        //        and I have notice the you don't have facet.field=timestamp
-        //        don't know if that's on purpose
+            dateRangeParams.replace("f." + facetToRange + "." + FACET_RANGE + ".end",
+                                    DateMathParser.calculateSafeEndDate(
+                                            dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".start"),
+                                            dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".end"),
+                                            dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".gap"),
+                                            MAX_RANGE_FACETS
+                                    ));
 
-        // REMEMBER add facet.field=timestamp
+        }
         return dateRangeParams;
+    }
+
+    private static String getDefaultValue(String rangeSpecifier){
+        String defaultValue;
+        switch(rangeSpecifier){
+            case "start":
+                defaultValue = DEFAULT_START;
+                break;
+            case "end":
+                defaultValue = DEFAULT_END;
+                break;
+            case "gap":
+                defaultValue = DEFAULT_GAP;
+                break;
+            default:
+                defaultValue = "";
+        }
+        return defaultValue;
     }
 
     private static String facetUrlDecode(String value){

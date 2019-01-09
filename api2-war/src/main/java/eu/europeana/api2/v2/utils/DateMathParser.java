@@ -18,6 +18,7 @@
 package eu.europeana.api2.v2.utils;
 
 
+import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import org.apache.commons.lang.StringUtils;
 
 import java.text.DateFormat;
@@ -102,22 +103,47 @@ public class DateMathParser {
         return java.lang.Math.abs(timespanMillis / gapMillis);
     }
 
-    public static String calculateSafeEndDate(String start, String end, String gapMath, long maxNrOfGaps) throws ParseException {
+    public static String calculateSafeEndDate(String start, String end, String gapMath, long maxNrOfGaps) throws
+                                                                                                          DateMathParseException {
+
+        String parsing     = start;
+        String whatsParsed = "start";
 
         final DateMathParser p          = new DateMathParser();
         DateFormat           solrDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
         solrDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        Date                 startDate  = solrDateFormat.parse(start);
+        solrDateFormat.setLenient(false); // this is to avoid it accepting stuff like '1890-41-64T00:00:00Z'
+        Date                 startDate  = null;
+        try {
+            startDate = solrDateFormat.parse(start);
+        } catch (ParseException e) {
+            throw new DateMathParseException(e, parsing, whatsParsed);
+        }
         Date                 endDate;
+
+        parsing     = end;
+        whatsParsed = "end";
+
         if (StringUtils.equalsIgnoreCase("now", end)){
             endDate = new Date();
         } else {
-            endDate = solrDateFormat.parse(end);
+            try {
+                endDate = solrDateFormat.parse(end);
+            } catch (ParseException e) {
+                throw new DateMathParseException(e, parsing, whatsParsed);
+            }
         }
         p.setNow(startDate);
 
-        Date gapDate = p.parseMath(gapMath);
+        parsing = gapMath;
+        whatsParsed = "gap";
+
+        Date gapDate;
+        try {
+            gapDate = p.parseMath(gapMath);
+        } catch (ParseException e) {
+            throw new DateMathParseException(e, parsing, whatsParsed);
+        }
 
         long gapMillis = gapDate.getTime() - startDate.getTime();
         long timespanMillis = endDate.getTime() - startDate.getTime();

@@ -23,6 +23,7 @@ import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
+import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -88,6 +89,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -278,15 +280,20 @@ public class SearchController {
         // passing the Maps to the Query object. Null checking happens there, too.
         if (facetsRequested) {
             Map<String, String[]> parameterMap = request.getParameterMap();
-            query.setSolrFacets(solrFacets)
-                    .setDefaultFacetsRequested(defaultFacetsRequested)
-                    .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested))
-                    .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested))
-                    .setFacetDateRangeParameters(FacetParameterUtils.getDateRangeParams(parameterMap))
-                    .setTechnicalFacets(technicalFacets)
-                    .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
-                    .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))
-                    .setFacetsAllowed(true);
+            try {
+                query.setSolrFacets(solrFacets)
+                        .setDefaultFacetsRequested(defaultFacetsRequested)
+                        .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested))
+                        .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested))
+                        .setFacetDateRangeParameters(FacetParameterUtils.getDateRangeParams(parameterMap))
+                        .setTechnicalFacets(technicalFacets)
+                        .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
+                        .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))
+                        .setFacetsAllowed(true);
+            } catch (DateMathParseException e) {
+                response.setStatus(400);
+                return JsonUtils.toJson(new ApiError("", "Error parsing value '" + e.getParsing() + "' supplied for facet.range." + e.getWhatsParsed()), callback);
+            }
         } else {
             query.setFacetsAllowed(false);
         }
