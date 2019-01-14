@@ -58,7 +58,7 @@ public class HitMaker {
             for (Map.Entry<String,List<String>> topOrFlop : hitContent.entrySet()){
                 String keyString = getFieldString(topOrFlop.getKey());
                 if (CollectionUtils.isNotEmpty(topOrFlop.getValue())){
-                    int i = 0;
+                    int i = 1;
                     for (String lyrics : topOrFlop.getValue()){
                         if (StringUtils.isNotBlank(lyrics)){
                             HitSelector selector;

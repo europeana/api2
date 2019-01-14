@@ -35,6 +35,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @JsonInclude(NON_EMPTY)
 public class HitSelector {
 
+    @JsonIgnore
     private String type = "TextQuoteSelector";
     private String field;
     private String exact;

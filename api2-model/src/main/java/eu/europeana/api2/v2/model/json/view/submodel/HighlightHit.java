@@ -18,6 +18,7 @@
 package eu.europeana.api2.v2.model.json.view.submodel;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 
@@ -34,6 +35,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @JsonInclude(NON_EMPTY)
 public class HighlightHit {
 
+    @JsonIgnore
     private String type = "Hit";
     private String scope;
     private List<HitSelector> selectors = new ArrayList<>();
