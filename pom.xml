@@ -31,7 +31,6 @@
 
     <properties>
         <corelib.version>2.8.5-SNAPSHOT</corelib.version>
-
         <httpclient.version>4.5.2</httpclient.version>
         <jackson.version>2.6.5</jackson.version>
         <jodatime.version>2.9.2</jodatime.version>
@@ -68,13 +67,23 @@
             <id>release</id>
             <build>
                 <plugins>
-                    <!-- we need to deactivate the enforcer plugin for now, until we have a proper release of CRF -->
+                    <!-- with CRF gone, we can finally enable this -->
                     <plugin>
                         <artifactId>maven-enforcer-plugin</artifactId>
                         <executions>
                             <execution>
                                 <id>enforce-no-snapshots</id>
-                                <phase>none</phase>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireReleaseDeps>
+                                            <message>No Snapshots Allowed!</message>
+                                        </requireReleaseDeps>
+                                    </rules>
+                                    <fail>true</fail>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
