@@ -163,8 +163,8 @@ public class SearchController {
             @RequestParam(value = "landingpage", required = false) Boolean landingPage,
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hl.fl", required = false) String hlFl,
-            @RequestParam(value = "hl.selectors", required = false) String hlSelectors,
+            @RequestParam(value = "hits.fl", required = false) String hlFl,
+            @RequestParam(value = "hits.selectors", required = false) String hlSelectors,
             HttpServletRequest request,
             HttpServletResponse response) throws ApiLimitException {
 
@@ -348,6 +348,9 @@ public class SearchController {
                 return JsonUtils.toJson(new ApiError(wskey, "Theme '" +
                       StringUtils.substringBetween(e.getCause().getCause().toString(), "Collection \"","\" not defined") +
                 "' is not defined"), callback);
+            } else if (e.getProblem().equals(ProblemType.SOLR_IS_BROKEN) && StringUtils.contains(query.getParameterMap().get("hl.fl"), '*')) {
+                LOG.error("This is the \"field 'what' was indexed without offsets\"-error, see EA-1441 when executing search: " + SEARCHJSON);
+                return JsonUtils.toJson(new ApiError(wskey, "Solr indexing error, occurs when hits.fl parameter contains '*'"));
             } else {
                 LOG.error(wskey + SEARCHJSON, e);
             }
