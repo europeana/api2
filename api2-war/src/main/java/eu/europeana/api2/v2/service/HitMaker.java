@@ -58,10 +58,13 @@ public class HitMaker {
             for (Map.Entry<String,List<String>> topOrFlop : hitContent.entrySet()){
                 String keyString = getFieldString(topOrFlop.getKey());
                 if (CollectionUtils.isNotEmpty(topOrFlop.getValue())){
+                    // record level
                     int i = 1;
+                    // loop through fields of the record - max number applies here
                     for (String lyrics : topOrFlop.getValue()){
                         if (StringUtils.isNotBlank(lyrics)){
                             HitSelector selector;
+                            // loop through possible multiple highlights per field
                             do {
                                 selector = createSelector(lyrics);
                                 if (selector != null){
@@ -75,6 +78,7 @@ public class HitMaker {
                                 i++;
                             } while (!StringUtils.equalsIgnoreCase(lyrics, THE_END) && i <= nrSelectors);
                         }
+                        if (i > nrSelectors) break;
                     }
                 }
             }
