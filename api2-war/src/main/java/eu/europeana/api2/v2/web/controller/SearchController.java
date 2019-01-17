@@ -69,8 +69,8 @@ import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import eu.europeana.crf_faketags.extractor.CommonTagExtractor;
-import eu.europeana.crf_faketags.utils.FakeTagsUtils;
+import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
+import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import jena.query;
@@ -218,10 +218,10 @@ public class SearchController {
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
         if (!colourPalette.isEmpty()) {
-           queryString = filterQueryBuilder(FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator(),
-                                            queryString,
-                                            " AND ",
-                                            false);
+            Iterator<Integer> it = TagUtils.colourPaletteFilterTags(colourPalette).iterator();
+            if (it.hasNext()) colourPalettefilterQuery = "filter_tags:" + it.next().toString();
+            while (it.hasNext()) colourPalettefilterQuery += " AND filter_tags:" + it.next().toString();
+            queryString += StringUtils.isNotBlank(queryString) ? " AND " + colourPalettefilterQuery: colourPalettefilterQuery ;
         }
 
         final List<Integer> filterTags = new ArrayList<>();
@@ -523,17 +523,17 @@ public class SearchController {
 
         // Encode the faceted refinements ...
         if (hasImageRefinements) {
-            filterTags.addAll(FakeTagsUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
-                    imageAspectRatioRefinements, imageColourPaletteRefinements));
+            filterTags.addAll(TagUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
+                                                       imageAspectRatioRefinements, imageColourPaletteRefinements));
         }
         if (hasSoundRefinements) {
-            filterTags.addAll(FakeTagsUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
+            filterTags.addAll(TagUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
         }
         if (hasVideoRefinements) {
-            filterTags.addAll(FakeTagsUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
+            filterTags.addAll(TagUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
         }
         if (!otherMimeTypeRefinements.isEmpty()) {
-            filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeRefinements));
+            filterTags.addAll(TagUtils.otherFilterTags(otherMimeTypeRefinements));
         }
         if (LOG.isDebugEnabled()) {
             for (Integer filterTag : filterTags) {
