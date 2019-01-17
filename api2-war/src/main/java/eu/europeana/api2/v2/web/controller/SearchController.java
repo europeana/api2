@@ -68,8 +68,8 @@ import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import eu.europeana.crf_faketags.extractor.CommonTagExtractor;
-import eu.europeana.crf_faketags.utils.FakeTagsUtils;
+import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
+import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.ArrayUtils;
@@ -99,8 +99,10 @@ import java.util.regex.Pattern;
 
 
 /**
- * @author Willem-Jan Boogerd <www.eledge.net/contact>
- * @author Maike (edits)
+ * @author Willem-Jan Boogerd
+ * @author Lúthien
+ * @author Patrick
+ *
  */
 @Controller
 @SwaggerSelect
@@ -141,8 +143,8 @@ public class SearchController {
 //	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
     @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
-			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "query", required = true) String queryString,
+			@RequestParam(value = "wskey") String wskey,
+			@RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
@@ -211,7 +213,7 @@ public class SearchController {
         String colourPalettefilterQuery = "";
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         if (!colourPalette.isEmpty()) {
-            Iterator<Integer> it = FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator();
+            Iterator<Integer> it = TagUtils.colourPaletteFilterTags(colourPalette).iterator();
             if (it.hasNext()) colourPalettefilterQuery = "filter_tags:" + it.next().toString();
             while (it.hasNext()) colourPalettefilterQuery += " AND filter_tags:" + it.next().toString();
             queryString += StringUtils.isNotBlank(queryString) ? " AND " + colourPalettefilterQuery: colourPalettefilterQuery ;
@@ -469,17 +471,17 @@ public class SearchController {
 
         // Encode the faceted refinements ...
         if (hasImageRefinements) {
-            filterTags.addAll(FakeTagsUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
-                    imageAspectRatioRefinements, imageColourPaletteRefinements));
+            filterTags.addAll(TagUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
+                                                       imageAspectRatioRefinements, imageColourPaletteRefinements));
         }
         if (hasSoundRefinements) {
-            filterTags.addAll(FakeTagsUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
+            filterTags.addAll(TagUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
         }
         if (hasVideoRefinements) {
-            filterTags.addAll(FakeTagsUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
+            filterTags.addAll(TagUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
         }
         if (!otherMimeTypeRefinements.isEmpty()) {
-            filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeRefinements));
+            filterTags.addAll(TagUtils.otherFilterTags(otherMimeTypeRefinements));
         }
         if (LOG.isDebugEnabled()) {
             for (Integer filterTag : filterTags) {
