@@ -143,8 +143,8 @@ public class SearchController {
 //	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
     @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
-			@RequestParam(value = "wskey", required = true) String wskey,
-			@RequestParam(value = "query", required = true) String queryString,
+			@RequestParam(value = "wskey") String wskey,
+			@RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
