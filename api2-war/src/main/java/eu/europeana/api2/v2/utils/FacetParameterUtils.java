@@ -144,4 +144,8 @@ public class FacetParameterUtils {
         if (defaultValue != null) return new NumericFacetParameter(key, defaultValue);
         return null;
     }
+
+    public static String getLimitForDataProvider(){
+        return String.valueOf(LIMIT_FOR_DATA_PROVIDER);
+    }
 }

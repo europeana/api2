@@ -101,7 +101,7 @@ public class ModelUtils {
         return containsTechnicalFacet(Arrays.asList(mixedFacets));
     }
 
-    public static boolean containsTechnicalFacet(List<String> mixedFacets){
+    private static boolean containsTechnicalFacet(List<String> mixedFacets){
         return CollectionUtils.containsAny(mixedFacets, technicalFacetList);
     }
 
