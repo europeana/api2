@@ -73,6 +73,7 @@ import eu.europeana.crf_faketags.extractor.CommonTagExtractor;
 import eu.europeana.crf_faketags.utils.FakeTagsUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.collections.MapUtils;
@@ -163,8 +164,8 @@ public class SearchController {
             @RequestParam(value = "landingpage", required = false) Boolean landingPage,
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hits.fl", required = false) String hlFl,
-            @RequestParam(value = "hits.selectors", required = false) String hlSelectors,
+            @RequestParam(value = "hit.fl", required = false) String hlFl,
+            @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
             HttpServletRequest request,
             HttpServletResponse response) throws ApiLimitException {
 
@@ -297,16 +298,19 @@ public class SearchController {
         }
 
         if (StringUtils.containsIgnoreCase(profile, HITS)){
-            // check if hl.selectors is numeric
             int nrSelectors;
             if (StringUtils.isBlank(hlSelectors)){
                 nrSelectors = 1;
             } else {
                 try{
                     nrSelectors = Integer.parseInt(hlSelectors);
+                    if (nrSelectors < 1) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        return JsonUtils.toJson(new ApiError("", "Query parameter hit.selectors must be greater than 0"), callback);
+                    }
                 } catch (NumberFormatException nfe) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    return JsonUtils.toJson(new ApiError("", "Query parameter hl.selectors must be an integer"), callback);
+                    return JsonUtils.toJson(new ApiError("", "Query parameter hit.selectors must be an integer"), callback);
                 }
             }
             query.setParameter("hl", "on");
