@@ -117,6 +117,8 @@ public class SearchController {
     private static final String SPELLING    = "spelling";
     private static final String BREADCRUMB  = "breadcrumb";
 
+    private static final String FACET_RANGE = "facet.range";
+
 	// First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
 	private static final Pattern COUNTRY_PATTERN = Pattern.compile("COUNTRY:\"(.*?)\"|COUNTRY:(.*?)(&|\\s|$)");
@@ -234,11 +236,12 @@ public class SearchController {
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets = StringArrayUtils.splitWebParameter(mixedFacetArray);
 
-
+        boolean rangeFacetsSpecified = request.getParameterMap().containsKey(FACET_RANGE);
+        boolean noFacetsSpecified = ArrayUtils.isEmpty(mixedFacets);
         boolean facetsRequested = StringUtils.containsIgnoreCase(profile, PORTAL) ||
                 StringUtils.containsIgnoreCase(profile, FACETS);
-        boolean defaultFacetsRequested = facetsRequested &&
-                (ArrayUtils.isEmpty(mixedFacets) ||  ArrayUtils.contains(mixedFacets, "DEFAULT"));
+        boolean defaultFacetsRequested = facetsRequested && !rangeFacetsSpecified &&
+                (noFacetsSpecified ||  ArrayUtils.contains(mixedFacets, "DEFAULT"));
         boolean defaultOrReusabilityFacetsRequested = defaultFacetsRequested ||
                 (facetsRequested &&  ArrayUtils.contains(mixedFacets, "REUSABILITY"));
 
@@ -283,16 +286,21 @@ public class SearchController {
             try {
                 query.setSolrFacets(solrFacets)
                         .setDefaultFacetsRequested(defaultFacetsRequested)
-                        .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested))
-                        .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested))
+                        .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams(
+                                "limit", solrFacets, parameterMap, defaultFacetsRequested))
+                        .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams(
+                                "offset", solrFacets, parameterMap, defaultFacetsRequested))
                         .setFacetDateRangeParameters(FacetParameterUtils.getDateRangeParams(parameterMap))
                         .setTechnicalFacets(technicalFacets)
-                        .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
-                        .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))
+                        .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams(
+                                "limit", technicalFacets, parameterMap, defaultFacetsRequested))
+                        .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams(
+                                "offset", technicalFacets, parameterMap, defaultFacetsRequested))
                         .setFacetsAllowed(true);
             } catch (DateMathParseException e) {
                 response.setStatus(400);
-                return JsonUtils.toJson(new ApiError("", "Error parsing value '" + e.getParsing() + "' supplied for facet.range." + e.getWhatsParsed()), callback);
+                return JsonUtils.toJson(new ApiError("", "Error parsing value '" + e.getParsing()
+                                                         + "' supplied for " + FACET_RANGE  + "\n" + e.getWhatsParsed()), callback);
             }
         } else {
             query.setFacetsAllowed(false);
