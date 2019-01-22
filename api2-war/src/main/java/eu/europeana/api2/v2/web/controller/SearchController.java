@@ -218,20 +218,24 @@ public class SearchController {
 
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
-        queryString = filterQueryBuilder(FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator(),
-                                         queryString,
-                                         " AND ",
-                                         false);
+        if (!colourPalette.isEmpty()) {
+            queryString = filterQueryBuilder(FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator(),
+                                             queryString,
+                                             " AND ",
+                                             false);
+        }
 
         final List<Integer> filterTags = new ArrayList<>();
         refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags);
 
         // add the CF filter facets to the query string like this:
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
-        queryString = filterQueryBuilder(filterTags.iterator(),
-                                         queryString,
-                                         " OR ",
-                                         true);
+        if (!filterTags.isEmpty()) {
+            queryString = filterQueryBuilder(filterTags.iterator(),
+                                             queryString,
+                                             " OR ",
+                                             true);
+        }
 
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets = StringArrayUtils.splitWebParameter(mixedFacetArray);
