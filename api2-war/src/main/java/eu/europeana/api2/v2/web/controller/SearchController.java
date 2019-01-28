@@ -97,6 +97,7 @@ import java.util.regex.Pattern;
 
 
 /**
+ * Controller that handles all search requests (search.json, opensearch.rss, search.rss, and search.kml)
  * @author Willem-Jan Boogerd
  * @author Luthien
  * @author Patrick Ehlert
@@ -212,7 +213,9 @@ public class SearchController {
         }
 
         List<String> colourPalette = new ArrayList();
-        if (ArrayUtils.isNotEmpty(colourPaletteArray)) StringArrayUtils.addToList(colourPalette, colourPaletteArray);
+        if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
+            StringArrayUtils.addToList(colourPalette, colourPaletteArray);
+        }
         colourPalette.replaceAll(String::toUpperCase);
 
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
@@ -322,8 +325,12 @@ public class SearchController {
 		query.setValueReplacements(valueReplacements);
 
 		// reusability facet settings; spell check allowed, etcetera
-        if (defaultOrReusabilityFacetsRequested) query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
-        if (StringUtils.containsIgnoreCase(profile, PORTAL) || StringUtils.containsIgnoreCase(profile, SPELLING)) query.setSpellcheckAllowed(true);
+        if (defaultOrReusabilityFacetsRequested) {
+            query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
+        }
+        if (StringUtils.containsIgnoreCase(profile, PORTAL) || StringUtils.containsIgnoreCase(profile, SPELLING)) {
+            query.setSpellcheckAllowed(true);
+        }
         if (facetsRequested && !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
                     ( ArrayUtils.contains(solrFacets, "DATA_PROVIDER") ||
                       ArrayUtils.contains(solrFacets, "DEFAULT")
@@ -422,7 +429,7 @@ public class SearchController {
         if (refinementArray != null) {
             for (String qf : refinementArray) {
                 if (StringUtils.contains(qf, ":")){
-                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase();
+                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
                             if (CommonTagExtractor.isImageMimeType(refinementValue)) {
@@ -452,7 +459,7 @@ public class SearchController {
                             break;
                         case "COLOURPALETTE":
                         case "COLORPALETTE":
-                            imageColourPaletteRefinements.add(refinementValue.toUpperCase());
+                            imageColourPaletteRefinements.add(refinementValue.toUpperCase(Locale.GERMAN));
                             hasImageRefinements = true;
                             break;
                         case "IMAGE_ASPECTRATIO":
@@ -587,9 +594,13 @@ public class SearchController {
 
     private Class<? extends IdBean> selectBean(String profile) {
         Class<? extends IdBean> clazz;
-        if (StringUtils.containsIgnoreCase(profile, "minimal")) clazz = BriefBean.class;
-        else if (StringUtils.containsIgnoreCase(profile, "rich")) clazz = RichBean.class;
-        else clazz = ApiBean.class;
+        if (StringUtils.containsIgnoreCase(profile, "minimal")) {
+            clazz = BriefBean.class;
+        } else if (StringUtils.containsIgnoreCase(profile, "rich")) {
+            clazz = RichBean.class;
+        } else {
+            clazz = ApiBean.class;
+        }
         return clazz;
     }
 
@@ -645,18 +656,26 @@ public class SearchController {
 
             List<T> beans = new ArrayList<>();
             for (T b : resultSet.getResults()) {
-                if (b instanceof RichBean) beans.add((T) new RichView((RichBean) b, profile, apiKey));
-                else if (b instanceof ApiBean) beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
-                else if (b instanceof BriefBean) beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
+                if (b instanceof RichBean) {
+                    beans.add((T) new RichView((RichBean) b, profile, apiKey));
+                } else if (b instanceof ApiBean) {
+                    beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
+                } else if (b instanceof BriefBean) {
+                    beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
+                }
             }
 
             List<FacetField> facetFields = resultSet.getFacetFields();
             if (MapUtils.isNotEmpty(resultSet.getQueryFacets())) {
                 List<FacetField> allQueryFacetsMap = SearchUtils.extractQueryFacets(resultSet.getQueryFacets());
-                if (!allQueryFacetsMap.isEmpty()) facetFields.addAll(allQueryFacetsMap);
+                if (!allQueryFacetsMap.isEmpty()) {
+                    facetFields.addAll(allQueryFacetsMap);
+                }
             }
 
-            if (LOG.isDebugEnabled()) LOG.debug("results: " + beans.size());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("results: " + beans.size());
+            }
 
             response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, FACETS) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
@@ -693,7 +712,8 @@ public class SearchController {
      * @deprecated 2018-01-09 search with coordinates functionality
 	 */
 	@SwaggerIgnore
-	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET}, produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
+	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET},
+            produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     @Deprecated
     public KmlResponse searchKml(
@@ -739,13 +759,18 @@ public class SearchController {
     /**
      * Handles an opensearch query (see also https://en.wikipedia.org/wiki/OpenSearch)
      *
-     * @param queryString the search terms used to query the Europeana repository; similar to the query parameter in the search method.
-     * @param start the first object in the search result set to start with (first item = 1), e.g., if a result set is made up of 100 objects, you can set the first returned object to the 22nd object in the set [optional parameter, default = 1]
-     * @param count the number of search results to return; possible values can be any integer up to 100 [optional parameter, default = 12]
+     * @param queryString the search terms used to query the Europeana repository; similar to the query parameter in the
+     *                   search method.
+     * @param start the first object in the search result set to start with (first item = 1), e.g., if a result set is
+     *              made up of 100 objects, you can set the first returned object to the 22nd object in the set
+     *              [optional parameter, default = 1]
+     * @param count the number of search results to return; possible values can be any integer up to 100 [optional
+     *              parameter, default = 12]
      * @return rss response of the query
      */
 	@ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
-	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
+	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {"application/rss+xml",
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public RssResponse openSearchRss(
 			@RequestParam(value = "searchTerms") String queryString,
@@ -841,7 +866,8 @@ public class SearchController {
                     ? (gftChannelAttributes.get("title") == null
                     || gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title")) :
                     gftChannelAttributes.get(reqLanguage + "_title");
-            channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
+            channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null
+                    || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
                     ? (gftChannelAttributes.get("description") == null
                     || gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description")) :
                     gftChannelAttributes.get(reqLanguage + "_description");
@@ -950,7 +976,7 @@ public class SearchController {
      * @return String containing the Europeana collection ID only
      */
     private String getIdFromQueryTerms(String queryTerms) {
-        return queryTerms.substring(queryTerms.indexOf(":"), queryTerms.indexOf("*")).replaceAll(
+        return queryTerms.substring(queryTerms.indexOf(':'), queryTerms.indexOf('*')).replaceAll(
                 "\\D+", "");
     }
 }
