@@ -610,27 +610,6 @@ public class SearchController {
         return ApiBeanImpl.class;
     }
 
-//    @Deprecated // July 3rd 2018, not in use anymore
-//    @ApiOperation(value = "get autocompletion recommendations for search queries", nickname = "suggestions")
-//    @RequestMapping(value = "/v2/suggestions.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ModelAndView suggestionsJson(
-//            @RequestParam(value = "query", required = true) String query,
-//            @RequestParam(value = "rows", required = false, defaultValue = "10") int count,
-//            @RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases,
-//            @RequestParam(value = "callback", required = false) String callback,
-//            HttpServletResponse response) {
-//        ControllerUtils.addResponseHeaders(response);
-//        if (LOG.isInfoEnabled()) LOG.info("phrases: " + phrases);
-//        Suggestions apiResponse = new Suggestions(null);
-//        try {
-//            apiResponse.items = searchService.suggestions(query, count);
-//            apiResponse.itemsCount = apiResponse.items.size();
-//        } catch (EuropeanaException e) {
-//            return JsonUtils.toJson(new ApiError(null, e.getMessage()), callback);
-//        }
-//        return JsonUtils.toJson(apiResponse, callback);
-//    }
-
     @SuppressWarnings("unchecked")
     private <T extends IdBean> SearchResults<T> createResults(
             String apiKey,
