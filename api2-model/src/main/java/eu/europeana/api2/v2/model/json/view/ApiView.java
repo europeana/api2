@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.utils.DateUtils;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 import java.util.Date;
@@ -13,6 +14,9 @@ import java.util.Map;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
+/**
+ * The ApiView defines the fields that are returned in search results by default (corresponds to the 'standard' profile)
+ */
 @JsonInclude(NON_EMPTY)
 @JsonPropertyOrder(alphabetic=true)
 public class ApiView extends BriefView implements ApiBean {
@@ -29,7 +33,6 @@ public class ApiView extends BriefView implements ApiBean {
     private boolean[] ugc;
     private int completeness;
     private String[] country;
-    private String debugQuery;
     private String[] europeanaCollectionName;
     private int index;
     private String[] edmPlaceBroaderTerm;
@@ -53,13 +56,10 @@ public class ApiView extends BriefView implements ApiBean {
         edmConceptBroaderLabel = bean.getEdmConceptBroaderLabel();
         edmTimespanBroaderTerm = bean.getEdmTimespanBroaderTerm();
         edmTimespanBroaderLabel = bean.getEdmTimespanBroaderLabel();
-        // recordHashFirstSix = bean.get;
         ugc = bean.getUgc();
         completeness = bean.getEuropeanaCompleteness();
         country = bean.getCountry();
-        // debugQuery = bean.get;
         europeanaCollectionName = bean.getEuropeanaCollectionName();
-        // index = bean.get;
         edmPlaceBroaderTerm = bean.getEdmPlaceBroaderTerm();
         edmPlaceAltLabel = bean.getEdmPlaceAltLabel();
         dctermsIsPartOf = bean.getDctermsIsPartOf();
@@ -175,14 +175,6 @@ public class ApiView extends BriefView implements ApiBean {
         this.country = country;
     }
 
-    public String getDebugQuery() {
-        return debugQuery;
-    }
-
-    public void setDebugQuery(String debugQuery) {
-        this.debugQuery = debugQuery;
-    }
-
     @Override
     public String[] getEuropeanaCollectionName() {
         return europeanaCollectionName;
@@ -285,4 +277,5 @@ public class ApiView extends BriefView implements ApiBean {
     public Map<String, List<String>> getEdmPlaceAltLabelLangAware() {
         return edmPlaceAltLabelLangAware;
     }
+
 }
