@@ -108,15 +108,16 @@ public class HierarchyRunner {
             LOG.debug("Init object: {}", (System.currentTimeMillis() - t1));
         }
         t1 = System.currentTimeMillis();
-
+        // this only retrieves the 'self' node: 1 Neo4jBean instance
+        // - all that code in Neo4jServer etc. is way too complex
+        // replace Neo4jServer.getNode code: IndexHits<Node> nodes = index.get ... blah
+        // with ONE plugin call returning ONE node (self)
         try{
-            hierarchicalResult.self = searchService.getHierarchicalBean(rdfAbout);
+            hierarchicalResult.self = searchService.getSingle(rdfAbout);
             if (hierarchicalResult.self != null) {
-                long childrenCount = searchService.getChildrenCount(rdfAbout);
-                if (hierarchicalResult.self.hasChildren() && childrenCount == 0){
+                if (hierarchicalResult.self.hasChildren() &&
+                        hierarchicalResult.self.getChildrenCount() == 0){
                     throw new Neo4JException(ProblemType.NEO4J_INCONSISTENT_DATA, " for record " + rdfAbout);
-                } else {
-                    hierarchicalResult.self.setChildrenCount(childrenCount);
                 }
             } else {
                 hierarchicalResult.success = false;
@@ -151,11 +152,7 @@ public class HierarchyRunner {
                     hierarchicalResult.success = false;
                     response.setStatus(404);
                 } else {
-                    hierarchicalResult.parent = searchService.getHierarchicalBean(hierarchicalResult.self.getParent());
-                    if (hierarchicalResult.parent != null) {
-                        hierarchicalResult.parent.setChildrenCount(
-                                searchService.getChildrenCount(hierarchicalResult.parent.getId()));
-                    }
+                    hierarchicalResult.parent = searchService.getSingle(hierarchicalResult.self.getParent());
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
                 long tgetsiblings = System.currentTimeMillis();
@@ -259,13 +256,13 @@ public class HierarchyRunner {
     }
 
     private void addChildrenCount(List<Neo4jBean> beans) throws Neo4JException {
-        if (beans != null && !beans.isEmpty()) {
-            for (Neo4jBean bean : beans) {
-                if (bean.hasChildren()) {
-                    bean.setChildrenCount(searchService.getChildrenCount(bean.getId()));
-                }
-            }
-        }
+//        if (beans != null && !beans.isEmpty()) {
+//            for (Neo4jBean bean : beans) {
+//                if (bean.hasChildren()) {
+//                    bean.setChildrenCount(searchService.getChildrenCount(bean.getId()));
+//                }
+//            }
+//        }
     }
 
     private void sendExceptionEmail(EuropeanaException e){
