@@ -641,7 +641,6 @@ public class SearchController {
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
         if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
-            searchService.watWilWickie();
             resultSet = searchService.search(clazz, query, true);
         } else {
             resultSet = searchService.search(clazz, query);
