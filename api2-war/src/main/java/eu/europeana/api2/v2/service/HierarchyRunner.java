@@ -28,7 +28,7 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.neo4j.exception.Neo4JException;
-import eu.europeana.corelib.search.Neo4jSearchService;
+import eu.europeana.corelib.neo4j.Neo4jSearchService;
 import eu.europeana.corelib.web.exception.EmailServiceException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
@@ -77,7 +77,7 @@ public class HierarchyRunner {
         this.searchService = searchService;
         LOG.debug("Running thread for {}", rdfAbout);
 
-
+        long selfIndex = 0L;
         long t0 = System.currentTimeMillis();
         ControllerUtils.addResponseHeaders(response);
 
@@ -108,10 +108,6 @@ public class HierarchyRunner {
             LOG.debug("Init object: {}", (System.currentTimeMillis() - t1));
         }
         t1 = System.currentTimeMillis();
-        // this only retrieves the 'self' node: 1 Neo4jBean instance
-        // - all that code in Neo4jServer etc. is way too complex
-        // replace Neo4jServer.getNode code: IndexHits<Node> nodes = index.get ... blah
-        // with ONE plugin call returning ONE node (self)
         try{
             hierarchicalResult.self = searchService.getSingle(rdfAbout);
             if (hierarchicalResult.self != null) {
@@ -119,6 +115,7 @@ public class HierarchyRunner {
                         hierarchicalResult.self.getChildrenCount() == 0){
                     throw new Neo4JException(ProblemType.NEO4J_INCONSISTENT_DATA, " for record " + rdfAbout);
                 }
+                selfIndex = hierarchicalResult.self.getIndex();
             } else {
                 hierarchicalResult.success = false;
                 response.setStatus(404);
@@ -156,7 +153,7 @@ public class HierarchyRunner {
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
                 long tgetsiblings = System.currentTimeMillis();
-                hierarchicalResult.followingSiblings = searchService.getFollowingSiblings(rdfAbout, offset, limit);
+                hierarchicalResult.followingSiblings = searchService.getFollowingSiblings(rdfAbout, offset, limit, selfIndex);
                 LOG.info("Get siblings: {}", (System.currentTimeMillis() - tgetsiblings));
                 if (hierarchicalResult.followingSiblings == null || hierarchicalResult.followingSiblings.isEmpty()) {
                     hierarchicalResult.message = "This record has no following siblings";
@@ -168,7 +165,7 @@ public class HierarchyRunner {
                     LOG.info("Get siblingsCount: {}", (System.currentTimeMillis() - tgetsiblingsCount));
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_PRECEDING_SIBLINGS)) {
-                hierarchicalResult.precedingSiblings = searchService.getPrecedingSiblings(rdfAbout, offset, limit);
+                hierarchicalResult.precedingSiblings = searchService.getPrecedingSiblings(rdfAbout, offset, limit, selfIndex);
                 if (hierarchicalResult.precedingSiblings == null || hierarchicalResult.precedingSiblings.isEmpty()) {
                     hierarchicalResult.message = "This record has no preceding siblings";
                     hierarchicalResult.success = false;
@@ -177,7 +174,7 @@ public class HierarchyRunner {
                     addChildrenCount(hierarchicalResult.precedingSiblings);
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS)) {
-                Neo4jStructBean struct = searchService.getInitialStruct(rdfAbout);
+                Neo4jStructBean struct = searchService.getInitialStruct(rdfAbout, selfIndex);
                 if (struct == null) {
                     hierarchicalResult.message = "This record has no hierarchical structure "+ rdfAbout;
                     hierarchicalResult.success = false;
