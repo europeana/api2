@@ -47,7 +47,7 @@ public class HttpCacheUtils {
     public  static final String IFMATCH           = "If-Match";
     private static final String IFMODIFIEDSINCE   = "If-Modified-Since";
     private static final String ANY               = "\"*\"";
-    private static final String GZIPSUFFIX        = "-gzip";
+    private static final String GZIPSUFFIX        = "-gzip\"";
     private static String apiVersion;
 
     static{
@@ -291,8 +291,8 @@ public class HttpCacheUtils {
     }
 
     private boolean matchesDespiteGzipSuffix(String eTag, String eTagToMatch){
-        return StringUtils.equalsIgnoreCase(StringUtils.removeEndIgnoreCase(eTag, GZIPSUFFIX),
-                                            StringUtils.removeEndIgnoreCase(eTagToMatch, GZIPSUFFIX));
+        return StringUtils.equalsIgnoreCase(
+                StringUtils.replaceIgnoreCase(eTag, GZIPSUFFIX, "\""), eTagToMatch);
     }
 
 }
