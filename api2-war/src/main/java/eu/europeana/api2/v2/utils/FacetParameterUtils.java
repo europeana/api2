@@ -18,7 +18,6 @@
 package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
-import eu.europeana.api2.v2.model.StringFacetParameter;
 import eu.europeana.api2.v2.model.NumericFacetParameter;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
@@ -27,7 +26,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -55,21 +53,17 @@ public class FacetParameterUtils {
     private static final String DEFAULT_END             = "now";
     private static final String DEFAULT_GAP             = "+1YEAR";
 
-    private static final long MAX_RANGE_FACETS          = 30000l;
+    private static final long MAX_RANGE_FACETS          = 30000L;
 
     private static List<String> defaultSolrFacetList;
     private static List<String> rangeFacetList;
     private static List<String> rangeSpecifiers = Arrays.asList("start", "end", "gap");;
 
     static {
-        if (defaultSolrFacetList == null) {
-            defaultSolrFacetList = new ArrayList<>();
-            for (SolrFacetType facet : SolrFacetType.values()) defaultSolrFacetList.add(facet.toString());
-        }
-        if (rangeFacetList == null) {
-            rangeFacetList = new ArrayList<>();
-            for (RangeFacetType facet : RangeFacetType.values()) rangeFacetList.add(facet.toString());
-        }
+        defaultSolrFacetList = new ArrayList<>();
+        for (SolrFacetType facet : SolrFacetType.values()) defaultSolrFacetList.add(facet.toString());
+        rangeFacetList = new ArrayList<>();
+        for (RangeFacetType facet : RangeFacetType.values()) rangeFacetList.add(facet.toString());
     }
 
     /**
@@ -151,14 +145,14 @@ public class FacetParameterUtils {
                     dateRangeParams.put(fieldSpecifier, getDefaultValue(rangeSpecifier));
                 }
             }
-            dateRangeParams.replace("f." + facetToRange + "." + FACET_RANGE + ".end",
-                                    DateMathParser.calculateSafeEndDate(
-                                            dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".start"),
-                                            dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".end"),
-                                            dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".gap"),
-                                            MAX_RANGE_FACETS
-                                    ));
+            if (DateMathParser.exceedsMaxNrOfGaps(
+                    dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".start"),
+                    dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".end"),
+                    dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".gap"),
+                    MAX_RANGE_FACETS
+            )){
 
+            }
         }
         return dateRangeParams;
     }

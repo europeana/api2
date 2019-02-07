@@ -19,6 +19,7 @@ package eu.europeana.api2.v2.utils;
 
 
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
+import eu.europeana.api2.v2.exceptions.TooManyGapsException;
 import org.apache.commons.lang.StringUtils;
 
 import java.text.DateFormat;
@@ -94,33 +95,102 @@ public class DateMathParser {
         Date endDate = parseNoMath(end);
         final DateMathParser p = new DateMathParser();
         p.setNow(startDate);
-
         Date gapDate = p.parseMath(gapMath);
-
         long gapMillis = gapDate.getTime() - startDate.getTime();
         long timespanMillis = endDate.getTime() - startDate.getTime();
-
         return java.lang.Math.abs(timespanMillis / gapMillis);
     }
 
-    public static String calculateSafeEndDate(String start, String end, String gapMath, long maxNrOfGaps) throws
-                                                                                                          DateMathParseException {
+//    public static String exceedsMaxNrOfGaps(String start, String end, String gapMath, long maxNrOfGaps) throws
+//                                                                                                          DateMathParseException {
+//
+//        String parsing     = start;
+//        String whatsParsed = "start";
+//
+//        final DateMathParser p          = new DateMathParser();
+//        DateFormat           solrDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+//        solrDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+//        solrDateFormat.setLenient(false); // this is to avoid it accepting stuff like '1890-41-64T00:00:00Z'
+//        Date                 startDate  = null;
+//        try {
+//            startDate = solrDateFormat.parse(start);
+//        } catch (ParseException e) {
+//            throw new DateMathParseException(e, parsing, whatsParsed);
+//        }
+//        Date                 endDate;
+//        parsing     = end;
+//        whatsParsed = "end";
+//
+//        if (StringUtils.equalsIgnoreCase("now", end)){
+//            endDate = new Date();
+//        } else {
+//            try {
+//                endDate = solrDateFormat.parse(end);
+//            } catch (ParseException e) {
+//                throw new DateMathParseException(e, parsing, whatsParsed);
+//            }
+//        }
+//        p.setNow(startDate);
+//
+//        parsing = gapMath;
+//        whatsParsed = "gap";
+//
+//        Date gapDate;
+//        try {
+//            gapDate = p.parseMath(gapMath);
+//        } catch (ParseException e) {
+//            throw new DateMathParseException(e, parsing, whatsParsed);
+//        }
+//
+//        long gapMillis = gapDate.getTime() - startDate.getTime();
+//        long timespanMillis = endDate.getTime() - startDate.getTime();
+//
+//        if ((timespanMillis / gapMillis) > 0 && (timespanMillis / gapMillis) <= maxNrOfGaps){
+//            // everything's cool - timespan & gap are both positive or negative & gap count is not too large
+//            return solrDateFormat.format(endDate);
+//        } else {
+//            // either gap has opposite sign of timespan and/or gap count is too large.
+//            // return a properly signed end date with max gaps range
+//            if (timespanMillis > 0){
+//                // start > end & gap > 0: return new end > start
+//                return solrDateFormat.format(new Date(startDate.getTime() + (gapMillis * maxNrOfGaps)));
+//            } else {
+//                // start < end & gap < 0: return new end < start
+//                return solrDateFormat.format(new Date(startDate.getTime() - (gapMillis * maxNrOfGaps)));
+//            }
+//        }
+//    }
 
-        String parsing     = start;
-        String whatsParsed = "start";
+    /**
+     * Calculates whether the number of requested gaps (specified by the number of times the interval defined by
+     * 'gapMath' fits in the timespan between 'start' and 'end') exceeds the value of maxNrOfGaps.
+     * Throws TooManyGapsException if it does OR when interval and timespan have opposite signs (for instance
+     * when requesting -1DAY for start > end, or +1DAY for start < end).
+     * The idea is to prevent 'range facet' requests that could potentially lock Solr.
+     * @param start         String: start date of timespan in format 0000-01-01T00:00:00Z
+     * @param end           String: end date of timespan in format 0000-01-01T00:00:00Z
+     * @param gapMath       String: time interval, in DateMathParser syntax
+     * @param maxNrOfGaps   long:   maximum number of allowed gaps
+     * @exception DateMathParseException if gapMath cannot be parsed
+     * @exception TooManyGapsException if above conditions are met
+     */
+    static void exceedsMaxNrOfGaps(String start, String end, String gapMath, long maxNrOfGaps)
+            throws DateMathParseException, TooManyGapsException {
 
-        final DateMathParser p          = new DateMathParser();
+        String               parsing        = start;
+        String               whatsParsed    = "start";
+        final DateMathParser p              = new DateMathParser();
         DateFormat           solrDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        Date                 startDate;
+
         solrDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         solrDateFormat.setLenient(false); // this is to avoid it accepting stuff like '1890-41-64T00:00:00Z'
-        Date                 startDate  = null;
         try {
             startDate = solrDateFormat.parse(start);
         } catch (ParseException e) {
             throw new DateMathParseException(e, parsing, whatsParsed);
         }
-        Date                 endDate;
-
+        Date endDate;
         parsing     = end;
         whatsParsed = "end";
 
@@ -133,12 +203,12 @@ public class DateMathParser {
                 throw new DateMathParseException(e, parsing, whatsParsed);
             }
         }
-        p.setNow(startDate);
 
+        p.setNow(startDate);
         parsing = gapMath;
         whatsParsed = "gap";
-
         Date gapDate;
+
         try {
             gapDate = p.parseMath(gapMath);
         } catch (ParseException e) {
@@ -148,19 +218,10 @@ public class DateMathParser {
         long gapMillis = gapDate.getTime() - startDate.getTime();
         long timespanMillis = endDate.getTime() - startDate.getTime();
 
-        if ((timespanMillis / gapMillis) > 0 && (timespanMillis / gapMillis) <= maxNrOfGaps){
-            // everything's cool - timespan & gap are both positive or negative & gap count is not too large
-            return solrDateFormat.format(endDate);
-        } else {
-            // either gap has opposite sign of timespan and/or gap count is too large.
-            // return a properly signed end date with max gaps range
-            if (timespanMillis > 0){
-                // start > end & gap > 0: return new end > start
-                return solrDateFormat.format(new Date(startDate.getTime() + (gapMillis * maxNrOfGaps)));
-            } else {
-                // start < end & gap < 0: return new end < start
-                return solrDateFormat.format(new Date(startDate.getTime() - (gapMillis * maxNrOfGaps)));
-            }
+        if ((timespanMillis / gapMillis) <= 0 || (timespanMillis / gapMillis) > maxNrOfGaps){
+            throw new TooManyGapsException("The number of gaps specified by '" + gapMath + "' " +
+                                           "for the timespan between '" + start + "' " +
+                                           "and '" + end + "' exceeds the maximum of " + maxNrOfGaps);
         }
     }
 
