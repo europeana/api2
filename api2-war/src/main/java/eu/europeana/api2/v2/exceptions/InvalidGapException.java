@@ -20,12 +20,12 @@ package eu.europeana.api2.v2.exceptions;
 /**
  * Created by luthien on 07/02/2019.
  */
-public class TooManyGapsException extends Exception{
+public class InvalidGapException extends Exception{
 
     private static final long serialVersionUID = -8115132548321277597L;
     private final String message;
 
-    public TooManyGapsException (String message){
+    public InvalidGapException(String message){
         this.message = message;
     }
 

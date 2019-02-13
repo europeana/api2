@@ -18,20 +18,18 @@
 package eu.europeana.api2.v2.exceptions;
 
 
-import java.text.ParseException;
-
 /**
  * Exception that is thrown when the apikey is invalid, or if the number of requests if over it's daily maximum
  */
-public class DateMathParseException extends ParseException {
+public class DateMathParseException extends Exception{
 
     private static final long serialVersionUID = 1L;
 
     private final String parsing;
     private final String whatsParsed;
 
-    public DateMathParseException(ParseException e, String parsing, String whatsParsed) {
-        super(e.getMessage(), e.getErrorOffset());
+    public DateMathParseException(Throwable causedBy, String parsing, String whatsParsed) {
+        super(causedBy);
         this.parsing        = parsing;
         this.whatsParsed    = whatsParsed;
     }

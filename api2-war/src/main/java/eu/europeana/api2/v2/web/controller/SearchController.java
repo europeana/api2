@@ -24,6 +24,7 @@ import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
+import eu.europeana.api2.v2.exceptions.InvalidGapException;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -89,7 +90,6 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -147,7 +147,7 @@ public class SearchController {
      *
      * @return the JSON response
      */
-    @ApiOperation(value = "search for records", nickname = "searchRecords", response = java.lang.Void.class)
+    @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
 //	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
     @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
@@ -171,10 +171,8 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws ApiLimitException {
 
-        // do apikey check before anything else
         LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
 
-        // check query parameter
         if (StringUtils.isBlank(queryString)) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return JsonUtils.toJson(new ApiError("", "Empty query parameter"), callback);
@@ -188,7 +186,6 @@ public class SearchController {
             LOG.debug("QUERY: |" + queryString + "|");
         }
 
-        // check other parameters
         if (cursorMark != null) {
             if (start > 1) {
                 response.setStatus(400);
@@ -268,9 +265,7 @@ public class SearchController {
             );
         }
 
-        // create Query object and set some params
         Class<? extends IdBean> clazz = selectBean(profile);
-//        Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
         Query query = new Query(SearchUtils.rewriteQueryFields(
                                 SearchUtils.fixBuggySolrIndex(queryString)))
                 .setApiQuery(true)
@@ -283,8 +278,6 @@ public class SearchController {
                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                 .setSpellcheckAllowed(false);
 
-        // removed the spooky looping stuff from setting the Solr facets and their associated parameters by directly
-        // passing the Maps to the Query object. Null checking happens there, too.
         if (facetsRequested) {
             Map<String, String[]> parameterMap = request.getParameterMap();
             try {
@@ -304,7 +297,11 @@ public class SearchController {
             } catch (DateMathParseException e) {
                 response.setStatus(400);
                 return JsonUtils.toJson(new ApiError("", "Error parsing value '" + e.getParsing()
-                                                         + "' supplied for " + FACET_RANGE  + "\n" + e.getWhatsParsed()), callback);
+                                                         + "' supplied for " + FACET_RANGE
+                                                         + "\n" + e.getWhatsParsed()), callback);
+            } catch (InvalidGapException e) {
+                response.setStatus(400);
+                return JsonUtils.toJson(new ApiError("", e.getMessage()), callback);
             }
         } else {
             query.setFacetsAllowed(false);
@@ -312,7 +309,6 @@ public class SearchController {
 
 		query.setValueReplacements(valueReplacements);
 
-		// reusability facet settings; spell check allowed, etcetera
         if (defaultOrReusabilityFacetsRequested) query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
         if (StringUtils.containsIgnoreCase(profile, PORTAL) || StringUtils.containsIgnoreCase(profile, SPELLING)) query.setSpellcheckAllowed(true);
         if (facetsRequested && !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
@@ -320,7 +316,6 @@ public class SearchController {
                       ArrayUtils.contains(solrFacets, "DEFAULT")
                     ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
 
-        // do the search
         try {
             SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
             result.requestNumber = limitResponse.getRequestNumber();
