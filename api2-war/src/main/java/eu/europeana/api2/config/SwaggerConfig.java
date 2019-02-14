@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.util.UriComponentsBuilder;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
@@ -40,16 +41,16 @@ import static springfox.documentation.builders.RequestHandlerSelectors.withMetho
 /**
  * @author luthien
  */
+@CrossOrigin(origins = "*", maxAge = 600)
 @EnableSwagger2 //Loads the spring beans required by the framework
 @PropertySource("classpath:swagger.properties")
 
 public class SwaggerConfig {
 
-    @Value("${api2.url}")
-    private String apiUrl;
+    private static final String EUROPEANAURL = "http://europeana.eu";
 
-    @Value("${api2.canonical.url}")
-    private String apiCanonicalUrl;
+    @Value("${api2.baseUrl}")
+    private String apiUrl;
 
     @Bean
     public Docket customImplementation() {
@@ -74,12 +75,12 @@ public class SwaggerConfig {
         "This Swagger API console provides an overview of an interface to the Europeana REST API. " +
                 "You can build and test anything from the simplest search to a complex query using facetList " +
                 "such as dates, geotags and permissions. For more help and information, head to our " +
-                "comprehensive <a href=\"http://labs.europeana.eu/api/\">online documentation</a>.",
+                "comprehensive <a href=\"https://pro.europeana.eu/page/intro\">online documentation</a>.",
                 StringUtils.isNotEmpty(version) ? version : "version unknown",
-        "http://www.europeana.eu/portal/en/rights.html",
-        "http://labs.europeana.eu/api",
+        "https://www.europeana.eu/portal/en/rights/api.html",
+        "https://pro.europeana.eu/page/intro#general",
         "API terms of use",
-        "http://www.europeana.eu/portal/en/rights/api.html");
+        "https://www.europeana.eu/portal/en/rights/api.html");
     }
 
     private String getApiPath(){
@@ -92,8 +93,7 @@ public class SwaggerConfig {
     }
 
     private String fullApiUrl(){
-        return StringUtils.isNotBlank(apiUrl) ? apiUrl : (
-                StringUtils.isNotBlank(apiCanonicalUrl) ? apiCanonicalUrl : "http://europeana.eu");
+        return StringUtils.isNotBlank(apiUrl) ? apiUrl : EUROPEANAURL;
     }
 
     class BasePathAwareRelativePathProvider extends AbstractPathProvider {
