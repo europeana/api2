@@ -24,7 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.util.UriComponentsBuilder;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
@@ -41,7 +40,6 @@ import static springfox.documentation.builders.RequestHandlerSelectors.withMetho
 /**
  * @author luthien
  */
-@CrossOrigin(origins = "*", maxAge = 600)
 @EnableSwagger2 //Loads the spring beans required by the framework
 @PropertySource("classpath:swagger.properties")
 
@@ -54,6 +52,7 @@ public class SwaggerConfig {
 
     @Bean
     public Docket customImplementation() {
+        System.out.println("+++++ 2222222");
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
                 // Selects controllers annotated with @SwaggerSelect

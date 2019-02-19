@@ -17,11 +17,11 @@ import org.springframework.http.MediaType;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.accept.ContentNegotiationManager;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.ContentNegotiatingViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.xml.MarshallingView;
@@ -51,27 +51,6 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         viewResolver.setPrefix("/WEB-INF/jsp/");
         viewResolver.setSuffix(".jsp");
         return viewResolver;
-    }
-
-
-//    @Override
-//    public void addCorsMappings(CorsRegistry registry) {
-//        CorsRegistration corsRegistration = registry.addMapping("/**");
-//        corsRegistration.allowedOrigins("*");
-//        corsRegistration.allowedMethods("GET");
-//        corsRegistration.maxAge(600L);
-//    }
-
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.applyPermitDefaultValues();
-        configuration.setAllowedOrigins( Collections.singletonList( "*" ) );
-        configuration.setAllowedMethods( Collections.singletonList( "*" ) );
-        configuration.setAllowCredentials( true );
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration( "/**", configuration );
-        return source;
     }
 
 //    @Bean

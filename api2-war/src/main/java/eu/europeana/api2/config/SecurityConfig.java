@@ -26,10 +26,6 @@ import static eu.europeana.corelib.db.util.UserUtils.getPasswordEncoder;
 @EnableWebSecurity
 public class SecurityConfig {
 
-
-    @Resource(name = "api2_mvc_xmlUtils")
-    private XmlUtils xmlUtils;
-
     @Resource(name = "api2_userDetailsService")
     private UserDetailsService userDetailsService;
 
