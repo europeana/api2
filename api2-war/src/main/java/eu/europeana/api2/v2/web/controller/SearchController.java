@@ -298,7 +298,7 @@ public class SearchController {
                 response.setStatus(400);
                 return JsonUtils.toJson(new ApiError("", "Error parsing value '" + e.getParsing()
                                                          + "' supplied for " + FACET_RANGE
-                                                         + "\n" + e.getWhatsParsed()), callback);
+                                                         + " " + e.getWhatsParsed()), callback);
             } catch (InvalidGapException e) {
                 response.setStatus(400);
                 return JsonUtils.toJson(new ApiError("", e.getMessage()), callback);
