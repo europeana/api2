@@ -246,21 +246,6 @@ public class FacetParameterUtils {
         return null;
     }
 
-//    private static void saveStringFacetParam(String name, Map<String, String[]> parameters, Map<String, String> facetParams) {
-//        StringFacetParameter parameter = null;
-//        if (type.equals("limit")) parameter = getFacetLimit(name, parameters, isDefault, isTech);
-//        else if (type.equals("offset")) parameter = getFacetOffset(name, parameters, isDefault);
-//        if (parameter != null) facetParams.put(parameter.getName(), parameter.getValue());
-//
-//    }
-//
-//    private static StringFacetParameter extractStringParameter(String key, Map<String, String[]> parameters){
-//        if (parameters.containsKey(key)) {
-//            String[] value = parameters.get(key);
-//            return new StringFacetParameter(key, value[0]);
-//        }
-//    }
-
     public static String getLimitForDataProvider(){
         return String.valueOf(LIMIT_FOR_DATA_PROVIDER);
     }

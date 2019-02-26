@@ -23,7 +23,7 @@ package eu.europeana.api2.v2.exceptions;
  */
 public class DateMathParseException extends Exception{
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 3900055035686291976L;
 
     private final String parsing;
     private final String whatsParsed;

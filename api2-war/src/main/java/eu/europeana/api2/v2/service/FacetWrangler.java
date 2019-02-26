@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.v2.service;
 
+import eu.europeana.api2.v2.exceptions.TechFacetDecodingException;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import eu.europeana.api2.v2.model.json.view.submodel.FacetRanger;
@@ -39,7 +40,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 public class FacetWrangler {
     private static Logger log = Logger.getLogger(FacetWrangler.class);
 
-    private Map<TechnicalFacetType, Map<String, Integer>> technicalFacetMap = new HashMap<>();
+    private Map<TechnicalFacetType, Map<String, Integer>> technicalFacetMap = new EnumMap<>(TechnicalFacetType.class);
 
     public FacetWrangler() {
         for (final TechnicalFacetType technicalFacet : TechnicalFacetType.values()) {
@@ -61,10 +62,31 @@ public class FacetWrangler {
                                             Map<String, Integer> technicalFacetLimits,
                                             Map<String, Integer> technicalFacetOffsets) {
         if ((facetFields == null || facetFields.isEmpty()) &&
-                (rangeFacets == null || rangeFacets.isEmpty())) return null;
-        final List<Facet>                                facetList          = new ArrayList<>();
+                (rangeFacets == null || rangeFacets.isEmpty())) return Collections.emptyList();
+        final List<Facet> facetList = new ArrayList<>();
 
         // loop through the list of Facet fields returned by Solr
+        if (null != facetFields){
+            processFacetFields(facetFields, facetList);
+        }
+
+        // loop through the array of requested technical facets, add the new Facet to the facetlist
+        if (null != requestedTechnicalFacets && !requestedTechnicalFacets.isEmpty()){
+            processTechnicalFacets(requestedTechnicalFacets, defaultFacetsRequested,
+                                   technicalFacetLimits, technicalFacetOffsets, facetList);
+        }
+
+        // add RangeFacets when available
+        if (rangeFacets != null && !rangeFacets.isEmpty()) {
+            processRangeFacets(rangeFacets, facetList);
+        }
+
+        // sort the List of Facets on #count, descending
+        facetList.sort((f1, f2) -> Integer.compare(f2.fields.size(), f1.fields.size()));
+        return facetList;
+    }
+
+    private void processFacetFields(List<FacetField> facetFields, List<Facet> facetList){
         for (FacetField facetField : facetFields) {
             if (!facetField.getValues().isEmpty()) {
                 final Facet facet = new Facet();
@@ -80,40 +102,55 @@ public class FacetWrangler {
                     facet.name = SolrFacetType.LANDINGPAGE.name();
                 }
 
-                /* If it ain't a Solr Facet field (name == facet_tags), it contains the technical metadata:
+                /* If the facet name is "facet_tags", the field contains the technical metadata.
                  * - for every value of facet_tags, retrieve the human-readable label from the encoded integer value
                  * - match the technical Facet name against the enum TechnicalFacetType
                  * - values associated with the technical Facet are stored in the technicalFacetMap
                  * Note that technical metadata names are encoded numerically (See eu.europeana.crf_faketags) */
                 if (facetField.getName().equalsIgnoreCase("facet_tags")) {
                     for (FacetField.Count encodedTechnicalFacet : facetField.getValues()) {
-                        if (StringUtils.isNotEmpty(encodedTechnicalFacet.getName()) && encodedTechnicalFacet.getCount() > 0) {
+                        if (StringUtils.isNotEmpty(encodedTechnicalFacet.getName())
+                            && encodedTechnicalFacet.getCount() > 0) {
 
-                            final TechnicalFacetType technicalFacetName;
-                            // decode the numerical facet name into a String. If null, proceed with the next value
-                            final String decodedTechnicalFacetName = decodeFacetTag(Integer.valueOf(encodedTechnicalFacet.getName()), true);
-                            if (decodedTechnicalFacetName.isEmpty()) continue;
+                            TechnicalFacetType technicalFacetName;
+                            String decodedTechnicalFacetName = "";
+
                             try {
+                                // decode the numerical facet name into a String. If null, proceed with the next value
+                                decodedTechnicalFacetName = decodeFacetTag(
+                                        Integer.valueOf(encodedTechnicalFacet.getName()), true);
+                                if (decodedTechnicalFacetName.isEmpty()) {
+                                    throw new TechFacetDecodingException("Decoded technical Facet name is empty");
+                                }
                                 technicalFacetName = TechnicalFacetType.valueOf(decodedTechnicalFacetName);
+
+                                // decode the numerical facet value label into a String.
+                                // If null, proceed with the next value
+                                final String technicalFacetLabel = decodeFacetTag(
+                                        Integer.valueOf(encodedTechnicalFacet.getName()), false);
+                                if (technicalFacetLabel.isEmpty()) {
+                                    throw new TechFacetDecodingException("Technical Facet label is empty");
+                                }
+
+                                // retrieve a possibly earlier stored count value for this label. If not available,
+                                // initialise at 0L; then add the count value to the Map for this particular label
+                                Integer technicalFacetFieldCount = technicalFacetMap.get(technicalFacetName).get(technicalFacetLabel);
+                                if (null == technicalFacetFieldCount) technicalFacetFieldCount = 0;
+                                technicalFacetMap.get(technicalFacetName).put(technicalFacetLabel,
+                                                                              technicalFacetFieldCount +
+                                                                              (int) encodedTechnicalFacet.getCount());
                             } catch (IllegalArgumentException e) {
-                                log.error("error matching decoded technical facet name " + decodedTechnicalFacetName + " with enum type in [consolidateFacetList] " + e.getClass().getSimpleName(), e);
-                                continue;
+                                log.error("error matching decoded technical facet name " +
+                                          decodedTechnicalFacetName + " with enum type in [consolidateFacetList] "
+                                          + e.getClass().getSimpleName(), e);
+                            } catch (TechFacetDecodingException e) {
+                                log.error("error decoding Technical Facet: " + e.getMessage());
                             }
-
-                            // decode the numerical facet value label into a String. If null, proceed with the next value
-                            final String technicalFacetLabel = decodeFacetTag(Integer.valueOf(encodedTechnicalFacet.getName()), false);
-                            if (technicalFacetLabel.isEmpty()) continue;
-
-                            // retrieve a possibly earlier stored count value for this label. If not available, initialise at 0L
-                            // then add the count value to the Map for this particular label
-                            Integer technicalFacetFieldCount = technicalFacetMap.get(technicalFacetName).get(technicalFacetLabel);
-                            if (null == technicalFacetFieldCount) technicalFacetFieldCount = 0;
-                            technicalFacetMap.get(technicalFacetName).put(technicalFacetLabel, technicalFacetFieldCount + (int) encodedTechnicalFacet.getCount());
                         }
                     }
 
-                /* If it is a Solr facet field, loop through its values. If it is a Solr Facet field (name != facet_tags):
-                 * - for every value of this Facet field, add a LabelFrequency containing the Facet's name and count */
+                // If it is a Solr Facet field (name != facet_tags), loop through its values.
+                // For every value of this Facet field, add a LabelFrequency containing the Facet's name and count
                 } else {
                     for (FacetField.Count count : facetField.getValues()) {
                         if (StringUtils.isNotEmpty(count.getName()) && count.getCount() > 0) {
@@ -128,34 +165,40 @@ public class FacetWrangler {
                 }
             }
         }
-        // loop through the array of requested technical facets; match them to the Enum type; set the requested
-        // limit / offset range and retrieve the technical facet values that were stored in technicalFacetMap above.
-        // Then add the new Facet to the facetlist
-        if (null != requestedTechnicalFacets && !requestedTechnicalFacets.isEmpty()){
-            for (String requestedFacetName : requestedTechnicalFacets) {
-                TechnicalFacetType matchedFacetName;
-                try {
-                    matchedFacetName = TechnicalFacetType.valueOf(requestedFacetName);
-                } catch (IllegalArgumentException e) {
-                    log.error("error matching requested technical facet name " + requestedFacetName + " with enum type in [consolidateFacetList] " + e.getClass().getSimpleName(), e);
-                    continue;
-                }
+    }
+
+    // matches the requested technical Facets to the Enum type; then set the requested limit / offset range and
+    // retrieve the technical facet values that were stored in technicalFacetMap above.
+    // Add them to the facetlist.
+    private void processTechnicalFacets(List<String> requestedTechnicalFacets,
+                                        boolean defaultFacetsRequested,
+                                        Map<String, Integer> technicalFacetLimits,
+                                        Map<String, Integer> technicalFacetOffsets,
+                                        List<Facet> facetList){
+        for (String requestedFacetName : requestedTechnicalFacets) {
+
+            TechnicalFacetType matchedFacetName;
+            try {
+                matchedFacetName = TechnicalFacetType.valueOf(requestedFacetName);
                 String facetLimit  = "f." + matchedFacetName + ".facet.limit";
                 String facetOffset = "f." + matchedFacetName + ".facet.offset";
-                if (technicalFacetMap.get(matchedFacetName).isEmpty()) continue;
+
+                if (technicalFacetMap.get(matchedFacetName).isEmpty()) {
+                    throw new TechFacetDecodingException("couldn't match requested technical facet " + requestedFacetName);
+                }
                 int from = Math.min(((null != technicalFacetOffsets && technicalFacetOffsets.containsKey(facetOffset)) ?
-                                              technicalFacetOffsets.get(facetOffset) : 0),
-                                      technicalFacetMap.get(matchedFacetName).size() - 1);
+                                     technicalFacetOffsets.get(facetOffset) : 0),
+                                    technicalFacetMap.get(matchedFacetName).size() - 1);
                 int to   = Math.min(((null != technicalFacetLimits  && technicalFacetLimits.containsKey(facetLimit))   ?
-                                              technicalFacetLimits.get(facetLimit) + from :
-                                              technicalFacetMap.get(matchedFacetName).size()),
-                                      technicalFacetMap.get(matchedFacetName).size());
+                                     technicalFacetLimits.get(facetLimit) + from :
+                                     technicalFacetMap.get(matchedFacetName).size()),
+                                    technicalFacetMap.get(matchedFacetName).size());
 
                 final Facet facet = new Facet();
                 facet.name = matchedFacetName.getRealName();
-                if (null != requestedTechnicalFacets &&
-                        !requestedTechnicalFacets.contains(facet.name) &&
-                        !defaultFacetsRequested) continue;
+                if (!requestedTechnicalFacets.contains(facet.name) && !defaultFacetsRequested) {
+                    continue; // note that this is not an error
+                }
 
                 List<String> keyList = new ArrayList<>(technicalFacetMap.get(matchedFacetName).keySet());
                 for (int i = from; i < to; i++) {
@@ -165,33 +208,35 @@ public class FacetWrangler {
                     facet.fields.add(freq);
                 }
                 facetList.add(facet);
-            }
-        }
 
-        // add RangeFacets when available
-        if (rangeFacets != null && !rangeFacets.isEmpty()) {
-            for (RangeFacet rangeFacet : rangeFacets) {
-                if (!rangeFacet.getCounts().isEmpty()) {
-                    final FacetRanger facetRanger = new FacetRanger();
-                    facetRanger.name = rangeFacet.getName();
-                    for (Object countObject : rangeFacet.getCounts()) {
-                        Count count = (Count) countObject;
-                        if (StringUtils.isNotEmpty(count.getValue()) && count.getCount() > 0) {
-                            final LabelFrequency rangeValue = new LabelFrequency();
-                            rangeValue.count = count.getCount();
-                            rangeValue.label = formatDateString(count.getValue(), rangeFacet.getGap());
-                            facetRanger.ranges.add(rangeValue);
-                        }
+            } catch (IllegalArgumentException e) {
+                log.error("error matching requested technical facet name " + requestedFacetName +
+                          " with enum type in [consolidateFacetList] " + e.getClass().getSimpleName(), e);
+            } catch (TechFacetDecodingException e) {
+                log.error("Error processing Technical Facets: " + e.getMessage());
+            }
+
+        }
+    }
+
+    private void processRangeFacets(List<RangeFacet> rangeFacets, List<Facet> facetList){
+        for (RangeFacet rangeFacet : rangeFacets) {
+            if (!rangeFacet.getCounts().isEmpty()) {
+                final FacetRanger facetRanger = new FacetRanger();
+                facetRanger.name = rangeFacet.getName();
+                for (Object countObject : rangeFacet.getCounts()) {
+                    Count count = (Count) countObject;
+                    if (StringUtils.isNotEmpty(count.getValue()) && count.getCount() > 0) {
+                        final LabelFrequency rangeValue = new LabelFrequency();
+                        rangeValue.count = count.getCount();
+                        rangeValue.label = formatDateString(count.getValue(), rangeFacet.getGap());
+                        facetRanger.ranges.add(rangeValue);
                     }
-                    // If the Range facet contains values, it is added to the return Facet List
-                    if (!facetRanger.ranges.isEmpty()) facetList.add(facetRanger);
                 }
+                // If the Range facet contains values, it is added to the return Facet List
+                if (!facetRanger.ranges.isEmpty()) facetList.add(facetRanger);
             }
         }
-
-        // sort the List of Facets on #count, descending
-        facetList.sort((f1, f2) -> Integer.compare(f2.fields.size(), f1.fields.size()));
-        return facetList;
     }
 
     private String formatDateString(String value, Object gap){
@@ -208,7 +253,5 @@ public class FacetWrangler {
         // if in doubt, return the whole string
         return value;
     }
-
-
 
 }
