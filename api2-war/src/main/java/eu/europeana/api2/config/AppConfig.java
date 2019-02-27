@@ -75,8 +75,8 @@ public class AppConfig {
 
     @PostConstruct
     public void logConfiguration() {
-        LOG.info("CF_INSTANCE_GUID = {}, CF_INSTANCE_IP  = {}", System.getenv("CF_INSTANCE_GUID"), System.getenv("CF_INSTANCE_IP"));
-
+        LOG.info("CF_INSTANCE_INDEX  = {}, CF_INSTANCE_GUID = {}, CF_INSTANCE_IP  = {}",
+                System.getenv("CF_INSTANCE_INDEX"), System.getenv("CF_INSTANCE_GUID"), System.getenv("CF_INSTANCE_IP"));
         LOG.info("Active Spring profiles:" + Arrays.toString(env.getActiveProfiles()));
         LOG.info("Default Spring profiles:" + Arrays.toString(env.getDefaultProfiles()));
 
