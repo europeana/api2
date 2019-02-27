@@ -135,8 +135,6 @@ public class HierarchyRunner {
                         hierarchicalResult.message = "This record has no children";
                         hierarchicalResult.success = false;
                         response.setStatus(404);
-                    } else {
-                        addChildrenCount(hierarchicalResult.children);
                     }
                 } else {
                     hierarchicalResult.message = "This record has no children";
@@ -152,17 +150,11 @@ public class HierarchyRunner {
                     hierarchicalResult.parent = searchService.getSingle(hierarchicalResult.self.getParent());
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
-                long tgetsiblings = System.currentTimeMillis();
                 hierarchicalResult.followingSiblings = searchService.getFollowingSiblings(rdfAbout, offset, limit, selfIndex);
-                LOG.info("Get siblings: {}", (System.currentTimeMillis() - tgetsiblings));
                 if (hierarchicalResult.followingSiblings == null || hierarchicalResult.followingSiblings.isEmpty()) {
                     hierarchicalResult.message = "This record has no following siblings";
                     hierarchicalResult.success = false;
                     response.setStatus(404);
-                } else {
-                    long tgetsiblingsCount = System.currentTimeMillis();
-                    addChildrenCount(hierarchicalResult.followingSiblings);
-                    LOG.info("Get siblingsCount: {}", (System.currentTimeMillis() - tgetsiblingsCount));
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_PRECEDING_SIBLINGS)) {
                 hierarchicalResult.precedingSiblings = searchService.getPrecedingSiblings(rdfAbout, offset, limit, selfIndex);
@@ -170,8 +162,6 @@ public class HierarchyRunner {
                     hierarchicalResult.message = "This record has no preceding siblings";
                     hierarchicalResult.success = false;
                     response.setStatus(404);
-                } else {
-                    addChildrenCount(hierarchicalResult.precedingSiblings);
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS)) {
                 Neo4jStructBean struct = searchService.getInitialStruct(rdfAbout, selfIndex);
@@ -219,7 +209,6 @@ public class HierarchyRunner {
                         hierarchicalResult.message = partialErrorMsg;
                     }
 
-
                     if (struct.getPrecedingSiblingChildren() != null && !struct.getPrecedingSiblingChildren().isEmpty()) {
                         hierarchicalResult.precedingSiblingChildren = struct.getPrecedingSiblingChildren();
                     }
@@ -250,16 +239,6 @@ public class HierarchyRunner {
             LOG.debug("toJson: {}", (System.currentTimeMillis() - t1));
         }
         return json;
-    }
-
-    private void addChildrenCount(List<Neo4jBean> beans) throws Neo4JException {
-//        if (beans != null && !beans.isEmpty()) {
-//            for (Neo4jBean bean : beans) {
-//                if (bean.hasChildren()) {
-//                    bean.setChildrenCount(searchService.getChildrenCount(bean.getId()));
-//                }
-//            }
-//        }
     }
 
     private void sendExceptionEmail(EuropeanaException e){
