@@ -135,15 +135,13 @@ public class DateMathParser {
         parsing     = end;
         whatsParsed = "end";
 
-        if (StringUtils.equalsIgnoreCase("now", end)){
-            endDate = new Date();
-        } else {
-            try {
-                endDate = solrDateFormat.parse(end);
-            } catch (ParseException e) {
-                throw new DateMathParseException(e, parsing, whatsParsed);
-            }
+
+        try {
+            endDate = solrDateFormat.parse(end);
+        } catch (ParseException e) {
+            throw new DateMathParseException(e, parsing, whatsParsed);
         }
+
 
         p.setNow(startDate);
         parsing = gapMath;

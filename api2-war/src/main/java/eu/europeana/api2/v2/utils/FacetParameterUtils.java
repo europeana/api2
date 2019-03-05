@@ -27,6 +27,8 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -51,14 +53,16 @@ public class FacetParameterUtils {
     private static final String FACET_MINCOUNT          = "facet.mincount";
 
     private static final String DEFAULT_START           = "0001-01-01T00:00:00Z"; // year 0 does not exist
-    private static final String DEFAULT_END             = "now";
+    private static final String NOW                     = "now";
     private static final String DEFAULT_GAP             = "+1YEAR";
 
     private static final long MAX_RANGE_FACETS          = 30000L;
 
     private static List<String> defaultSolrFacetList;
     private static List<String> rangeFacetList;
-    private static List<String> rangeSpecifiers = Arrays.asList("start", "end", "gap");;
+    private static List<String> rangeSpecifiers = Arrays.asList("start", "end", "gap");
+
+    private static DateFormat solrDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     static {
         defaultSolrFacetList = new ArrayList<>();
@@ -140,9 +144,9 @@ public class FacetParameterUtils {
                 String globalSpecifier = FACET_RANGE + "." + rangeSpecifier;
                 String fieldSpecifier = "f." + facetToRange + "." + FACET_RANGE + "." + rangeSpecifier;
                 if (parameters.containsKey(globalSpecifier)){
-                    dateRangeParams.put(fieldSpecifier, parameters.get(globalSpecifier)[0]);
+                    dateRangeParams.put(fieldSpecifier, plusificate(parameters.get(globalSpecifier)[0], rangeSpecifier));
                 } else if (parameters.containsKey(fieldSpecifier)){
-                    dateRangeParams.put(fieldSpecifier, parameters.get(fieldSpecifier)[0]);
+                    dateRangeParams.put(fieldSpecifier, plusificate(parameters.get(fieldSpecifier)[0], rangeSpecifier));
                 } else {
                     dateRangeParams.put(fieldSpecifier, getDefaultValue(rangeSpecifier));
                 }
@@ -165,7 +169,7 @@ public class FacetParameterUtils {
                 defaultValue = DEFAULT_START;
                 break;
             case "end":
-                defaultValue = DEFAULT_END;
+                defaultValue = thisVeryMoment();
                 break;
             case "gap":
                 defaultValue = DEFAULT_GAP;
@@ -176,10 +180,19 @@ public class FacetParameterUtils {
         return defaultValue;
     }
 
-    private static String facetUrlDecode(String value){
-        return StringUtils.replace(StringUtils.replace(value
-                , "%2F", "/")
-                , "%2B", "+");
+    private static String plusificate(String plusMinusNow, String rangeSpecifier){
+        if (StringUtils.equalsIgnoreCase(rangeSpecifier, "gap") &&
+            !StringUtils.startsWithAny(plusMinusNow, "+", "-")){
+            return "+" + plusMinusNow;
+        } else if (StringUtils.equalsIgnoreCase(NOW, plusMinusNow)){
+            return thisVeryMoment();
+        } else {
+            return plusMinusNow;
+        }
+    }
+
+    private static String thisVeryMoment(){
+        return solrDateFormat.format(new Date());
     }
 
     // retrieve the facets that need to be ranged, but check them against the values in Enum RangeFacetType
