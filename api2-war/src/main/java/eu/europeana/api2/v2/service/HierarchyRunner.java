@@ -113,7 +113,7 @@ public class HierarchyRunner {
             if (hierarchicalResult.self != null) {
                 if (hierarchicalResult.self.hasChildren() &&
                         hierarchicalResult.self.getChildrenCount() == 0){
-                    throw new Neo4JException(ProblemType.NEO4J_INCONSISTENT_DATA, " for record " + rdfAbout);
+                    throw new Neo4JException(ProblemType.NEO4J_502, " for record " + rdfAbout);
                 }
                 selfIndex = hierarchicalResult.self.getIndex();
             } else {
@@ -218,13 +218,12 @@ public class HierarchyRunner {
                 }
             }
         } catch (Neo4JException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             LOG.error("Neo4JException thrown: {}", e.getMessage());
             if (null != e.getCause()) LOG.error("Cause: {}", e.getCause());
             // TODO re-enable mail sending at some time?
 //            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)) sendExceptionEmail(e);
-            return JsonUtils.toJson(new ApiError(wskey, "Neo4JException thrown: " + e.getMessage() +
-                    " for record " + rdfAbout, -1L), callback);
+            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), -1L), callback);
 
         }
         if (LOG.isDebugEnabled()) {
