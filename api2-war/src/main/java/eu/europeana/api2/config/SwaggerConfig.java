@@ -21,8 +21,7 @@ import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.VersionUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -48,10 +47,11 @@ public class SwaggerConfig {
 
     private static final String API_PATH     = "/api";
 
-    // reads value from europeana.properties (VCAP on CF); if not available, set to API_PATH
-    @Value("${api2.baseUrl}")
-    private String baseUrl;
-
+    private String getApiBaseUrl(){
+        return StringUtils.substringAfter(
+                Api2UrlService.getBeanInstance().getApi2BaseUrl(),
+                "://");
+    }
 
     @Bean
     public Docket customImplementation() {
@@ -64,7 +64,7 @@ public class SwaggerConfig {
                         withClassAnnotation(SwaggerIgnore.class)
                 ))) //Selection by RequestHandler
                 .build()
-                .host(Api2UrlService.getBeanInstance().getApi2BaseUrl())
+                .host(getApiBaseUrl())
                 .pathProvider(new ApiPathProvider(API_PATH))
                 .apiInfo(apiInfo());
     }
