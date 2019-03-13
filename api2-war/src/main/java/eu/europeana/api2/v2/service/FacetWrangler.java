@@ -243,14 +243,14 @@ public class FacetWrangler {
         String gapString = gap.toString();
         // this splits eg "1883-01-01T00:00:00Z" in ["1883"],["01"], ["01"], ["00:00:00Z"]
         String[] dateParts = StringUtils.split(value, "-T");
-        if (StringUtils.containsIgnoreCase(gapString, "YEAR")){
-            return dateParts[0];
+        if (StringUtils.containsIgnoreCase(gapString, "DAY")){
+            return dateParts[0] + "-" + dateParts[1] + "-" + dateParts[2];
         } else if (StringUtils.containsIgnoreCase(gapString, "MONTH")){
             return dateParts[0] + "-" + dateParts[1];
-        } else if (StringUtils.containsIgnoreCase(gapString, "DAY")){
-            return dateParts[0] + "-" + dateParts[1] + "-" + dateParts[2];
+        } else if (StringUtils.containsIgnoreCase(gapString, "YEAR")) {
+            return dateParts[0];
         }
-        // if in doubt, return the whole string
+            // if in doubt, return the whole string
         return value;
     }
 
