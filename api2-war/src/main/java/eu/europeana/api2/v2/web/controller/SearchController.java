@@ -39,6 +39,7 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripImage;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
+import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.FacetParameterUtils;
@@ -70,12 +71,14 @@ import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import eu.europeana.crf_faketags.extractor.CommonTagExtractor;
-import eu.europeana.crf_faketags.utils.FakeTagsUtils;
+import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
+import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.response.FacetField;
@@ -90,38 +93,35 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.MissingResourceException;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 /**
- * @author Willem-Jan Boogerd <www.eledge.net/contact>
- * @author Maike (edits)
+ * Controller that handles all search requests (search.json, opensearch.rss, search.rss, and search.kml)
+ * @author Willem-Jan Boogerd
+ * @author Luthien
+ * @author Patrick Ehlert
  */
 @Controller
 @SwaggerSelect
-@Api(tags = {"Search"}, description = " ")
+@Api(tags = {"Search"})
 public class SearchController {
 
-	private static final Logger LOG         = LogManager.getLogger(SearchController.class);
-	private static final String SEARCHJSON  = " [search.json] ";
+    private static final Logger LOG         = LogManager.getLogger(SearchController.class);
+    private static final String SEARCHJSON  = " [search.json] ";
     private static final String PORTAL      = "portal";
     private static final String FACETS      = "facets";
     private static final String DEBUG       = "debug";
     private static final String SPELLING    = "spelling";
     private static final String BREADCRUMB  = "breadcrumb";
-
     private static final String FACET_RANGE = "facet.range";
+    private static final String HITS        = "hits";
 
-	// First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
+    // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
-	private static final Pattern COUNTRY_PATTERN = Pattern.compile("COUNTRY:\"(.*?)\"|COUNTRY:(.*?)(&|\\s|$)");
+    private static final Pattern COUNTRY_PATTERN = Pattern.compile("COUNTRY:\"(.*?)\"|COUNTRY:(.*?)(&|\\s|$)");
 
     @Resource
     private SearchService searchService;
@@ -168,15 +168,19 @@ public class SearchController {
             @RequestParam(value = "landingpage", required = false) Boolean landingPage,
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
+            @RequestParam(value = "hit.fl", required = false) String hlFl,
+            @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
             HttpServletRequest request,
             HttpServletResponse response) throws ApiLimitException {
 
         LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
 
+        // check query parameter
         if (StringUtils.isBlank(queryString)) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return JsonUtils.toJson(new ApiError("", "Empty query parameter"), callback);
         }
+
         queryString = queryString.trim();
         queryString = fixCountryCapitalization(queryString);
 
@@ -210,13 +214,15 @@ public class SearchController {
         }
 
         List<String> colourPalette = new ArrayList();
-        if (ArrayUtils.isNotEmpty(colourPaletteArray)) StringArrayUtils.addToList(colourPalette, colourPaletteArray);
+        if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
+            StringArrayUtils.addToList(colourPalette, colourPaletteArray);
+        }
         colourPalette.replaceAll(String::toUpperCase);
 
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
         if (!colourPalette.isEmpty()) {
-            queryString = filterQueryBuilder(FakeTagsUtils.colourPaletteFilterTags(colourPalette).iterator(),
+            queryString = filterQueryBuilder(TagUtils.colourPaletteFilterTags(colourPalette).iterator(),
                                              queryString,
                                              " AND ",
                                              false);
@@ -229,9 +235,9 @@ public class SearchController {
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
         if (!filterTags.isEmpty()) {
             queryString = filterQueryBuilder(filterTags.iterator(),
-                                             queryString,
-                                             " OR ",
-                                             true);
+                                            queryString,
+                                            " OR ",
+                                            true);
         }
 
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
@@ -307,10 +313,37 @@ public class SearchController {
             query.setFacetsAllowed(false);
         }
 
+        if (StringUtils.containsIgnoreCase(profile, HITS)){
+            int nrSelectors;
+            if (StringUtils.isBlank(hlSelectors)){
+                nrSelectors = 1;
+            } else {
+                try{
+                    nrSelectors = Integer.parseInt(hlSelectors);
+                    if (nrSelectors < 1) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        return JsonUtils.toJson(new ApiError("", "Query parameter hit.selectors must be greater than 0"), callback);
+                    }
+                } catch (NumberFormatException nfe) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    return JsonUtils.toJson(new ApiError("", "Query parameter hit.selectors must be an integer"), callback);
+                }
+            }
+            query.setParameter("hl", "on");
+            query.setParameter("hl.fl", StringUtils.isBlank(hlFl) ? "*" : hlFl);
+            // this sets both the Solr parameter and a separate nrSelectors variable used to limit the result set with
+            query.setNrSelectors("hl.snippets", nrSelectors);
+        }
+
 		query.setValueReplacements(valueReplacements);
 
-        if (defaultOrReusabilityFacetsRequested) query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
-        if (StringUtils.containsIgnoreCase(profile, PORTAL) || StringUtils.containsIgnoreCase(profile, SPELLING)) query.setSpellcheckAllowed(true);
+		// reusability facet settings; spell check allowed, etcetera
+        if (defaultOrReusabilityFacetsRequested) {
+            query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
+        }
+        if (StringUtils.containsIgnoreCase(profile, PORTAL) || StringUtils.containsIgnoreCase(profile, SPELLING)) {
+            query.setSpellcheckAllowed(true);
+        }
         if (facetsRequested && !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
                     ( ArrayUtils.contains(solrFacets, "DATA_PROVIDER") ||
                       ArrayUtils.contains(solrFacets, "DEFAULT")
@@ -338,6 +371,9 @@ public class SearchController {
                 return JsonUtils.toJson(new ApiError(wskey, "Theme '" +
                       StringUtils.substringBetween(e.getCause().getCause().toString(), "Collection \"","\" not defined") +
                 "' is not defined"), callback);
+            } else if (e.getProblem().equals(ProblemType.SOLR_IS_BROKEN) && StringUtils.contains(query.getParameterMap().get("hl.fl"), '*')) {
+                LOG.error("This is the \"field 'what' was indexed without offsets\"-error, see EA-1441 when executing search: " + SEARCHJSON);
+                return JsonUtils.toJson(new ApiError(wskey, "Solr indexing error, occurs when hits.fl parameter contains '*'"));
             } else {
                 LOG.error(wskey + SEARCHJSON, e);
             }
@@ -405,7 +441,7 @@ public class SearchController {
         if (refinementArray != null) {
             for (String qf : refinementArray) {
                 if (StringUtils.contains(qf, ":")){
-                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase();
+                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
                             if (CommonTagExtractor.isImageMimeType(refinementValue)) {
@@ -435,7 +471,7 @@ public class SearchController {
                             break;
                         case "COLOURPALETTE":
                         case "COLORPALETTE":
-                            imageColourPaletteRefinements.add(refinementValue.toUpperCase());
+                            imageColourPaletteRefinements.add(refinementValue.toUpperCase(Locale.GERMAN));
                             hasImageRefinements = true;
                             break;
                         case "IMAGE_ASPECTRATIO":
@@ -506,17 +542,17 @@ public class SearchController {
 
         // Encode the faceted refinements ...
         if (hasImageRefinements) {
-            filterTags.addAll(FakeTagsUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
-                    imageAspectRatioRefinements, imageColourPaletteRefinements));
+            filterTags.addAll(TagUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
+                                                       imageAspectRatioRefinements, imageColourPaletteRefinements));
         }
         if (hasSoundRefinements) {
-            filterTags.addAll(FakeTagsUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
+            filterTags.addAll(TagUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
         }
         if (hasVideoRefinements) {
-            filterTags.addAll(FakeTagsUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
+            filterTags.addAll(TagUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
         }
         if (!otherMimeTypeRefinements.isEmpty()) {
-            filterTags.addAll(FakeTagsUtils.otherFilterTags(otherMimeTypeRefinements));
+            filterTags.addAll(TagUtils.otherFilterTags(otherMimeTypeRefinements));
         }
         if (LOG.isDebugEnabled()) {
             for (Integer filterTag : filterTags) {
@@ -570,9 +606,13 @@ public class SearchController {
 
     private Class<? extends IdBean> selectBean(String profile) {
         Class<? extends IdBean> clazz;
-        if (StringUtils.containsIgnoreCase(profile, "minimal")) clazz = BriefBean.class;
-        else if (StringUtils.containsIgnoreCase(profile, "rich")) clazz = RichBean.class;
-        else clazz = ApiBean.class;
+        if (StringUtils.containsIgnoreCase(profile, "minimal")) {
+            clazz = BriefBean.class;
+        } else if (StringUtils.containsIgnoreCase(profile, "rich")) {
+            clazz = RichBean.class;
+        } else {
+            clazz = ApiBean.class;
+        }
         return clazz;
     }
 
@@ -582,27 +622,6 @@ public class SearchController {
         return ApiBeanImpl.class;
     }
 
-//    @Deprecated // July 3rd 2018, not in use anymore
-//    @ApiOperation(value = "get autocompletion recommendations for search queries", nickname = "suggestions")
-//    @RequestMapping(value = "/v2/suggestions.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ModelAndView suggestionsJson(
-//            @RequestParam(value = "query", required = true) String query,
-//            @RequestParam(value = "rows", required = false, defaultValue = "10") int count,
-//            @RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases,
-//            @RequestParam(value = "callback", required = false) String callback,
-//            HttpServletResponse response) {
-//        ControllerUtils.addResponseHeaders(response);
-//        if (LOG.isInfoEnabled()) LOG.info("phrases: " + phrases);
-//        Suggestions apiResponse = new Suggestions(null);
-//        try {
-//            apiResponse.items = searchService.suggestions(query, count);
-//            apiResponse.itemsCount = apiResponse.items.size();
-//        } catch (EuropeanaException e) {
-//            return JsonUtils.toJson(new ApiError(null, e.getMessage()), callback);
-//        }
-//        return JsonUtils.toJson(apiResponse, callback);
-//    }
-
     @SuppressWarnings("unchecked")
     private <T extends IdBean> SearchResults<T> createResults(
             String apiKey,
@@ -610,7 +629,6 @@ public class SearchController {
             Query query,
             Class<T> clazz)
             throws EuropeanaException {
-        FacetWrangler wrangler = new FacetWrangler();
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
         if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
@@ -629,38 +647,45 @@ public class SearchController {
 
             List<T> beans = new ArrayList<>();
             for (T b : resultSet.getResults()) {
-                if (b instanceof RichBean) beans.add((T) new RichView((RichBean) b, profile, apiKey));
-                else if (b instanceof ApiBean) beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
-                else if (b instanceof BriefBean) beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
+                if (b instanceof RichBean) {
+                    beans.add((T) new RichView((RichBean) b, profile, apiKey));
+                } else if (b instanceof ApiBean) {
+                    beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
+                } else if (b instanceof BriefBean) {
+                    beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
+                }
             }
 
             List<FacetField> facetFields = resultSet.getFacetFields();
-            if (resultSet.getQueryFacets() != null) {
+            if (MapUtils.isNotEmpty(resultSet.getQueryFacets())) {
                 List<FacetField> allQueryFacetsMap = SearchUtils.extractQueryFacets(resultSet.getQueryFacets());
-                if (!allQueryFacetsMap.isEmpty()) facetFields.addAll(allQueryFacetsMap);
+                if (!allQueryFacetsMap.isEmpty()) {
+                    facetFields.addAll(allQueryFacetsMap);
+                }
             }
 
-            if (LOG.isDebugEnabled()) LOG.debug("results: " + beans.size());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("results: " + beans.size());
+            }
 
             response.items = beans;
-        if (StringUtils.containsIgnoreCase(profile, FACETS) ||
-            StringUtils.containsIgnoreCase(profile, PORTAL)) {
-            response.facets = wrangler.consolidateFacetList(
-                    resultSet.getFacetFields()
-                    , resultSet.getRangeFacets()
-                    , query.getTechnicalFacets()
-                    , query.isDefaultFacetsRequested()
-                    , query.getTechnicalFacetLimits()
-                    , query.getTechnicalFacetOffsets());
+        if (StringUtils.containsIgnoreCase(profile, FACETS) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
+            response.facets = new FacetWrangler().consolidateFacetList(resultSet.getFacetFields(),
+                                                                       resultSet.getRangeFacets(),
+                                                                       query.getTechnicalFacets(),
+                                                                       query.isDefaultFacetsRequested(),
+                                                                       query.getTechnicalFacetLimits(),
+                                                                       query.getTechnicalFacetOffsets());
         }
-            if (StringUtils.containsIgnoreCase(profile, BREADCRUMB) ||
-                    StringUtils.containsIgnoreCase(profile, PORTAL)) {
-                response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
-            }
-            if (StringUtils.containsIgnoreCase(profile, SPELLING) ||
-                    StringUtils.containsIgnoreCase(profile, PORTAL)) {
-                response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
-            }
+        if (StringUtils.containsIgnoreCase(profile, BREADCRUMB) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
+            response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
+        }
+        if (StringUtils.containsIgnoreCase(profile, HITS) && MapUtils.isNotEmpty(resultSet.getHighlighting())) {
+            response.hits = new HitMaker().createHitList(resultSet.getHighlighting(), query.getNrSelectors());
+        }
+        if (StringUtils.containsIgnoreCase(profile, SPELLING) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
+            response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
+        }
         if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
             response.debug = resultSet.getSolrQueryString();
         }
@@ -679,7 +704,8 @@ public class SearchController {
      * @deprecated 2018-01-09 search with coordinates functionality
 	 */
 	@SwaggerIgnore
-	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET}, produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
+	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET},
+            produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     @Deprecated
     public KmlResponse searchKml(
@@ -725,13 +751,18 @@ public class SearchController {
     /**
      * Handles an opensearch query (see also https://en.wikipedia.org/wiki/OpenSearch)
      *
-     * @param queryString the search terms used to query the Europeana repository; similar to the query parameter in the search method.
-     * @param start the first object in the search result set to start with (first item = 1), e.g., if a result set is made up of 100 objects, you can set the first returned object to the 22nd object in the set [optional parameter, default = 1]
-     * @param count the number of search results to return; possible values can be any integer up to 100 [optional parameter, default = 12]
+     * @param queryString the search terms used to query the Europeana repository; similar to the query parameter in the
+     *                   search method.
+     * @param start the first object in the search result set to start with (first item = 1), e.g., if a result set is
+     *              made up of 100 objects, you can set the first returned object to the 22nd object in the set
+     *              [optional parameter, default = 1]
+     * @param count the number of search results to return; possible values can be any integer up to 100 [optional
+     *              parameter, default = 12]
      * @return rss response of the query
      */
 	@ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
-	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
+	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {"application/rss+xml",
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public RssResponse openSearchRss(
 			@RequestParam(value = "searchTerms") String queryString,
@@ -827,7 +858,8 @@ public class SearchController {
                     ? (gftChannelAttributes.get("title") == null
                     || gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title")) :
                     gftChannelAttributes.get(reqLanguage + "_title");
-            channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
+            channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null
+                    || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
                     ? (gftChannelAttributes.get("description") == null
                     || gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description")) :
                     gftChannelAttributes.get(reqLanguage + "_description");
@@ -936,7 +968,7 @@ public class SearchController {
      * @return String containing the Europeana collection ID only
      */
     private String getIdFromQueryTerms(String queryTerms) {
-        return queryTerms.substring(queryTerms.indexOf(":"), queryTerms.indexOf("*")).replaceAll(
+        return queryTerms.substring(queryTerms.indexOf(':'), queryTerms.indexOf('*')).replaceAll(
                 "\\D+", "");
     }
 }

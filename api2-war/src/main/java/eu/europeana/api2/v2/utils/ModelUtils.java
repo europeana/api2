@@ -17,15 +17,11 @@
 
 package eu.europeana.api2.v2.utils;
 
+import eu.europeana.api2.v2.utils.technicalfacets.*;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
-import eu.europeana.corelib.definitions.model.facets.inverseLogic.CommonPropertyExtractor;
-import eu.europeana.corelib.definitions.model.facets.inverseLogic.ImagePropertyExtractor;
-import eu.europeana.corelib.definitions.model.facets.inverseLogic.SoundPropertyExtractor;
-import eu.europeana.corelib.definitions.model.facets.inverseLogic.VideoPropertyExtractor;
-import eu.europeana.crf_faketags.extractor.MediaTypeEncoding;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -36,15 +32,18 @@ import java.util.*;
 
 
 /**
- * @author Willem-Jan Boogerd <www.eledge.net/contact>
+ * @author Willem-Jan Boogerd
+ * @author Lúthien
  */
 public class ModelUtils {
 
-    final static public int FACET_LIMIT = 150;
+    private ModelUtils(){}
+
+    private static final int FACET_LIMIT = 150;
     // static goodies: Lists containing the enum Facet type names
-    protected final static List<String> technicalFacetList = new ArrayList<>();
-    protected final static List<String> solrFacetList = new ArrayList<>();
-    protected final static List<String> enumFacetList = new ArrayList<>();
+    private static final List<String> technicalFacetList = new ArrayList<>();
+    private static final List<String> solrFacetList = new ArrayList<>();
+    private static final List<String> enumFacetList = new ArrayList<>();
     static {
         for (final TechnicalFacetType technicalFacet : TechnicalFacetType.values()) {
             technicalFacetList.add(technicalFacet.name());
@@ -64,33 +63,33 @@ public class ModelUtils {
      * @return tag name / label (String)
      */
     public static String decodeFacetTag(Integer tag, boolean name) {
-        final MediaTypeEncoding mediaType = CommonPropertyExtractor.getType(tag);
-        final String mimeType = CommonPropertyExtractor.getMimeType(tag);
+        final MediaTypeEncoding mediaType = CommonTagExtractor.getType(tag);
+        final String mimeType = CommonTagExtractor.getMimeType(tag);
 
         if (StringUtils.isNotBlank(mimeType)) return name ? "MIME_TYPE" : mimeType;
 
         String label;
         switch (mediaType) {
             case IMAGE:
-                label = ImagePropertyExtractor.getAspectRatio(tag);
+                label = ImageTagExtractor.getAspectRatio(tag);
                 if (StringUtils.isNotBlank(label)) return name ? "IMAGE_ASPECTRATIO" : label;
-                label = ImagePropertyExtractor.getColor(tag);
+                label = ImageTagExtractor.getColor(tag);
                 if (StringUtils.isNotBlank(label)) return name ? "COLOURPALETTE" : label;
-                label = ImagePropertyExtractor.getColorSpace(tag);
+                label = ImageTagExtractor.getColorSpace(tag);
                 if (StringUtils.isNotBlank(label)) return name ? "IMAGE_COLOUR" : label;
-                label = ImagePropertyExtractor.getSize(tag);
+                label = ImageTagExtractor.getSize(tag);
                 if (StringUtils.isNotBlank(label)) return name ? "IMAGE_SIZE" : label;
                 return label;
             case AUDIO:
-                label = SoundPropertyExtractor.getDuration(tag);
+                label = SoundTagExtractor.getDuration(tag);
                 if (StringUtils.isNotBlank(label)) return name ? "SOUND_DURATION" : label;
-                label = SoundPropertyExtractor.getQuality(tag);
+                label = SoundTagExtractor.getQuality(tag);
                 if (StringUtils.isNotBlank(label)) return name ? "SOUND_HQ" : label;
                 return "";
             case VIDEO:
-                label = VideoPropertyExtractor.getDuration(tag);
+                label = VideoTagExtractor.getDuration(tag);
                 if (StringUtils.isNotBlank(label)) return name ? "VIDEO_DURATION" : label;
-                label = VideoPropertyExtractor.getQuality(tag);
+                label = VideoTagExtractor.getQuality(tag);
                 if (StringUtils.isNotBlank(label)) return name ? "VIDEO_HD" : label;
                 return "";
             default:
@@ -102,7 +101,7 @@ public class ModelUtils {
         return containsTechnicalFacet(Arrays.asList(mixedFacets));
     }
 
-    public static boolean containsTechnicalFacet(List<String> mixedFacets){
+    private static boolean containsTechnicalFacet(List<String> mixedFacets){
         return CollectionUtils.containsAny(mixedFacets, technicalFacetList);
     }
 

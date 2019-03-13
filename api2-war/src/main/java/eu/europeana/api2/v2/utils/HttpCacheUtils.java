@@ -1,3 +1,20 @@
+/*
+ * Copyright 2007-2018 The Europeana Foundation
+ *
+ *  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
+ *  by the European Commission;
+ *  You may not use this work except in compliance with the Licence.
+ *
+ *  You may obtain a copy of the Licence at:
+ *  http://joinup.ec.europa.eu/software/page/eupl
+ *
+ *  Unless required by applicable law or agreed to in writing, software distributed under
+ *  the Licence is distributed on an "AS IS" basis, without warranties or conditions of
+ *  any kind, either express or implied.
+ *  See the Licence for the specific language governing permissions and limitations under
+ *  the Licence.
+ */
+
 package eu.europeana.api2.v2.utils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,11 +42,12 @@ import java.util.*;
  */
 public class HttpCacheUtils {
 
-    private static final Logger LOG                   = LogManager.getLogger(HttpCacheUtils.class);
-    public  static final String     IFNONEMATCH       = "If-None-Match";
-    public  static final String     IFMATCH           = "If-Match";
-    private static final String     IFMODIFIEDSINCE   = "If-Modified-Since";
-    private static final String     ANY               = "\"*\"";
+    private static final Logger LOG               = LogManager.getLogger(HttpCacheUtils.class);
+    public  static final String IFNONEMATCH       = "If-None-Match";
+    public  static final String IFMATCH           = "If-Match";
+    private static final String IFMODIFIEDSINCE   = "If-Modified-Since";
+    private static final String ANY               = "\"*\"";
+    private static final String GZIPSUFFIX        = "-gzip\"";
     private static String apiVersion;
 
     static{
@@ -264,12 +282,17 @@ public class HttpCacheUtils {
         }
         if (StringUtils.isNoneBlank(eTags, eTagToMatch)){
             for (String eTag : StringUtils.stripAll(StringUtils.split(eTags, ","))){
-                if (StringUtils.equalsIgnoreCase(eTag, eTagToMatch)){
+                if (matchesDespiteGzipSuffix(eTag, eTagToMatch)){
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    private boolean matchesDespiteGzipSuffix(String eTag, String eTagToMatch){
+        return StringUtils.equalsIgnoreCase(
+                StringUtils.replaceIgnoreCase(eTag, GZIPSUFFIX, "\""), eTagToMatch);
     }
 
 }

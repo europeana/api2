@@ -462,7 +462,7 @@ public class ObjectController {
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
         String jsonld = null;
-        String rdf    = EdmUtils.toEDM((FullBeanImpl) bean, false);
+        String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (InputStream rdfInput = IOUtils.toInputStream(rdf)) {
             Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
             Object raw         = JSONLD.fromRDF(modelResult, new JenaRDFParser());
@@ -484,7 +484,7 @@ public class ObjectController {
 
     private ModelAndView generateRdf(FullBean bean) {
         Map<String, Object> model = new HashMap<>();
-        model.put("record", EdmUtils.toEDM((FullBeanImpl) bean, false));
+        model.put("record", EdmUtils.toEDM((FullBeanImpl) bean));
         return new ModelAndView("rdf", model);
     }
 

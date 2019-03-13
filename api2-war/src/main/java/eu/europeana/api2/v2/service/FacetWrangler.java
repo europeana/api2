@@ -106,7 +106,7 @@ public class FacetWrangler {
                  * - for every value of facet_tags, retrieve the human-readable label from the encoded integer value
                  * - match the technical Facet name against the enum TechnicalFacetType
                  * - values associated with the technical Facet are stored in the technicalFacetMap
-                 * Note that technical metadata names are encoded numerically (See eu.europeana.crf_faketags) */
+                 * Note that technical metadata names are encoded numerically (See eu.europeana.technicalfacets) */
                 if (facetField.getName().equalsIgnoreCase("facet_tags")) {
                     for (FacetField.Count encodedTechnicalFacet : facetField.getValues()) {
                         if (StringUtils.isNotEmpty(encodedTechnicalFacet.getName())

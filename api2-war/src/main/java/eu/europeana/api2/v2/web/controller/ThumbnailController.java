@@ -21,7 +21,7 @@ import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.web.model.MediaFile;
 import eu.europeana.corelib.web.service.MediaStorageService;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpHeaders;
@@ -57,6 +57,7 @@ public class ThumbnailController {
     private static final Logger LOG = LogManager.getLogger(ThumbnailController.class);
 
     private static final String IIIF_HOST_NAME = "iiif.europeana.eu";
+    private static final String GZIPSUFFIX     = "-gzip";
 
     @Resource(name = "corelib_metisMediaStorageService")
     private MediaStorageService metisMediaStorage;
@@ -108,11 +109,12 @@ public class ThumbnailController {
             // the check below automatically sets an ETag and last-Modified in our response header and returns a 304
             // (but only when clients include the If_Modified_Since header in their request)
             if (mediaFile.getLastModified() != null && mediaFile.getETag() != null) {
-                if (webRequest.checkNotModified(mediaFile.getETag(), mediaFile.getLastModified().getMillis())) {
+                if (webRequest.checkNotModified(StringUtils.removeEndIgnoreCase(mediaFile.getETag(), GZIPSUFFIX),
+                                                mediaFile.getLastModified().getMillis())) {
                     result = null;
                 }
             } else if (mediaFile.getETag() != null) {
-                if (webRequest.checkNotModified(mediaFile.getETag())) {
+                if (webRequest.checkNotModified(StringUtils.removeEndIgnoreCase(mediaFile.getETag(), GZIPSUFFIX))) {
                     result = null;
                 }
             }
