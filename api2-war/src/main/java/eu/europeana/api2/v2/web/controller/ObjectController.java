@@ -60,6 +60,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -134,9 +135,9 @@ public class ObjectController {
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
                                @RequestParam(value = "wskey") String wskey,
                                @RequestParam(value = "callback", required = false) String callback,
-                               WebRequest webRequest,
-                               HttpServletRequest servletRequest,
-                               HttpServletResponse response) throws ApiLimitException {
+                               @ApiIgnore WebRequest webRequest,
+                               @ApiIgnore HttpServletRequest servletRequest,
+                               @ApiIgnore HttpServletResponse response) throws ApiLimitException {
         RequestData data = new RequestData(collectionId, recordId, wskey, profile, callback, webRequest, servletRequest);
         try {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT, data, response);
@@ -179,9 +180,9 @@ public class ObjectController {
                                       @RequestParam(value = "wskey") String wskey,
                                       @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                       @RequestParam(value = "callback", required = false) String callback,
-                                      WebRequest webRequest,
-                                      HttpServletRequest servletRequest,
-                                      HttpServletResponse response) throws ApiLimitException {
+                                      @ApiIgnore WebRequest webRequest,
+                                      @ApiIgnore HttpServletRequest servletRequest,
+                                      @ApiIgnore HttpServletResponse response) throws ApiLimitException {
         return recordJSONLD(collectionId, recordId, wskey, format, callback, webRequest, servletRequest, response);
     }
 
@@ -205,9 +206,9 @@ public class ObjectController {
                                      @RequestParam(value = "wskey") String wskey,
                                      @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                      @RequestParam(value = "callback", required = false) String callback,
-                                     WebRequest webRequest,
-                                     HttpServletRequest servletRequest,
-                                     HttpServletResponse response) throws ApiLimitException {
+                                     @ApiIgnore WebRequest webRequest,
+                                     @ApiIgnore HttpServletRequest servletRequest,
+                                     @ApiIgnore HttpServletResponse response) throws ApiLimitException {
 
         RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
         try {
@@ -235,13 +236,13 @@ public class ObjectController {
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
     @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
-                                     @PathVariable String recordId,
-                                     @RequestParam(value = "wskey", required = true) String wskey,
-                                     @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
-                                     @RequestParam(value = "callback", required = false) String callback,
-                                     WebRequest webRequest,
-                                     HttpServletRequest servletRequest,
-                                     HttpServletResponse response) throws ApiLimitException {
+                                        @PathVariable String recordId,
+                                        @RequestParam(value = "wskey", required = true) String wskey,
+                                        @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
+                                        @RequestParam(value = "callback", required = false) String callback,
+                                        @ApiIgnore WebRequest webRequest,
+                                        @ApiIgnore HttpServletRequest servletRequest,
+                                        @ApiIgnore HttpServletResponse response) throws ApiLimitException {
 
         RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
         try {
@@ -270,9 +271,9 @@ public class ObjectController {
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "wskey") String wskey,
-                                  WebRequest webRequest,
-                                  HttpServletRequest servletRequest,
-                                  HttpServletResponse response) throws ApiLimitException {
+                                  @ApiIgnore WebRequest webRequest,
+                                  @ApiIgnore HttpServletRequest servletRequest,
+                                  @ApiIgnore HttpServletResponse response) throws ApiLimitException {
         RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
         try {
             return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
@@ -303,9 +304,9 @@ public class ObjectController {
     SrwResponse recordSrw(@PathVariable String collectionId,
                           @PathVariable String recordId,
                           @RequestParam(value = "wskey", required = false) String wskey,
-                          WebRequest webRequest,
-                          HttpServletRequest servletRequest,
-                          HttpServletResponse response) throws ApiLimitException, EuropeanaException {
+                          @ApiIgnore WebRequest webRequest,
+                          @ApiIgnore HttpServletRequest servletRequest,
+                          @ApiIgnore HttpServletResponse response) throws ApiLimitException, EuropeanaException {
         RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
         // output can be an SrwResponse (status 200)
         Object out = handleRecordRequest(RecordType.OBJECT_SRW, data, response);
