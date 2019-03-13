@@ -45,14 +45,22 @@ import static springfox.documentation.builders.RequestHandlerSelectors.withMetho
 
 public class SwaggerConfig {
 
-    private static final String EUROPEANAURL = "http://europeana.eu";
+    private static final String API_BASE_URL = "https://api.europeana.eu";
+    private static final String API_PATH     = "/api";
 
+    // reads value from europeana.properties (VCAP on CF); if not available, set to API_PATH
     @Value("${api2.baseUrl}")
-    private String apiUrl;
+    private String baseUrl;
+
+    private String getBaseUrl() {
+        if (StringUtils.isEmpty(baseUrl)) {
+            return API_BASE_URL;
+        }
+        return baseUrl;
+    }
 
     @Bean
     public Docket customImplementation() {
-        System.out.println("+++++ 2222222");
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
                 // Selects controllers annotated with @SwaggerSelect
@@ -62,12 +70,14 @@ public class SwaggerConfig {
                         withClassAnnotation(SwaggerIgnore.class)
                 ))) //Selection by RequestHandler
                 .build()
-                .host(getHostUrl())
-                .pathProvider(new BasePathAwareRelativePathProvider(getApiPath()))
+//                .host(getHostUrl())
+                .host(getBaseUrl())
+//                .pathProvider(new ApiPathProvider(getApiPath()))
+                .pathProvider(new ApiPathProvider(API_PATH))
                 .apiInfo(apiInfo());
     }
 
-    ApiInfo apiInfo() {
+    private ApiInfo apiInfo() {
         String version = VersionUtils.getVersion(this.getClass());
         return new ApiInfo(
         "Europeana REST API",
@@ -82,29 +92,30 @@ public class SwaggerConfig {
         "https://www.europeana.eu/portal/en/rights/api.html");
     }
 
-    private String getApiPath(){
-        return "/" + (fullApiUrl().toLowerCase().contains("/api") ? "api" : "") ;
-    }
+//    private String getApiPath(){
+//        return "/" + (fullApiUrl().toLowerCase().contains("/api") ? "api" : "") ;
+//    }
 
-    private String getHostUrl(){
-        String hostUrl = fullApiUrl();
-        return (hostUrl.toLowerCase().contains("/api") ? hostUrl.substring(0, hostUrl.toLowerCase().indexOf("/api")) : hostUrl);
-    }
+//    private String getHostUrl(){
+//        String hostUrl = fullApiUrl();
+//        return (hostUrl.toLowerCase().contains("/api") ? hostUrl.substring(0, hostUrl.toLowerCase().indexOf("/api")) : hostUrl);
+//    }
 
-    private String fullApiUrl(){
-        return StringUtils.isNotBlank(apiUrl) ? apiUrl : EUROPEANAURL;
-    }
 
-    class BasePathAwareRelativePathProvider extends AbstractPathProvider {
-        private String basePath;
+//    private String fullApiUrl(){
+//        return StringUtils.isNotBlank(baseUrl) ? baseUrl : EUROPEANAURL;
+//    }
 
-        public BasePathAwareRelativePathProvider(String basePath) {
-            this.basePath = basePath;
+    class ApiPathProvider extends AbstractPathProvider {
+        private String apiPath;
+
+        ApiPathProvider(String basePath) {
+            this.apiPath = basePath;
         }
 
         @Override
         protected String applicationPath() {
-            return basePath;
+            return apiPath;
         }
 
         @Override
@@ -116,7 +127,7 @@ public class SwaggerConfig {
         public String getOperationPath(String operationPath) {
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromPath("/");
             return Paths.removeAdjacentForwardSlashes(
-                    uriComponentsBuilder.path(operationPath.replaceFirst(basePath, "")).build().toString());
+                    uriComponentsBuilder.path(operationPath.replaceFirst(apiPath, "")).build().toString());
         }
     }
 }
