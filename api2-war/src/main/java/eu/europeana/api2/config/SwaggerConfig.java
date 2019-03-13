@@ -17,6 +17,7 @@
 
 package eu.europeana.api2.config;
 
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.VersionUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
@@ -45,19 +46,12 @@ import static springfox.documentation.builders.RequestHandlerSelectors.withMetho
 
 public class SwaggerConfig {
 
-    private static final String API_BASE_URL = "https://api.europeana.eu";
     private static final String API_PATH     = "/api";
 
     // reads value from europeana.properties (VCAP on CF); if not available, set to API_PATH
     @Value("${api2.baseUrl}")
     private String baseUrl;
 
-    private String getBaseUrl() {
-        if (StringUtils.isEmpty(baseUrl)) {
-            return API_BASE_URL;
-        }
-        return baseUrl;
-    }
 
     @Bean
     public Docket customImplementation() {
@@ -70,7 +64,7 @@ public class SwaggerConfig {
                         withClassAnnotation(SwaggerIgnore.class)
                 ))) //Selection by RequestHandler
                 .build()
-                .host(getBaseUrl())
+                .host(Api2UrlService.getBeanInstance().getApi2BaseUrl())
                 .pathProvider(new ApiPathProvider(API_PATH))
                 .apiInfo(apiInfo());
     }
@@ -78,8 +72,8 @@ public class SwaggerConfig {
     private ApiInfo apiInfo() {
         String version = VersionUtils.getVersion(this.getClass());
         return new ApiInfo(
-        "Europeana REST API",
-        "This Swagger API console provides an overview of an interface to the Europeana REST API. " +
+        "Europeana Search & Record API",
+        "This Swagger API console provides an overview of the Europeana Search & Record API. " +
                 "You can build and test anything from the simplest search to a complex query using facetList " +
                 "such as dates, geotags and permissions. For more help and information, head to our " +
                 "comprehensive <a href=\"https://pro.europeana.eu/page/intro\">online documentation</a>.",
