@@ -70,9 +70,7 @@ public class SwaggerConfig {
                         withClassAnnotation(SwaggerIgnore.class)
                 ))) //Selection by RequestHandler
                 .build()
-//                .host(getHostUrl())
                 .host(getBaseUrl())
-//                .pathProvider(new ApiPathProvider(getApiPath()))
                 .pathProvider(new ApiPathProvider(API_PATH))
                 .apiInfo(apiInfo());
     }
@@ -91,20 +89,6 @@ public class SwaggerConfig {
         "API terms of use",
         "https://www.europeana.eu/portal/en/rights/api.html");
     }
-
-//    private String getApiPath(){
-//        return "/" + (fullApiUrl().toLowerCase().contains("/api") ? "api" : "") ;
-//    }
-
-//    private String getHostUrl(){
-//        String hostUrl = fullApiUrl();
-//        return (hostUrl.toLowerCase().contains("/api") ? hostUrl.substring(0, hostUrl.toLowerCase().indexOf("/api")) : hostUrl);
-//    }
-
-
-//    private String fullApiUrl(){
-//        return StringUtils.isNotBlank(baseUrl) ? baseUrl : EUROPEANAURL;
-//    }
 
     class ApiPathProvider extends AbstractPathProvider {
         private String apiPath;
