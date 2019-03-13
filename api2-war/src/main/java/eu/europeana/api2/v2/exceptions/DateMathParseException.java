@@ -19,7 +19,7 @@ package eu.europeana.api2.v2.exceptions;
 
 
 /**
- * Exception that is thrown when the apikey is invalid, or if the number of requests if over it's daily maximum
+ * Exception that is thrown when there's a problem calculating facet.range.gap value
  */
 public class DateMathParseException extends Exception{
 
