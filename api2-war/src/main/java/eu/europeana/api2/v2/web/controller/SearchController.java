@@ -308,11 +308,13 @@ public class SearchController {
                     nrSelectors = Integer.parseInt(hlSelectors);
                     if (nrSelectors < 1) {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        return JsonUtils.toJson(new ApiError("", "Query parameter hit.selectors must be greater than 0"), callback);
+                        return JsonUtils.toJson(new ApiError(""
+                                , "Query parameter hit.selectors must be greater than 0"), callback);
                     }
                 } catch (NumberFormatException nfe) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    return JsonUtils.toJson(new ApiError("", "Query parameter hit.selectors must be an integer"), callback);
+                    return JsonUtils.toJson(new ApiError(""
+                            , "Query parameter hit.selectors must be an integer"), callback);
                 }
             }
             query.setParameter("hl", "on");

@@ -204,7 +204,8 @@ public class HttpCacheUtils {
      * @return HttpServletResponse
      */
     public HttpServletResponse addCorsHeaders(HttpServletResponse response, String allowMethods,
-                                              String allowHeaders, String exposeHeaders, String maxAge){
+                                              String allowHeaders, String exposeHeaders,
+                                              String maxAge, String allowOrigin){
         if (StringUtils.isNotBlank(allowMethods)) {
             response.addHeader("Access-Control-Allow-Methods", allowMethods);
         }
@@ -216,6 +217,9 @@ public class HttpCacheUtils {
         }
         if (StringUtils.isNotBlank(maxAge)) {
             response.addHeader("Access-Control-Max-Age", maxAge);
+        }
+        if (StringUtils.isNotBlank(allowOrigin)) {
+            response.addHeader("Access-Control-Allow-Origin", allowOrigin);
         }
         return response;
     }
