@@ -820,6 +820,7 @@ public class SearchController {
 	 * @param response    servlet response object
 	 * @return ModelAndView instance
 	 */
+    @SwaggerIgnore
 	@ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
 	@RequestMapping(value = "/v2/search.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
 	public ModelAndView fieldTripRss(
