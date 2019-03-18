@@ -75,7 +75,6 @@ import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.collections.MapUtils;
@@ -322,11 +321,13 @@ public class SearchController {
                     nrSelectors = Integer.parseInt(hlSelectors);
                     if (nrSelectors < 1) {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        return JsonUtils.toJson(new ApiError("", "Query parameter hit.selectors must be greater than 0"), callback);
+                        return JsonUtils.toJson(new ApiError(""
+                                , "Query parameter hit.selectors must be greater than 0"), callback);
                     }
                 } catch (NumberFormatException nfe) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    return JsonUtils.toJson(new ApiError("", "Query parameter hit.selectors must be an integer"), callback);
+                    return JsonUtils.toJson(new ApiError(""
+                            , "Query parameter hit.selectors must be an integer"), callback);
                 }
             }
             query.setParameter("hl", "on");
@@ -764,14 +765,18 @@ public class SearchController {
 	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {"application/rss+xml",
             MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
-    public RssResponse openSearchRss(
+    public ModelAndView openSearchRss(
 			@RequestParam(value = "searchTerms") String queryString,
 			@RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
-			@RequestParam(value = "count", required = false, defaultValue = "12") int count) {
+			@RequestParam(value = "count", required = false, defaultValue = "12") int count,
+            HttpServletResponse response) {
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("openSearch query with terms: " + queryString);
         }
+        ControllerUtils.addResponseHeaders(response);
 		RssResponse rss = new RssResponse();
+
 		Channel channel = rss.channel;
 		channel.startIndex.value = start;
 		channel.itemsPerPage.value = count;
@@ -793,7 +798,9 @@ public class SearchController {
                 channel.items.add(item);
             }
         } catch (EuropeanaException e) {
-            LOG.error("Error executing opensearch query", e);
+            response.setStatus(400);
+            String errorMsg = "Error executing openSearch query '" + queryString + "'";
+            LOG.error(errorMsg, e);
             channel.totalResults.value = 0;
             Item item = new Item();
             item.title = "Error";
@@ -801,9 +808,17 @@ public class SearchController {
             channel.items.add(item);
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Returning rss result: "+rss);
+            LOG.debug("Returning rss result: " + rss);
         }
-        return rss;
+
+        String xml = xmlUtils.toString(rss);
+        Map<String, Object> model = new HashMap<>();
+        model.put("rss", xml);
+
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/xml");
+
+        return new ModelAndView("rss", model);
     }
 
 	/**
@@ -818,6 +833,7 @@ public class SearchController {
 	 * @param response    servlet response object
 	 * @return ModelAndView instance
 	 */
+    @SwaggerIgnore
 	@ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
 	@RequestMapping(value = "/v2/search.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
 	public ModelAndView fieldTripRss(

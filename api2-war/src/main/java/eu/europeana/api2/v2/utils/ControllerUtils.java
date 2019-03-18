@@ -73,7 +73,7 @@ public final class ControllerUtils {
        */
     public static void addAccessControlHeaders(HttpServletResponse response) {
         response.addHeader("Access-Control-Allow-Origin", "*");
-        response.addHeader("Access-Control-Allow-Methods", "POST");
+        response.addHeader("Access-Control-Allow-Methods", "GET, HEAD");
         response.addHeader("Access-Control-Max-Age", "1000");
     }
 }
