@@ -60,7 +60,7 @@ public class HierarchicalController {
 
     private static final Logger LOG = LogManager.getLogger(HierarchicalController.class);
 
-    private static final int DEFAULT_HIERARCHY_TIMEOUT = 800000;
+    private static final int DEFAULT_HIERARCHY_TIMEOUT = 8_000;
     private static final int MAX_HIERARCHY_TIMEOUT = 20_000;
     private static final int MIN_HIERARCHY_TIMEOUT = 400;
 
