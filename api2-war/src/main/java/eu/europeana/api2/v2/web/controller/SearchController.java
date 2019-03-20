@@ -81,6 +81,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -139,6 +140,9 @@ public class SearchController {
 
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
+
+    @Value("${api.search.hl.MaxAnalyzedChars}")
+    private String hlMaxAnalyzedChars;
 
     /**
      * Returns a list of Europeana datasets based on the search terms.
@@ -334,6 +338,8 @@ public class SearchController {
             query.setParameter("hl.fl", StringUtils.isBlank(hlFl) ? "*" : hlFl);
             // this sets both the Solr parameter and a separate nrSelectors variable used to limit the result set with
             query.setNrSelectors("hl.snippets", nrSelectors);
+            // see EA-1570 (workaround to increase the number of characters that are being considered for highlighting)
+            query.setParameter("hl.maxAnalyzedChars", hlMaxAnalyzedChars);
         }
 
 		query.setValueReplacements(valueReplacements);
