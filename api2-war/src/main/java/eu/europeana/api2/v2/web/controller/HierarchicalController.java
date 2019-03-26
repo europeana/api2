@@ -22,7 +22,7 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.service.HierarchyRunner;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.search.Neo4jSearchService;
+import eu.europeana.corelib.neo4j.Neo4jSearchService;
 import io.swagger.annotations.ApiOperation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,14 +60,14 @@ public class HierarchicalController {
 
     private static final Logger LOG = LogManager.getLogger(HierarchicalController.class);
 
-    private static final int DEFAULT_HIERARCHY_TIMEOUT = 8000;
+    private static final int DEFAULT_HIERARCHY_TIMEOUT = 8_000;
     private static final int MAX_HIERARCHY_TIMEOUT = 20_000;
     private static final int MIN_HIERARCHY_TIMEOUT = 400;
 
     // we allow only 20 requests at a time (per server instance), more are automatically placed in a queue
     private final ExecutorService timeoutExecutorService = Executors.newFixedThreadPool(20);
 
-    @Resource
+    @Resource(name = "corelib_neo4j_searchService" )
     private Neo4jSearchService searchService;
 
     @Resource

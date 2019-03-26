@@ -20,10 +20,7 @@ package eu.europeana.api2.v2.model.json.view.submodel;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import eu.europeana.api2.v2.model.json.common.LabelFrequency;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
@@ -33,6 +30,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
  */
 
 @JsonInclude(NON_EMPTY)
+@JsonPropertyOrder({"type", "field", "prefix", "exact", "suffix"})
 public class HitSelector {
 
     @JsonIgnore

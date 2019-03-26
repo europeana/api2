@@ -53,7 +53,7 @@ public class RichView extends ApiView implements RichBean {
             }
             isShownByLinks.add(item);
         }
-        return isShownByLinks.toArray(new String[isShownByLinks.size()]);
+        return isShownByLinks.toArray(new String[0]);
     }
 
     @Override

@@ -31,6 +31,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * Generates list of hit highlights
+ *
  * Created by luthien on 03/01/2019.
  */
 public class HitMaker {
@@ -56,31 +58,7 @@ public class HitMaker {
 
             // loop through the Map of Selector Maps returned by Solr
             for (Map.Entry<String,List<String>> topOrFlop : hitContent.entrySet()){
-                String keyString = getFieldString(topOrFlop.getKey());
-                if (CollectionUtils.isNotEmpty(topOrFlop.getValue())){
-                    // record level
-                    int i = 1;
-                    // loop through fields of the record - max number applies here
-                    for (String lyrics : topOrFlop.getValue()){
-                        if (StringUtils.isNotBlank(lyrics)){
-                            HitSelector selector;
-                            // loop through possible multiple highlights per field
-                            do {
-                                selector = createSelector(lyrics);
-                                if (selector != null){
-                                    selector.setField(keyString);
-                                    selectors.add(selector);
-                                    lyrics = selector.getRemainder();
-                                } else {
-                                    LOG.error("Error: no highlighting could be retrieved for this element");
-                                    break;
-                                }
-                                i++;
-                            } while (!StringUtils.equalsIgnoreCase(lyrics, THE_END) && i <= nrSelectors);
-                        }
-                        if (i > nrSelectors) break;
-                    }
-                }
+                findHits(topOrFlop, selectors, nrSelectors);
             }
             if (CollectionUtils.isNotEmpty(selectors)){
                 hit.setSelectors(selectors);
@@ -90,13 +68,57 @@ public class HitMaker {
         return hitList;
     }
 
+    private void findHits(Map.Entry<String,List<String>> topOrFlop, List<HitSelector> selectors, int nrSelectors) {
+        String keyString = getFieldString(topOrFlop.getKey());
+        if (CollectionUtils.isNotEmpty(topOrFlop.getValue())){
+            // record level
+            int i = 1;
+            // loop through fields of the record - max number applies here
+            for (String lyrics : topOrFlop.getValue()){
+                if (StringUtils.isNotBlank(lyrics)){
+                    HitSelector selector;
+                    // loop through possible multiple highlights per field
+                    do {
+                        selector = createSelector(lyrics);
+                        if (selector != null){
+                            selector.setField(keyString);
+                            selectors.add(selector);
+                            lyrics = selector.getRemainder();
+                        } else {
+                            LOG.error("Error: no highlighting could be retrieved for this element");
+                            break;
+                        }
+                        i++;
+                    } while (!StringUtils.equalsIgnoreCase(lyrics, THE_END) && i <= nrSelectors);
+                }
+                if (i > nrSelectors) {
+                    break;
+                }
+            }
+        }
+    }
+
     private HitSelector createSelector (String lyrics){
-        String remainder;
-        String suffix;
         String prefix   = StringUtils.substringBefore(lyrics, EM_START);
         lyrics          = StringUtils.removeStart(StringUtils.removeStart(lyrics, prefix), EM_START);
         String exact    = StringUtils.substringBefore(lyrics, EM_END);
         lyrics          = StringUtils.removeStart(StringUtils.removeStart(lyrics, exact), EM_END);
+
+        // check if there is another hit adjecent, if so we merge the two
+        while (lyrics.trim().startsWith(EM_START)) {
+            // add any spaces that are before the next hit
+            String spaces = StringUtils.substringBefore(lyrics, EM_START);
+            exact         = exact + spaces;
+            lyrics        = StringUtils.removeStart(StringUtils.removeStart(lyrics, spaces), EM_START);
+            // add the next hit itself
+            String exact2 = StringUtils.substringBefore(lyrics, EM_END);
+            exact         = exact + exact2;
+            lyrics        = StringUtils.removeStart(StringUtils.removeStart(lyrics, exact2), EM_END);
+        }
+
+        // set suffix and remainder
+        String remainder;
+        String suffix;
         if (StringUtils.containsIgnoreCase(lyrics, EM_START)){
             suffix      = StringUtils.substringBefore(lyrics, EM_START);
             remainder   = lyrics;

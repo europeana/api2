@@ -17,11 +17,11 @@
 
 package eu.europeana.api2.config;
 
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.VersionUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -45,11 +45,13 @@ import static springfox.documentation.builders.RequestHandlerSelectors.withMetho
 
 public class SwaggerConfig {
 
-    @Value("${api2.url}")
-    private String apiUrl;
+    private static final String API_PATH     = "/api";
 
-    @Value("${api2.canonical.url}")
-    private String apiCanonicalUrl;
+    private String getApiBaseUrl(){
+        return StringUtils.substringAfter(
+                Api2UrlService.getBeanInstance().getApi2BaseUrl(),
+                "://");
+    }
 
     @Bean
     public Docket customImplementation() {
@@ -62,50 +64,36 @@ public class SwaggerConfig {
                         withClassAnnotation(SwaggerIgnore.class)
                 ))) //Selection by RequestHandler
                 .build()
-                .host(getHostUrl())
-                .pathProvider(new BasePathAwareRelativePathProvider(getApiPath()))
+                .host(getApiBaseUrl())
+                .pathProvider(new ApiPathProvider(API_PATH))
                 .apiInfo(apiInfo());
     }
 
-    ApiInfo apiInfo() {
+    private ApiInfo apiInfo() {
         String version = VersionUtils.getVersion(this.getClass());
         return new ApiInfo(
-        "Europeana REST API",
-        "This Swagger API console provides an overview of an interface to the Europeana REST API. " +
+        "Europeana Search & Record API",
+        "This Swagger API console provides an overview of the Europeana Search & Record API. " +
                 "You can build and test anything from the simplest search to a complex query using facetList " +
                 "such as dates, geotags and permissions. For more help and information, head to our " +
-                "comprehensive <a href=\"http://labs.europeana.eu/api/\">online documentation</a>.",
+                "comprehensive <a href=\"https://pro.europeana.eu/page/intro\">online documentation</a>.",
                 StringUtils.isNotEmpty(version) ? version : "version unknown",
-        "http://www.europeana.eu/portal/en/rights.html",
-        "http://labs.europeana.eu/api",
+        "https://www.europeana.eu/portal/en/rights/api.html",
+        "https://pro.europeana.eu/page/intro#general",
         "API terms of use",
-        "http://www.europeana.eu/portal/en/rights/api.html");
+        "https://www.europeana.eu/portal/en/rights/api.html");
     }
 
-    private String getApiPath(){
-        return "/" + (fullApiUrl().toLowerCase().contains("/api") ? "api" : "") ;
-    }
+    class ApiPathProvider extends AbstractPathProvider {
+        private String apiPath;
 
-    private String getHostUrl(){
-        String hostUrl = fullApiUrl();
-        return (hostUrl.toLowerCase().contains("/api") ? hostUrl.substring(0, hostUrl.toLowerCase().indexOf("/api")) : hostUrl);
-    }
-
-    private String fullApiUrl(){
-        return StringUtils.isNotBlank(apiUrl) ? apiUrl : (
-                StringUtils.isNotBlank(apiCanonicalUrl) ? apiCanonicalUrl : "http://europeana.eu");
-    }
-
-    class BasePathAwareRelativePathProvider extends AbstractPathProvider {
-        private String basePath;
-
-        public BasePathAwareRelativePathProvider(String basePath) {
-            this.basePath = basePath;
+        ApiPathProvider(String basePath) {
+            this.apiPath = basePath;
         }
 
         @Override
         protected String applicationPath() {
-            return basePath;
+            return apiPath;
         }
 
         @Override
@@ -117,7 +105,7 @@ public class SwaggerConfig {
         public String getOperationPath(String operationPath) {
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromPath("/");
             return Paths.removeAdjacentForwardSlashes(
-                    uriComponentsBuilder.path(operationPath.replaceFirst(basePath, "")).build().toString());
+                    uriComponentsBuilder.path(operationPath.replaceFirst(apiPath, "")).build().toString());
         }
     }
 }

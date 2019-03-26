@@ -42,11 +42,12 @@ import java.util.*;
  */
 public class HttpCacheUtils {
 
-    private static final Logger LOG                   = LogManager.getLogger(HttpCacheUtils.class);
-    public  static final String     IFNONEMATCH       = "If-None-Match";
-    public  static final String     IFMATCH           = "If-Match";
-    private static final String     IFMODIFIEDSINCE   = "If-Modified-Since";
-    private static final String     ANY               = "\"*\"";
+    private static final Logger LOG               = LogManager.getLogger(HttpCacheUtils.class);
+    public  static final String IFNONEMATCH       = "If-None-Match";
+    public  static final String IFMATCH           = "If-Match";
+    private static final String IFMODIFIEDSINCE   = "If-Modified-Since";
+    private static final String ANY               = "\"*\"";
+    private static final String GZIPSUFFIX        = "-gzip\"";
     private static String apiVersion;
 
     static{
@@ -203,7 +204,8 @@ public class HttpCacheUtils {
      * @return HttpServletResponse
      */
     public HttpServletResponse addCorsHeaders(HttpServletResponse response, String allowMethods,
-                                              String allowHeaders, String exposeHeaders, String maxAge){
+                                              String allowHeaders, String exposeHeaders,
+                                              String maxAge, String allowOrigin){
         if (StringUtils.isNotBlank(allowMethods)) {
             response.addHeader("Access-Control-Allow-Methods", allowMethods);
         }
@@ -215,6 +217,9 @@ public class HttpCacheUtils {
         }
         if (StringUtils.isNotBlank(maxAge)) {
             response.addHeader("Access-Control-Max-Age", maxAge);
+        }
+        if (StringUtils.isNotBlank(allowOrigin)) {
+            response.addHeader("Access-Control-Allow-Origin", allowOrigin);
         }
         return response;
     }
@@ -281,12 +286,17 @@ public class HttpCacheUtils {
         }
         if (StringUtils.isNoneBlank(eTags, eTagToMatch)){
             for (String eTag : StringUtils.stripAll(StringUtils.split(eTags, ","))){
-                if (StringUtils.equalsIgnoreCase(eTag, eTagToMatch)){
+                if (matchesDespiteGzipSuffix(eTag, eTagToMatch)){
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    private boolean matchesDespiteGzipSuffix(String eTag, String eTagToMatch){
+        return StringUtils.equalsIgnoreCase(
+                StringUtils.replaceIgnoreCase(eTag, GZIPSUFFIX, "\""), eTagToMatch);
     }
 
 }

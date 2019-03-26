@@ -23,6 +23,8 @@ import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
+import eu.europeana.api2.v2.exceptions.DateMathParseException;
+import eu.europeana.api2.v2.exceptions.InvalidGapException;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -73,13 +75,13 @@ import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -97,6 +99,7 @@ import java.util.regex.Pattern;
 
 
 /**
+ * Controller that handles all search requests (search.json, opensearch.rss, search.rss, and search.kml)
  * @author Willem-Jan Boogerd
  * @author Luthien
  * @author Patrick Ehlert
@@ -106,18 +109,19 @@ import java.util.regex.Pattern;
 @Api(tags = {"Search"})
 public class SearchController {
 
-	private static final Logger LOG         = LogManager.getLogger(SearchController.class);
-	private static final String SEARCHJSON  = " [search.json] ";
+    private static final Logger LOG         = LogManager.getLogger(SearchController.class);
+    private static final String SEARCHJSON  = " [search.json] ";
     private static final String PORTAL      = "portal";
     private static final String FACETS      = "facets";
     private static final String DEBUG       = "debug";
     private static final String SPELLING    = "spelling";
     private static final String BREADCRUMB  = "breadcrumb";
+    private static final String FACET_RANGE = "facet.range";
     private static final String HITS        = "hits";
 
-	// First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
+    // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
-	private static final Pattern COUNTRY_PATTERN = Pattern.compile("COUNTRY:\"(.*?)\"|COUNTRY:(.*?)(&|\\s|$)");
+    private static final Pattern COUNTRY_PATTERN = Pattern.compile("COUNTRY:\"(.*?)\"|COUNTRY:(.*?)(&|\\s|$)");
 
     @Resource
     private SearchService searchService;
@@ -137,13 +141,16 @@ public class SearchController {
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
 
+    @Value("${api.search.hl.MaxAnalyzedChars}")
+    private String hlMaxAnalyzedChars;
+
     /**
      * Returns a list of Europeana datasets based on the search terms.
      * The response is an Array of JSON objects, each one containing the identifier and the name of a dataset.
      *
      * @return the JSON response
      */
-    @ApiOperation(value = "search for records", nickname = "searchRecords", response = java.lang.Void.class)
+    @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
 //	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
     @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
@@ -169,7 +176,6 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws ApiLimitException {
 
-        // do apikey check before anything else
         LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
 
         // check query parameter
@@ -187,7 +193,6 @@ public class SearchController {
             LOG.debug("QUERY: |" + queryString + "|");
         }
 
-        // check other parameters
         if (cursorMark != null) {
             if (start > 1) {
                 response.setStatus(400);
@@ -212,7 +217,9 @@ public class SearchController {
         }
 
         List<String> colourPalette = new ArrayList();
-        if (ArrayUtils.isNotEmpty(colourPaletteArray)) StringArrayUtils.addToList(colourPalette, colourPaletteArray);
+        if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
+            StringArrayUtils.addToList(colourPalette, colourPaletteArray);
+        }
         colourPalette.replaceAll(String::toUpperCase);
 
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
@@ -239,11 +246,12 @@ public class SearchController {
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets = StringArrayUtils.splitWebParameter(mixedFacetArray);
 
-
+        boolean rangeFacetsSpecified = request.getParameterMap().containsKey(FACET_RANGE);
+        boolean noFacetsSpecified = ArrayUtils.isEmpty(mixedFacets);
         boolean facetsRequested = StringUtils.containsIgnoreCase(profile, PORTAL) ||
                 StringUtils.containsIgnoreCase(profile, FACETS);
-        boolean defaultFacetsRequested = facetsRequested &&
-                (ArrayUtils.isEmpty(mixedFacets) ||  ArrayUtils.contains(mixedFacets, "DEFAULT"));
+        boolean defaultFacetsRequested = facetsRequested && !rangeFacetsSpecified &&
+                (noFacetsSpecified ||  ArrayUtils.contains(mixedFacets, "DEFAULT"));
         boolean defaultOrReusabilityFacetsRequested = defaultFacetsRequested ||
                 (facetsRequested &&  ArrayUtils.contains(mixedFacets, "REUSABILITY"));
 
@@ -266,9 +274,7 @@ public class SearchController {
             );
         }
 
-        // create Query object and set some params
         Class<? extends IdBean> clazz = selectBean(profile);
-//        Query query = new Query(SearchUtils.rewriteQueryFields(queryString))
         Query query = new Query(SearchUtils.rewriteQueryFields(
                                 SearchUtils.fixBuggySolrIndex(queryString)))
                 .setApiQuery(true)
@@ -281,18 +287,31 @@ public class SearchController {
                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                 .setSpellcheckAllowed(false);
 
-        // removed the spooky looping stuff from setting the Solr facets and their associated parameters by directly
-        // passing the Maps to the Query object. Null checking happens there, too.
         if (facetsRequested) {
             Map<String, String[]> parameterMap = request.getParameterMap();
-            query.setSolrFacets(solrFacets)
-                    .setDefaultFacetsRequested(defaultFacetsRequested)
-                    .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit", solrFacets, parameterMap, defaultFacetsRequested))
-                    .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset", solrFacets, parameterMap, defaultFacetsRequested))
-                    .setTechnicalFacets(technicalFacets)
-                    .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit", technicalFacets, parameterMap, defaultFacetsRequested))
-                    .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset", technicalFacets, parameterMap, defaultFacetsRequested))
-                    .setFacetsAllowed(true);
+            try {
+                query.setSolrFacets(solrFacets)
+                        .setDefaultFacetsRequested(defaultFacetsRequested)
+                        .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams(
+                                "limit", solrFacets, parameterMap, defaultFacetsRequested))
+                        .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams(
+                                "offset", solrFacets, parameterMap, defaultFacetsRequested))
+                        .setFacetDateRangeParameters(FacetParameterUtils.getDateRangeParams(parameterMap))
+                        .setTechnicalFacets(technicalFacets)
+                        .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams(
+                                "limit", technicalFacets, parameterMap, defaultFacetsRequested))
+                        .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams(
+                                "offset", technicalFacets, parameterMap, defaultFacetsRequested))
+                        .setFacetsAllowed(true);
+            } catch (DateMathParseException e) {
+                response.setStatus(400);
+                return JsonUtils.toJson(new ApiError("", "Error parsing value '" + e.getParsing() +
+                                                         "' supplied for " + FACET_RANGE + " " +
+                                                         e.getWhatsParsed()), callback);
+            } catch (InvalidGapException e) {
+                response.setStatus(400);
+                return JsonUtils.toJson(new ApiError("", e.getMessage()), callback);
+            }
         } else {
             query.setFacetsAllowed(false);
         }
@@ -306,30 +325,37 @@ public class SearchController {
                     nrSelectors = Integer.parseInt(hlSelectors);
                     if (nrSelectors < 1) {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        return JsonUtils.toJson(new ApiError("", "Query parameter hit.selectors must be greater than 0"), callback);
+                        return JsonUtils.toJson(new ApiError(""
+                                , "Query parameter hit.selectors must be greater than 0"), callback);
                     }
                 } catch (NumberFormatException nfe) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    return JsonUtils.toJson(new ApiError("", "Query parameter hit.selectors must be an integer"), callback);
+                    return JsonUtils.toJson(new ApiError(""
+                            , "Query parameter hit.selectors must be an integer"), callback);
                 }
             }
             query.setParameter("hl", "on");
             query.setParameter("hl.fl", StringUtils.isBlank(hlFl) ? "*" : hlFl);
             // this sets both the Solr parameter and a separate nrSelectors variable used to limit the result set with
             query.setNrSelectors("hl.snippets", nrSelectors);
+            // see EA-1570 (workaround to increase the number of characters that are being considered for highlighting)
+            query.setParameter("hl.maxAnalyzedChars", hlMaxAnalyzedChars);
         }
 
 		query.setValueReplacements(valueReplacements);
 
 		// reusability facet settings; spell check allowed, etcetera
-        if (defaultOrReusabilityFacetsRequested) query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
-        if (StringUtils.containsIgnoreCase(profile, PORTAL) || StringUtils.containsIgnoreCase(profile, SPELLING)) query.setSpellcheckAllowed(true);
+        if (defaultOrReusabilityFacetsRequested) {
+            query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
+        }
+        if (StringUtils.containsIgnoreCase(profile, PORTAL) || StringUtils.containsIgnoreCase(profile, SPELLING)) {
+            query.setSpellcheckAllowed(true);
+        }
         if (facetsRequested && !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
                     ( ArrayUtils.contains(solrFacets, "DATA_PROVIDER") ||
                       ArrayUtils.contains(solrFacets, "DEFAULT")
                     ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
 
-        // do the search
         try {
             SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
             result.requestNumber = limitResponse.getRequestNumber();
@@ -422,7 +448,7 @@ public class SearchController {
         if (refinementArray != null) {
             for (String qf : refinementArray) {
                 if (StringUtils.contains(qf, ":")){
-                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase();
+                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
                             if (CommonTagExtractor.isImageMimeType(refinementValue)) {
@@ -452,7 +478,7 @@ public class SearchController {
                             break;
                         case "COLOURPALETTE":
                         case "COLORPALETTE":
-                            imageColourPaletteRefinements.add(refinementValue.toUpperCase());
+                            imageColourPaletteRefinements.add(refinementValue.toUpperCase(Locale.GERMAN));
                             hasImageRefinements = true;
                             break;
                         case "IMAGE_ASPECTRATIO":
@@ -587,9 +613,13 @@ public class SearchController {
 
     private Class<? extends IdBean> selectBean(String profile) {
         Class<? extends IdBean> clazz;
-        if (StringUtils.containsIgnoreCase(profile, "minimal")) clazz = BriefBean.class;
-        else if (StringUtils.containsIgnoreCase(profile, "rich")) clazz = RichBean.class;
-        else clazz = ApiBean.class;
+        if (StringUtils.containsIgnoreCase(profile, "minimal")) {
+            clazz = BriefBean.class;
+        } else if (StringUtils.containsIgnoreCase(profile, "rich")) {
+            clazz = RichBean.class;
+        } else {
+            clazz = ApiBean.class;
+        }
         return clazz;
     }
 
@@ -598,27 +628,6 @@ public class SearchController {
         if (RichBean.class.equals(clazz)) return RichBeanImpl.class;
         return ApiBeanImpl.class;
     }
-
-//    @Deprecated // July 3rd 2018, not in use anymore
-//    @ApiOperation(value = "get autocompletion recommendations for search queries", nickname = "suggestions")
-//    @RequestMapping(value = "/v2/suggestions.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ModelAndView suggestionsJson(
-//            @RequestParam(value = "query", required = true) String query,
-//            @RequestParam(value = "rows", required = false, defaultValue = "10") int count,
-//            @RequestParam(value = "phrases", required = false, defaultValue = "false") boolean phrases,
-//            @RequestParam(value = "callback", required = false) String callback,
-//            HttpServletResponse response) {
-//        ControllerUtils.addResponseHeaders(response);
-//        if (LOG.isInfoEnabled()) LOG.info("phrases: " + phrases);
-//        Suggestions apiResponse = new Suggestions(null);
-//        try {
-//            apiResponse.items = searchService.suggestions(query, count);
-//            apiResponse.itemsCount = apiResponse.items.size();
-//        } catch (EuropeanaException e) {
-//            return JsonUtils.toJson(new ApiError(null, e.getMessage()), callback);
-//        }
-//        return JsonUtils.toJson(apiResponse, callback);
-//    }
 
     @SuppressWarnings("unchecked")
     private <T extends IdBean> SearchResults<T> createResults(
@@ -645,22 +654,31 @@ public class SearchController {
 
             List<T> beans = new ArrayList<>();
             for (T b : resultSet.getResults()) {
-                if (b instanceof RichBean) beans.add((T) new RichView((RichBean) b, profile, apiKey));
-                else if (b instanceof ApiBean) beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
-                else if (b instanceof BriefBean) beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
+                if (b instanceof RichBean) {
+                    beans.add((T) new RichView((RichBean) b, profile, apiKey));
+                } else if (b instanceof ApiBean) {
+                    beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
+                } else if (b instanceof BriefBean) {
+                    beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
+                }
             }
 
             List<FacetField> facetFields = resultSet.getFacetFields();
             if (MapUtils.isNotEmpty(resultSet.getQueryFacets())) {
                 List<FacetField> allQueryFacetsMap = SearchUtils.extractQueryFacets(resultSet.getQueryFacets());
-                if (!allQueryFacetsMap.isEmpty()) facetFields.addAll(allQueryFacetsMap);
+                if (!allQueryFacetsMap.isEmpty()) {
+                    facetFields.addAll(allQueryFacetsMap);
+                }
             }
 
-            if (LOG.isDebugEnabled()) LOG.debug("results: " + beans.size());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("results: " + beans.size());
+            }
 
             response.items = beans;
         if (StringUtils.containsIgnoreCase(profile, FACETS) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
             response.facets = new FacetWrangler().consolidateFacetList(resultSet.getFacetFields(),
+                                                                       resultSet.getRangeFacets(),
                                                                        query.getTechnicalFacets(),
                                                                        query.isDefaultFacetsRequested(),
                                                                        query.getTechnicalFacetLimits(),
@@ -693,7 +711,8 @@ public class SearchController {
      * @deprecated 2018-01-09 search with coordinates functionality
 	 */
 	@SwaggerIgnore
-	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET}, produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
+	@RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET},
+            produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     @Deprecated
     public KmlResponse searchKml(
@@ -739,22 +758,31 @@ public class SearchController {
     /**
      * Handles an opensearch query (see also https://en.wikipedia.org/wiki/OpenSearch)
      *
-     * @param queryString the search terms used to query the Europeana repository; similar to the query parameter in the search method.
-     * @param start the first object in the search result set to start with (first item = 1), e.g., if a result set is made up of 100 objects, you can set the first returned object to the 22nd object in the set [optional parameter, default = 1]
-     * @param count the number of search results to return; possible values can be any integer up to 100 [optional parameter, default = 12]
+     * @param queryString the search terms used to query the Europeana repository; similar to the query parameter in the
+     *                   search method.
+     * @param start the first object in the search result set to start with (first item = 1), e.g., if a result set is
+     *              made up of 100 objects, you can set the first returned object to the 22nd object in the set
+     *              [optional parameter, default = 1]
+     * @param count the number of search results to return; possible values can be any integer up to 100 [optional
+     *              parameter, default = 12]
      * @return rss response of the query
      */
 	@ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
-	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
+	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {"application/rss+xml",
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
-    public RssResponse openSearchRss(
+    public ModelAndView openSearchRss(
 			@RequestParam(value = "searchTerms") String queryString,
 			@RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
-			@RequestParam(value = "count", required = false, defaultValue = "12") int count) {
+			@RequestParam(value = "count", required = false, defaultValue = "12") int count,
+            HttpServletResponse response) {
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("openSearch query with terms: " + queryString);
         }
+        ControllerUtils.addResponseHeaders(response);
 		RssResponse rss = new RssResponse();
+
 		Channel channel = rss.channel;
 		channel.startIndex.value = start;
 		channel.itemsPerPage.value = count;
@@ -776,7 +804,9 @@ public class SearchController {
                 channel.items.add(item);
             }
         } catch (EuropeanaException e) {
-            LOG.error("Error executing opensearch query", e);
+            response.setStatus(400);
+            String errorMsg = "Error executing openSearch query '" + queryString + "'";
+            LOG.error(errorMsg, e);
             channel.totalResults.value = 0;
             Item item = new Item();
             item.title = "Error";
@@ -784,9 +814,17 @@ public class SearchController {
             channel.items.add(item);
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Returning rss result: "+rss);
+            LOG.debug("Returning rss result: " + rss);
         }
-        return rss;
+
+        String xml = xmlUtils.toString(rss);
+        Map<String, Object> model = new HashMap<>();
+        model.put("rss", xml);
+
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/xml");
+
+        return new ModelAndView("rss", model);
     }
 
 	/**
@@ -801,6 +839,7 @@ public class SearchController {
 	 * @param response    servlet response object
 	 * @return ModelAndView instance
 	 */
+    @SwaggerIgnore
 	@ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
 	@RequestMapping(value = "/v2/search.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
 	public ModelAndView fieldTripRss(
@@ -841,7 +880,8 @@ public class SearchController {
                     ? (gftChannelAttributes.get("title") == null
                     || gftChannelAttributes.get("title").equalsIgnoreCase("") ? "no title defined" : gftChannelAttributes.get("title")) :
                     gftChannelAttributes.get(reqLanguage + "_title");
-            channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
+            channel.description = gftChannelAttributes.get(reqLanguage + "_description") == null
+                    || gftChannelAttributes.get(reqLanguage + "_description").equalsIgnoreCase("")
                     ? (gftChannelAttributes.get("description") == null
                     || gftChannelAttributes.get("description").equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes.get("description")) :
                     gftChannelAttributes.get(reqLanguage + "_description");
@@ -950,7 +990,7 @@ public class SearchController {
      * @return String containing the Europeana collection ID only
      */
     private String getIdFromQueryTerms(String queryTerms) {
-        return queryTerms.substring(queryTerms.indexOf(":"), queryTerms.indexOf("*")).replaceAll(
+        return queryTerms.substring(queryTerms.indexOf(':'), queryTerms.indexOf('*')).replaceAll(
                 "\\D+", "");
     }
 }

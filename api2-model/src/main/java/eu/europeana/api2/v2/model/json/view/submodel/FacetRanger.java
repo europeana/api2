@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2015 The Europeana Foundation
+ * Copyright 2007-2018 The Europeana Foundation
  *
  * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
  * by the European Commission;
@@ -15,24 +15,21 @@
  * the Licence.
  */
 
-package eu.europeana.api2.v2.model.json;
+package eu.europeana.api2.v2.model.json.view.submodel;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import eu.europeana.api2.v2.model.json.abstracts.AbstractSearchResults;
-import eu.europeana.corelib.definitions.solr.model.Term;
+import eu.europeana.api2.v2.model.json.common.LabelFrequency;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
- * @author Willem-Jan Boogerd <www.eledge.net/contact>
- * @deprecated as of September 2018
+ * @author Luthien
  */
 @JsonInclude(NON_EMPTY)
-@Deprecated
-public class Suggestions extends AbstractSearchResults<Term> {
+public class FacetRanger extends Facet {
 
-	public Suggestions(String apikey) {
-		super(apikey);
-	}
-
+    public List<LabelFrequency> ranges = new ArrayList<>();
 }
