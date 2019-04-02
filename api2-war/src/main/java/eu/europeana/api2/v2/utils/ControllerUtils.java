@@ -26,6 +26,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public final class ControllerUtils {
 
+    private static final String ALLOWED                 = "GET, HEAD, POST";
+
     private ControllerUtils() {
         // to avoid instantiating this class
     }
@@ -45,35 +47,12 @@ public final class ControllerUtils {
     }
 
     /**
-    * Bundling method for adding both {@link ControllerUtils#addCharacterEncoding character encoding}
-    * and {@link ControllerUtils#addAccessControlHeaders access control headers} to the response with
-    * one call
+    * Add the 'UTF-8' character encoding to the response
     *
     * @param response The response to add the encoding and headers to
     */
     public static void addResponseHeaders(HttpServletResponse response) {
-        addCharacterEncoding(response);
-        addAccessControlHeaders(response);
-    }
-
-    /**
-    * Add the 'UTF-8' character encoding to the response
-    *
-    * @param response The response to add the character encoding to
-    */
-    public static void addCharacterEncoding(HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
-    }
-
-      /**
-       * Add the access control headers to the response, allowing origin '*', methods 'POST' and max age
-       * '1000'
-       *
-       * @param response The response to add access control headers to
-       */
-    public static void addAccessControlHeaders(HttpServletResponse response) {
-        response.addHeader("Access-Control-Allow-Origin", "*");
-        response.addHeader("Access-Control-Allow-Methods", "GET, HEAD");
-        response.addHeader("Access-Control-Max-Age", "1000");
+        response.addHeader("Allow", ALLOWED);
     }
 }

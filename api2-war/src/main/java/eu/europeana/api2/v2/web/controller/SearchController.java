@@ -84,10 +84,7 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -152,7 +149,7 @@ public class SearchController {
      */
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
 //	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
-    @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
 			@RequestParam(value = "wskey") String wskey,
 			@RequestParam(value = "query") String queryString,

@@ -48,6 +48,8 @@ public class HttpCacheUtils {
     private static final String IFMODIFIEDSINCE   = "If-Modified-Since";
     private static final String ANY               = "\"*\"";
     private static final String GZIPSUFFIX        = "-gzip\"";
+    private static final String ALLOWED           = "GET, HEAD, POST";
+    private static final String NOCACHE           = "no_cache";
     private static String apiVersion;
 
     static{
@@ -90,11 +92,11 @@ public class HttpCacheUtils {
      * Calculates SHA256 hash based on:
      * (1) the API version as read from project.version in build.properties, and
      * (2) the record's timestamp_updated represented as String
-     * @param  data  String
-     * @return SHA256Hash String
+     * @param  data  string to be SHA256Hashed
+     * @return SHA256Hash SHA256Hashed string
      */
     private String getSHA256Hash(String data, boolean includeApiVersion){
-        MessageDigest digest = null;
+        MessageDigest digest;
         try {
             digest = MessageDigest.getInstance("SHA-256");
             if (includeApiVersion) {
@@ -109,9 +111,9 @@ public class HttpCacheUtils {
     }
 
     private static String bytesToHex(byte[] hash) {
-        StringBuffer hexString = new StringBuffer();
-        for (int i = 0; i < hash.length; i++) {
-            String hex = Integer.toHexString(0xff & hash[i]);
+        StringBuilder hexString = new StringBuilder();
+        for (byte aHash : hash) {
+            String hex = Integer.toHexString(0xff & aHash);
             if (hex.length() == 1) {
                 hexString.append('0');
             }
@@ -124,7 +126,7 @@ public class HttpCacheUtils {
 
     /**
      * Parses the given string into a ZonedDateTime object
-     * @param dateString
+     * @param dateString string representation of the date to be converted to Zoned UTC
      * @return ZonedDateTime
      */
     private ZonedDateTime stringToZonedUTC(String dateString) {
@@ -154,73 +156,27 @@ public class HttpCacheUtils {
      * @param date Date object to be formatted
      * @return RFC 1123 patterned String representation
      */
-    // Formats the given date according to the RFC 1123 pattern.
     public String dateToRFC1123String(Date date) {
         return DateUtils.formatDate(date);
     }
 
     /**
-     * Formats the given date according to the RFC 1123 pattern (e.g. Thu, 4 Oct 2018 10:34:20 GMT)
-     * @param lastModified ZonedDateTime object to be formatted
-     * @return RFC 1123 patterned String representation
-     */
-    private static String headerDateToString(ZonedDateTime lastModified) {
-        return lastModified.format(DateTimeFormatter.RFC_1123_DATE_TIME);
-    }
-
-    /**
      * Generate the default headers for sending a response with caching
+     * The 'Cache-Control' and 'Allow' headers are always set to the same value
      * @param response      required, HttpServletResponse to add the headers to
      * @param eTag          optional, if not null then an ETag header is added
      * @param tsUpdated     optional, if not null then a Last-Modified header is added
-     * @param allow         optional, if not null then an Allow header is added
-     * @param cacheControl  optional, if not null then a Cache-Control header is added
      * @return HttpServletResponse
      */
-    public HttpServletResponse addDefaultHeaders(HttpServletResponse response, String eTag,
-                                                 String tsUpdated, String allow, String cacheControl){
+    public HttpServletResponse addDefaultHeaders(HttpServletResponse response, String eTag, String tsUpdated){
         if (StringUtils.isNotBlank(eTag)) {
             response.addHeader("ETag", eTag);
         }
         if (StringUtils.isNotBlank(tsUpdated)) {
             response.addHeader("Last-Modified", tsUpdated);
         }
-        if (StringUtils.isNotBlank(allow)) {
-            response.addHeader("Allow", allow);
-        }
-        if (StringUtils.isNotBlank(cacheControl)) {
-            response.addHeader("Cache-Control", cacheControl);
-        }
-        return response;
-    }
-
-    /**
-     * Generate the default headers for sending a response with caching
-     * @param response      required, HttpServletResponse to add the headers to
-     * @param allowMethods  optional, if not null then an Access-Control-Allow-Methods header is added
-     * @param allowHeaders  optional, if not null then an Access-Control-Allow-Headers header is added
-     * @param exposeHeaders optional, if not null then an Access-Control-Expose-Headers header is added
-     * @param maxAge        optional, if not null then an Access-Control-Max-Age header is added
-     * @return HttpServletResponse
-     */
-    public HttpServletResponse addCorsHeaders(HttpServletResponse response, String allowMethods,
-                                              String allowHeaders, String exposeHeaders,
-                                              String maxAge, String allowOrigin){
-        if (StringUtils.isNotBlank(allowMethods)) {
-            response.addHeader("Access-Control-Allow-Methods", allowMethods);
-        }
-        if (StringUtils.isNotBlank(allowHeaders)) {
-            response.addHeader("Access-Control-Allow-Headers", allowHeaders);
-        }
-        if (StringUtils.isNotBlank(exposeHeaders)) {
-            response.addHeader("Access-Control-Expose-Headers", exposeHeaders);
-        }
-        if (StringUtils.isNotBlank(maxAge)) {
-            response.addHeader("Access-Control-Max-Age", maxAge);
-        }
-        if (StringUtils.isNotBlank(allowOrigin)) {
-            response.addHeader("Access-Control-Allow-Origin", allowOrigin);
-        }
+        response.addHeader("Cache-Control", NOCACHE);
+        response.addHeader("Allow", ALLOWED);
         return response;
     }
 

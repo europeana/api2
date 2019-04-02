@@ -87,19 +87,11 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 public class ObjectController {
 
     private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
-    private static final String ALLOWED                 = "GET, HEAD";
-    private static final String ALLOWHEADERS            = "If-Match, If-None-Match, If-Modified-Since";
-    private static final String EXPOSEHEADERS           = "Allow, ETag, Last-Modified, Link";
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
-    private static final String ALLOWORIGIN             = "*";
-    private static final String MAXAGE                  = "600";
-    private static final String NOCACHE                 = "no_cache";
 
-    private SearchService searchService;
-
-    private ApiKeyUtils apiKeyUtils;
-
-    private HttpCacheUtils httpCacheUtils;
+    private SearchService   searchService;
+    private ApiKeyUtils     apiKeyUtils;
+    private HttpCacheUtils  httpCacheUtils;
 
     /**
      * Create a new ObjectController
@@ -122,7 +114,6 @@ public class ObjectController {
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param wskey          pre-api term for 'apikey'
      * @param profile        supported types are 'params' and 'similar'
-     * @param wskey
      * @param callback
      * @param webRequest
      * @param servletRequest
@@ -350,8 +341,6 @@ public class ObjectController {
 
         // 3) Check if record exists, HTTP 404 if not
         if (Objects.isNull(bean)) {
-            response = httpCacheUtils.addCorsHeaders(
-                    response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, MAXAGE, ALLOWORIGIN);
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             if (recordType == RecordType.OBJECT_RDF) {
                 Map<String, Object> model = new HashMap<>();
@@ -385,11 +374,7 @@ public class ObjectController {
         // Yes: return HTTP 304 + cache headers. Ignore If-Modified-Since (RFC 7232)
         if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFNONEMATCH))){
             if (httpCacheUtils.doesAnyIfNoneMatch(data.servletRequest, eTag)) {
-                response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated, ALLOWED, NOCACHE);
-                if (StringUtils.isNotBlank(data.servletRequest.getHeader("Origin"))){
-                    response = httpCacheUtils.addCorsHeaders(
-                            response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, MAXAGE, ALLOWORIGIN);
-                }
+                response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
                 return null;
             }
@@ -413,11 +398,7 @@ public class ObjectController {
         bean = searchService.processFullBean(bean, data.europeanaObjectId, false);
 
         // add headers, except Content-Type (that differs per recordType)
-        response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated, ALLOWED, NOCACHE);
-
-        // Disabled the Origin header check != null for now because it's pointless.
-        // We should figure out how to handle this CORS stuff properly
-        response = httpCacheUtils.addCorsHeaders(response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, MAXAGE, ALLOWORIGIN);
+        response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
 
 
         // generate output depending on type of record
@@ -467,7 +448,7 @@ public class ObjectController {
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
-        String jsonld = null;
+        String jsonld;
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (InputStream rdfInput = IOUtils.toInputStream(rdf)) {
             Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
