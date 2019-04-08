@@ -6,6 +6,7 @@ import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlBuilder;
 import eu.europeana.corelib.web.utils.UrlBuilder;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
 
 
 /**
@@ -16,6 +17,8 @@ import org.apache.commons.lang.StringUtils;
  */
 
 public class Api2UrlService {
+
+    public static final String API_BASEURL = "https://api.europeana.eu";
 
     private String portalBaseUrl;
     private String api2BaseUrl;
@@ -29,14 +32,8 @@ public class Api2UrlService {
     }
 
     public Api2UrlService(String portalBaseUrl, String api2BaseUrl) {
-        if (portalBaseUrl != null && !(portalBaseUrl.startsWith("http://") || portalBaseUrl.startsWith("https://"))) {
-            portalBaseUrl = "https://" + portalBaseUrl;
-        }
+        LogManager.getLogger(Api2UrlService.class).debug("portalBaseUrl = {}, api2BaseUrl = {}");
         this.portalBaseUrl = portalBaseUrl;
-
-        if (getApi2BaseUrl() != null && !(api2BaseUrl.startsWith("http://") || api2BaseUrl.startsWith("https://"))) {
-            api2BaseUrl = "https://" + api2BaseUrl;
-        }
         this.api2BaseUrl = api2BaseUrl;
     }
 
@@ -55,7 +52,7 @@ public class Api2UrlService {
      */
     public String getApi2BaseUrl() {
         if (StringUtils.isEmpty(api2BaseUrl)) {
-            return "https://api.europeana.eu";
+            return API_BASEURL;
         }
         return api2BaseUrl;
     }
@@ -144,6 +141,7 @@ public class Api2UrlService {
     public String getThumbnailUrl(String uri, String size, DocType type) {
         UrlBuilder url = EuropeanaUrlBuilder.getThumbnailUrl(uri, size, type);
         String newBaseUrl = this.getApi2BaseUrl();
+        LogManager.getLogger(Api2UrlService.class).debug("newBaseUrl = {}", newBaseUrl);
         url.setProtocol(newBaseUrl);
         url.setDomain(newBaseUrl);
         return url.toString();
