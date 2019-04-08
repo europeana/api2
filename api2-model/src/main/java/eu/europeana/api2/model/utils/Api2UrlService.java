@@ -141,8 +141,9 @@ public class Api2UrlService {
     public String getThumbnailUrl(String uri, String size, DocType type) {
         UrlBuilder url = EuropeanaUrlBuilder.getThumbnailUrl(uri, size, type);
         String newBaseUrl = this.getApi2BaseUrl();
-        LogManager.getLogger(Api2UrlService.class).debug("newBaseUrl = {}", newBaseUrl);
-        url.setProtocol(newBaseUrl);
+        if (newBaseUrl.contains("://")) {
+            url.setProtocol(newBaseUrl);
+        }
         url.setDomain(newBaseUrl);
         return url.toString();
     }
