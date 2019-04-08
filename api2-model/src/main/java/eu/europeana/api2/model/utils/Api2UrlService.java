@@ -29,12 +29,12 @@ public class Api2UrlService {
     }
 
     public Api2UrlService(String portalBaseUrl, String api2BaseUrl) {
-        if (!portalBaseUrl.startsWith("http://") || !portalBaseUrl.startsWith("https://")) {
+        if (portalBaseUrl != null && !(portalBaseUrl.startsWith("http://") || portalBaseUrl.startsWith("https://"))) {
             portalBaseUrl = "https://" + portalBaseUrl;
         }
         this.portalBaseUrl = portalBaseUrl;
 
-        if (!api2BaseUrl.startsWith("http://") || !api2BaseUrl.startsWith("https://")) {
+        if (getApi2BaseUrl() != null && !(api2BaseUrl.startsWith("http://") || api2BaseUrl.startsWith("https://"))) {
             api2BaseUrl = "https://" + api2BaseUrl;
         }
         this.api2BaseUrl = api2BaseUrl;
