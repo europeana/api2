@@ -32,7 +32,7 @@ public class Api2UrlService {
     }
 
     public Api2UrlService(String portalBaseUrl, String api2BaseUrl) {
-        LogManager.getLogger(Api2UrlService.class).debug("portalBaseUrl = {}, api2BaseUrl = {}");
+        LogManager.getLogger(Api2UrlService.class).debug("portalBaseUrl = {}, api2BaseUrl = {}", portalBaseUrl, api2BaseUrl);
         this.portalBaseUrl = portalBaseUrl;
         this.api2BaseUrl = api2BaseUrl;
     }
