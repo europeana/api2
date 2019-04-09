@@ -18,6 +18,5 @@
             <AppenderRef ref="Console"/>
         </Root>
         <Logger name="eu.europeana.api2.v2.web.controller" level="INFO"/>
-        <Logger name="eu.europeana.api2.model.utils.Api2UrlService" level="DEBUG"/>
     </Loggers>
 </Configuration>
