@@ -18,10 +18,7 @@ import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.view.ContentNegotiatingViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.xml.MarshallingView;
@@ -39,6 +36,17 @@ import java.util.List;
 @Import(SwaggerConfig.class) // make sure WebMVC is started before swagger initiates
 @EnableAsync
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
+
+    // EA-1506 enable proper CORS handling
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*")
+                .allowedMethods("GET", "HEAD", "POST")
+                .allowedHeaders("Accept", "Accept-Language", "Content-Language", "Content-Type")
+                .exposedHeaders("Allow", "Vary", "Link", "ETag")
+                .maxAge(600);
+    }
 
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {

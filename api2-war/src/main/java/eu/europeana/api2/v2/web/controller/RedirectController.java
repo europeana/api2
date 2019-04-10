@@ -64,8 +64,10 @@ public class RedirectController {
      * @throws IllegalArgumentException
      */
     @RequestMapping(value = {"/{apiKey}/redirect", "/{apiKey}/redirect.json", "/v2/{apiKey}/redirect", "/v2/{apiKey}/redirect.json"},
-            method = RequestMethod.GET)
-    public Object handleRedirect(@PathVariable String apiKey, @RequestParam(value = "shownAt", required = true) String isShownAt,
+            method = {RequestMethod.GET, RequestMethod.POST})
+    public Object handleRedirect(
+            @PathVariable String apiKey,
+            @RequestParam(value = "shownAt") String isShownAt,
             HttpServletResponse response) {
 
         if (StringUtils.isBlank(isShownAt)) {
