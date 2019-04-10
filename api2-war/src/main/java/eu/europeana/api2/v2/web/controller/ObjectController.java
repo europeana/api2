@@ -122,7 +122,9 @@ public class ObjectController {
      * @throws ApiLimitException
      */
     @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
-    @GetMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.json",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ModelAndView record(@PathVariable String collectionId,
                                @PathVariable String recordId,
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
@@ -147,7 +149,9 @@ public class ObjectController {
      * @return only the context part of a json-ld record
      */
     @SwaggerIgnore
-    @GetMapping(value = {"/context.jsonld", "/context.json-ld"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"/context.jsonld", "/context.json-ld"},
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
         String jsonld = JSONUtils.toString(getJsonContext());
         return JsonUtils.toJson(jsonld, callback);
@@ -168,7 +172,9 @@ public class ObjectController {
      * @throws ApiLimitException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @SwaggerIgnore
-    @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String wskey,
@@ -194,7 +200,9 @@ public class ObjectController {
      * @throws ApiLimitException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
-    @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String wskey,
@@ -228,7 +236,9 @@ public class ObjectController {
      * @throws ApiLimitException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
-    @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String wskey,
@@ -261,7 +271,9 @@ public class ObjectController {
      * @throws ApiLimitException
      */
     @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
-    @GetMapping(value = "/{collectionId}/{recordId}.rdf", produces = MEDIA_TYPE_RDF_UTF8)
+    @RequestMapping(value = "/{collectionId}/{recordId}.rdf",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MEDIA_TYPE_RDF_UTF8)
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "wskey") String wskey,
@@ -293,7 +305,9 @@ public class ObjectController {
     // 2017-06-16 This code hasn't been used for a long time (not a single .srw request was logged in Kibana)
     // However, depending on the results of a to-be-held survey among developers we may bring this back to life again
     @SwaggerIgnore
-    @GetMapping(value = "/{collectionId}/{recordId}.srw", produces = MediaType.TEXT_XML_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.srw",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.TEXT_XML_VALUE)
     public @ResponseBody
     SrwResponse recordSrw(@PathVariable String collectionId,
                           @PathVariable String recordId,

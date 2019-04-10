@@ -71,13 +71,12 @@ public class ThumbnailController {
      * @param size optional, the size of the thumbnail, can either be w200 (width 200) or w400 (width 400).
      * @param type optional, type of the default thumbnail (media image) in case the thumbnail does not exists or no url is provided,
      *             can be: IMAGE, SOUND, VIDEO, TEXT or 3D.
-     * @param webRequest
-     * @param response
      * @return responsEntity
      */
-    @RequestMapping(value = "/v2/thumbnail-by-url.json", method = RequestMethod.GET)
+    @RequestMapping(value = "/v2/thumbnail-by-url.json",
+                    method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<byte[]> thumbnailByUrl(
-            @RequestParam(value = "uri", required = true) String url,
+            @RequestParam(value = "uri") String url,
             @RequestParam(value = "size", required = false, defaultValue = "w400") String size,
             @RequestParam(value = "type", required = false, defaultValue = "IMAGE") String type,
             WebRequest webRequest, HttpServletResponse response) {
@@ -109,14 +108,14 @@ public class ThumbnailController {
             // the check below automatically sets an ETag and last-Modified in our response header and returns a 304
             // (but only when clients include the If_Modified_Since header in their request)
             if (mediaFile.getLastModified() != null && mediaFile.getETag() != null) {
-                if (webRequest.checkNotModified(StringUtils.removeEndIgnoreCase(mediaFile.getETag(), GZIPSUFFIX),
-                                                mediaFile.getLastModified().getMillis())) {
+                if (webRequest.checkNotModified(
+                        StringUtils.removeEndIgnoreCase(mediaFile.getETag(), GZIPSUFFIX),
+                        mediaFile.getLastModified().getMillis())) {
                     result = null;
                 }
-            } else if (mediaFile.getETag() != null) {
-                if (webRequest.checkNotModified(StringUtils.removeEndIgnoreCase(mediaFile.getETag(), GZIPSUFFIX))) {
+            } else if (mediaFile.getETag() != null && webRequest.checkNotModified(
+                               StringUtils.removeEndIgnoreCase(mediaFile.getETag(), GZIPSUFFIX))) {
                     result = null;
-                }
             }
         }
 
@@ -136,7 +135,7 @@ public class ThumbnailController {
     }
 
     private MediaFile retrieveThumbnail(String url, String size) {
-        MediaFile mediaFile = null;
+        MediaFile mediaFile;
         final String mediaFileId = computeResourceUrl(url, size);
         LOG.debug("id = {}", mediaFileId);
 
@@ -171,7 +170,7 @@ public class ThumbnailController {
     /**
      * Return the media type of the image that we are returning. Note that we base our return value solely on the
      * extension in the original image url, so if that is not correct we could be returning the incorrect value
-     * @param url
+     * @param url String
      * @return MediaType of the thumbnail image (png for PDF and PNG files, otherwise JPEG)
      */
     private MediaType getMediaType(String url) {
@@ -187,7 +186,7 @@ public class ThumbnailController {
      * @param url to a thumbnail
      * @return true if the provided url is a thumbnail hosted on iiif.europeana.eu, otherwise false
      */
-    protected static boolean isIiifRecordUrl(String url) {
+    static boolean isIiifRecordUrl(String url) {
         if (url != null) {
             String urlLowercase = url.toLowerCase(Locale.GERMAN);
             return (urlLowercase.startsWith("http://" + IIIF_HOST_NAME) || urlLowercase.startsWith("https://" + IIIF_HOST_NAME));
@@ -205,7 +204,7 @@ public class ThumbnailController {
      * @return thumbnail URI for iiif urls, otherwise null
      * @throws URISyntaxException when the provided string is not a valid url
      */
-    protected static URI getIiifThumbnailUrl(String url, String width) throws URISyntaxException {
+    static URI getIiifThumbnailUrl(String url, String width) throws URISyntaxException {
         // all urls are encoded so they start with either http:// or https://
         // and end with /full/full/0/default.<extension>.
         if (isIiifRecordUrl(url)) {
