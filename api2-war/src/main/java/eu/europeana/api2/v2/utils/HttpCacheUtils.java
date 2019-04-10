@@ -49,7 +49,7 @@ public class HttpCacheUtils {
     private static final String ANY               = "\"*\"";
     private static final String GZIPSUFFIX        = "-gzip\"";
     private static final String ALLOWED           = "GET, HEAD, POST";
-    private static final String NOCACHE           = "no_cache";
+    private static final String NOCACHE           = "no-cache";
     private static String apiVersion;
 
     static{
