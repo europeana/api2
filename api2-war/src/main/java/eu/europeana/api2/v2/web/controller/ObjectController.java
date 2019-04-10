@@ -93,7 +93,7 @@ public class ObjectController {
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
     private static final String ALLOWORIGIN             = "*";
     private static final String MAXAGE                  = "600";
-    private static final String NOCACHE                 = "no_cache";
+    private static final String NOCACHE                 = "no-cache";
 
     private SearchService searchService;
 
