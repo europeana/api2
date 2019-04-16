@@ -75,6 +75,7 @@ import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.collections.MapUtils;
@@ -264,13 +265,12 @@ public class SearchController {
 		ControllerUtils.addResponseHeaders(response);
 		rows = Math.min(rows, configuration.getApiRowLimit());
 
-		Map<String, String> valueReplacements = new HashMap<>();
+		Map<String, String> valueReplacements = null;
 		if (ArrayUtils.isNotEmpty(reusabilities)) {
 			valueReplacements = RightReusabilityCategorizer.mapValueReplacements(reusabilities, true);
-            refinementArray = (String[]) ArrayUtils.addAll(
-                    refinementArray,
-                    valueReplacements.keySet().toArray(new String[0])
-            );
+			if (null != valueReplacements && !valueReplacements.isEmpty()){
+                refinementArray = (String[]) ArrayUtils.addAll(refinementArray, new String[]{"REUSABILITY:list"});
+            }
         }
 
         Class<? extends IdBean> clazz = selectBean(profile);
@@ -341,7 +341,9 @@ public class SearchController {
             query.setParameter("hl.maxAnalyzedChars", hlMaxAnalyzedChars);
         }
 
-		query.setValueReplacements(valueReplacements);
+        if (null != valueReplacements && !valueReplacements.isEmpty()){
+		    query.setValueReplacements(valueReplacements);
+        }
 
 		// reusability facet settings; spell check allowed, etcetera
         if (defaultOrReusabilityFacetsRequested) {
