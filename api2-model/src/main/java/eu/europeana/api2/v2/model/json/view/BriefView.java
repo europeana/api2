@@ -19,10 +19,7 @@ package eu.europeana.api2.v2.model.json.view;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import eu.europeana.api2.model.utils.Api2UrlService;
 import org.apache.commons.lang.ArrayUtils;
@@ -77,7 +74,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getEdmObject() {
         // return bean.getEdmObject();
-        return null;
+        return new String[0];
     }
 
     @Override
@@ -98,7 +95,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getLanguage() {
         if (isProfile(Profile.MINIMAL)) {
-            return null;
+            return new String[0];
         }
         return bean.getLanguage();
     }
@@ -114,14 +111,9 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     @Override
-    public String[] getDcDescription() {
-        return bean.getDcDescription();
-    }
-
-    @Override
     public String[] getDctermsSpatial() {
         if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
-            return null;
+            return new String[0];
         }
         return bean.getDctermsSpatial();
     }
@@ -129,7 +121,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getDcLanguage() {
         if (isProfile(Profile.MINIMAL)) {
-            return null;
+            return new String[0];
         }
         return bean.getDcLanguage();
     }
@@ -150,7 +142,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getEdmPlace() {
         if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
-            return null;
+            return new String[0];
         }
         return bean.getEdmPlace();
     }
@@ -158,7 +150,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public List<Map<String, String>> getEdmPlaceLabel() {
         if (isProfile(Profile.MINIMAL)) {
-            return null;
+            return Collections.emptyList();
         }
         return bean.getEdmPlaceLabel();
     }
@@ -184,7 +176,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getEdmTimespan() {
         if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
-            return null;
+            return new String[0];
         }
         return bean.getEdmTimespan();
     }
@@ -192,7 +184,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public List<Map<String, String>> getEdmTimespanLabel() {
         if (isProfile(Profile.MINIMAL)) {
-            return null;
+            return Collections.emptyList();
         }
         return bean.getEdmTimespanLabel();
     }
@@ -208,7 +200,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getEdmTimespanBegin() {
         if (isProfile(Profile.MINIMAL)) {
-            return null;
+            return new String[0];
         }
         return bean.getEdmTimespanBegin();
     }
@@ -216,7 +208,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getEdmTimespanEnd() {
         if (isProfile(Profile.MINIMAL)) {
-            return null;
+            return new String[0];
         }
         return bean.getEdmTimespanEnd();
     }
@@ -224,7 +216,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getEdmAgent() {
         if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
-            return null;
+            return new String[0];
         }
         return bean.getEdmAgent();
     }
@@ -232,7 +224,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public List<Map<String, String>> getEdmAgentLabel() {
         if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
-            return null;
+            return Collections.emptyList();
         }
         return bean.getEdmAgentLabel();
     }
@@ -248,7 +240,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getDctermsHasPart() {
         // bean.getDctermsHasPart()
-        return null;
+        return new String[0];
     }
 
     @Override
@@ -261,7 +253,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getDcContributor() {
         if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
-            return null;
+            return new String[0];
         }
         return bean.getDcContributor();
     }
@@ -291,7 +283,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
      * We need to convert all edmPreview values (which are original image urls) to proper API thumbnail urls
      * If there are no edmPreview values, we use edmObject instead.
      * Ideally a secondary fallback is edmIsShownBy but that is not present in BriefBean (only in RichBean and FUllBean)
-     * @return
+     * @return String array containing thumbnail links
      */
     private String[] getThumbnails() {
         if (thumbnails == null) {
@@ -317,7 +309,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
                     }
                 }
             }
-            thumbnails = thumbs.toArray(new String[thumbs.size()]);
+            thumbnails = thumbs.toArray(new String[0]);
         }
         return thumbnails;
     }
@@ -364,7 +356,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             String isShownAtLink = urlService.getRedirectUrl(wskey, isShownAt, provider, bean.getId(), profile);
             isShownAtLinks.add(isShownAtLink);
         }
-        return isShownAtLinks.toArray(new String[isShownAtLinks.size()]);
+        return isShownAtLinks.toArray(new String[0]);
     }
 
     @Override
@@ -372,7 +364,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         if (isProfile(Profile.MINIMAL)) {
             return null; // if we return null the field won't be included in the json result
         }
-        return bean.getPreviewNoDistribute() != null ? bean.getPreviewNoDistribute() : false;
+        return bean.getPreviewNoDistribute() != null ? bean.getPreviewNoDistribute() : Boolean.FALSE;
     }
 
     @Override
