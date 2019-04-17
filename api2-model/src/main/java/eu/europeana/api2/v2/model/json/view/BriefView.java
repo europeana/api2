@@ -46,8 +46,8 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 @JsonPropertyOrder(alphabetic=true)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
-    private static final Logger         LOG = LogManager.getLogger(FullView.class);
-    protected            Api2UrlService urlService;
+    private static final Logger  LOG = LogManager.getLogger(BriefView.class);
+    protected Api2UrlService urlService;
 
     protected String profile;
     protected String wskey;
@@ -78,6 +78,11 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     public String[] getEdmObject() {
         // return bean.getEdmObject();
         return null;
+    }
+
+    @Override
+    public String[] getEdmIsShownBy() {
+        return bean.getEdmIsShownBy();
     }
 
     @Override
@@ -289,37 +294,47 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     /**
      * We need to convert all edmPreview values (which are original image urls) to proper API thumbnail urls
-     * If there are no edmPreview values, we use edmObject instead.
-     * Ideally a secondary fallback is edmIsShownBy but that is not present in BriefBean (only in RichBean and FUllBean)
-     * @return
+     * If there are no edmPreview values, we use edmObject instead. If that's not available we use edmIsShownBy
+     * (this is similar to edmPreview generation for records in FullView class)
      */
     private String[] getThumbnails() {
         if (thumbnails == null) {
             List<String> thumbs = new ArrayList<>();
 
-            /// first try edmPreview from Corelib (Solr)
-            if (bean.getEdmPreview() != null) {
-                for (String preview : bean.getEdmPreview()) {
-                    if (StringUtils.isNotEmpty(preview)) {
-                        LOG.debug("BriefView, edmPreview orig = {}, result = {}",
-                                  preview, urlService.getThumbnailUrl(preview, getType()));
-                        thumbs.add(urlService.getThumbnailUrl(preview, getType()));
-                    }
-                }
-            }
-            // second try edmObject
-            if (thumbs.isEmpty() && bean.getEdmObject() != null) {
-                for (String object : bean.getEdmObject()) {
-                    if (StringUtils.isNotEmpty(object)) {
-                        LOG.debug("BriefView, edmObj orig = {}, result = {}",
-                                  object, urlService.getThumbnailUrl(object, getType()));
-                        thumbs.add(urlService.getThumbnailUrl(object, getType()));
+            /// first try to generate from edmPreview
+            String preview = getFirstNonEmptyString(bean.getEdmPreview());
+            if (StringUtils.isNotEmpty(preview)) {
+                thumbs.add(urlService.getThumbnailUrl(preview, getType()));
+                LOG.debug("edmPreview {}, result = {}",  preview, thumbs.get(0));
+            } else {
+                // second try edmObject
+                String object = getFirstNonEmptyString(bean.getEdmObject());
+                if (StringUtils.isNotEmpty(object)) {
+                    thumbs.add(urlService.getThumbnailUrl(object, getType()));
+                    LOG.debug("edmObject {}, result = {}",  object, thumbs.get(0));
+                } else {
+                    String isShownBy = getFirstNonEmptyString(bean.getEdmIsShownBy());
+                    if (StringUtils.isNotEmpty(isShownBy)) {
+                        thumbs.add(urlService.getThumbnailUrl(isShownBy, getType()));
+                        LOG.debug("edmIsShownBy {}, result = {}",  isShownBy, thumbs.get(0));
                     }
                 }
             }
             thumbnails = thumbs.toArray(new String[thumbs.size()]);
         }
         return thumbnails;
+    }
+
+    private String getFirstNonEmptyString(String[] array) {
+        if (array ==  null) {
+            return null;
+        }
+        for (String s : array) {
+            if (StringUtils.isNotEmpty(s)) {
+                return s;
+            }
+        }
+        return null;
     }
 
     public String getLink() {
@@ -364,7 +379,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             String isShownAtLink = urlService.getRedirectUrl(wskey, isShownAt, provider, bean.getId(), profile);
             isShownAtLinks.add(isShownAtLink);
         }
-        return isShownAtLinks.toArray(new String[isShownAtLinks.size()]);
+        return isShownAtLinks.toArray(new String[0]);
     }
 
     @Override
