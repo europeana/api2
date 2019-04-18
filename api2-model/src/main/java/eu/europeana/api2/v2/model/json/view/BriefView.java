@@ -44,11 +44,11 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 public class BriefView extends IdBeanImpl implements BriefBean {
 
     private static final Logger  LOG = LogManager.getLogger(BriefView.class);
-    protected Api2UrlService urlService;
+    private Api2UrlService urlService;
 
     protected String profile;
-    protected String wskey;
-    protected BriefBean bean;
+    private String wskey;
+    private BriefBean bean;
     private String[] thumbnails;
 
     public BriefView(BriefBean bean, String profile, String wskey) {
@@ -80,6 +80,16 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public String[] getEdmIsShownBy() {
         return bean.getEdmIsShownBy();
+    }
+
+    @Override
+    public String[] getDcDescription() {
+        return bean.getDcDescription();
+    }
+
+    @Override
+    public Map<String, List<String>> getDcDescriptionLangAware() {
+        return bean.getDcDescriptionLangAware();
     }
 
     @Override

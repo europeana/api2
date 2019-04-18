@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.model.json.view;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -16,40 +17,25 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 @JsonPropertyOrder(alphabetic=true)
 public class RichView extends ApiView implements RichBean {
 
-    private String[] isShownBy;
-    private String[] edmLandingPage;
-    private String[] dcDescription;
-    private Map<String, List<String>> dcDescriptionLangAware;
-    private Map<String, List<String>> dcSubjectLangAware;
-    private Map<String, List<String>> dcTypeLangAware;
-
-    // temporary added for debugging purposes (see EA-1395)
-    private List<Map<String, String>> fulltext;
-    // temporary added for debugging purposes (see EA-1395)
-    private Map<String, List<String>> fulltextLangAware;
+    private RichBean bean;
+    private boolean  hasDebugProfile = false;
 
     public RichView(RichBean bean, String profile, String wskey) {
         super(bean, profile, wskey);
-        isShownBy = bean.getEdmIsShownBy();
-        edmLandingPage = bean.getEdmLandingPage();
-        dcTypeLangAware = bean.getDcTypeLangAware();
-        dcSubjectLangAware = bean.getDcSubjectLangAware();
-        dcDescription = bean.getDcDescription();
-        dcDescriptionLangAware = bean.getDcDescriptionLangAware();
-
+        this.bean = bean;
+        this.profile = profile;
         if (StringUtils.containsIgnoreCase(profile, "debug")) {
-            fulltext = bean.getFulltext();
-            fulltextLangAware = bean.getFulltextLangAware();
+            hasDebugProfile = true;
         }
     }
 
     @Override
     public String[] getEdmIsShownBy() {
-        if (ArrayUtils.isEmpty(isShownBy)) {
-            return isShownBy;
+        if (ArrayUtils.isEmpty(bean.getEdmIsShownBy())) {
+            return new String[0];
         }
         List<String> isShownByLinks = new ArrayList<>();
-        for (String item : isShownBy) {
+        for (String item : bean.getEdmIsShownBy()) {
             if (StringUtils.isBlank(item)) {
                 continue;
             }
@@ -60,38 +46,29 @@ public class RichView extends ApiView implements RichBean {
 
     @Override
     public String[] getEdmLandingPage() {
-        return edmLandingPage;
-    }
-
-    @Override
-    public String[] getDcDescription() {
-        return dcDescription;
-    }
-
-    @Override
-    public Map<String, List<String>> getDcDescriptionLangAware() {
-        return dcDescriptionLangAware;
+        return bean.getEdmLandingPage();
     }
 
     @Override
     public Map<String, List<String>> getDcTypeLangAware() {
-        return dcTypeLangAware;
+        return bean.getDcTypeLangAware();
     }
 
     @Override
     public Map<String, List<String>> getDcSubjectLangAware() {
-        return dcSubjectLangAware;
+        return bean.getDcSubjectLangAware();
     }
 
+
+    // temporary added the below for debugging purposes (see EA-1395)
+
     @Override
-    // temporary added for debugging purposes (see EA-1395)
     public List<Map<String, String>> getFulltext() {
-        return fulltext;
+        return hasDebugProfile ? bean.getFulltext() : Collections.emptyList();
     }
 
     @Override
-    // temporary added for debugging purposes (see EA-1395)
     public Map<String, List<String>> getFulltextLangAware() {
-        return fulltextLangAware;
+        return hasDebugProfile ? bean.getFulltextLangAware() : Collections.emptyMap();
     }
 }
