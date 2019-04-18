@@ -1,7 +1,6 @@
 package eu.europeana.api2.v2.model.json.view;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -17,25 +16,36 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 @JsonPropertyOrder(alphabetic=true)
 public class RichView extends ApiView implements RichBean {
 
-    private RichBean bean;
-    private boolean  hasDebugProfile = false;
+    private String[] isShownBy;
+    private String[] edmLandingPage;
+    private Map<String, List<String>> dcSubjectLangAware;
+    private Map<String, List<String>> dcTypeLangAware;
+
+    // temporary added for debugging purposes (see EA-1395)
+    private List<Map<String, String>> fulltext;
+    // temporary added for debugging purposes (see EA-1395)
+    private Map<String, List<String>> fulltextLangAware;
 
     public RichView(RichBean bean, String profile, String wskey) {
         super(bean, profile, wskey);
-        this.bean = bean;
-        this.profile = profile;
+        isShownBy = bean.getEdmIsShownBy();
+        edmLandingPage = bean.getEdmLandingPage();
+        dcTypeLangAware = bean.getDcTypeLangAware();
+        dcSubjectLangAware = bean.getDcSubjectLangAware();
+
         if (StringUtils.containsIgnoreCase(profile, "debug")) {
-            hasDebugProfile = true;
+            fulltext = bean.getFulltext();
+            fulltextLangAware = bean.getFulltextLangAware();
         }
     }
 
     @Override
     public String[] getEdmIsShownBy() {
-        if (ArrayUtils.isEmpty(bean.getEdmIsShownBy())) {
-            return new String[0];
+        if (ArrayUtils.isEmpty(isShownBy)) {
+            return isShownBy;
         }
         List<String> isShownByLinks = new ArrayList<>();
-        for (String item : bean.getEdmIsShownBy()) {
+        for (String item : isShownBy) {
             if (StringUtils.isBlank(item)) {
                 continue;
             }
@@ -46,29 +56,28 @@ public class RichView extends ApiView implements RichBean {
 
     @Override
     public String[] getEdmLandingPage() {
-        return bean.getEdmLandingPage();
+        return edmLandingPage;
     }
 
     @Override
     public Map<String, List<String>> getDcTypeLangAware() {
-        return bean.getDcTypeLangAware();
+        return dcTypeLangAware;
     }
 
     @Override
     public Map<String, List<String>> getDcSubjectLangAware() {
-        return bean.getDcSubjectLangAware();
+        return dcSubjectLangAware;
     }
 
-
-    // temporary added the below for debugging purposes (see EA-1395)
-
     @Override
+    // temporary added for debugging purposes (see EA-1395)
     public List<Map<String, String>> getFulltext() {
-        return hasDebugProfile ? bean.getFulltext() : Collections.emptyList();
+        return fulltext;
     }
 
     @Override
+    // temporary added for debugging purposes (see EA-1395)
     public Map<String, List<String>> getFulltextLangAware() {
-        return hasDebugProfile ? bean.getFulltextLangAware() : Collections.emptyMap();
+        return fulltextLangAware;
     }
 }
