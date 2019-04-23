@@ -54,7 +54,8 @@ public class SitemapController {
      * @return contents of sitemap index file
      */
     @RequestMapping(value = "/europeana-sitemap-index-hashed.xml",
-                    method = RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.TEXT_XML_VALUE)
     public String handleSitemapIndex(HttpServletResponse response) throws IOException {
         try {
             return getFileContents(INDEX_FILE);
@@ -76,9 +77,10 @@ public class SitemapController {
      * @return contents of sitemap file
      */
     @RequestMapping(value = "/europeana-sitemap-hashed.xml",
-                    method = RequestMethod.GET, produces = MediaType.TEXT_XML_VALUE)
-    public String handleSitemapFile(@RequestParam(value = "from", required = true) String from,
-                                    @RequestParam(value = "to", required = true) String to,
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.TEXT_XML_VALUE)
+    public String handleSitemapFile(@RequestParam(value = "from") String from,
+                                    @RequestParam(value = "to") String to,
                                   HttpServletResponse response) throws IOException {
         try {
             String fileName = getActiveDeployment() + "?from=" + from + "&to=" + to;

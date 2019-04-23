@@ -75,6 +75,7 @@ import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.collections.MapUtils;
@@ -84,10 +85,7 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -152,7 +150,9 @@ public class SearchController {
      */
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
 //	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
-    @RequestMapping(value = "/v2/search.json", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/v2/search.json",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
 			@RequestParam(value = "wskey") String wskey,
 			@RequestParam(value = "query") String queryString,
@@ -265,13 +265,12 @@ public class SearchController {
 		ControllerUtils.addResponseHeaders(response);
 		rows = Math.min(rows, configuration.getApiRowLimit());
 
-		Map<String, String> valueReplacements = new HashMap<>();
+		Map<String, String> valueReplacements = null;
 		if (ArrayUtils.isNotEmpty(reusabilities)) {
 			valueReplacements = RightReusabilityCategorizer.mapValueReplacements(reusabilities, true);
-            refinementArray = (String[]) ArrayUtils.addAll(
-                    refinementArray,
-                    valueReplacements.keySet().toArray(new String[0])
-            );
+			if (null != valueReplacements && !valueReplacements.isEmpty()){
+                refinementArray = (String[]) ArrayUtils.addAll(refinementArray, new String[]{"REUSABILITY:list"});
+            }
         }
 
         Class<? extends IdBean> clazz = selectBean(profile);
@@ -342,7 +341,9 @@ public class SearchController {
             query.setParameter("hl.maxAnalyzedChars", hlMaxAnalyzedChars);
         }
 
-		query.setValueReplacements(valueReplacements);
+        if (null != valueReplacements && !valueReplacements.isEmpty()){
+		    query.setValueReplacements(valueReplacements);
+        }
 
 		// reusability facet settings; spell check allowed, etcetera
         if (defaultOrReusabilityFacetsRequested) {
@@ -768,7 +769,8 @@ public class SearchController {
      * @return rss response of the query
      */
 	@ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
-	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET}, produces = {"application/rss+xml",
+	@RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET, RequestMethod.POST}
+	, produces = {"application/rss+xml",
             MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public ModelAndView openSearchRss(
@@ -841,9 +843,10 @@ public class SearchController {
 	 */
     @SwaggerIgnore
 	@ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
-	@RequestMapping(value = "/v2/search.rss", method = {RequestMethod.GET}, produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
+	@RequestMapping(value = "/v2/search.rss", method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
 	public ModelAndView fieldTripRss(
-			@RequestParam(value = "query", required = true) String queryTerms,
+			@RequestParam(value = "query") String queryTerms,
 			@RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
 			@RequestParam(value = "limit", required = false, defaultValue = "12") int limit,
 			@RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,

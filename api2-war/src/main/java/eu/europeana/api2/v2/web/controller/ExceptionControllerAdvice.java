@@ -96,8 +96,7 @@ public class ExceptionControllerAdvice {
     public ModelAndView apiLimitErrorHandler(HttpServletRequest request,
                                              HttpServletResponse response,
                                              ApiLimitException e) {
-        response = httpCacheUtils.addCorsHeaders(
-                response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, MAXAGE, ALLOWORIGIN);
+        ControllerUtils.addResponseHeaders(response);
         response.setStatus(e.getHttpStatus());
         String requestFormat = ControllerUtils.getRequestFormat(request);
         if ("RDF".equalsIgnoreCase(requestFormat)) {

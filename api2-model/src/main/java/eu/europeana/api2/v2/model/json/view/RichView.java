@@ -18,7 +18,6 @@ public class RichView extends ApiView implements RichBean {
 
     private String[] isShownBy;
     private String[] edmLandingPage;
-    private Map<String, List<String>> dcDescriptionLangAware;
     private Map<String, List<String>> dcSubjectLangAware;
     private Map<String, List<String>> dcTypeLangAware;
 
@@ -33,7 +32,6 @@ public class RichView extends ApiView implements RichBean {
         edmLandingPage = bean.getEdmLandingPage();
         dcTypeLangAware = bean.getDcTypeLangAware();
         dcSubjectLangAware = bean.getDcSubjectLangAware();
-        dcDescriptionLangAware = bean.getDcDescriptionLangAware();
 
         if (StringUtils.containsIgnoreCase(profile, "debug")) {
             fulltext = bean.getFulltext();
@@ -59,11 +57,6 @@ public class RichView extends ApiView implements RichBean {
     @Override
     public String[] getEdmLandingPage() {
         return edmLandingPage;
-    }
-
-    @Override
-    public Map<String, List<String>> getDcDescriptionLangAware() {
-        return dcDescriptionLangAware;
     }
 
     @Override

@@ -39,6 +39,7 @@ public class HitMaker {
     private static final Logger LOG = LogManager.getLogger(HitMaker.class);
 
     private static final Pattern FULLTEXT_PATTERN   = Pattern.compile("fulltext\\.\\w{2,3}", Pattern.CASE_INSENSITIVE);
+    private static final String  FULLTEXT           = "fulltext";
     private static final String  RDF_VALUE          = "rdf:value";
     private static final String  UNKNOWN            = "unknown value";
     private static final String  EM_START           = "<em>";
@@ -58,7 +59,10 @@ public class HitMaker {
 
             // loop through the Map of Selector Maps returned by Solr
             for (Map.Entry<String,List<String>> topOrFlop : hitContent.entrySet()){
-                findHits(topOrFlop, selectors, nrSelectors);
+                // EA-1538 only display hightlighting for fulltext.* fields
+                if (topOrFlop.getKey().toLowerCase().startsWith(FULLTEXT)){
+                    findHits(topOrFlop, selectors, nrSelectors);
+                }
             }
             if (CollectionUtils.isNotEmpty(selectors)){
                 hit.setSelectors(selectors);

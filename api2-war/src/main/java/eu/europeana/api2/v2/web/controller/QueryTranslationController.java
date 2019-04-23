@@ -48,7 +48,7 @@ import eu.europeana.corelib.utils.StringArrayUtils;
 
 @Controller
 @SwaggerSelect
-@Api(tags = {"Search"}, description = " ")
+@Api(tags = {"Search"})
 public class QueryTranslationController {
 
 	@Resource
@@ -58,8 +58,9 @@ public class QueryTranslationController {
 	private static final String ERROR_LANGUAGE = "Invalid parameter: languageCodes can not be empty";
 
 	@ApiOperation(value = "translate a term to different languages")
-	@RequestMapping(value = "/v2/translateQuery.json", method = RequestMethod.GET,
-			produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/v2/translateQuery.json",
+					method = {RequestMethod.GET, RequestMethod.POST},
+					produces = MediaType.APPLICATION_JSON_VALUE)
 	public ModelAndView translateQuery(
 			@RequestParam(value = "term", required = true) String term,
 			@RequestParam(value = "languageCodes", required = true) String[] languageCodes,

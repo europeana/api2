@@ -80,13 +80,14 @@ public class HierarchicalController {
 
 
     @ApiOperation(value = "returns the object itself")
-    @RequestMapping(value = "/{collectionId}/{recordId}/self.json", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}/self.json",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getSelf(
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey", required = true) String wskey,
+            @RequestParam(value = "wskey") String wskey,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
@@ -96,13 +97,14 @@ public class HierarchicalController {
     }
 
     @ApiOperation(value = "returns the object, its ancestors and siblings")
-    @RequestMapping(value = "/{collectionId}/{recordId}/ancestor-self-siblings.json", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}/ancestor-self-siblings.json",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getAncestorSelfSiblings(
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey", required = true) String wskey,
+            @RequestParam(value = "wskey") String wskey,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
@@ -112,15 +114,16 @@ public class HierarchicalController {
     }
 
     @ApiOperation(value = "returns the object's children")
-    @RequestMapping(value = "/{collectionId}/{recordId}/children.json", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}/children.json",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getChildren(
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey", required = true) String wskey,
-            @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
-            @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
+            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "limit", defaultValue = "10") int limit,
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
@@ -130,15 +133,16 @@ public class HierarchicalController {
     }
 
     @ApiOperation(value = "returns the object's parent")
-    @RequestMapping(value = "/{collectionId}/{recordId}/parent.json", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}/parent.json",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getParent(
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey", required = true) String wskey,
-            @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
-            @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
+            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "limit", defaultValue = "10") int limit,
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
@@ -150,15 +154,16 @@ public class HierarchicalController {
     // maintain backwards compatibility with previous spelling of "preceeding"
     @ApiOperation(value = "returns the object's preceding siblings")
     @RequestMapping(value = {"/{collectionId}/{recordId}/preceding-siblings.json",
-            "/{collectionId}/{recordId}/preceeding-siblings.json"}, method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            "/{collectionId}/{recordId}/preceeding-siblings.json"},
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getPrecedingSiblings(
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey", required = true) String wskey,
-            @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
-            @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
+            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "limit", defaultValue = "10") int limit,
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
@@ -168,15 +173,16 @@ public class HierarchicalController {
     }
 
     @ApiOperation(value = "returns the object's following siblings")
-    @RequestMapping(value = "/{collectionId}/{recordId}/following-siblings.json", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}/following-siblings.json",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getFollowingSiblings(
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey", required = true) String wskey,
-            @RequestParam(value = "limit", required = true, defaultValue = "10") int limit,
-            @RequestParam(value = "offset", required = true, defaultValue = "0") int offset,
+            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "limit", defaultValue = "10") int limit,
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,

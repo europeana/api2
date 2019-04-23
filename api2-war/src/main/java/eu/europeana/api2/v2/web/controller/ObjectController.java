@@ -87,19 +87,11 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 public class ObjectController {
 
     private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
-    private static final String ALLOWED                 = "GET, HEAD";
-    private static final String ALLOWHEADERS            = "If-Match, If-None-Match, If-Modified-Since";
-    private static final String EXPOSEHEADERS           = "Allow, ETag, Last-Modified, Link";
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
-    private static final String ALLOWORIGIN             = "*";
-    private static final String MAXAGE                  = "600";
-    private static final String NOCACHE                 = "no_cache";
 
-    private SearchService searchService;
-
-    private ApiKeyUtils apiKeyUtils;
-
-    private HttpCacheUtils httpCacheUtils;
+    private SearchService   searchService;
+    private ApiKeyUtils     apiKeyUtils;
+    private HttpCacheUtils  httpCacheUtils;
 
     /**
      * Create a new ObjectController
@@ -122,7 +114,6 @@ public class ObjectController {
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param wskey          pre-api term for 'apikey'
      * @param profile        supported types are 'params' and 'similar'
-     * @param wskey
      * @param callback
      * @param webRequest
      * @param servletRequest
@@ -131,7 +122,9 @@ public class ObjectController {
      * @throws ApiLimitException
      */
     @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
-    @GetMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.json",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ModelAndView record(@PathVariable String collectionId,
                                @PathVariable String recordId,
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
@@ -156,7 +149,9 @@ public class ObjectController {
      * @return only the context part of a json-ld record
      */
     @SwaggerIgnore
-    @GetMapping(value = {"/context.jsonld", "/context.json-ld"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = {"/context.jsonld", "/context.json-ld"},
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
         String jsonld = JSONUtils.toString(getJsonContext());
         return JsonUtils.toJson(jsonld, callback);
@@ -177,7 +172,9 @@ public class ObjectController {
      * @throws ApiLimitException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @SwaggerIgnore
-    @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String wskey,
@@ -203,7 +200,9 @@ public class ObjectController {
      * @throws ApiLimitException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
-    @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String wskey,
@@ -237,7 +236,9 @@ public class ObjectController {
      * @throws ApiLimitException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
-    @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String wskey,
@@ -270,7 +271,9 @@ public class ObjectController {
      * @throws ApiLimitException
      */
     @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
-    @GetMapping(value = "/{collectionId}/{recordId}.rdf", produces = MEDIA_TYPE_RDF_UTF8)
+    @RequestMapping(value = "/{collectionId}/{recordId}.rdf",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MEDIA_TYPE_RDF_UTF8)
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "wskey") String wskey,
@@ -302,7 +305,9 @@ public class ObjectController {
     // 2017-06-16 This code hasn't been used for a long time (not a single .srw request was logged in Kibana)
     // However, depending on the results of a to-be-held survey among developers we may bring this back to life again
     @SwaggerIgnore
-    @GetMapping(value = "/{collectionId}/{recordId}.srw", produces = MediaType.TEXT_XML_VALUE)
+    @RequestMapping(value = "/{collectionId}/{recordId}.srw",
+                    method = {RequestMethod.GET, RequestMethod.POST},
+                    produces = MediaType.TEXT_XML_VALUE)
     public @ResponseBody
     SrwResponse recordSrw(@PathVariable String collectionId,
                           @PathVariable String recordId,
@@ -350,8 +355,6 @@ public class ObjectController {
 
         // 3) Check if record exists, HTTP 404 if not
         if (Objects.isNull(bean)) {
-            response = httpCacheUtils.addCorsHeaders(
-                    response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, MAXAGE, ALLOWORIGIN);
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             if (recordType == RecordType.OBJECT_RDF) {
                 Map<String, Object> model = new HashMap<>();
@@ -385,11 +388,7 @@ public class ObjectController {
         // Yes: return HTTP 304 + cache headers. Ignore If-Modified-Since (RFC 7232)
         if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFNONEMATCH))){
             if (httpCacheUtils.doesAnyIfNoneMatch(data.servletRequest, eTag)) {
-                response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated, ALLOWED, NOCACHE);
-                if (StringUtils.isNotBlank(data.servletRequest.getHeader("Origin"))){
-                    response = httpCacheUtils.addCorsHeaders(
-                            response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, MAXAGE, ALLOWORIGIN);
-                }
+                response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
                 return null;
             }
@@ -413,11 +412,7 @@ public class ObjectController {
         bean = searchService.processFullBean(bean, data.europeanaObjectId, false);
 
         // add headers, except Content-Type (that differs per recordType)
-        response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated, ALLOWED, NOCACHE);
-
-        // Disabled the Origin header check != null for now because it's pointless.
-        // We should figure out how to handle this CORS stuff properly
-        response = httpCacheUtils.addCorsHeaders(response, ALLOWED, ALLOWHEADERS, EXPOSEHEADERS, MAXAGE, ALLOWORIGIN);
+        response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
 
 
         // generate output depending on type of record
@@ -467,7 +462,7 @@ public class ObjectController {
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
-        String jsonld = null;
+        String jsonld;
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (InputStream rdfInput = IOUtils.toInputStream(rdf)) {
             Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
