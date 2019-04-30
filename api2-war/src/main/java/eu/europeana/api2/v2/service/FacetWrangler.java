@@ -143,9 +143,7 @@ public class FacetWrangler {
                                 log.error("error matching decoded technical facet name " +
                                           decodedTechnicalFacetName + " with enum type in [consolidateFacetList] "
                                           + e.getClass().getSimpleName(), e);
-                            } //catch (TechFacetDecodingException e) {
-//                                log.error("error decoding Technical Facet: " + e.getMessage());
-//                            }
+                            }
                         }
                     }
 
@@ -179,14 +177,27 @@ public class FacetWrangler {
 
             TechnicalFacetType matchedFacetName;
             try {
+                boolean cantMatchFacetName = false;
+                boolean skipIfNoDefault = false;
                 matchedFacetName = TechnicalFacetType.valueOf(requestedFacetName);
                 String facetLimit  = "f." + matchedFacetName + ".facet.limit";
                 String facetOffset = "f." + matchedFacetName + ".facet.offset";
 
                 if (technicalFacetMap.get(matchedFacetName).isEmpty()) {
                     log.debug("couldn't match requested technical facet " + requestedFacetName);
-                    continue;
+                    cantMatchFacetName = true;
                 }
+
+                final Facet facet = new Facet();
+                facet.name = matchedFacetName.getRealName();
+                if (!requestedTechnicalFacets.contains(facet.name) && !defaultFacetsRequested) {
+                    skipIfNoDefault = true; // note that this is not an error
+                }
+
+                if (cantMatchFacetName || skipIfNoDefault) {
+                    continue; // stop & proceed with next one
+                }
+
                 int from = Math.min(((null != technicalFacetOffsets && technicalFacetOffsets.containsKey(facetOffset)) ?
                                      technicalFacetOffsets.get(facetOffset) : 0),
                                     technicalFacetMap.get(matchedFacetName).size() - 1);
@@ -194,12 +205,6 @@ public class FacetWrangler {
                                      technicalFacetLimits.get(facetLimit) + from :
                                      technicalFacetMap.get(matchedFacetName).size()),
                                     technicalFacetMap.get(matchedFacetName).size());
-
-                final Facet facet = new Facet();
-                facet.name = matchedFacetName.getRealName();
-                if (!requestedTechnicalFacets.contains(facet.name) && !defaultFacetsRequested) {
-                    continue; // note that this is not an error
-                }
 
                 List<String> keyList = new ArrayList<>(technicalFacetMap.get(matchedFacetName).keySet());
                 for (int i = from; i < to; i++) {
@@ -213,9 +218,7 @@ public class FacetWrangler {
             } catch (IllegalArgumentException e) {
                 log.error("error matching requested technical facet name " + requestedFacetName +
                           " with enum type in [consolidateFacetList] " + e.getClass().getSimpleName(), e);
-            } //catch (TechFacetDecodingException e) {
-//                log.error("Error processing Technical Facets: " + e.getMessage());
-//            }
+            }
 
         }
     }
@@ -251,7 +254,7 @@ public class FacetWrangler {
         } else if (StringUtils.containsIgnoreCase(gapString, "YEAR")) {
             return dateParts[0];
         }
-            // if in doubt, return the whole string
+        // if in doubt, return the whole string
         return value;
     }
 

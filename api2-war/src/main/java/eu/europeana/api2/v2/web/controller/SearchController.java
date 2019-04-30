@@ -75,7 +75,6 @@ import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.collections.MapUtils;
@@ -95,6 +94,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 
 /**
  * Controller that handles all search requests (search.json, opensearch.rss, search.rss, and search.kml)
@@ -926,6 +926,31 @@ public class SearchController {
 
 		return new ModelAndView("rss", model);
 	}
+
+    /**
+     * Temporary method to facilitate debugging the facet tags
+     *
+     * @return the JSON response
+     */
+    @ApiOperation(value = "decode facet tag", nickname = "tagdecoder")
+//	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
+    @GetMapping(value = "/v2/tagdecoder.json",
+                    produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView searchJson(
+            @RequestParam(value = "tag") String tag) {
+
+        String decodedTagName;
+        String decodedTagValue;
+        if (tag.matches("[0-9]+") && tag.length() > 7) {
+            decodedTagName = decodeFacetTag(Integer.valueOf(tag), true);
+            decodedTagValue = decodeFacetTag(Integer.valueOf(tag), false);
+        } else {
+            decodedTagName = "You're not doing it right, dude / diderina";
+            decodedTagValue = "a tag must be numerical and 8 digits long";
+        }
+
+        return JsonUtils.toJson(decodedTagName + ": " + decodedTagValue);
+    }
 
     /**
      * Retrieves the title from the bean if not null; otherwise, returns a concatenation of the Data
