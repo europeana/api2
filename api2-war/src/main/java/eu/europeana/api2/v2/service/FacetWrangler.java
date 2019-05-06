@@ -120,7 +120,8 @@ public class FacetWrangler {
                                 decodedTechnicalFacetName = decodeFacetTag(
                                         Integer.valueOf(encodedTechnicalFacet.getName()), true);
                                 if (decodedTechnicalFacetName.isEmpty()) {
-                                    log.info("Decoded technical Facet name is empty");
+                                    log.debug("Decoded technical Facet name is empty");
+                                    continue;
                                 }
                                 technicalFacetName = TechnicalFacetType.valueOf(decodedTechnicalFacetName);
 
@@ -129,7 +130,8 @@ public class FacetWrangler {
                                 final String technicalFacetLabel = decodeFacetTag(
                                         Integer.valueOf(encodedTechnicalFacet.getName()), false);
                                 if (technicalFacetLabel.isEmpty()) {
-                                    log.info("Technical Facet label is empty");
+                                    log.debug("Decoded technical Facet label is empty");
+                                    continue;
                                 }
 
                                 // retrieve a possibly earlier stored count value for this label. If not available,
@@ -140,7 +142,7 @@ public class FacetWrangler {
                                                                               technicalFacetFieldCount +
                                                                               (int) encodedTechnicalFacet.getCount());
                             } catch (IllegalArgumentException e) {
-                                log.error("error matching decoded technical facet name " +
+                                log.debug("error matching decoded technical facet name " +
                                           decodedTechnicalFacetName + " with enum type in [consolidateFacetList] "
                                           + e.getClass().getSimpleName(), e);
                             }
