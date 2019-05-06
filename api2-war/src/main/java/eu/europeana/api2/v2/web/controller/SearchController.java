@@ -932,10 +932,8 @@ public class SearchController {
      *
      * @return the JSON response
      */
-    @ApiOperation(value = "decode facet tag", nickname = "tagdecoder")
-//	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
-    @GetMapping(value = "/v2/tagdecoder.json",
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    @SwaggerIgnore
+    @GetMapping(value = "/v2/tagdecoder.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
             @RequestParam(value = "tag") String tag) {
 
