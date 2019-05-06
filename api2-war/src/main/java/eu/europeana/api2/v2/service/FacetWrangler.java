@@ -17,15 +17,14 @@
 
 package eu.europeana.api2.v2.service;
 
-import eu.europeana.api2.v2.exceptions.TechFacetDecodingException;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import eu.europeana.api2.v2.model.json.view.submodel.FacetRanger;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.client.solrj.response.RangeFacet.Count;
 
@@ -120,7 +119,7 @@ public class FacetWrangler {
                                 decodedTechnicalFacetName = decodeFacetTag(
                                         Integer.valueOf(encodedTechnicalFacet.getName()), true);
                                 if (decodedTechnicalFacetName.isEmpty()) {
-                                    log.info("Decoded technical Facet name is empty");
+                                    log.debug("Decoded technical Facet name is empty");
                                 }
                                 technicalFacetName = TechnicalFacetType.valueOf(decodedTechnicalFacetName);
 
@@ -129,7 +128,7 @@ public class FacetWrangler {
                                 final String technicalFacetLabel = decodeFacetTag(
                                         Integer.valueOf(encodedTechnicalFacet.getName()), false);
                                 if (technicalFacetLabel.isEmpty()) {
-                                    log.info("Technical Facet label is empty");
+                                    log.debug("Technical Facet label is empty");
                                 }
 
                                 // retrieve a possibly earlier stored count value for this label. If not available,
