@@ -17,15 +17,14 @@
 
 package eu.europeana.api2.v2.service;
 
-import eu.europeana.api2.v2.exceptions.TechFacetDecodingException;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import eu.europeana.api2.v2.model.json.view.submodel.FacetRanger;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.client.solrj.response.RangeFacet.Count;
 
