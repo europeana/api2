@@ -40,52 +40,52 @@ import eu.europeana.corelib.definitions.db.entity.relational.abstracts.Europeana
 @Deprecated
 public abstract class AbstractUserController {
 
-	@Resource(name = "corelib_db_userService")
-	protected UserService userService;
-
-	@Resource(name = "corelib_db_apiKeyService")
-	protected ApiKeyService apiKeyService;
-	
-	@Resource
-	private Api2UrlService urlService;
-
-	protected String getApiId(Principal principal) {
-		if (principal instanceof OAuth2Authentication) {
-			OAuth2Authentication authentication = (OAuth2Authentication) principal;
-			return authentication.getOAuth2Request().getClientId();
-		}
-		return "invalid";
-	}
-
-	protected User getUserByApiId(String apiId) {
-		User user = null;
-		try {
-			ApiKey apiKey = apiKeyService.findByID(apiId);
-			if (apiKey != null) {
-				user = userService.findByEmail(apiKey.getEmail());
-			}
-		} catch (DatabaseException e) {
-			LogManager.getLogger(AbstractUserController.class).error("Error checking API key: {}", e.getMessage(), e);
-		}
-		return user;
-	}
-
-	protected User getUserByPrincipal(Principal principal) {
-		if (principal != null) {
-			return userService.findByEmail(principal.getName());
-		}
-		return null;
-	}
-
-	protected void copyUserObjectData(String wskey, UserObject to, EuropeanaUserObject from) {
-		to.id = from.getId();
-		to.europeanaId = from.getEuropeanaUri();
-		to.title = from.getTitle();
-		to.dateSaved = from.getDateSaved();
-		to.type = from.getDocType();
-		to.edmPreview = from.getEuropeanaObject();
-		to.link = urlService.getRecordApi2Url(from.getEuropeanaUri(), wskey);
-		to.guid = LinkUtils.addCampaignCodes(urlService.getRecordPortalUrl(from.getEuropeanaUri()), wskey);
-	}
+//	@Resource(name = "corelib_db_userService")
+//	protected UserService userService;
+//
+//	@Resource(name = "corelib_db_apiKeyService")
+//	protected ApiKeyService apiKeyService;
+//
+//	@Resource
+//	private Api2UrlService urlService;
+//
+//	protected String getApiId(Principal principal) {
+//		if (principal instanceof OAuth2Authentication) {
+//			OAuth2Authentication authentication = (OAuth2Authentication) principal;
+//			return authentication.getOAuth2Request().getClientId();
+//		}
+//		return "invalid";
+//	}
+//
+//	protected User getUserByApiId(String apiId) {
+//		User user = null;
+//		try {
+//			ApiKey apiKey = apiKeyService.findByID(apiId);
+//			if (apiKey != null) {
+//				user = userService.findByEmail(apiKey.getEmail());
+//			}
+//		} catch (DatabaseException e) {
+//			LogManager.getLogger(AbstractUserController.class).error("Error checking API key: {}", e.getMessage(), e);
+//		}
+//		return user;
+//	}
+//
+//	protected User getUserByPrincipal(Principal principal) {
+//		if (principal != null) {
+//			return userService.findByEmail(principal.getName());
+//		}
+//		return null;
+//	}
+//
+//	protected void copyUserObjectData(String wskey, UserObject to, EuropeanaUserObject from) {
+//		to.id = from.getId();
+//		to.europeanaId = from.getEuropeanaUri();
+//		to.title = from.getTitle();
+//		to.dateSaved = from.getDateSaved();
+//		to.type = from.getDocType();
+//		to.edmPreview = from.getEuropeanaObject();
+//		to.link = urlService.getRecordApi2Url(from.getEuropeanaUri(), wskey);
+//		to.guid = LinkUtils.addCampaignCodes(urlService.getRecordPortalUrl(from.getEuropeanaUri()), wskey);
+//	}
 
 }

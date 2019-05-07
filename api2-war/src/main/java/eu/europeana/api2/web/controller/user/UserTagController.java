@@ -49,204 +49,204 @@ import static eu.europeana.corelib.utils.EuropeanaUriUtils.createEuropeanaId;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  * @deprecated 2018-01-09 old MyEuropeana functionality*
  */
-@Controller
-@RequestMapping(value = "/user/tag")
-@Api(value = "my_europeana", description = " ")
+//@Controller
+//@RequestMapping(value = "/user/tag")
+//@Api(value = "my_europeana", description = " ")
 @Deprecated
 public class UserTagController extends AbstractUserController {
 
-    private Logger log = Logger.getLogger(UserTagController.class);
-
-    @ApiOperation(value = "lists a user's data tags", nickname = "listUserTags")
-    @RequestMapping(
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            method = RequestMethod.GET
-    )
-    public ModelAndView list(
-            @RequestParam(value = "tag", required = false) String tagFilter,
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        return list(null, tagFilter, callback, principal);
-    }
-
-    @ApiOperation(value = "lists a user's data tags", nickname = "listUserTags")
-    @RequestMapping(
-            value = "/{collectionId}/{recordId}",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            method = RequestMethod.GET
-    )
-    public ModelAndView list(
-            @PathVariable String collectionId,
-            @PathVariable String recordId,
-            @RequestParam(value = "tag", required = false) String tagFilter,
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        return list(createEuropeanaId(collectionId, recordId), tagFilter, callback, principal);
-    }
-
-    private ModelAndView list(
-            String europeanaId,
-            String tagFilter,
-            String callback,
-            Principal principal) {
-        UserResults<Tag> response = new UserResults<>(getApiId(principal));
-        try {
-            User user = getUserByPrincipal(principal);
-            if (user != null) {
-                response.items = new ArrayList<>();
-                response.username = user.getUserName();
-                List<SocialTag> tags;
-                if (StringUtils.isNotBlank(tagFilter)) {
-                    tags = userService.findSocialTagsByTag(user.getId(), tagFilter);
-                } else if (StringUtils.isNotBlank(europeanaId)) {
-                    tags = userService.findSocialTagsByEuropeanaId(user.getId(), europeanaId);
-                } else {
-                    tags = new ArrayList<>(user.getSocialTags());
-                }
-                response.itemsCount = (long) tags.size();
-                for (SocialTag item : tags) {
-                    Tag tag = new Tag();
-                    copyUserObjectData(response.apikey, tag, item);
-                    tag.tag = item.getTag();
-                    response.items.add(tag);
-                }
-            } else {
-                response.success = false;
-                response.error = "User Profile not retrievable...";
-            }
-        } catch (DatabaseException e) {
-            response.success = false;
-            response.error = e.getMessage();
-        }
-        return JsonUtils.toJson(response, callback);
-    }
-
-    @ApiOperation(value = "shows the user's tag cloud", nickname = "showUsersTagcloud")
-    @RequestMapping(
-            value = "/cloud",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            method = RequestMethod.GET
-    )
-    public ModelAndView listDistinct(
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        UserResults<TagCloudItem> response = new UserResults<>(getApiId(principal));
-        try {
-            User user = getUserByPrincipal(principal);
-            if (user != null) {
-                response.items = userService.createSocialTagCloud(user.getId());
-                response.itemsCount = (long) response.items.size();
-                response.success = true;
-                response.username = user.getUserName();
-            } else {
-                response.success = false;
-                response.error = "User Profile not retrievable...";
-            }
-        } catch (DatabaseException e) {
-            response.success = false;
-            response.error = e.getMessage();
-        }
-        return JsonUtils.toJson(response, callback);
-    }
-
-    @ApiOperation(value = "creates a new data tag for a user", nickname = "createUserTag")
-    @RequestMapping(
-            value = "/{collectionId}/{recordId}",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            method = RequestMethod.POST
-    )
-    public ModelAndView create(
-            @PathVariable String collectionId,
-            @PathVariable String recordId,
-            @RequestParam(value = "tag", required = true) String tag,
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        User user = getUserByPrincipal(principal);
-        ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
-        if (user != null) {
-            try {
-                userService.createSocialTag(user.getId(), createEuropeanaId(collectionId, recordId), tag);
-                response.success = true;
-            } catch (DatabaseException e) {
-                response.success = false;
-                response.error = e.getMessage();
-            } catch (Neo4JException e) {
-                log.error("Neo4JException thrown: " + e.getMessage());
-                log.error("Cause: " + e.getCause());
-            }
-        } else {
-            response.success = false;
-            response.error = "User Profile not retrievable...";
-        }
-        return JsonUtils.toJson(response, callback);
-    }
-
-    @ApiOperation(value = "deletes a data tag for a user", nickname = "deleteUserTag")
-    @RequestMapping(
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            method = RequestMethod.DELETE
-    )
-    public ModelAndView delete(
-            @RequestParam(value = "tag", required = true) String tag,
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        return delete((Long) null, tag, null, callback, principal);
-    }
-
-    @ApiOperation(value = "deletes a data tag for a user", nickname = "deleteUserTag")
-    @RequestMapping(
-            value = "/{tagId}",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            method = RequestMethod.DELETE
-    )
-    public ModelAndView delete(
-            @PathVariable Long tagId,
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        return delete(tagId, null, null, callback, principal);
-    }
-
-    @ApiOperation(value = "deletes a data tag for a user", nickname = "deleteUserTag")
-    @RequestMapping(
-            value = "/{collectionId}/{recordId}",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            method = RequestMethod.DELETE
-    )
-    public ModelAndView delete(
-            @PathVariable String collectionId,
-            @PathVariable String recordId,
-            @RequestParam(value = "tag", required = false) String tag,
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        return delete((Long) null, tag, createEuropeanaId(collectionId, recordId), callback, principal);
-    }
-
-    private ModelAndView delete(Long tagId,
-                                String tag,
-                                String europeanaId,
-                                String callback,
-                                Principal principal) {
-        User user = getUserByPrincipal(principal);
-        ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
-        if (user != null) {
-            try {
-                if (tagId != null) {
-                    userService.removeSocialTag(user.getId(), tagId);
-                } else {
-                    if (StringUtils.isNotBlank(europeanaId) || StringUtils.isNotBlank(tag)) {
-                        userService.removeSocialTag(user.getId(), europeanaId, tag);
-                    }
-                }
-                response.success = true;
-            } catch (DatabaseException e) {
-                response.success = false;
-                response.error = e.getMessage();
-            }
-        } else {
-            response.success = false;
-            response.error = "User Profile not retrievable...";
-        }
-        return JsonUtils.toJson(response, callback);
-    }
+//    private Logger log = Logger.getLogger(UserTagController.class);
+//
+//    @ApiOperation(value = "lists a user's data tags", nickname = "listUserTags")
+//    @RequestMapping(
+//            produces = MediaType.APPLICATION_JSON_VALUE,
+//            method = RequestMethod.GET
+//    )
+//    public ModelAndView list(
+//            @RequestParam(value = "tag", required = false) String tagFilter,
+//            @RequestParam(value = "callback", required = false) String callback,
+//            Principal principal) {
+//        return list(null, tagFilter, callback, principal);
+//    }
+//
+//    @ApiOperation(value = "lists a user's data tags", nickname = "listUserTags")
+//    @RequestMapping(
+//            value = "/{collectionId}/{recordId}",
+//            produces = MediaType.APPLICATION_JSON_VALUE,
+//            method = RequestMethod.GET
+//    )
+//    public ModelAndView list(
+//            @PathVariable String collectionId,
+//            @PathVariable String recordId,
+//            @RequestParam(value = "tag", required = false) String tagFilter,
+//            @RequestParam(value = "callback", required = false) String callback,
+//            Principal principal) {
+//        return list(createEuropeanaId(collectionId, recordId), tagFilter, callback, principal);
+//    }
+//
+//    private ModelAndView list(
+//            String europeanaId,
+//            String tagFilter,
+//            String callback,
+//            Principal principal) {
+//        UserResults<Tag> response = new UserResults<>(getApiId(principal));
+//        try {
+//            User user = getUserByPrincipal(principal);
+//            if (user != null) {
+//                response.items = new ArrayList<>();
+//                response.username = user.getUserName();
+//                List<SocialTag> tags;
+//                if (StringUtils.isNotBlank(tagFilter)) {
+//                    tags = userService.findSocialTagsByTag(user.getId(), tagFilter);
+//                } else if (StringUtils.isNotBlank(europeanaId)) {
+//                    tags = userService.findSocialTagsByEuropeanaId(user.getId(), europeanaId);
+//                } else {
+//                    tags = new ArrayList<>(user.getSocialTags());
+//                }
+//                response.itemsCount = (long) tags.size();
+//                for (SocialTag item : tags) {
+//                    Tag tag = new Tag();
+//                    copyUserObjectData(response.apikey, tag, item);
+//                    tag.tag = item.getTag();
+//                    response.items.add(tag);
+//                }
+//            } else {
+//                response.success = false;
+//                response.error = "User Profile not retrievable...";
+//            }
+//        } catch (DatabaseException e) {
+//            response.success = false;
+//            response.error = e.getMessage();
+//        }
+//        return JsonUtils.toJson(response, callback);
+//    }
+//
+//    @ApiOperation(value = "shows the user's tag cloud", nickname = "showUsersTagcloud")
+//    @RequestMapping(
+//            value = "/cloud",
+//            produces = MediaType.APPLICATION_JSON_VALUE,
+//            method = RequestMethod.GET
+//    )
+//    public ModelAndView listDistinct(
+//            @RequestParam(value = "callback", required = false) String callback,
+//            Principal principal) {
+//        UserResults<TagCloudItem> response = new UserResults<>(getApiId(principal));
+//        try {
+//            User user = getUserByPrincipal(principal);
+//            if (user != null) {
+//                response.items = userService.createSocialTagCloud(user.getId());
+//                response.itemsCount = (long) response.items.size();
+//                response.success = true;
+//                response.username = user.getUserName();
+//            } else {
+//                response.success = false;
+//                response.error = "User Profile not retrievable...";
+//            }
+//        } catch (DatabaseException e) {
+//            response.success = false;
+//            response.error = e.getMessage();
+//        }
+//        return JsonUtils.toJson(response, callback);
+//    }
+//
+//    @ApiOperation(value = "creates a new data tag for a user", nickname = "createUserTag")
+//    @RequestMapping(
+//            value = "/{collectionId}/{recordId}",
+//            produces = MediaType.APPLICATION_JSON_VALUE,
+//            method = RequestMethod.POST
+//    )
+//    public ModelAndView create(
+//            @PathVariable String collectionId,
+//            @PathVariable String recordId,
+//            @RequestParam(value = "tag", required = true) String tag,
+//            @RequestParam(value = "callback", required = false) String callback,
+//            Principal principal) {
+//        User user = getUserByPrincipal(principal);
+//        ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
+//        if (user != null) {
+//            try {
+//                userService.createSocialTag(user.getId(), createEuropeanaId(collectionId, recordId), tag);
+//                response.success = true;
+//            } catch (DatabaseException e) {
+//                response.success = false;
+//                response.error = e.getMessage();
+//            } catch (Neo4JException e) {
+//                log.error("Neo4JException thrown: " + e.getMessage());
+//                log.error("Cause: " + e.getCause());
+//            }
+//        } else {
+//            response.success = false;
+//            response.error = "User Profile not retrievable...";
+//        }
+//        return JsonUtils.toJson(response, callback);
+//    }
+//
+//    @ApiOperation(value = "deletes a data tag for a user", nickname = "deleteUserTag")
+//    @RequestMapping(
+//            produces = MediaType.APPLICATION_JSON_VALUE,
+//            method = RequestMethod.DELETE
+//    )
+//    public ModelAndView delete(
+//            @RequestParam(value = "tag", required = true) String tag,
+//            @RequestParam(value = "callback", required = false) String callback,
+//            Principal principal) {
+//        return delete((Long) null, tag, null, callback, principal);
+//    }
+//
+//    @ApiOperation(value = "deletes a data tag for a user", nickname = "deleteUserTag")
+//    @RequestMapping(
+//            value = "/{tagId}",
+//            produces = MediaType.APPLICATION_JSON_VALUE,
+//            method = RequestMethod.DELETE
+//    )
+//    public ModelAndView delete(
+//            @PathVariable Long tagId,
+//            @RequestParam(value = "callback", required = false) String callback,
+//            Principal principal) {
+//        return delete(tagId, null, null, callback, principal);
+//    }
+//
+//    @ApiOperation(value = "deletes a data tag for a user", nickname = "deleteUserTag")
+//    @RequestMapping(
+//            value = "/{collectionId}/{recordId}",
+//            produces = MediaType.APPLICATION_JSON_VALUE,
+//            method = RequestMethod.DELETE
+//    )
+//    public ModelAndView delete(
+//            @PathVariable String collectionId,
+//            @PathVariable String recordId,
+//            @RequestParam(value = "tag", required = false) String tag,
+//            @RequestParam(value = "callback", required = false) String callback,
+//            Principal principal) {
+//        return delete((Long) null, tag, createEuropeanaId(collectionId, recordId), callback, principal);
+//    }
+//
+//    private ModelAndView delete(Long tagId,
+//                                String tag,
+//                                String europeanaId,
+//                                String callback,
+//                                Principal principal) {
+//        User user = getUserByPrincipal(principal);
+//        ModificationConfirmation response = new ModificationConfirmation(getApiId(principal));
+//        if (user != null) {
+//            try {
+//                if (tagId != null) {
+//                    userService.removeSocialTag(user.getId(), tagId);
+//                } else {
+//                    if (StringUtils.isNotBlank(europeanaId) || StringUtils.isNotBlank(tag)) {
+//                        userService.removeSocialTag(user.getId(), europeanaId, tag);
+//                    }
+//                }
+//                response.success = true;
+//            } catch (DatabaseException e) {
+//                response.success = false;
+//                response.error = e.getMessage();
+//            }
+//        } else {
+//            response.success = false;
+//            response.error = "User Profile not retrievable...";
+//        }
+//        return JsonUtils.toJson(response, callback);
+//    }
 
 }

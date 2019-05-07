@@ -35,25 +35,25 @@ import java.security.Principal;
 /**
  * @deprecated 2018-01-09 old MyEuropeana functionality
  */
-@Controller
-@Api(value = "my_data", description = " ")
+//@Controller
+//@Api(value = "my_data", description = " ")
 @Deprecated
 public class MyDataProfileController extends AbstractUserController {
 
-    @ApiOperation(value = "lets the user fetch their profile", nickname = "fetchMyDataProfile")
-    @RequestMapping(value = "/mydata/profile", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-    public ModelAndView defaultAction(
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        Profile response = new Profile(principal.getName());
-        User user = getUserByApiId(principal.getName());
-        if (user != null) {
-            response.copyDetails(user);
-        } else {
-            response.success = false;
-            response.error = "Invalid credentials";
-        }
-        return JsonUtils.toJson(response, callback);
-    }
+//    @ApiOperation(value = "lets the user fetch their profile", nickname = "fetchMyDataProfile")
+//    @RequestMapping(value = "/mydata/profile", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+//    public ModelAndView defaultAction(
+//            @RequestParam(value = "callback", required = false) String callback,
+//            Principal principal) {
+//        Profile response = new Profile(principal.getName());
+//        User user = getUserByApiId(principal.getName());
+//        if (user != null) {
+//            response.copyDetails(user);
+//        } else {
+//            response.success = false;
+//            response.error = "Invalid credentials";
+//        }
+//        return JsonUtils.toJson(response, callback);
+//    }
 
 }

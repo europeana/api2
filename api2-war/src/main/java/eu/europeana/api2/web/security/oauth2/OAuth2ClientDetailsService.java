@@ -32,26 +32,27 @@ import javax.annotation.Resource;
 /**
  * The entry point into the database of clients.
  */
-@Service("api2_oauth2_clientDetailsService")
-public class OAuth2ClientDetailsService implements ClientDetailsService {
+@Deprecated // old oAuth functionality
+//@Service("api2_oauth2_clientDetailsService")
+public class OAuth2ClientDetailsService {//implements ClientDetailsService {
 
-    @Resource
-    private ApiKeyService apiKeyService;
-
-    @Override
-    /**
-     * Loads ClientDetails object belongs to an apiKey
-     */
-    public ClientDetails loadClientByClientId(String oAuthClientId)
-            throws OAuth2Exception {
-        try {
-            ApiKey apiKey = apiKeyService.findByID(oAuthClientId);
-            if (apiKey != null) {
-                return new OAuth2ClientDetails(apiKey);
-            }
-        } catch (DatabaseException e) {
-            Logger.getLogger(this.getClass()).error(e.getMessage());
-        }
-        throw new OAuth2Exception("OAuth2 ClientId unknown");
-    }
+//    @Resource
+//    private ApiKeyService apiKeyService;
+//
+//    @Override
+//    /**
+//     * Loads ClientDetails object belongs to an apiKey
+//     */
+//    public ClientDetails loadClientByClientId(String oAuthClientId)
+//            throws OAuth2Exception {
+//        try {
+//            ApiKey apiKey = apiKeyService.findByID(oAuthClientId);
+//            if (apiKey != null) {
+//                return new OAuth2ClientDetails(apiKey);
+//            }
+//        } catch (DatabaseException e) {
+//            Logger.getLogger(this.getClass()).error(e.getMessage());
+//        }
+//        throw new OAuth2Exception("OAuth2 ClientId unknown");
+//    }
 }

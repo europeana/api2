@@ -35,31 +35,31 @@ import java.security.Principal;
 /**
  * @deprecated 2018-01-09 old MyEuropeana functionality
  */
-@Controller
-@RequestMapping(value = "/user/profile")
-@Api(value = "my_europeana", description = " ")
+//@Controller
+//@RequestMapping(value = "/user/profile")
+//@Api(value = "my_europeana", description = " ")
 @Deprecated
 public class UserProfileController extends AbstractUserController {
 
-    @ApiOperation(value = "fetch a user's profile", nickname = "fetchUserProfile")
-    @RequestMapping(
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            method = RequestMethod.GET
-    )
-    @ResponseBody
-    public ApiResponse get(
-            @RequestParam(value = "callback", required = false) String callback,
-            Principal principal) {
-        Profile response = new Profile(getApiId(principal));
-        User user = getUserByPrincipal(principal);
-        if (user != null) {
-            response.copyDetails(user);
-        } else {
-            response.success = false;
-            response.error = "User Profile not retrievable...";
-        }
-        return response;
-//        return JsonUtils.toJson(response, callback);
-    }
+//    @ApiOperation(value = "fetch a user's profile", nickname = "fetchUserProfile")
+//    @RequestMapping(
+//            produces = MediaType.APPLICATION_JSON_VALUE,
+//            method = RequestMethod.GET
+//    )
+//    @ResponseBody
+//    public ApiResponse get(
+//            @RequestParam(value = "callback", required = false) String callback,
+//            Principal principal) {
+//        Profile response = new Profile(getApiId(principal));
+//        User user = getUserByPrincipal(principal);
+//        if (user != null) {
+//            response.copyDetails(user);
+//        } else {
+//            response.success = false;
+//            response.error = "User Profile not retrievable...";
+//        }
+//        return response;
+////        return JsonUtils.toJson(response, callback);
+//    }
 
 }

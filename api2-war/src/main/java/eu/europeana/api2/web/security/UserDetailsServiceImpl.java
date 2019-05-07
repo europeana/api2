@@ -34,34 +34,34 @@ import javax.annotation.Resource;
 /**
  * @deprecated 2018-01-09 old MyEuropeana functionality
  */
-@Service("api2_userDetailsService")
+//@Service("api2_userDetailsService")
 @Deprecated
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class UserDetailsServiceImpl {//implements UserDetailsService {
 
-    @Resource
-    private ApiKeyService apiKeyService;
-
-    @Resource
-    private UserService userService;
-
-    @Override
-    public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String key)
-            throws UsernameNotFoundException {
-        if (StringUtils.contains(key, "@")) {
-            User user = userService.findByEmail(key);
-            if (user != null) {
-                return new Api2UserDetails(user);
-            }
-        } else {
-            try {
-                ApiKey apiKey = apiKeyService.findByID(key);
-                if (apiKey != null) {
-                    return new ClientDetails(apiKey);
-                }
-            } catch (DatabaseException ignored) {
-            }
-        }
-        throw new UsernameNotFoundException(key);
-    }
+//    @Resource
+//    private ApiKeyService apiKeyService;
+//
+//    @Resource
+//    private UserService userService;
+//
+//    @Override
+//    public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String key)
+//            throws UsernameNotFoundException {
+//        if (StringUtils.contains(key, "@")) {
+//            User user = userService.findByEmail(key);
+//            if (user != null) {
+//                return new Api2UserDetails(user);
+//            }
+//        } else {
+//            try {
+//                ApiKey apiKey = apiKeyService.findByID(key);
+//                if (apiKey != null) {
+//                    return new ClientDetails(apiKey);
+//                }
+//            } catch (DatabaseException ignored) {
+//            }
+//        }
+//        throw new UsernameNotFoundException(key);
+//    }
 
 }

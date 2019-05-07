@@ -15,31 +15,31 @@ import javax.servlet.http.HttpServletRequest;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  * @deprecated 2018-01-09 old MyEuropeana functionality*
  */
-@Controller
-@RequestMapping(value = "/user/activate")
+//@Controller
+//@RequestMapping(value = "/user/activate")
 @Deprecated
 public class UserActivateController {
 
-    @Resource
-    private UserService userService;
-
-    // TODO NOTA BENE! The user will be redirected to the URL that is associated with the Token in the Postgres TOKEN table
-    // and only if the email address in the Token record matches what's being sent in this request.
-
-    @RequestMapping(
-            value = "/{email:.+}/{token}",
-            method = RequestMethod.GET
-    )
-    public String activate(
-            @PathVariable String email,
-            @PathVariable String token,
-            HttpServletRequest request
-    ) {
-        try {
-            Token tokenEntity = userService.activate(email, token);
-            return "redirect:" + tokenEntity.getRedirect();
-        } catch (DatabaseException ignore) {
-        }
-        return "redirect:" + request.getScheme() + "://www.europeana.eu";
-    }
+//    @Resource
+//    private UserService userService;
+//
+//    // TODO NOTA BENE! The user will be redirected to the URL that is associated with the Token in the Postgres TOKEN table
+//    // and only if the email address in the Token record matches what's being sent in this request.
+//
+//    @RequestMapping(
+//            value = "/{email:.+}/{token}",
+//            method = RequestMethod.GET
+//    )
+//    public String activate(
+//            @PathVariable String email,
+//            @PathVariable String token,
+//            HttpServletRequest request
+//    ) {
+//        try {
+//            Token tokenEntity = userService.activate(email, token);
+//            return "redirect:" + tokenEntity.getRedirect();
+//        } catch (DatabaseException ignore) {
+//        }
+//        return "redirect:" + request.getScheme() + "://www.europeana.eu";
+//    }
 }
