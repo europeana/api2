@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.utils.DateUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 import java.util.Collections;

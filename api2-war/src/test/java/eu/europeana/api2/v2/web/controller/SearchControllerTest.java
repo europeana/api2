@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 
 import eu.europeana.api2.v2.utils.ModelUtils;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import eu.europeana.corelib.utils.StringArrayUtils;

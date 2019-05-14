@@ -23,7 +23,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 
 import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import eu.europeana.api2.v2.model.xml.definitions.Namespaces;
 import eu.europeana.api2.v2.model.xml.rss.atom.AtomLink;

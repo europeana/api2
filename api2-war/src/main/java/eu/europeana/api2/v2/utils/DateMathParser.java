@@ -20,7 +20,7 @@ package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.exceptions.InvalidGapException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.text.DateFormat;
 import java.text.ParseException;

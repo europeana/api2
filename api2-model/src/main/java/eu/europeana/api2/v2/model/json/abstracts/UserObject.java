@@ -20,7 +20,7 @@ package eu.europeana.api2.v2.model.json.abstracts;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.corelib.definitions.solr.DocType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 

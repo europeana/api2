@@ -5,7 +5,7 @@ import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlBuilder;
 import eu.europeana.corelib.web.utils.UrlBuilder;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 
 
