@@ -75,7 +75,6 @@ import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import jena.query;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.collections.MapUtils;
@@ -372,16 +371,24 @@ public class SearchController {
         } catch (SolrTypeException e) {
             if(e.getProblem().equals(ProblemType.PAGINATION_LIMIT_REACHED)) {
                 // not a real error so we log it as a warning instead
-                LOG.warn(wskey + SEARCHJSON + ProblemType.PAGINATION_LIMIT_REACHED.getMessage());
+                LOG.warn(wskey + SEARCHJSON + e.getProblem().getMessage());
             } else if (e.getProblem().equals(ProblemType.INVALID_THEME)) {
                 // not a real error so we log it as a warning instead
-                LOG.warn(wskey + SEARCHJSON + ProblemType.INVALID_THEME.getMessage());
+                LOG.warn(wskey + SEARCHJSON + e.getProblem().getMessage());
+                response.setStatus(400);
                 return JsonUtils.toJson(new ApiError(wskey, "Theme '" +
                       StringUtils.substringBetween(e.getCause().getCause().toString(), "Collection \"","\" not defined") +
                 "' is not defined"), callback);
-            } else if (e.getProblem().equals(ProblemType.SOLR_IS_BROKEN) && StringUtils.contains(query.getParameterMap().get("hl.fl"), '*')) {
+            } else if (e.getProblem().equals(ProblemType.NO_LIVE_SOLR) && StringUtils.contains(query.getParameterMap().get("hl.fl"), '*')) {
                 LOG.error("This is the \"field 'what' was indexed without offsets\"-error, see EA-1441 when executing search: " + SEARCHJSON);
+                response.setStatus(400);
                 return JsonUtils.toJson(new ApiError(wskey, "Solr indexing error, occurs when hits.fl parameter contains '*'"));
+            } else if (e.getProblem().equals(ProblemType.CANT_CONNECT_ZOOKEEPER) ||
+                       e.getProblem().equals(ProblemType.CANT_CONNECT_SOLR) ||
+                       e.getProblem().equals(ProblemType.SOLR_ERROR)){
+                response.setStatus(503); // Service temporarily unavailable
+                LOG.error(wskey + SEARCHJSON + e.getProblem().getMessage(), e);
+                return JsonUtils.toJson(new ApiError(wskey, (e.getProblem().getMessage() + ": " + e.getMessage())));
             } else {
                 LOG.error(wskey + SEARCHJSON, e);
             }
