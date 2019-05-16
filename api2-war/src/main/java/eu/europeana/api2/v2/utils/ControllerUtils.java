@@ -17,8 +17,6 @@
 
 package eu.europeana.api2.v2.utils;
 
-import org.apache.commons.lang3.StringUtils;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -29,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 public final class ControllerUtils {
 
     private static final String ALLOWED                 = "GET, HEAD, POST";
-    private static final String ACCEPT                 = "Accept";
 
     private ControllerUtils() {
         // to avoid instantiating this class
@@ -47,25 +44,6 @@ public final class ControllerUtils {
             result = uri.substring(uri.lastIndexOf('.')+1, uri.length());
         }
         return result;
-    }
-
-    /**
-     * Extracts the value of the Accept header from the request URL, e.g. application/graphql
-     * @param request
-     * @return String with Accept header contents, or null if not found
-     */
-    public static String getRequestedMediaType(HttpServletRequest request) {
-        if (StringUtils.isNotBlank(request.getHeader(ACCEPT))){
-            return request.getHeader(ACCEPT);
-        }
-        return null;
-    }
-
-    public static String getRequestedContentType(HttpServletRequest request) {
-        if (StringUtils.isNotBlank(request.getContentType())){
-            return request.getContentType();
-        }
-        return null;
     }
 
     /**
