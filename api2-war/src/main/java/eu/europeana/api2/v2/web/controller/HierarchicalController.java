@@ -206,7 +206,8 @@ public class HierarchicalController {
             Future<ModelAndView> myFlexibleFriend = timeoutExecutorService.submit(()
                     -> mrBean.call(recordType, rdfAbout, profile, wskey, limit, offset, callback, request,
                     response, apiKeyUtils, searchService));
-            return myFlexibleFriend.get(hierarchyTimeout, TimeUnit.MILLISECONDS);
+            return myFlexibleFriend.get(hierarchyTimeout, TimeUnit.MINUTES);
+//            return myFlexibleFriend.get(hierarchyTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             response.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
