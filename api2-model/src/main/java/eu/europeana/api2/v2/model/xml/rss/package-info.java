@@ -1,5 +1,3 @@
-
-
 @XmlSchema(namespace = "", xmlns = {
 		@XmlNs(namespaceURI = "http://a9.com/-/spec/opensearch/1.1/", prefix = "opensearch"),
 		@XmlNs(namespaceURI = "http://www.w3.org/2005/Atom", prefix = "atom"),

@@ -1,5 +1,3 @@
-
-
 @XmlSchema(namespace = SrwResponse.NS_SRW, xmlns = {
 		@XmlNs(namespaceURI = SrwResponse.NS_SRW, prefix = "srw"),
 		@XmlNs(namespaceURI = SrwResponse.NS_DIAG, prefix = "diag"),
