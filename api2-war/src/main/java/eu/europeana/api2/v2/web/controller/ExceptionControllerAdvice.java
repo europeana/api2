@@ -194,7 +194,7 @@ public class ExceptionControllerAdvice {
      * General error handler. This handler is used when there are no more specific handlers for the error in question.
      * The drawback of using this is that we cannot supply the requestNumber in the error message
      * @param request
-     * @param response
+     * @param response 
      *
      * @param e
      * @return ModelAndView with error message
