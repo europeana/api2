@@ -1,16 +1,22 @@
 package eu.europeana.api2.v2.web.controller;
 
-import com.google.common.base.Throwables;
 import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
-import eu.europeana.api2.v2.utils.HttpCacheUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.TypeMismatchException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,12 +35,6 @@ import java.util.Map;
 public class ExceptionControllerAdvice {
 
     private static final Logger         LOG = LogManager.getLogger(ExceptionControllerAdvice.class);
-    private              HttpCacheUtils httpCacheUtils = new HttpCacheUtils();
-    private static final String ALLOWED                 = "GET, HEAD";
-    private static final String ALLOWHEADERS            = "If-Match, If-None-Match, If-Modified-Since";
-    private static final String EXPOSEHEADERS           = "Allow, ETag, Last-Modified, Link";
-    private static final String ALLOWORIGIN             = "*";
-    private static final String MAXAGE                  = "600";
 
     /**
      * Handles all required parameter missing problems (e.g. APIkey missing)
@@ -44,7 +44,9 @@ public class ExceptionControllerAdvice {
      * @return
      */
     @ExceptionHandler(value = {MissingServletRequestParameterException.class})
-    public ModelAndView missingParameterErrorHandler (HttpServletRequest request, HttpServletResponse response, MissingServletRequestParameterException ex) {
+    public ModelAndView missingParameterErrorHandler (HttpServletRequest request,
+                                                      HttpServletResponse response,
+                                                      MissingServletRequestParameterException ex) {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         String requestFormat = ControllerUtils.getRequestFormat(request);
 
@@ -92,10 +94,90 @@ public class ExceptionControllerAdvice {
     }
 
     /**
+     * Handles HttpMediaTypeNotAcceptableExceptions
+     * @param request
+     * @param response
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(value = {HttpMediaTypeNotAcceptableException.class})
+    public ModelAndView mediaTypeNotAcceptableHandler(HttpServletRequest request,
+                                                      HttpServletResponse response,
+                                                      HttpMediaTypeNotAcceptableException e) {
+        ControllerUtils.addResponseHeaders(response);
+        response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+        String requestedMediaType = ControllerUtils.getRequestedMediaType(request);
+        String errorMsg;
+        if (StringUtils.isNotBlank(requestedMediaType)){
+            errorMsg = "The resource identified by this request cannot generate a response of type " + requestedMediaType;
+        } else {
+            errorMsg = "";
+        }
+        return JsonUtils.toJson(new ApiError("", errorMsg));
+    }
+
+    /**
+     * Handles HttpMediaTypeNotSupportedExceptions
+     * @param request
+     * @param response
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(value = {HttpMediaTypeNotSupportedException.class})
+    public ModelAndView mediaTypeNotSupportedHandler(HttpServletRequest request,
+                                                     HttpServletResponse response,
+                                                     HttpMediaTypeNotSupportedException e) {
+        ControllerUtils.addResponseHeaders(response);
+        response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+        String requestedContentType = ControllerUtils.getRequestedContentType(request);
+        String errorMsg;
+        if (StringUtils.isNotBlank(requestedContentType)){
+            errorMsg = "Content type '" + requestedContentType + " not supported";
+        } else {
+            errorMsg = "";
+        }
+        return JsonUtils.toJson(new ApiError("", errorMsg));
+    }
+
+    /**
+     * Handles "Bad Requests" causing HttpMessageNotReadableException, MethodArgumentNotValidException,
+     * MissingServletRequestParameterException, MissingServletRequestPartException & TypeMismatchException
+     * @param response
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(value = {HttpMessageNotReadableException.class, MethodArgumentNotValidException.class,
+            MissingServletRequestPartException.class, TypeMismatchException.class})
+    public ModelAndView badRequestHandler(HttpServletResponse response,
+                                          Exception e){
+        ControllerUtils.addResponseHeaders(response);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        return JsonUtils.toJson(new ApiError("", e.getMessage()));
+    }
+
+    /**
+     * Handles HttpMediaTypeNotSupportedExceptions
+     * @param request
+     * @param response
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(value = {HttpRequestMethodNotSupportedException.class})
+    public ModelAndView unsupportedMethodHandler(HttpServletRequest request,
+                                                 HttpServletResponse response,
+                                                 HttpRequestMethodNotSupportedException e){
+        ControllerUtils.addResponseHeaders(response);
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        String errorMsg = "Request method '" + request.getMethod() + "' is not allowed for the requested resource";
+        return JsonUtils.toJson(new ApiError("", errorMsg));
+    }
+
+
+    /**
      * General error handler. This handler is used when there are no more specific handlers for the error in question.
      * The drawback of using this is that we cannot supply the requestNumber in the error message
      * @param request
-     * @param response 
+     * @param response
      *
      * @param e
      * @return ModelAndView with error message
