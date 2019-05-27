@@ -1,20 +1,3 @@
-/*
- * Copyright 2007-2015 The Europeana Foundation
- *
- * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
- * by the European Commission;
- * You may not use this work except in compliance with the Licence.
- *
- * You may obtain a copy of the Licence at:
- * http://joinup.ec.europa.eu/software/page/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under
- * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
- * any kind, either express or implied.
- * See the Licence for the specific language governing permissions and limitations under
- * the Licence.
- */
-
 package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.v2.web.SiteMapNotFoundException;
@@ -34,8 +17,10 @@ import java.io.IOException;
  * Handles requests for sitemap files
  * @author luthien, created on 07/12/2015.
  * @author Patrick Ehlert, major refactoring on 21/08/2017
+ * @deprecated 20 May 2019, all sitemap files are now served by the sitemap application itself
  */
-@RestController
+@Deprecated
+//@RestController
 public class SitemapController {
 
     private static final Logger LOG = Logger.getLogger(SitemapController.class);
@@ -43,7 +28,7 @@ public class SitemapController {
     private static final String INDEX_FILE = "europeana-sitemap-index-hashed.xml";
     private static final String ACTIVE_SITEMAP_FILE = "europeana-sitemap-active-xml-file.txt";
 
-    @Resource(name = "api_sitemap_object_storage")
+    //@Resource(name = "api_sitemap_object_storage")
     private ObjectStorageClient objectStorageClient;
 
     /**
