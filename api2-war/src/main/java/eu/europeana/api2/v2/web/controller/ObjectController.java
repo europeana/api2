@@ -174,7 +174,7 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param wskey          pre-api term for 'apikey'
-     * @param format supported types are 'compacted', 'flattened' and 'normalized'
+     * @param format         supported types are 'compacted', 'flattened' and 'normalized'
      * @param callback
      * @param webRequest
      * @param servletRequest

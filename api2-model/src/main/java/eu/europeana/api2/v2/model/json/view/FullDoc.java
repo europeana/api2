@@ -11,7 +11,7 @@ import java.util.Map;
 import javax.xml.bind.annotation.XmlElement;
 
 import eu.europeana.api2.model.utils.Api2UrlService;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import eu.europeana.api2.model.xml.srw.SrwResponse;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;

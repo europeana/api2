@@ -11,7 +11,7 @@ import eu.europeana.corelib.definitions.db.entity.relational.User;
 import eu.europeana.corelib.web.utils.UrlBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;

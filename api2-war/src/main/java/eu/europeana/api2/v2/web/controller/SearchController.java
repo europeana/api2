@@ -58,8 +58,9 @@ import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -438,6 +439,7 @@ public class SearchController {
         // ALSO NOTE that the suffixes are NOT case sensitive. They are all made lowercase, except 'colourpalette'
         if (refinementArray != null) {
             for (String qf : refinementArray) {
+                qf = RegExUtils.removeAll(qf, "[()\"]");
                 if (StringUtils.contains(qf, ":")){
                     String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
                     switch (StringUtils.substringBefore(qf, ":")) {
@@ -559,8 +561,6 @@ public class SearchController {
                 }
             }
         }
-
-
         return newRefinements.toArray(new String[0]);
     }
 
