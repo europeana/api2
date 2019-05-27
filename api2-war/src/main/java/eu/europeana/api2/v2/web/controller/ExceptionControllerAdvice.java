@@ -107,12 +107,7 @@ public class ExceptionControllerAdvice {
         ControllerUtils.addResponseHeaders(response);
         response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
         String requestedMediaType = ControllerUtils.getRequestedMediaType(request);
-        String errorMsg;
-        if (StringUtils.isNotBlank(requestedMediaType)){
-            errorMsg = "The resource identified by this request cannot generate a response of type " + requestedMediaType;
-        } else {
-            errorMsg = "";
-        }
+        String errorMsg = "The resource identified by this request cannot generate a response of type " + requestedMediaType;
         return JsonUtils.toJson(new ApiError("", errorMsg));
     }
 
@@ -130,12 +125,7 @@ public class ExceptionControllerAdvice {
         ControllerUtils.addResponseHeaders(response);
         response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
         String requestedContentType = ControllerUtils.getRequestedContentType(request);
-        String errorMsg;
-        if (StringUtils.isNotBlank(requestedContentType)){
-            errorMsg = "Content type '" + requestedContentType + " not supported";
-        } else {
-            errorMsg = "";
-        }
+        String errorMsg = "Content type '" + requestedContentType + " not supported";
         return JsonUtils.toJson(new ApiError("", errorMsg));
     }
 
