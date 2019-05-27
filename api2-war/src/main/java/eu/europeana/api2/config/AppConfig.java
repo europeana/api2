@@ -55,12 +55,17 @@ public class AppConfig {
     private String portalBaseUrl;
     @Value("${api2.baseUrl:}")
     private String api2BaseUrl;
+
+    @Deprecated
     @Value("${sitemap.s3.key}")
     private String key;
+    @Deprecated
     @Value("${sitemap.s3.secret}")
     private String secret;
+    @Deprecated
     @Value("${sitemap.s3.region}")
     private String region;
+    @Deprecated
     @Value("${sitemap.s3.bucket}")
     private String bucket;
 
@@ -251,10 +256,11 @@ public class AppConfig {
      * At the moment we use Amazon S3
      * @return ObjectStorageClient bean
      */
-    @Bean(name = "api_sitemap_object_storage")
-    public ObjectStorageClient objectStorageClient(){
-        LOG.info("Creating new sitemap objectStorage client");
-        return new S3ObjectStorageClient(key,secret,region,bucket);
-    }
+//    @Deprecated
+//    @Bean(name = "api_sitemap_object_storage")
+//    public ObjectStorageClient objectStorageClient(){
+//        LOG.info("Creating new sitemap objectStorage client");
+//        return new S3ObjectStorageClient(key,secret,region,bucket);
+//    }
 
 }
