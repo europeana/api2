@@ -78,6 +78,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 
 /**
  * Controller that handles all search requests (search.json, opensearch.rss, search.rss, and search.kml)
@@ -915,6 +916,29 @@ public class SearchController {
         response.setContentType("application/xml");
 
         return new ModelAndView("rss", model);
+    }
+
+    /**
+     * Temporary method to facilitate debugging the facet tags
+     *
+     * @return the JSON response
+     */
+    @SwaggerIgnore
+    @GetMapping(value = "/v2/tagdecoder.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView searchJson(
+            @RequestParam(value = "tag") String tag) {
+
+        String decodedTagName;
+        String decodedTagValue;
+        if (tag.matches("[0-9]+") && tag.length() > 7) {
+            decodedTagName = decodeFacetTag(Integer.valueOf(tag), true);
+            decodedTagValue = decodeFacetTag(Integer.valueOf(tag), false);
+        } else {
+            decodedTagName = "You're not doing it right, dude / diderina";
+            decodedTagValue = "a tag must be numerical and 8 digits long";
+        }
+
+        return JsonUtils.toJson(decodedTagName + ": " + decodedTagValue);
     }
 
     /**

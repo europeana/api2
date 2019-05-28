@@ -797,7 +797,7 @@ public class CommonTagExtractor {
     /**
      * Codifies the given mimetype
      * @param type the mimetype of the resource
-     * @return the integer represantation of the mimetype
+     * @return the integer representation of the mimetype
      */
     public static Integer getMimeTypeCode(final String type) {
         Integer retval = StringUtils.isNotBlank(type) ? mimeTypes.get(type.toLowerCase()) : 0;
