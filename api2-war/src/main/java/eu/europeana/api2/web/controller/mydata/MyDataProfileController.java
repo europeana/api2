@@ -1,20 +1,3 @@
-/*
- * Copyright 2007-2015 The Europeana Foundation
- *
- * Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
- * by the European Commission;
- * You may not use this work except in compliance with the Licence.
- *
- * You may obtain a copy of the Licence at:
- * http://joinup.ec.europa.eu/software/page/eupl
- *
- * Unless required by applicable law or agreed to in writing, software distributed under
- * the Licence is distributed on an "AS IS" basis, without warranties or conditions of
- * any kind, either express or implied.
- * See the Licence for the specific language governing permissions and limitations under
- * the Licence.
- */
-
 package eu.europeana.api2.web.controller.mydata;
 
 import eu.europeana.api2.utils.JsonUtils;
@@ -35,25 +18,25 @@ import java.security.Principal;
 /**
  * @deprecated 2018-01-09 old MyEuropeana functionality
  */
-//@Controller
-//@Api(value = "my_data", description = " ")
+@Controller
+@Api(value = "my_data", description = " ")
 @Deprecated
 public class MyDataProfileController extends AbstractUserController {
 
-//    @ApiOperation(value = "lets the user fetch their profile", nickname = "fetchMyDataProfile")
-//    @RequestMapping(value = "/mydata/profile", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-//    public ModelAndView defaultAction(
-//            @RequestParam(value = "callback", required = false) String callback,
-//            Principal principal) {
-//        Profile response = new Profile(principal.getName());
-//        User user = getUserByApiId(principal.getName());
-//        if (user != null) {
-//            response.copyDetails(user);
-//        } else {
-//            response.success = false;
-//            response.error = "Invalid credentials";
-//        }
-//        return JsonUtils.toJson(response, callback);
-//    }
+    @ApiOperation(value = "lets the user fetch their profile", nickname = "fetchMyDataProfile")
+    @RequestMapping(value = "/mydata/profile", produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+    public ModelAndView defaultAction(
+            @RequestParam(value = "callback", required = false) String callback,
+            Principal principal) {
+        Profile response = new Profile(principal.getName());
+        User user = getUserByApiId(principal.getName());
+        if (user != null) {
+            response.copyDetails(user);
+        } else {
+            response.success = false;
+            response.error = "Invalid credentials";
+        }
+        return JsonUtils.toJson(response, callback);
+    }
 
 }

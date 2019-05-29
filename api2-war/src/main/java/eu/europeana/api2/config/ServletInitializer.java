@@ -33,8 +33,7 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     @Override
     protected WebApplicationContext createRootApplicationContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-//        context.register(AppConfig.class, OAuth2ServerConfig.class, SecurityConfig.class);
-        context.register(AppConfig.class, SecurityConfig.class);
+        context.register(AppConfig.class, OAuth2ServerConfig.class, SecurityConfig.class);
         new VcapPropertyLoader();
         return context;
     }
