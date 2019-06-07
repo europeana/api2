@@ -6,8 +6,7 @@ published to Artifactory.
 ## Build
 ```shell
 export VERSION=2.8.7
-docker build -f Dockerfile.artifactory \
-             -t europeana/search-api:${VERSION} \
+docker build -t europeana/search-api:${VERSION} \
              --build-arg version=${VERSION} .
 ```
 
