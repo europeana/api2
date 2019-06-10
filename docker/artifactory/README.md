@@ -1,12 +1,16 @@
-# Europeana Search API Docker image builder
+# Europeana Record API: Docker image builder
 
 This will build a Docker image from a version of API2 already built and
 published to Artifactory.
 
+## Version
+``shell
+export VERSION=2.8.7
+```
+
 ## Build
 ```shell
-export VERSION=2.8.7
-docker build -t europeana/search-api:${VERSION} \
+docker build -t europeana/record-api:${VERSION} \
              --build-arg version=${VERSION} .
 ```
 
@@ -16,14 +20,12 @@ docker build -t europeana/search-api:${VERSION} \
 
 ## Run
 ```shell
-export VERSION=2.8.7
 docker run -p 8080:8080 \
            --env-file=.env \
-           europeana/search-api:${VERSION}
+           europeana/record-api:${VERSION}
 ```
 
 ## Publish
 ```shell
-export VERSION=2.8.7
-docker push europeana/search-api:${VERSION}
+docker push europeana/record-api:${VERSION}
 ```
