@@ -12,7 +12,7 @@ COPY ./europeana.env.properties ./webapps/api/europeana.env.properties
 RUN apt-get update && \
     # gettext-base for envsubst, used by env-catalina.sh
     apt-get install -yq --no-install-recommends curl gettext-base && \
-    curl -s -o webapps/api.war ${url}${path}${version}/api2-war-${version}.war && \
+    curl -f -o webapps/api.war ${url}${path}${version}/api2-war-${version}.war && \
     apt-get remove -y -q --purge curl && \
     apt-get autoremove -y -q && \
     rm -rf /var/lib/apt/lists/* && \
@@ -23,4 +23,5 @@ RUN apt-get update && \
     jar -xvf ../api.war && \
     rm ../api.war
 
-CMD ["env-catalina.sh"]
+ENTRYPOINT ["env-catalina.sh"]
+CMD ["catalina.sh", "run"]
