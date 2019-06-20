@@ -24,6 +24,9 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Controller for redirects urls (e.g. values of edmIsShownAt and edmIsShownBy fields)
  * Only redirecting to urls that are in the Solr index are allowed
+ *
+ * @deprecated June 2019 we no longer generate redirect-urls for edmIsShownAt values. However since saved old record data
+ * with redirect urls may still be around we will keep this class for the time being.
  */
 @Deprecated
 @Controller
