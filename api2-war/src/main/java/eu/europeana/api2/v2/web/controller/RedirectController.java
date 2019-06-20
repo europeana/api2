@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
  * Controller for redirects urls (e.g. values of edmIsShownAt and edmIsShownBy fields)
  * Only redirecting to urls that are in the Solr index are allowed
  */
+@Deprecated
 @Controller
 public class RedirectController {
 

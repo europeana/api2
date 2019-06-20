@@ -35,7 +35,6 @@ public class FullView implements FullBean {
     private Api2UrlService urlService;
     private Date timestampCreated;
     private Date timestampUpdated;
-    private boolean urlified = false;
 
     public FullView(FullBean bean, String profile, String apiKey) {
         this.bean = bean;
@@ -112,16 +111,7 @@ public class FullView implements FullBean {
         List<Aggregation> items = (List<Aggregation>) bean.getAggregations();
         for (Aggregation item : items) {
             item.setId(null);
-
-            String isShownAt = item.getEdmIsShownAt();
-            if (!urlified && isShownAt != null) {
-                String provider = item.getEdmProvider().values().iterator().next().get(0);
-                String isShownAtLink = urlService.getRedirectUrl(apiKey, isShownAt, provider, bean.getAbout(), profile);
-                item.setEdmIsShownAt(isShownAtLink);
-                urlified = true; // do this ONLY ONCE
-            }
-
-            // remove webresources IDs
+            // also remove webresources IDs
             for (int j = 0, lw = item.getWebResources().size(); j < lw; j++) {
                 item.getWebResources().get(j).setId(null);
             }
