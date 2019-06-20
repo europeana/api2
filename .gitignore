@@ -9,7 +9,7 @@
 *~
 *.bak
 
-# Occult stuff & shit
+# Local user-specific configuration
 **/europeana.user.properties
 
 # docker stuff
@@ -18,3 +18,7 @@ docker/tomcat/api.war
 
 # Swagger UI
 /api2-war/src/main/webapp/docs/
+
+.env
+.env.*
+!.env.example
