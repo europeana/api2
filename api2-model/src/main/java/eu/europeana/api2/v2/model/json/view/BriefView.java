@@ -352,18 +352,12 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         if (ArrayUtils.isEmpty(bean.getEdmIsShownAt())) {
             return bean.getEdmIsShownAt();
         }
-        String[] temp = getProvider();
-        String provider = "";
-        if (temp != null) {
-            provider = temp[0];
-        }
         List<String> isShownAtLinks = new ArrayList<>();
         for (String isShownAt : bean.getEdmIsShownAt()) {
             if (StringUtils.isBlank(bean.getEdmIsShownAt()[0])) {
                 continue;
             }
-            String isShownAtLink = urlService.getRedirectUrl(wskey, isShownAt, provider, bean.getId(), profile);
-            isShownAtLinks.add(isShownAtLink);
+            isShownAtLinks.add(isShownAt);
         }
         return isShownAtLinks.toArray(new String[0]);
     }
