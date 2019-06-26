@@ -148,7 +148,7 @@ public class Api2UrlService {
         return url.toString();
     }
 
-
+    @Deprecated
     public String getRedirectUrl(String wskey, String isShownAtUri, String provider, String europeanaId, String profile) {
         UrlBuilder url = new UrlBuilder(this.getApi2BaseUrl())
                 .addPath("api", String.valueOf(wskey), "redirect").disableTrailingSlash()
