@@ -138,6 +138,22 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     @Override
+    public Integer getContentTier() {
+        if (isProfile(Profile.DEBUG)) {
+            return bean.getContentTier();
+        }
+        return null;
+    }
+
+    @Override
+    public String getMetadataTier() {
+        if (isProfile(Profile.DEBUG)) {
+            return bean.getMetadataTier();
+        }
+        return null;
+    }
+
+    @Override
     public String[] getEdmPlace() {
         if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
             return new String[0];
@@ -283,6 +299,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
      * (this is similar to edmPreview generation for records in FullView class)
      * @return String array containing thumbnail links
      */
+    @SuppressWarnings("squid:S2384") // no need to make copy of result as we generate on the fly
     private String[] getThumbnails() {
         if (thumbnails == null) {
             List<String> thumbs = new ArrayList<>();
