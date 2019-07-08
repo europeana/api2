@@ -417,22 +417,23 @@ public class SearchController {
      */
     private String[] processQfParameters(String[] refinementArray, Boolean media, Boolean thumbnail, Boolean fullText,
                                          Boolean landingPage, List<Integer> filterTags) {
-        boolean      hasImageRefinements      = false;
-        boolean      hasSoundRefinements      = false;
-        boolean      hasVideoRefinements      = false;
-        List<String> newRefinements           = new ArrayList<>();
-        List<String> imageMimeTypeRefinements = new ArrayList<>();
-        List<String> soundMimeTypeRefinements = new ArrayList<>();
-        List<String> videoMimeTypeRefinements = new ArrayList<>();
-        List<String> otherMimeTypeRefinements = new ArrayList<>();
-        List<String> imageSizeRefinements     = new ArrayList<>();
-        List<String> imageAspectRatioRefinements = new ArrayList<>();
-        List<String> soundDurationRefinements = new ArrayList<>();
-        List<String> videoDurationRefinements = new ArrayList<>();
-        List<String> imageColourSpaceRefinements = new ArrayList<>();
-        List<String> videoHDRefinements = new ArrayList<>();
-        List<String> soundHQRefinements = new ArrayList<>();
-        List<String> imageColourPaletteRefinements = new ArrayList<>(); //Note: ColourPalette is a parameter; imageColourPaletteRefinements are facets
+        boolean      hasImageRefinements            = false;
+        boolean      hasSoundRefinements            = false;
+        boolean      hasVideoRefinements            = false;
+        List<String> newRefinements                 = new ArrayList<>();
+        List<String> imageMimeTypeRefinements       = new ArrayList<>();
+        List<String> soundMimeTypeRefinements       = new ArrayList<>();
+        List<String> videoMimeTypeRefinements       = new ArrayList<>();
+        List<String> otherMimeTypeRefinements       = new ArrayList<>();
+        List<String> imageSizeRefinements           = new ArrayList<>();
+        List<String> imageAspectRatioRefinements    = new ArrayList<>();
+        List<String> soundDurationRefinements       = new ArrayList<>();
+        List<String> videoDurationRefinements       = new ArrayList<>();
+        List<String> imageColourSpaceRefinements    = new ArrayList<>();
+        List<String> videoHDRefinements             = new ArrayList<>();
+        List<String> soundHQRefinements             = new ArrayList<>();
+        // NOTE: ColourPalette is a *parameter*; imageColourPaletteRefinements are *facets*
+        List<String> imageColourPaletteRefinements  = new ArrayList<>();
 
         // retrieves the faceted refinements from the QF part of the request and stores them separately
         // the rest of the refinements is kept in the refinementArray
@@ -440,7 +441,6 @@ public class SearchController {
         // ALSO NOTE that the suffixes are NOT case sensitive. They are all made lowercase, except 'colourpalette'
         if (refinementArray != null) {
             for (String qf : refinementArray) {
-                qf = RegExUtils.removeAll(qf, "[()\"]");
                 if (StringUtils.contains(qf, ":")){
                     String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
                     switch (StringUtils.substringBefore(qf, ":")) {
