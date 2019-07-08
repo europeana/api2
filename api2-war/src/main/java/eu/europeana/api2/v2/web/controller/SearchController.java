@@ -441,7 +441,6 @@ public class SearchController {
         // ALSO NOTE that the suffixes are NOT case sensitive. They are all made lowercase, except 'colourpalette'
         if (refinementArray != null) {
             for (String qf : refinementArray) {
-//                qf = RegExUtils.removeAll(qf, "[()\"]");
                 if (StringUtils.contains(qf, ":")){
                     String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
                     switch (StringUtils.substringBefore(qf, ":")) {
