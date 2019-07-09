@@ -7,6 +7,8 @@
 		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
 		"dcterms": "http://purl.org/dc/terms/",
 		"foaf": "http://xmlns.com/foaf/0.1/",
-		"geo": "http://www.w3.org/2003/01/geo/wgs84_pos#"
+		"geo": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+		"oa": "http://www.w3.org/ns/oa#",
+		"dqv": "http://www.w3.org/ns/dqv#"
 	}
 }
