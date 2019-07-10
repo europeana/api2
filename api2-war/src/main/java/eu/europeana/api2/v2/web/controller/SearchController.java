@@ -368,9 +368,13 @@ public class SearchController {
                 LOG.error("This is the \"field 'what' was indexed without offsets\"-error, see EA-1441 when executing search: " + SEARCHJSON);
                 response.setStatus(400);
                 return JsonUtils.toJson(new ApiError(wskey, "Solr indexing error, occurs when hits.fl parameter contains '*'"));
+            } else if (e.getProblem().equals(ProblemType.SOLR_ERROR)){
+                response.setStatus(400); // e.g. SOLR cannot handle weird parameter value
+                LOG.error(wskey + SEARCHJSON + e.getProblem().getMessage(), e);
+                return JsonUtils.toJson(new ApiError(wskey, (StringUtils.removeEnd(e.getProblem().getMessage(), ".") + ": "
+                                                             + RegExUtils.removeFirst(e.getCause().getMessage(), "^.+?https?:.+?\\s"))));
             } else if (e.getProblem().equals(ProblemType.CANT_CONNECT_ZOOKEEPER) ||
-                       e.getProblem().equals(ProblemType.CANT_CONNECT_SOLR) ||
-                       e.getProblem().equals(ProblemType.SOLR_ERROR)){
+                       e.getProblem().equals(ProblemType.CANT_CONNECT_SOLR)){
                 response.setStatus(503); // Service temporarily unavailable
                 LOG.error(wskey + SEARCHJSON + e.getProblem().getMessage(), e);
                 return JsonUtils.toJson(new ApiError(wskey, (e.getProblem().getMessage() + ": " + e.getMessage())));
