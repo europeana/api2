@@ -7,6 +7,10 @@ import eu.europeana.api2.v2.model.xml.srw.EchoedSearchRetrieveRequest;
 import eu.europeana.api2.v2.model.xml.srw.Records;
 import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
 
+/**
+ * @deprecated Part of SRW responses which officially isn't supported any more
+ */
+@Deprecated
 @XmlRootElement(name = "searchRetrieveResponse")
 public class SrwResponse {
 

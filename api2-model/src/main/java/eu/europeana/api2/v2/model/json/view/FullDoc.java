@@ -26,7 +26,9 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 /**
  * This class is only used in old SRW responses
+ * @deprecated officially not supported any more
  */
+@Deprecated
 @JsonPropertyOrder(alphabetic=true)
 public class FullDoc {
 

@@ -287,6 +287,10 @@ public class ObjectController {
      */
     // 2017-06-16 This code hasn't been used for a long time (not a single .srw request was logged in Kibana)
     // However, depending on the results of a to-be-held survey among developers we may bring this back to life again
+    /**
+     * @deprecated Part of SRW responses which officially isn't supported any more
+     */
+    @Deprecated
     @SwaggerIgnore
     @RequestMapping(value = "/{collectionId}/{recordId}.srw",
                     method = {RequestMethod.GET, RequestMethod.POST},
@@ -472,6 +476,7 @@ public class ObjectController {
         return new ModelAndView("rdf", model);
     }
 
+    @Deprecated
     private SrwResponse generateSrw(FullBean bean) {
         SrwResponse srwResponse = new SrwResponse();
         FullDoc     doc         = new FullDoc(bean); // TODO this will generate date ParseExceptions, need to investigate
