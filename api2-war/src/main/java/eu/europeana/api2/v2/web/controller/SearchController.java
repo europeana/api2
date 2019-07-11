@@ -354,23 +354,27 @@ public class SearchController {
             return JsonUtils.toJson(result, callback);
 
         } catch (SolrTypeException e) {
-            if(e.getProblem().equals(ProblemType.PAGINATION_LIMIT_REACHED)) {
+            if (ProblemType.PAGINATION_LIMIT_REACHED.equals(e.getProblem())){
                 // not a real error so we log it as a warning instead
                 LOG.warn(wskey + SEARCHJSON + e.getProblem().getMessage());
-            } else if (e.getProblem().equals(ProblemType.INVALID_THEME)) {
+            } else if (ProblemType.INVALID_THEME.equals(e.getProblem())) {
                 // not a real error so we log it as a warning instead
                 LOG.warn(wskey + SEARCHJSON + e.getProblem().getMessage());
                 response.setStatus(400);
                 return JsonUtils.toJson(new ApiError(wskey, "Theme '" +
                                                             StringUtils.substringBetween(e.getCause().getCause().toString(), "Collection \"","\" not defined") +
                                                             "' is not defined"), callback);
-            } else if (e.getProblem().equals(ProblemType.NO_LIVE_SOLR) && StringUtils.contains(query.getParameterMap().get("hl.fl"), '*')) {
+            } else if (ProblemType.NO_LIVE_SOLR.equals(e.getProblem()) && StringUtils.contains(query.getParameterMap().get("hl.fl"), '*')) {
                 LOG.error("This is the \"field 'what' was indexed without offsets\"-error, see EA-1441 when executing search: " + SEARCHJSON);
                 response.setStatus(400);
                 return JsonUtils.toJson(new ApiError(wskey, "Solr indexing error, occurs when hits.fl parameter contains '*'"));
-            } else if (e.getProblem().equals(ProblemType.CANT_CONNECT_ZOOKEEPER) ||
-                       e.getProblem().equals(ProblemType.CANT_CONNECT_SOLR) ||
-                       e.getProblem().equals(ProblemType.SOLR_ERROR)){
+            } else if (ProblemType.SOLR_ERROR.equals(e.getProblem())){
+                response.setStatus(400); // e.g. SOLR cannot handle weird parameter value
+                LOG.error(wskey + SEARCHJSON + e.getProblem().getMessage(), e);
+                return JsonUtils.toJson(new ApiError(wskey, (StringUtils.removeEnd(e.getProblem().getMessage(), ".") + ": "
+                                                             + RegExUtils.removeFirst(e.getCause().getMessage(), "^.+?https?:.+?\\s"))));
+            } else if (ProblemType.CANT_CONNECT_ZOOKEEPER.equals(e.getProblem()) ||
+                       ProblemType.CANT_CONNECT_SOLR.equals(e.getProblem())) {
                 response.setStatus(503); // Service temporarily unavailable
                 LOG.error(wskey + SEARCHJSON + e.getProblem().getMessage(), e);
                 return JsonUtils.toJson(new ApiError(wskey, (e.getProblem().getMessage() + ": " + e.getMessage())));
