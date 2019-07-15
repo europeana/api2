@@ -17,8 +17,10 @@ import java.io.IOException;
  * Handles requests for sitemap files
  * @author luthien, created on 07/12/2015.
  * @author Patrick Ehlert, major refactoring on 21/08/2017
+ * @deprecated 20 May 2019, all sitemap files are now served by the sitemap application itself
  */
-@RestController
+@Deprecated
+//@RestController
 public class SitemapController {
 
     private static final Logger LOG = Logger.getLogger(SitemapController.class);
@@ -26,7 +28,7 @@ public class SitemapController {
     private static final String INDEX_FILE = "europeana-sitemap-index-hashed.xml";
     private static final String ACTIVE_SITEMAP_FILE = "europeana-sitemap-active-xml-file.txt";
 
-    @Resource(name = "api_sitemap_object_storage")
+    //@Resource(name = "api_sitemap_object_storage")
     private ObjectStorageClient objectStorageClient;
 
     /**

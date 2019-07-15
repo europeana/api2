@@ -8,17 +8,17 @@ import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
+import eu.europeana.corelib.neo4j.Neo4jSearchService;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.neo4j.exception.Neo4JException;
-import eu.europeana.corelib.neo4j.Neo4jSearchService;
 import eu.europeana.corelib.web.exception.EmailServiceException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.service.EmailService;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.scheduling.annotation.Async;
@@ -52,16 +52,22 @@ public class HierarchyRunner {
 
     @Async
     public ModelAndView call(RecordType recordType,
-                                     String rdfAbout, String profile,
-                                     String wskey, int limit, int offset, String callback,
-                                     HttpServletRequest request, HttpServletResponse response,
-                                     ApiKeyUtils apiKeyUtils, Neo4jSearchService searchService) {
+                             String rdfAbout,
+                             String profile,
+                             String wskey,
+                             int limit,
+                             int offset,
+                             String callback,
+                             HttpServletRequest request,
+                             HttpServletResponse response,
+                             ApiKeyUtils apiKeyUtils,
+                             Neo4jSearchService searchService) {
 
         this.searchService = searchService;
         LOG.debug("Running thread for {}", rdfAbout);
 
         long selfIndex = 0L;
-        long t0 = System.currentTimeMillis();
+        long t0        = System.currentTimeMillis();
         ControllerUtils.addResponseHeaders(response);
 
         limit = Math.min(limit, MAX_LIMIT);
@@ -91,25 +97,19 @@ public class HierarchyRunner {
             LOG.debug("Init object: {}", (System.currentTimeMillis() - t1));
         }
         t1 = System.currentTimeMillis();
-        try{
+        try {
             hierarchicalResult.self = searchService.getSingle(rdfAbout);
             if (hierarchicalResult.self != null) {
-                if (hierarchicalResult.self.hasChildren() &&
-                        hierarchicalResult.self.getChildrenCount() == 0){
-                    throw new Neo4JException(ProblemType.NEO4J_502, " for record " + rdfAbout);
+                if (hierarchicalResult.self.hasChildren() && hierarchicalResult.self.getChildrenCount() == 0) {
+                    throw new Neo4JException(ProblemType.NEO4J_502_BAD_DATA);
                 }
                 selfIndex = hierarchicalResult.self.getIndex();
-            } else {
-                hierarchicalResult.success = false;
-                response.setStatus(404);
-                return JsonUtils.toJson(new ApiError(wskey, "Invalid record identifier: "+ rdfAbout,
-                        limitResponse.getRequestNumber()), callback);
             }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("get self: {} ", (System.currentTimeMillis() - t1));
-        }
-        t1 = System.currentTimeMillis();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("get self: {} ", (System.currentTimeMillis() - t1));
+            }
+            t1 = System.currentTimeMillis();
 
             if (recordType.equals(RecordType.HIERARCHY_CHILDREN)) {
                 if (hierarchicalResult.self.getChildrenCount() > 0) {
@@ -117,46 +117,52 @@ public class HierarchyRunner {
                     if (hierarchicalResult.children == null || hierarchicalResult.children.isEmpty()) {
                         hierarchicalResult.message = "This record has no children";
                         hierarchicalResult.success = false;
-                        response.setStatus(404);
+                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     }
                 } else {
                     hierarchicalResult.message = "This record has no children";
                     hierarchicalResult.success = false;
-                    response.setStatus(404);
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_PARENT)) {
                 if (hierarchicalResult.self == null || StringUtils.isBlank(hierarchicalResult.self.getParent())) {
                     hierarchicalResult.message = "This record has no parent";
                     hierarchicalResult.success = false;
-                    response.setStatus(404);
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 } else {
                     hierarchicalResult.parent = searchService.getSingle(hierarchicalResult.self.getParent());
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_FOLLOWING_SIBLINGS)) {
-                hierarchicalResult.followingSiblings = searchService.getFollowingSiblings(rdfAbout, offset, limit, selfIndex);
+                hierarchicalResult.followingSiblings = searchService.getFollowingSiblings(rdfAbout,
+                                                                                          offset,
+                                                                                          limit,
+                                                                                          selfIndex);
                 if (hierarchicalResult.followingSiblings == null || hierarchicalResult.followingSiblings.isEmpty()) {
                     hierarchicalResult.message = "This record has no following siblings";
                     hierarchicalResult.success = false;
-                    response.setStatus(404);
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_PRECEDING_SIBLINGS)) {
-                hierarchicalResult.precedingSiblings = searchService.getPrecedingSiblings(rdfAbout, offset, limit, selfIndex);
+                hierarchicalResult.precedingSiblings = searchService.getPrecedingSiblings(rdfAbout,
+                                                                                          offset,
+                                                                                          limit,
+                                                                                          selfIndex);
                 if (hierarchicalResult.precedingSiblings == null || hierarchicalResult.precedingSiblings.isEmpty()) {
                     hierarchicalResult.message = "This record has no preceding siblings";
                     hierarchicalResult.success = false;
-                    response.setStatus(404);
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 }
             } else if (recordType.equals(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS)) {
                 Neo4jStructBean struct = searchService.getInitialStruct(rdfAbout, selfIndex);
                 if (struct == null) {
-                    hierarchicalResult.message = "This record has no hierarchical structure "+ rdfAbout;
+                    hierarchicalResult.message = "No hierarchical information found for record " + rdfAbout;
                     hierarchicalResult.success = false;
-                    response.setStatus(404);
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 } else {
-                    String partialErrorMsg = "This record has no";
-                    boolean hasParent = true;
-                    boolean hasFollowing = true;
-                    boolean hasPreceding = true;
+                    String  partialErrorMsg = "This record has no";
+                    boolean hasParent       = true;
+                    boolean hasFollowing    = true;
+                    boolean hasPreceding    = true;
                     // reversed order
                     if (struct.getParents() != null && !struct.getParents().isEmpty()) {
                         List<Neo4jBean> tempParents = struct.getParents();
@@ -175,39 +181,64 @@ public class HierarchyRunner {
                     } else {
                         hasPreceding = false;
                     }
-                    if (!hasParent){
+                    if (!hasParent) {
                         partialErrorMsg += " parent";
-                        if (!hasFollowing || !hasPreceding){
+                        if (!hasFollowing || !hasPreceding) {
                             partialErrorMsg += " or";
                         }
                     }
-                    if (!hasFollowing && !hasPreceding){
+                    if (!hasFollowing && !hasPreceding) {
                         partialErrorMsg += " siblings";
-                    } else if (hasFollowing && !hasPreceding){
+                    } else if (hasFollowing && !hasPreceding) {
                         partialErrorMsg += " preceding siblings";
-                    } else if (!hasFollowing){
+                    } else if (!hasFollowing) {
                         partialErrorMsg += " following siblings";
                     }
                     if (!hasParent || !hasFollowing || !hasPreceding) {
                         hierarchicalResult.message = partialErrorMsg;
                     }
 
-                    if (struct.getPrecedingSiblingChildren() != null && !struct.getPrecedingSiblingChildren().isEmpty()) {
+                    if (struct.getPrecedingSiblingChildren() != null &&
+                        !struct.getPrecedingSiblingChildren().isEmpty()) {
                         hierarchicalResult.precedingSiblingChildren = struct.getPrecedingSiblingChildren();
                     }
-                    if (struct.getFollowingSiblingChildren() != null && !struct.getFollowingSiblingChildren().isEmpty()) {
+                    if (struct.getFollowingSiblingChildren() != null &&
+                        !struct.getFollowingSiblingChildren().isEmpty()) {
                         hierarchicalResult.followingSiblingChildren = struct.getFollowingSiblingChildren();
                     }
                 }
             }
         } catch (Neo4JException e) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            LOG.error("Neo4JException thrown: {}", e.getMessage());
-            if (null != e.getCause()) LOG.error("Cause: {}", e.getCause());
-            // TODO re-enable mail sending at some time?
-//            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)) sendExceptionEmail(e);
-            return JsonUtils.toJson(new ApiError(wskey, e.getMessage(), -1L), callback);
+            hierarchicalResult.success = false;
+            String message;
 
+            if (e.getProblem().equals(ProblemType.NEO4J_404)) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                message = "Requested hierarchical information not found for record " + rdfAbout;
+                LOG.debug(message);
+            } else if (e.getProblem().equals(ProblemType.NEO4J_502_BAD_DATA)) {
+                response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+                message = "Inconsistency found in hierarchical data for record " + rdfAbout;
+                LOG.warn(message);
+            } else if (e.getProblem().equals(ProblemType.NEO4J_503_CONNECTION)) {
+                response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+                message = "Couldn't connect to Neo4j hierarchical database";
+                if (null != e.getCause()) LOG.error(message + ". Cause: {}", e.getCause());
+                else LOG.error(message);
+            } else if (e.getProblem().equals(ProblemType.NEO4J_500)) {
+                response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+                message = "Could not process request because Neo4j hierarchical database returned an error";
+                LOG.error(message);
+            } else {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                message = "Error processing hierarchical request";
+                LOG.error(message);
+            }
+            return JsonUtils.toJson(new ApiError(wskey,
+                                                 message,
+                                                 -1L), callback);
+            // TODO check if can we dismiss this
+//            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)) sendExceptionEmail(e);
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("get main: {}", (System.currentTimeMillis() - t1));

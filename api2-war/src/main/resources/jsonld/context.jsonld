@@ -1,12 +1,21 @@
 {
 	"@context": {
-		"ore": "http://www.openarchives.org/ore/terms/",
-		"skos": "http://www.w3.org/2004/02/skos/core#",
-		"dc": "http://purl.org/dc/elements/1.1/",
-		"edm": "http://www.europeana.eu/schemas/edm/",
 		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+		"dc": "http://purl.org/dc/elements/1.1/",
 		"dcterms": "http://purl.org/dc/terms/",
+		"edm": "http://www.europeana.eu/schemas/edm/",
+		"owl": "http://www.w3.org/2002/07/owl#",
+		"wgs84_pos": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+		"skos": "http://www.w3.org/2004/02/skos/core#",
+        "rdaGr2": "http://rdvocab.info/ElementsGr2/",
 		"foaf": "http://xmlns.com/foaf/0.1/",
-		"geo": "http://www.w3.org/2003/01/geo/wgs84_pos#"
+		"ebucore": "http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#",
+		"doap": "http://usefulinc.com/ns/doap#",
+		"odrl": "http://www.w3.org/ns/odrl/2/",
+		"cc": "http://creativecommons.org/ns#",
+		"ore": "http://www.openarchives.org/ore/terms/",
+		"svcs": "http://rdfs.org/sioc/services#",
+		"oa": "http://www.w3.org/ns/oa#",
+		"dqv": "http://www.w3.org/ns/dqv#"
 	}
 }

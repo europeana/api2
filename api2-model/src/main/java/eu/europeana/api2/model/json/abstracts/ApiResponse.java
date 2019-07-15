@@ -2,8 +2,8 @@ package eu.europeana.api2.model.json.abstracts;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.europeana.corelib.utils.StringArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.Date;
 import java.util.LinkedHashMap;

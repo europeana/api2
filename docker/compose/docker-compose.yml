@@ -48,7 +48,7 @@ services:
     # Mount point for application in tomcat
     # (the target folder on your workspace is directly mounted to the tomcat container)
     volumes:
-      - ../api2-war/target/api:/tomcat/webapps/api
+      - ../../api2-war/target/api:/tomcat/webapps/api
     links:
       - graph-database:api-neo4j-database
       - relational-database:api-postgresql-database

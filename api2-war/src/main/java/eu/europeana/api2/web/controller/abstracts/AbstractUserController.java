@@ -28,7 +28,7 @@ public abstract class AbstractUserController {
 
 	@Resource(name = "corelib_db_apiKeyService")
 	protected ApiKeyService apiKeyService;
-	
+
 	@Resource
 	private Api2UrlService urlService;
 

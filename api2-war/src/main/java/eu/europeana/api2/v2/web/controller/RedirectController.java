@@ -7,7 +7,7 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.web.exception.EuropeanaException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
@@ -24,7 +24,11 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Controller for redirects urls (e.g. values of edmIsShownAt and edmIsShownBy fields)
  * Only redirecting to urls that are in the Solr index are allowed
+ *
+ * @deprecated June 2019 we no longer generate redirect-urls for edmIsShownAt values. However since saved old record data
+ * with redirect urls may still be around we will keep this class for the time being.
  */
+@Deprecated
 @Controller
 public class RedirectController {
 

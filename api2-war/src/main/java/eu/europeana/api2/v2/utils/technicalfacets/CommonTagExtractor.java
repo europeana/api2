@@ -3,17 +3,20 @@ package eu.europeana.api2.v2.utils.technicalfacets;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import java.util.Locale;
 
 /**
  * Generates the common pure tags (mimetype and mediatype)
  */
-public class CommonTagExtractor {
+@SuppressWarnings("squid:S109") // ignore 'magic numbers'
+public final class CommonTagExtractor {
 
-    private static final Logger LOG = LogManager.getLogger(CommonTagExtractor.class.getName());
+    static final BiMap<String, Integer> mimeTypes = HashBiMap.create(776);
 
-    public static final BiMap<String, Integer> mimeTypes = HashBiMap.create(776);
+    private CommonTagExtractor() {
+        // empty constructor to prevent initialization
+    }
 
     static {
         mimeTypes.put("", 0);
@@ -797,10 +800,10 @@ public class CommonTagExtractor {
     /**
      * Codifies the given mimetype
      * @param type the mimetype of the resource
-     * @return the integer represantation of the mimetype
+     * @return the integer representation of the mimetype
      */
     public static Integer getMimeTypeCode(final String type) {
-        Integer retval = StringUtils.isNotBlank(type) ? mimeTypes.get(type.toLowerCase()) : 0;
+        Integer retval = StringUtils.isNotBlank(type) ? mimeTypes.get(type.toLowerCase(Locale.GERMAN)) : 0;
         return retval == null ? 0 : retval;
     }
 

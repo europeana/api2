@@ -10,6 +10,7 @@
 		@XmlNs(namespaceURI = SrwResponse.NS_XSI, prefix = "xsi"),
 		@XmlNs(namespaceURI = SrwResponse.NS_DCTERMS, prefix = "dcterms"),
 		@XmlNs(namespaceURI = SrwResponse.NS_DC, prefix = "dc") }, elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+
 package eu.europeana.api2.v2.model.xml.srw;
 
 import javax.xml.bind.annotation.XmlNs;

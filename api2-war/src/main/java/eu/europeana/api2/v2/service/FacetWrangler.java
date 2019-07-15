@@ -1,14 +1,13 @@
 package eu.europeana.api2.v2.service;
 
-import eu.europeana.api2.v2.exceptions.TechFacetDecodingException;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import eu.europeana.api2.v2.model.json.view.submodel.FacetRanger;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.client.solrj.response.RangeFacet.Count;
 
@@ -103,7 +102,8 @@ public class FacetWrangler {
                                 decodedTechnicalFacetName = decodeFacetTag(
                                         Integer.valueOf(encodedTechnicalFacet.getName()), true);
                                 if (decodedTechnicalFacetName.isEmpty()) {
-                                    throw new TechFacetDecodingException("Decoded technical Facet name is empty");
+                                    log.debug("Decoded technical Facet name is empty");
+                                    continue;
                                 }
                                 technicalFacetName = TechnicalFacetType.valueOf(decodedTechnicalFacetName);
 
@@ -112,7 +112,8 @@ public class FacetWrangler {
                                 final String technicalFacetLabel = decodeFacetTag(
                                         Integer.valueOf(encodedTechnicalFacet.getName()), false);
                                 if (technicalFacetLabel.isEmpty()) {
-                                    throw new TechFacetDecodingException("Technical Facet label is empty");
+                                    log.debug("Decoded technical Facet label is empty");
+                                    continue;
                                 }
 
                                 // retrieve a possibly earlier stored count value for this label. If not available,
@@ -123,11 +124,9 @@ public class FacetWrangler {
                                                                               technicalFacetFieldCount +
                                                                               (int) encodedTechnicalFacet.getCount());
                             } catch (IllegalArgumentException e) {
-                                log.error("error matching decoded technical facet name " +
+                                log.debug("error matching decoded technical facet name " +
                                           decodedTechnicalFacetName + " with enum type in [consolidateFacetList] "
                                           + e.getClass().getSimpleName(), e);
-                            } catch (TechFacetDecodingException e) {
-                                log.error("error decoding Technical Facet: " + e.getMessage());
                             }
                         }
                     }
@@ -162,13 +161,27 @@ public class FacetWrangler {
 
             TechnicalFacetType matchedFacetName;
             try {
+                boolean cantMatchFacetName = false;
+                boolean skipIfNoDefault = false;
                 matchedFacetName = TechnicalFacetType.valueOf(requestedFacetName);
                 String facetLimit  = "f." + matchedFacetName + ".facet.limit";
                 String facetOffset = "f." + matchedFacetName + ".facet.offset";
 
                 if (technicalFacetMap.get(matchedFacetName).isEmpty()) {
-                    throw new TechFacetDecodingException("couldn't match requested technical facet " + requestedFacetName);
+                    log.debug("couldn't match requested technical facet " + requestedFacetName);
+                    cantMatchFacetName = true;
                 }
+
+                final Facet facet = new Facet();
+                facet.name = matchedFacetName.getRealName();
+                if (!requestedTechnicalFacets.contains(facet.name) && !defaultFacetsRequested) {
+                    skipIfNoDefault = true; // note that this is not an error
+                }
+
+                if (cantMatchFacetName || skipIfNoDefault) {
+                    continue; // stop & proceed with next one
+                }
+
                 int from = Math.min(((null != technicalFacetOffsets && technicalFacetOffsets.containsKey(facetOffset)) ?
                                      technicalFacetOffsets.get(facetOffset) : 0),
                                     technicalFacetMap.get(matchedFacetName).size() - 1);
@@ -176,12 +189,6 @@ public class FacetWrangler {
                                      technicalFacetLimits.get(facetLimit) + from :
                                      technicalFacetMap.get(matchedFacetName).size()),
                                     technicalFacetMap.get(matchedFacetName).size());
-
-                final Facet facet = new Facet();
-                facet.name = matchedFacetName.getRealName();
-                if (!requestedTechnicalFacets.contains(facet.name) && !defaultFacetsRequested) {
-                    continue; // note that this is not an error
-                }
 
                 List<String> keyList = new ArrayList<>(technicalFacetMap.get(matchedFacetName).keySet());
                 for (int i = from; i < to; i++) {
@@ -195,8 +202,6 @@ public class FacetWrangler {
             } catch (IllegalArgumentException e) {
                 log.error("error matching requested technical facet name " + requestedFacetName +
                           " with enum type in [consolidateFacetList] " + e.getClass().getSimpleName(), e);
-            } catch (TechFacetDecodingException e) {
-                log.error("Error processing Technical Facets: " + e.getMessage());
             }
 
         }
@@ -233,7 +238,7 @@ public class FacetWrangler {
         } else if (StringUtils.containsIgnoreCase(gapString, "YEAR")) {
             return dateParts[0];
         }
-            // if in doubt, return the whole string
+        // if in doubt, return the whole string
         return value;
     }
 

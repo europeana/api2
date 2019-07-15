@@ -18,3 +18,7 @@ docker/tomcat/api.war
 
 # Swagger UI
 /api2-war/src/main/webapp/docs/
+
+.env
+.env.*
+!.env.example

@@ -6,7 +6,7 @@ import eu.europeana.api2.v2.model.NumericFacetParameter;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.corelib.definitions.solr.RangeFacetType;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 

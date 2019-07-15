@@ -5,7 +5,7 @@ import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlBuilder;
 import eu.europeana.corelib.web.utils.UrlBuilder;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 
 
@@ -148,7 +148,7 @@ public class Api2UrlService {
         return url.toString();
     }
 
-
+    @Deprecated
     public String getRedirectUrl(String wskey, String isShownAtUri, String provider, String europeanaId, String profile) {
         UrlBuilder url = new UrlBuilder(this.getApi2BaseUrl())
                 .addPath("api", String.valueOf(wskey), "redirect").disableTrailingSlash()

@@ -6,6 +6,7 @@
 	},
 	elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED
 )
+
 package eu.europeana.api2.v2.model.xml.rss.fieldtrip;
 
 import javax.xml.bind.annotation.XmlNs;

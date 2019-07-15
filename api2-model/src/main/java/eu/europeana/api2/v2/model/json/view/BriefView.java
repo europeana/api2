@@ -5,8 +5,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import java.util.*;
 
 import eu.europeana.api2.model.utils.Api2UrlService;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -135,6 +135,22 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     @Override
     public int getEuropeanaCompleteness() {
         return bean.getEuropeanaCompleteness();
+    }
+
+    @Override
+    public Integer getContentTier() {
+        if (isProfile(Profile.DEBUG)) {
+            return bean.getContentTier();
+        }
+        return null;
+    }
+
+    @Override
+    public String getMetadataTier() {
+        if (isProfile(Profile.DEBUG)) {
+            return bean.getMetadataTier();
+        }
+        return null;
     }
 
     @Override
@@ -283,6 +299,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
      * (this is similar to edmPreview generation for records in FullView class)
      * @return String array containing thumbnail links
      */
+    @SuppressWarnings("squid:S2384") // no need to make copy of result as we generate on the fly
     private String[] getThumbnails() {
         if (thumbnails == null) {
             List<String> thumbs = new ArrayList<>();
@@ -352,18 +369,12 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         if (ArrayUtils.isEmpty(bean.getEdmIsShownAt())) {
             return bean.getEdmIsShownAt();
         }
-        String[] temp = getProvider();
-        String provider = "";
-        if (temp != null) {
-            provider = temp[0];
-        }
         List<String> isShownAtLinks = new ArrayList<>();
         for (String isShownAt : bean.getEdmIsShownAt()) {
             if (StringUtils.isBlank(bean.getEdmIsShownAt()[0])) {
                 continue;
             }
-            String isShownAtLink = urlService.getRedirectUrl(wskey, isShownAt, provider, bean.getId(), profile);
-            isShownAtLinks.add(isShownAtLink);
+            isShownAtLinks.add(isShownAt);
         }
         return isShownAtLinks.toArray(new String[0]);
     }
