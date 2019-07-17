@@ -71,10 +71,28 @@ public class ObjectController {
 
     private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
+    private static Object jsonldContext = new Object();
 
     private SearchService   searchService;
     private ApiKeyUtils     apiKeyUtils;
     private HttpCacheUtils  httpCacheUtils;
+
+    /**
+     * Create a static Object for JSONLD Context. This will read the file once during initialization
+     *
+     * @param jsonldContext
+     * @throws IOException
+     */
+
+    static
+    {
+        try {
+            InputStream in = ObjectController.class.getResourceAsStream("/jsonld/context.jsonld");
+            jsonldContext= JSONUtils.fromInputStream(in);
+        } catch (IOException e) {
+            LOG.error("Error reading context.jsonld", e);
+        }
+    }
 
     /**
      * Create a new ObjectController
@@ -106,8 +124,8 @@ public class ObjectController {
      */
     @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
     @RequestMapping(value = "/{collectionId}/{recordId}.json",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            method = {RequestMethod.GET, RequestMethod.POST},
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ModelAndView record(@PathVariable String collectionId,
                                @PathVariable String recordId,
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
@@ -123,7 +141,7 @@ public class ObjectController {
             LOG.error("Error retrieving record JSON", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": " + e.getMessage(),
-                                                 data.apikeyCheckResponse.getRequestNumber()), data.callback);
+                    data.apikeyCheckResponse.getRequestNumber()), data.callback);
         }
     }
 
@@ -133,10 +151,10 @@ public class ObjectController {
      */
     @SwaggerIgnore
     @RequestMapping(value = {"/context.jsonld", "/context.json-ld"},
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+            method = {RequestMethod.GET, RequestMethod.POST},
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
-        String jsonld = JSONUtils.toString(getJsonContext());
+        String jsonld = JSONUtils.toString(jsonldContext);  // ======================================================
         return JsonUtils.toJson(jsonld, callback);
     }
 
@@ -156,8 +174,8 @@ public class ObjectController {
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @SwaggerIgnore
     @RequestMapping(value = "/{collectionId}/{recordId}.json-ld",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+            method = {RequestMethod.GET, RequestMethod.POST},
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String wskey,
@@ -184,8 +202,8 @@ public class ObjectController {
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
     @RequestMapping(value = "/{collectionId}/{recordId}.jsonld",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+            method = {RequestMethod.GET, RequestMethod.POST},
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String wskey,
@@ -220,8 +238,8 @@ public class ObjectController {
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
     @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+            method = {RequestMethod.GET, RequestMethod.POST},
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String wskey,
@@ -255,8 +273,8 @@ public class ObjectController {
      */
     @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
     @RequestMapping(value = "/{collectionId}/{recordId}.rdf",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MEDIA_TYPE_RDF_UTF8)
+            method = {RequestMethod.GET, RequestMethod.POST},
+            produces = MEDIA_TYPE_RDF_UTF8)
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "wskey") String wskey,
@@ -287,14 +305,10 @@ public class ObjectController {
      */
     // 2017-06-16 This code hasn't been used for a long time (not a single .srw request was logged in Kibana)
     // However, depending on the results of a to-be-held survey among developers we may bring this back to life again
-    /**
-     * @deprecated Part of SRW responses which officially isn't supported any more
-     */
-    @Deprecated
     @SwaggerIgnore
     @RequestMapping(value = "/{collectionId}/{recordId}.srw",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.TEXT_XML_VALUE)
+            method = {RequestMethod.GET, RequestMethod.POST},
+            produces = MediaType.TEXT_XML_VALUE)
     public @ResponseBody
     SrwResponse recordSrw(@PathVariable String collectionId,
                           @PathVariable String recordId,
@@ -323,7 +337,7 @@ public class ObjectController {
 
         // 1) Check if HTTP method is supported, HTTP 405 if not
         if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) &&
-            !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
+                !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
             response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
             return null; // figure out what to return exactly in these cases
         }
@@ -358,14 +372,14 @@ public class ObjectController {
         }
 
         /*
-        * 2017-07-06 PE: the code below was implemented as part of ticket #662. However as collections does not support this
-        * yet activation of this functionality is postponed.
-        *        if (!bean.getAbout().equals(data.europeanaObjectId)) {
-        *            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, bean.getAbout()));
-        *            return null;
-        *        }
-        *        */
+         * 2017-07-06 PE: the code below was implemented as part of ticket #662. However as collections does not support this
+         * yet activation of this functionality is postponed.
+         *        if (!bean.getAbout().equals(data.europeanaObjectId)) {
+         *            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+         *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, bean.getAbout()));
+         *            return null;
+         *        }
+         *        */
 
         // ETag is created from timestamp + api version.
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
@@ -379,15 +393,15 @@ public class ObjectController {
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
                 return null;
             }
-        // If If-Match is present: check if it contains a matching eTag OR == '*"
-        // Yes: proceed. No: return HTTP 412, no cache headers
+            // If If-Match is present: check if it contains a matching eTag OR == '*"
+            // Yes: proceed. No: return HTTP 412, no cache headers
         } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))){
             if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
                 response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
                 return null;
             }
-        // check if If-Modified-Since is present and on or after timestamp_updated
-        // yes: return HTTP 304 no: continue
+            // check if If-Modified-Since is present and on or after timestamp_updated
+            // yes: return HTTP 304 no: continue
         } else if (httpCacheUtils.isNotModifiedSince(data.servletRequest, bean.getTimestampUpdated())){
             response.setStatus(HttpServletResponse.SC_NOT_MODIFIED); // no cache headers
             return null;
@@ -455,7 +469,7 @@ public class ObjectController {
             Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
             Object raw         = JSONLD.fromRDF(modelResult, new JenaRDFParser());
             if (StringUtils.equalsIgnoreCase(data.profile, "compacted")) {
-                raw = JSONLD.compact(raw, getJsonContext(), new Options());
+                raw = JSONLD.compact(raw, jsonldContext, new Options());    //================================================
             } else if (StringUtils.equalsIgnoreCase(data.profile, "flattened")) {
                 raw = JSONLD.flatten(raw);
             } else if (StringUtils.equalsIgnoreCase(data.profile, "normalized")) {
@@ -476,7 +490,6 @@ public class ObjectController {
         return new ModelAndView("rdf", model);
     }
 
-    @Deprecated
     private SrwResponse generateSrw(FullBean bean) {
         SrwResponse srwResponse = new SrwResponse();
         FullDoc     doc         = new FullDoc(bean); // TODO this will generate date ParseExceptions, need to investigate
@@ -534,14 +547,15 @@ public class ObjectController {
         return url.toString();
     }
 
-    private Object getJsonContext() {
+   /* private Object getJsonContext() {
         try (InputStream in = this.getClass().getResourceAsStream("/jsonld/context.jsonld")) {
             return JSONUtils.fromInputStream(in);
         } catch (IOException e) {
             LOG.error("Error reading context.jsonld", e);
         }
         return null;
-    }
+    }*/
+
 
     private void createXml(SrwResponse response) throws JAXBException {
         final JAXBContext  context      = JAXBContext.newInstance(SrwResponse.class);
