@@ -5,7 +5,9 @@ import org.springframework.web.servlet.mvc.method.annotation.AbstractJsonpRespon
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
+ * @deprecated  looks like it's not used anywhere
  */
+@Deprecated
 @ControllerAdvice
 public class JsonpAdvice extends AbstractJsonpResponseBodyAdvice {
 
