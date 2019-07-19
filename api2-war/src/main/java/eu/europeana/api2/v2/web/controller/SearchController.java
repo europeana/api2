@@ -449,16 +449,19 @@ public class SearchController {
                     String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
-                            if (CommonTagExtractor.isImageMimeType(refinementValue)) {
-                                imageMimeTypeRefinements.add(refinementValue);
-                                hasImageRefinements = true;
-                            } else if (CommonTagExtractor.isSoundMimeType(refinementValue)) {
-                                soundMimeTypeRefinements.add(refinementValue);
-                                hasSoundRefinements = true;
-                            } else if (CommonTagExtractor.isVideoMimeType(refinementValue)) {
-                                videoMimeTypeRefinements.add(refinementValue);
-                                hasVideoRefinements = true;
-                            } else otherMimeTypeRefinements.add(refinementValue);
+                            if(CommonTagExtractor.isValidMimeType(refinementValue)) {       //will check if mimetype is valid
+                                if (CommonTagExtractor.isImageMimeType(refinementValue)) {
+                                    imageMimeTypeRefinements.add(refinementValue);
+                                    hasImageRefinements = true;
+                                } else if (CommonTagExtractor.isSoundMimeType(refinementValue)) {
+                                    soundMimeTypeRefinements.add(refinementValue);
+                                    hasSoundRefinements = true;
+                                } else if (CommonTagExtractor.isVideoMimeType(refinementValue)) {
+                                    videoMimeTypeRefinements.add(refinementValue);
+                                    hasVideoRefinements = true;
+                                } else
+                                    otherMimeTypeRefinements.add(refinementValue);
+                            }
                             break;
                         case "IMAGE_SIZE":
                             imageSizeRefinements.add(refinementValue);

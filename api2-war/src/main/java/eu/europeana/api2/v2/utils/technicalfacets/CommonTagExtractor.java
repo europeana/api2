@@ -5,6 +5,11 @@ import com.google.common.collect.HashBiMap;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Generates the common pure tags (mimetype and mediatype)
@@ -13,6 +18,8 @@ import java.util.Locale;
 public final class CommonTagExtractor {
 
     static final BiMap<String, Integer> mimeTypes = HashBiMap.create(776);
+    static final List<String> mimeTypesKey= new ArrayList<String>();
+    static Set<String> uniqueTypeOfMimeType= new HashSet<String>();
 
     private CommonTagExtractor() {
         // empty constructor to prevent initialization
@@ -795,7 +802,20 @@ public final class CommonTagExtractor {
         mimeTypes.put("audio/x-mpeg",773);
         mimeTypes.put("audio/mpeg3",774);
         mimeTypes.put("image/x-ms-bmp",775);
+
+        /**
+         * Stores the mimetypes key values in mimeTypesKey and then removes the duplicates
+         * Mime_type :  image/x-ms-bmp ; image is a type and x-ms-bmp  is a subtype
+         * unique type of mimetypes are stored in uniqueTypeOfMimeType
+         * @param uniqueTypeOfMimeType will be used for validating the mimetypes
+         */
+        for ( String key : mimeTypes.keySet()){
+            mimeTypesKey.add(StringUtils.substringBefore(key, "/").toLowerCase(Locale.GERMAN)) ;
+        }
+        mimeTypesKey.remove("");
+        uniqueTypeOfMimeType = new HashSet<String>(mimeTypesKey);
     }
+
 
     /**
      * Codifies the given mimetype
@@ -825,5 +845,15 @@ public final class CommonTagExtractor {
 
     public static MediaTypeEncoding getType(Integer tag) {
         return MediaTypeEncoding.valueOf(TagEncoding.MEDIA_TYPE.extractValue(tag));
+    }
+
+    public static boolean isValidMimeType(String type){
+        Iterator<String> i = uniqueTypeOfMimeType.iterator();
+        while (i.hasNext())
+        {   if(StringUtils.startsWithIgnoreCase(type,i.next())){
+            return true;
+            }
+        }
+        return false;
     }
 }
