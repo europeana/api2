@@ -6,7 +6,7 @@ import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.utils.DateUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.annotate.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.Collections;
 import java.util.Date;
