@@ -385,7 +385,7 @@ public class SearchController {
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
 
         } catch (Exception e) {
-            LOG.error(wskey + SEARCHJSON + e.getClass().getSimpleName(), e);
+            LOG.error(wskey + SEARCHJSON, e);
             response.setStatus(400);
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
         }
