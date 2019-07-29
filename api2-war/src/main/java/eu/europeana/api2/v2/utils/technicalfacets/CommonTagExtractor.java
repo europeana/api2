@@ -17,9 +17,9 @@ import java.util.Iterator;
 @SuppressWarnings("squid:S109") // ignore 'magic numbers'
 public final class CommonTagExtractor {
 
-    static final BiMap<String, Integer> mimeTypes = HashBiMap.create(776);
-    static final List<String> mimeTypesKey= new ArrayList<String>();
-    static Set<String> uniqueTypeOfMimeType= new HashSet<String>();
+    private static final BiMap<String, Integer> mimeTypes = HashBiMap.create(776);
+    private static final List<String> mimeTypesKey= new ArrayList<>();
+    private static Set<String> uniqueTypeOfMimeType;
 
     private CommonTagExtractor() {
         // empty constructor to prevent initialization
@@ -813,7 +813,7 @@ public final class CommonTagExtractor {
             mimeTypesKey.add(StringUtils.substringBefore(key, "/").toLowerCase(Locale.GERMAN)) ;
         }
         mimeTypesKey.remove("");
-        uniqueTypeOfMimeType = new HashSet<String>(mimeTypesKey);
+        uniqueTypeOfMimeType = new HashSet<>(mimeTypesKey);
     }
 
 
