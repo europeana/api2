@@ -138,7 +138,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     @Override
-    public Integer getContentTier() {
+    public String getContentTier() {
         if (isProfile(Profile.DEBUG)) {
             return bean.getContentTier();
         }
