@@ -184,7 +184,7 @@ public class SearchController {
             }
         }
 
-        // TODO check whether this is still necessary? <= about time we did that
+        // TODO check whether this is still necessary? <= about time we did that, dudes
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
         String[] _qf = request.getParameterMap().get("qf");
