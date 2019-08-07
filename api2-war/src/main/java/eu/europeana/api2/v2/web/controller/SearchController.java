@@ -207,7 +207,7 @@ public class SearchController {
         colourPalette.replaceAll(String::toUpperCase);
 
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
-        // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
+        // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ...]
         if (!colourPalette.isEmpty()) {
             queryString = filterQueryBuilder(TagUtils.colourPaletteFilterTags(colourPalette).iterator(),
                                              queryString,
