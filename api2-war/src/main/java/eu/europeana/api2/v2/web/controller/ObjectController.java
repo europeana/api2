@@ -71,6 +71,7 @@ public class ObjectController {
 
     private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
+    private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
 
     private SearchService   searchService;
     private ApiKeyUtils     apiKeyUtils;
@@ -134,7 +135,7 @@ public class ObjectController {
     @SwaggerIgnore
     @RequestMapping(value = {"/context.jsonld", "/context.json-ld"},
                     method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    produces= MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
         String jsonld = JSONUtils.toString(getJsonContext());
         return JsonUtils.toJson(jsonld, callback);
@@ -157,7 +158,7 @@ public class ObjectController {
     @SwaggerIgnore
     @RequestMapping(value = "/{collectionId}/{recordId}.json-ld",
                     method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+                    produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String wskey,
@@ -185,7 +186,7 @@ public class ObjectController {
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
     @RequestMapping(value = "/{collectionId}/{recordId}.jsonld",
                     method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+                    produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String wskey,
@@ -221,7 +222,7 @@ public class ObjectController {
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
     @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld",
                     method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+                    produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String wskey,
