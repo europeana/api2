@@ -16,6 +16,7 @@
 
     <properties>
         <corelib.version>2.9.1-SNAPSHOT</corelib.version>
+        <metis.version>1.5.0-SNAPSHOT</metis.version>
         <httpclient.version>4.5.2</httpclient.version>
         <jackson.version>2.6.5</jackson.version>
         <jodatime.version>2.9.2</jodatime.version>

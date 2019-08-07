@@ -1,5 +1,8 @@
 package eu.europeana.api2.v2.utils.technicalfacets;
 
+import eu.europeana.indexing.solr.facet.EncodedFacet;
+import eu.europeana.indexing.solr.facet.value.VideoDuration;
+import eu.europeana.indexing.solr.facet.value.VideoQuality;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -9,34 +12,35 @@ public class VideoTagExtractor {
 
     private VideoTagExtractor(){}
 
-    public static Integer getQualityCode(String videoQuality) {
-        return StringUtils.containsIgnoreCase(videoQuality, "true") ? 1 : 0 ;
+    public static VideoQuality decodeQuality(String videoQuality) {
+        return StringUtils.containsIgnoreCase(videoQuality, "true") ? VideoQuality.HIGH : null ;
     }
 
     public static String getQuality(Integer tag) {
-        final int qualityCode = TagEncoding.VIDEO_QUALITY.extractValue(tag);
-        if (1 == qualityCode) {
+        final VideoQuality quality = EncodedFacet.VIDEO_QUALITY.decodeValue(tag);
+        if (VideoQuality.HIGH == quality) {
             return "true";
         }
         return "";
     }
 
-    public static Integer getDurationCode(String duration) {
-        if (StringUtils.isBlank(duration)) return 0;
-        else if(StringUtils.containsIgnoreCase(duration, "short")) return 1;
-        else if(StringUtils.containsIgnoreCase(duration, "medium")) return 2;
-        else if(StringUtils.containsIgnoreCase(duration, "long")) return 3;
-        else return 0;
+    public static VideoDuration decodeDuration(String duration) {
+        if (StringUtils.isBlank(duration)) return null;
+        else if(StringUtils.containsIgnoreCase(duration, "short")) return VideoDuration.SHORT;
+        else if(StringUtils.containsIgnoreCase(duration, "medium")) return VideoDuration.MEDIUM;
+        else if(StringUtils.containsIgnoreCase(duration, "long")) return VideoDuration.LONG;
+        else return null;
     }
 
     public static String getDuration(Integer tag) {
-        final int durationCode = TagEncoding.VIDEO_DURATION.extractValue(tag);
-        switch (durationCode) {
-            case 1:
+        final VideoDuration duration = EncodedFacet.VIDEO_DURATION.decodeValue(tag);
+        if (duration == null) return "";
+        switch (duration) {
+            case SHORT:
                 return "short";
-            case 2:
+            case MEDIUM:
                 return "medium";
-            case 3:
+            case LONG:
                 return "long";
             default:
                 return "";

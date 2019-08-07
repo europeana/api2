@@ -5,6 +5,7 @@ import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
+import eu.europeana.indexing.solr.facet.value.MediaTypeEncoding;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -52,6 +53,7 @@ public class ModelUtils {
         if (StringUtils.isNotBlank(mimeType)) return name ? "MIME_TYPE" : mimeType;
 
         String label;
+        if (mediaType == null) return "";
         switch (mediaType) {
             case IMAGE:
                 label = ImageTagExtractor.getAspectRatio(tag);
