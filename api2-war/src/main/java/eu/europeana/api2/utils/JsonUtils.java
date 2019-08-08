@@ -18,15 +18,23 @@ public class JsonUtils {
         return toJson(object, null);
     }
 
-    public static ModelAndView toJson(String json, String callback) {
-        String resultPage = "json";
+    private static ModelAndView toJsonOrLd(String json, boolean isJsonLd, String callback) {
+        String resultPage = isJsonLd ? "jsonld" : "json";
         Map<String, Object> model = new LinkedHashMap<>();
-        model.put("json", json);
+        model.put(resultPage, json);
         if (StringUtils.isNotBlank(callback)) {
             resultPage = "jsonp";
             model.put("callback", callback);
         }
         return new ModelAndView(resultPage, model);
+    }
+
+    public static ModelAndView toJson(String json, String callback) {
+        return toJsonOrLd(json, false, callback);
+    }
+
+    public static ModelAndView toJsonLd(String json, String callback) {
+        return toJsonOrLd(json, true, callback);
     }
 
     public static ModelAndView toJson(Object object, String callback) {
