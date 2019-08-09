@@ -9,7 +9,6 @@
 *~
 *.bak
 .DS_Store
-
 # Local user-specific configuration
 **/europeana.user.properties
 
