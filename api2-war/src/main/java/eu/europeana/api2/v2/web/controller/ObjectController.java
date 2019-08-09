@@ -468,7 +468,7 @@ public class ObjectController {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
         }
-        return JsonUtils.toJson(jsonld, data.callback);
+        return JsonUtils.toJsonLd(jsonld, data.callback);
     }
 
     private ModelAndView generateRdf(FullBean bean) {

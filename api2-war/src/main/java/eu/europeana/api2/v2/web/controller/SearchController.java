@@ -184,7 +184,7 @@ public class SearchController {
             }
         }
 
-        // TODO check whether this is still necessary?
+        // TODO check whether this is still necessary? <= about time we did that!
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
         String[] _qf = request.getParameterMap().get("qf");
@@ -385,7 +385,7 @@ public class SearchController {
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
 
         } catch (Exception e) {
-            LOG.error(wskey + SEARCHJSON + e.getClass().getSimpleName(), e);
+            LOG.error(wskey + SEARCHJSON, e);
             response.setStatus(400);
             return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
         }
@@ -449,16 +449,19 @@ public class SearchController {
                     String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
-                            if (CommonTagExtractor.isImageMimeType(refinementValue)) {
-                                imageMimeTypeRefinements.add(refinementValue);
-                                hasImageRefinements = true;
-                            } else if (CommonTagExtractor.isSoundMimeType(refinementValue)) {
-                                soundMimeTypeRefinements.add(refinementValue);
-                                hasSoundRefinements = true;
-                            } else if (CommonTagExtractor.isVideoMimeType(refinementValue)) {
-                                videoMimeTypeRefinements.add(refinementValue);
-                                hasVideoRefinements = true;
-                            } else otherMimeTypeRefinements.add(refinementValue);
+                            if(CommonTagExtractor.isValidMimeType(refinementValue)) {       //will check if mimetype is valid
+                                if (CommonTagExtractor.isImageMimeType(refinementValue)) {
+                                    imageMimeTypeRefinements.add(refinementValue);
+                                    hasImageRefinements = true;
+                                } else if (CommonTagExtractor.isSoundMimeType(refinementValue)) {
+                                    soundMimeTypeRefinements.add(refinementValue);
+                                    hasSoundRefinements = true;
+                                } else if (CommonTagExtractor.isVideoMimeType(refinementValue)) {
+                                    videoMimeTypeRefinements.add(refinementValue);
+                                    hasVideoRefinements = true;
+                                } else
+                                    otherMimeTypeRefinements.add(refinementValue);
+                            }
                             break;
                         case "IMAGE_SIZE":
                             imageSizeRefinements.add(refinementValue);
