@@ -14,7 +14,6 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.ItemFix;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.ObjectResult;
-import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
@@ -23,7 +22,6 @@ import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
@@ -53,7 +51,9 @@ import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
@@ -71,7 +71,7 @@ public class ObjectController {
 
     private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
-    private static Object jsonldContext = new Object();
+    private static Object       jsonldContext           = new Object();
 
     private SearchService   searchService;
     private ApiKeyUtils     apiKeyUtils;
@@ -84,11 +84,10 @@ public class ObjectController {
      * @throws IOException
      */
 
-    static
-    {
+    static {
         try {
             InputStream in = ObjectController.class.getResourceAsStream("/jsonld/context.jsonld");
-            jsonldContext= JSONUtils.fromInputStream(in);
+            jsonldContext = JSONUtils.fromInputStream(in);
         } catch (IOException e) {
             LOG.error("Error reading context.jsonld", e);
         }
@@ -154,7 +153,7 @@ public class ObjectController {
             method = {RequestMethod.GET, RequestMethod.POST},
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
-        String jsonld = JSONUtils.toString(jsonldContext);  // ======================================================
+        String jsonld = JSONUtils.toString(jsonldContext);
         return JsonUtils.toJson(jsonld, callback);
     }
 
