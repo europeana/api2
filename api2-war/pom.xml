@@ -67,11 +67,6 @@
             <version>20.0</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.jclouds</groupId>
-            <artifactId>jclouds-core</artifactId>
-            <version>1.9.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${httpclient.version}</version>
