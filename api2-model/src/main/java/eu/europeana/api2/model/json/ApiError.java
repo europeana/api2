@@ -21,12 +21,14 @@ public class ApiError extends ApiResponse {
     public ApiError(String apikey, String errorMsg) {
         super(apikey);
         this.success = false;
+        this.requestNumber = null;
         this.error = errorMsg;
     }
 
     public ApiError(String apikey, String errorMsg, String errorDetails, String errorCode) {
         super(apikey);
         this.success = false;
+        this.requestNumber = null;
         this.error = errorMsg;
         this.errorDetails = errorDetails;
         this.errorCode = errorCode;

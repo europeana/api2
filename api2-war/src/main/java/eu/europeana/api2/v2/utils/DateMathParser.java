@@ -141,7 +141,7 @@ public class DateMathParser {
         long actualNrOfGaps = timespanMillis / gapMillis;
 
         if (gapMillis < 0) {
-            throw new InvalidRangeOrGapException("Negative gaps ('" + gapMath + "') cannot be processed");
+            throw new InvalidRangeOrGapException("Negative gaps ('" + gapMath + "') are not allowed");
         } else if (timespanMillis < 0) {
             throw new InvalidRangeOrGapException("The start date ('" + start + "') must be earlier than the end date ('" + end + "')");
         } else if (actualNrOfGaps > maxNrOfGaps){

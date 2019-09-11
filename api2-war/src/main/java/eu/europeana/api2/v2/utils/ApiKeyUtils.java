@@ -8,6 +8,7 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.enums.ApiClientLevel;
+import eu.europeana.corelib.web.exception.ProblemType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +47,7 @@ public class ApiKeyUtils {
     public LimitResponse checkLimit(String wskey, String url, RecordType recordType,
                                     String profile) throws ApiKeyException {
         if (StringUtils.isBlank(wskey)) {
-            throw new ApiKeyException(wskey, "No API key provided");
+            throw new ApiKeyException(ProblemType.APIKEY_MISSING, null);
         }
 
         ApiKey apiKey;
@@ -56,7 +57,7 @@ public class ApiKeyUtils {
             t = System.currentTimeMillis();
             apiKey = apiService.findByID(wskey);
             if (apiKey == null) {
-                throw new ApiKeyException(wskey, "Invalid API key");
+                throw new ApiKeyException(ProblemType.APIKEY_INVALID, wskey);
             }
             LOG.debug("Get apiKey took {} ms",(System.currentTimeMillis() - t));
 
@@ -66,7 +67,7 @@ public class ApiKeyUtils {
 
         } catch (DatabaseException e) {
             LOG.error("Error retrieving apikey", e);
-            ApiKeyException ex = new ApiKeyException(wskey, e.getMessage());
+            ApiKeyException ex = new ApiKeyException(ProblemType.APIKEY_INVALID, wskey);
             ex.initCause(e);
             throw ex;
         } catch (org.hibernate.exception.JDBCConnectionException |

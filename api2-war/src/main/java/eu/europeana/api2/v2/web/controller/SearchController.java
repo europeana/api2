@@ -261,7 +261,6 @@ public class SearchController {
         String[] solrFacets = ArrayUtils.addAll(separatedFacets.get("solrfacets"), separatedFacets.get("customfacets"));
         String[] technicalFacets = separatedFacets.get("technicalfacets");
 
-        ControllerUtils.addResponseHeaders(response);
         rows = Math.min(rows, configuration.getApiRowLimit());
 
         Map<String, String> valueReplacements = null;
@@ -320,10 +319,10 @@ public class SearchController {
                 try{
                     nrSelectors = Integer.parseInt(hlSelectors);
                     if (nrSelectors < 1) {
-                        throw new SolrQueryException(ProblemType.SEARCH_FACET_RANGE_INVALID, "Parameter hit.selectors must be greater than 0");
+                        throw new SolrQueryException(ProblemType.SEARCH_HITSELECTOR_INVALID, "Parameter hit.selectors must be greater than 0");
                     }
                 } catch (NumberFormatException nfe) {
-                    throw new SolrQueryException(ProblemType.SEARCH_FACET_RANGE_INVALID, "Parameter hit.selectors must be an integer");
+                    throw new SolrQueryException(ProblemType.SEARCH_HITSELECTOR_INVALID, "Parameter hit.selectors must be an integer");
                 }
             }
             query.setParameter("hl", "on");
@@ -359,6 +358,8 @@ public class SearchController {
             result.addParam("rows", rows);
             result.addParam("sort", sort);
         }
+        response.setCharacterEncoding("UTF-8");
+        response.addHeader("Allow", ControllerUtils.ALLOWED_GET_HEAD_POST);
         return JsonUtils.toJson(result, callback);
     }
 
