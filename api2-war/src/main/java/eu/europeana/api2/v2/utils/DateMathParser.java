@@ -2,8 +2,7 @@ package eu.europeana.api2.v2.utils;
 
 
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
-import eu.europeana.api2.v2.exceptions.InvalidGapException;
-import org.apache.commons.lang3.StringUtils;
+import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -95,11 +94,11 @@ public class DateMathParser {
      * @param gapMath       String: time interval, in DateMathParser syntax
      * @param maxNrOfGaps   long:   maximum number of allowed gaps
      * @exception DateMathParseException if gapMath cannot be parsed
-     * @exception InvalidGapException if above conditions are met
+     * @exception InvalidRangeOrGapException if above conditions are met
      */
     static void exceedsMaxNrOfGaps(String start, String end, String gapMath, long maxNrOfGaps) throws
                                                                                                DateMathParseException,
-                                                                                               InvalidGapException {
+                                                                                               InvalidRangeOrGapException {
 
         String               parsing        = start;
         String               whatsParsed    = "start";
@@ -142,11 +141,11 @@ public class DateMathParser {
         long actualNrOfGaps = timespanMillis / gapMillis;
 
         if (gapMillis < 0) {
-            throw new InvalidGapException("Negative gaps ('" + gapMath + "') cannot be processed");
+            throw new InvalidRangeOrGapException("Negative gaps ('" + gapMath + "') cannot be processed");
         } else if (timespanMillis < 0) {
-            throw new InvalidGapException("The start date ('" + start + "') must be earlier than the end date ('" + end + "')");
+            throw new InvalidRangeOrGapException("The start date ('" + start + "') must be earlier than the end date ('" + end + "')");
         } else if (actualNrOfGaps > maxNrOfGaps){
-            throw new InvalidGapException("The timespan between '" + start + "' and '" + end + "' contains " +
+            throw new InvalidRangeOrGapException("The timespan between '" + start + "' and '" + end + "' contains " +
                                           actualNrOfGaps + " gaps of '" + gapMath + "', exceeding the maximum of " +
                                           maxNrOfGaps);
         }

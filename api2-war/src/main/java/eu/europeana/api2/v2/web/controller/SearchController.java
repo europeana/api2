@@ -1,13 +1,11 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api2.ApiLimitException;
-import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
-import eu.europeana.api2.v2.exceptions.InvalidGapException;
+import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -23,22 +21,18 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
-import eu.europeana.api2.v2.utils.ApiKeyUtils;
-import eu.europeana.api2.v2.utils.ControllerUtils;
-import eu.europeana.api2.v2.utils.FacetParameterUtils;
-import eu.europeana.api2.v2.utils.ModelUtils;
+import eu.europeana.api2.v2.utils.*;
+import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
-import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
-import eu.europeana.corelib.edm.exceptions.SolrTypeException;
+import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.edm.utils.CountryUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
@@ -54,21 +48,20 @@ import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
-import eu.europeana.api2.v2.utils.TagUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.RegExUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -92,7 +85,6 @@ import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 public class SearchController {
 
     private static final Logger LOG         = LogManager.getLogger(SearchController.class);
-    private static final String SEARCHJSON  = " [search.json] ";
     private static final String PORTAL      = "portal";
     private static final String FACETS      = "facets";
     private static final String DEBUG       = "debug";
@@ -126,18 +118,7 @@ public class SearchController {
     @Value("${api.search.hl.MaxAnalyzedChars}")
     private String hlMaxAnalyzedChars;
 
-    /**
-     * Returns a list of Europeana datasets based on the search terms.
-     * The response is an Array of JSON objects, each one containing the identifier and the name of a dataset.
-     *
-     * @return the JSON response
-     */
-    @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
-//	@ApiResponses(value = {@ApiResponse(code = 200, message = "OK") })
-    @RequestMapping(value = "/v2/search.json",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView searchJson(
+    public ModelAndView searchJsonPost(
             @RequestParam(value = "wskey") String wskey,
             @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
@@ -158,14 +139,49 @@ public class SearchController {
             @RequestParam(value = "hit.fl", required = false) String hlFl,
             @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
             HttpServletRequest request,
-            HttpServletResponse response) throws ApiLimitException {
+            HttpServletResponse response) throws EuropeanaException {
+        // TODO implement real POST request (see also EA-605)
+        return searchJsonGet(wskey, queryString, refinementArray, reusabilityArray, profile, start, rows, mixedFacetArray,
+                theme, sort, colourPaletteArray, thumbnail, media, fullText, landingPage, cursorMark, callback, hlFl,
+                hlSelectors, request, response);
+    }
+
+    /**
+     * Returns a list of Europeana datasets based on the search terms.
+     * The response is an Array of JSON objects, each one containing the identifier and the name of a dataset.
+     *
+     * @return the JSON response
+     */
+    @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
+    @GetMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView searchJsonGet(
+            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "query") String queryString,
+            @RequestParam(value = "qf", required = false) String[] refinementArray,
+            @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
+            @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
+            @RequestParam(value = "start", required = false, defaultValue = "1") int start,
+            @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
+            @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
+            @RequestParam(value = "theme", required = false) String theme,
+            @RequestParam(value = "sort", required = false) String sort,
+            @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
+            @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
+            @RequestParam(value = "media", required = false) Boolean media,
+            @RequestParam(value = "text_fulltext", required = false) Boolean fullText,
+            @RequestParam(value = "landingpage", required = false) Boolean landingPage,
+            @RequestParam(value = "cursor", required = false) String cursorMark,
+            @RequestParam(value = "callback", required = false) String callback,
+            @RequestParam(value = "hit.fl", required = false) String hlFl,
+            @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
+            HttpServletRequest request,
+            HttpServletResponse response) throws EuropeanaException {
 
         LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return JsonUtils.toJson(new ApiError("", "Empty query parameter"), callback);
+            throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
 
         queryString = queryString.trim();
@@ -179,8 +195,7 @@ public class SearchController {
 
         if (cursorMark != null) {
             if (start > 1) {
-                response.setStatus(400);
-                return JsonUtils.toJson(new ApiError("", "Parameters 'start' and 'cursorMark' cannot be used together"), callback);
+                throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR);
             }
         }
 
@@ -194,9 +209,9 @@ public class SearchController {
 
         if (StringUtils.isNotBlank(theme)){
             if (StringUtils.containsAny(theme, "+ #%^&*-='\"<>`!@[]{}\\/|")){
-                return JsonUtils.toJson(new ApiError("", "Parameter 'theme' accepts one value only"), callback);
+                throw new SolrQueryException(ProblemType.SEARCH_THEME_MULTIPLE);
             } else {
-                refinementArray = (String[]) ArrayUtils.add(refinementArray, "collection:" + theme);
+                refinementArray = ArrayUtils.add(refinementArray, "collection:" + theme);
             }
         }
 
@@ -243,7 +258,7 @@ public class SearchController {
         // 2) separates the requested facets in Solr facets and technical (fake-) facets
         // 3) when many custom SOLR facets are supplied: caps the number of total facets to FACET_LIMIT
         Map<String, String[]> separatedFacets = ModelUtils.separateAndLimitFacets(mixedFacets, defaultFacetsRequested);
-        String[] solrFacets = (String[]) ArrayUtils.addAll(separatedFacets.get("solrfacets"), separatedFacets.get("customfacets"));
+        String[] solrFacets = ArrayUtils.addAll(separatedFacets.get("solrfacets"), separatedFacets.get("customfacets"));
         String[] technicalFacets = separatedFacets.get("technicalfacets");
 
         ControllerUtils.addResponseHeaders(response);
@@ -253,7 +268,7 @@ public class SearchController {
         if (ArrayUtils.isNotEmpty(reusabilities)) {
             valueReplacements = RightReusabilityCategorizer.mapValueReplacements(reusabilities, true);
             if (null != valueReplacements && !valueReplacements.isEmpty()){
-                refinementArray = (String[]) ArrayUtils.addAll(refinementArray, new String[]{"REUSABILITY:list"});
+                refinementArray = ArrayUtils.addAll(refinementArray, new String[]{"REUSABILITY:list"});
             }
         }
 
@@ -287,13 +302,11 @@ public class SearchController {
                                 "offset", technicalFacets, parameterMap, defaultFacetsRequested))
                         .setFacetsAllowed(true);
             } catch (DateMathParseException e) {
-                response.setStatus(400);
-                return JsonUtils.toJson(new ApiError("", "Error parsing value '" + e.getParsing() +
-                                                         "' supplied for " + FACET_RANGE + " " +
-                                                         e.getWhatsParsed()), callback);
-            } catch (InvalidGapException e) {
-                response.setStatus(400);
-                return JsonUtils.toJson(new ApiError("", e.getMessage()), callback);
+                String errorDetails = "Error parsing value '" + e.getParsing() + "' supplied for " + FACET_RANGE + " " +
+                        e.getWhatsParsed();
+                throw new SolrQueryException(ProblemType.SEARCH_FACET_RANGE_INVALID, errorDetails);
+            } catch (InvalidRangeOrGapException e) {
+                throw new SolrQueryException(ProblemType.SEARCH_FACET_RANGE_INVALID, e.getMessage());
             }
         } else {
             query.setFacetsAllowed(false);
@@ -307,14 +320,10 @@ public class SearchController {
                 try{
                     nrSelectors = Integer.parseInt(hlSelectors);
                     if (nrSelectors < 1) {
-                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        return JsonUtils.toJson(new ApiError(""
-                                , "Query parameter hit.selectors must be greater than 0"), callback);
+                        throw new SolrQueryException(ProblemType.SEARCH_FACET_RANGE_INVALID, "Parameter hit.selectors must be greater than 0");
                     }
                 } catch (NumberFormatException nfe) {
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    return JsonUtils.toJson(new ApiError(""
-                            , "Query parameter hit.selectors must be an integer"), callback);
+                    throw new SolrQueryException(ProblemType.SEARCH_FACET_RANGE_INVALID, "Parameter hit.selectors must be an integer");
                 }
             }
             query.setParameter("hl", "on");
@@ -341,54 +350,16 @@ public class SearchController {
               ArrayUtils.contains(solrFacets, "DEFAULT")
             ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
 
-        try {
-            SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
-            result.requestNumber = limitResponse.getRequestNumber();
-            if (StringUtils.containsIgnoreCase(profile, "params")) {
-                result.addParams(RequestUtils.getParameterMap(request), "wskey");
-                result.addParam("profile", profile);
-                result.addParam("start", start);
-                result.addParam("rows", rows);
-                result.addParam("sort", sort);
-            }
-            return JsonUtils.toJson(result, callback);
-
-        } catch (SolrTypeException e) {
-            if (ProblemType.PAGINATION_LIMIT_REACHED.equals(e.getProblem())){
-                // not a real error so we log it as a warning instead
-                LOG.warn(wskey + SEARCHJSON + e.getProblem().getMessage());
-            } else if (ProblemType.INVALID_THEME.equals(e.getProblem())) {
-                // not a real error so we log it as a warning instead
-                LOG.warn(wskey + SEARCHJSON + e.getProblem().getMessage());
-                response.setStatus(400);
-                return JsonUtils.toJson(new ApiError(wskey, "Theme '" +
-                                                            StringUtils.substringBetween(e.getCause().getCause().toString(), "Collection \"","\" not defined") +
-                                                            "' is not defined"), callback);
-            } else if (ProblemType.NO_LIVE_SOLR.equals(e.getProblem()) && StringUtils.contains(query.getParameterMap().get("hl.fl"), '*')) {
-                LOG.error("This is the \"field 'what' was indexed without offsets\"-error, see EA-1441 when executing search: " + SEARCHJSON);
-                response.setStatus(400);
-                return JsonUtils.toJson(new ApiError(wskey, "Solr indexing error, occurs when hits.fl parameter contains '*'"));
-            } else if (ProblemType.SOLR_ERROR.equals(e.getProblem())){
-                response.setStatus(400); // e.g. SOLR cannot handle weird parameter value
-                LOG.error(wskey + SEARCHJSON + e.getProblem().getMessage(), e);
-                return JsonUtils.toJson(new ApiError(wskey, (StringUtils.removeEnd(e.getProblem().getMessage(), ".") + ": "
-                                                             + RegExUtils.removeFirst(e.getCause().getMessage(), "^.+?https?:.+?\\s"))));
-            } else if (ProblemType.CANT_CONNECT_ZOOKEEPER.equals(e.getProblem()) ||
-                       ProblemType.CANT_CONNECT_SOLR.equals(e.getProblem())) {
-                response.setStatus(503); // Service temporarily unavailable
-                LOG.error(wskey + SEARCHJSON + e.getProblem().getMessage(), e);
-                return JsonUtils.toJson(new ApiError(wskey, (e.getProblem().getMessage() + ": " + e.getMessage())));
-            } else {
-                LOG.error(wskey + SEARCHJSON, e);
-            }
-            response.setStatus(400);
-            return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
-
-        } catch (Exception e) {
-            LOG.error(wskey + SEARCHJSON, e);
-            response.setStatus(400);
-            return JsonUtils.toJson(new ApiError(wskey, e.getMessage()), callback);
+        SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
+        result.requestNumber = limitResponse.getRequestNumber();
+        if (StringUtils.containsIgnoreCase(profile, "params")) {
+            result.addParams(RequestUtils.getParameterMap(request), "wskey");
+            result.addParam("profile", profile);
+            result.addParam("start", start);
+            result.addParam("rows", rows);
+            result.addParam("sort", sort);
         }
+        return JsonUtils.toJson(result, callback);
     }
 
     private String filterQueryBuilder(Iterator<Integer> it, String queryString, String andOrOr, boolean addBrackets){
@@ -710,8 +681,8 @@ public class SearchController {
      * @deprecated 2018-01-09 search with coordinates functionality
      */
     @SwaggerIgnore
-    @RequestMapping(value = "/v2/search.kml", method = {RequestMethod.GET},
-                    produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
+    @GetMapping(value = "/v2/search.kml",
+            produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     @Deprecated
     public KmlResponse searchKml(
@@ -720,7 +691,9 @@ public class SearchController {
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
             @RequestParam(value = "wskey") String wskey,
             HttpServletRequest request,
-            HttpServletResponse response) throws Exception {
+            HttpServletResponse response) throws EuropeanaException {
+
+        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH_KML, null);
 
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
@@ -728,29 +701,16 @@ public class SearchController {
         if (_qf != null && _qf.length != refinementArray.length) {
             refinementArray = _qf;
         }
-
-        try {
-            ApiKey apiKey = apiService.findByID(wskey);
-            apiService.checkNotEmpty(apiKey);
-        } catch (DatabaseException e) {
-            response.setStatus(401);
-            throw new Exception(e);
-        }
         KmlResponse kmlResponse = new KmlResponse();
         Query query =
                 new Query(SearchUtils.rewriteQueryFields(queryString)).setRefinements(refinementArray)
                         .setApiQuery(true).setSpellcheckAllowed(false).setFacetsAllowed(false);
         query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
-        try {
-            ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
-            kmlResponse.document.extendedData.totalResults.value =
-                    Long.toString(resultSet.getResultSize());
-            kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
-            kmlResponse.setItems(resultSet.getResults());
-        } catch (SolrTypeException e) {
-            response.setStatus(500);
-            throw new Exception(e);
-        }
+        ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
+        kmlResponse.document.extendedData.totalResults.value =
+                Long.toString(resultSet.getResultSize());
+        kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
+        kmlResponse.setItems(resultSet.getResults());
         return kmlResponse;
     }
 
@@ -767,15 +727,14 @@ public class SearchController {
      * @return rss response of the query
      */
     @ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
-    @RequestMapping(value = "/v2/opensearch.rss", method = {RequestMethod.GET, RequestMethod.POST}
-            , produces = {"application/rss+xml",
-            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
+    @GetMapping(value = "/v2/opensearch.rss",
+            produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public ModelAndView openSearchRss(
             @RequestParam(value = "searchTerms") String queryString,
             @RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
             @RequestParam(value = "count", required = false, defaultValue = "12") int count,
-            HttpServletResponse response) {
+            HttpServletResponse response)  throws EuropeanaException {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("openSearch query with terms: " + queryString);
@@ -789,28 +748,17 @@ public class SearchController {
         channel.query.searchTerms = queryString;
         channel.query.startPage = start;
 
-        try {
-            Query query = new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true)
-                    .setPageSize(count).setStart(start - 1).setFacetsAllowed(false)
-                    .setSpellcheckAllowed(false);
-            ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
-            channel.totalResults.value = resultSet.getResultSize();
-            for (BriefBean bean : resultSet.getResults()) {
-                Item item = new Item();
-                item.guid = urlService.getRecordPortalUrl(bean.getId());
-                item.title = getTitle(bean);
-                item.description = getDescription(bean);
-                item.link = item.guid;
-                channel.items.add(item);
-            }
-        } catch (EuropeanaException e) {
-            response.setStatus(400);
-            String errorMsg = "Error executing openSearch query '" + queryString + "'";
-            LOG.error(errorMsg, e);
-            channel.totalResults.value = 0;
+        Query query = new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true)
+                .setPageSize(count).setStart(start - 1).setFacetsAllowed(false)
+                .setSpellcheckAllowed(false);
+        ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
+        channel.totalResults.value = resultSet.getResultSize();
+        for (BriefBean bean : resultSet.getResults()) {
             Item item = new Item();
-            item.title = "Error";
-            item.description = e.getMessage();
+            item.guid = urlService.getRecordPortalUrl(bean.getId());
+            item.title = getTitle(bean);
+            item.description = getDescription(bean);
+            item.link = item.guid;
             channel.items.add(item);
         }
         if (LOG.isDebugEnabled()) {
@@ -841,8 +789,7 @@ public class SearchController {
      */
     @SwaggerIgnore
     @ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
-    @RequestMapping(value = "/v2/search.rss", method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
+    @GetMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
     public ModelAndView fieldTripRss(
             @RequestParam(value = "query") String queryTerms,
             @RequestParam(value = "offset", required = false, defaultValue = "1") int offset,

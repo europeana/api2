@@ -1,6 +1,5 @@
 package eu.europeana.api2.v2.service;
 
-import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
@@ -12,13 +11,11 @@ import eu.europeana.corelib.neo4j.Neo4jSearchService;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.neo4j.exception.Neo4JException;
-import eu.europeana.corelib.web.exception.EmailServiceException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.service.EmailService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.scheduling.annotation.Async;
@@ -61,7 +58,7 @@ public class HierarchyRunner {
                              HttpServletRequest request,
                              HttpServletResponse response,
                              ApiKeyUtils apiKeyUtils,
-                             Neo4jSearchService searchService) {
+                             Neo4jSearchService searchService) throws EuropeanaException {
 
         this.searchService = searchService;
         LOG.debug("Running thread for {}", rdfAbout);
@@ -73,14 +70,7 @@ public class HierarchyRunner {
         limit = Math.min(limit, MAX_LIMIT);
 
         long          t1 = System.currentTimeMillis();
-        LimitResponse limitResponse;
-
-        try {
-            limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), recordType, profile);
-        } catch (ApiLimitException e) {
-            response.setStatus(e.getHttpStatus());
-            return JsonUtils.toJson(new ApiError(e), callback);
-        }
+        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), recordType, profile);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Limit: {}", (System.currentTimeMillis() - t1));
@@ -234,9 +224,7 @@ public class HierarchyRunner {
                 message = "Error processing hierarchical request";
                 LOG.error(message);
             }
-            return JsonUtils.toJson(new ApiError(wskey,
-                                                 message,
-                                                 -1L), callback);
+            return JsonUtils.toJson(new ApiError(wskey, message), callback);
             // TODO check if can we dismiss this
 //            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)) sendExceptionEmail(e);
         }
@@ -254,17 +242,4 @@ public class HierarchyRunner {
         return json;
     }
 
-    private void sendExceptionEmail(EuropeanaException e){
-        String newline = System.getProperty("line.separator");
-
-        String header = SUBJECTPREFIX + e.getProblem().getMessage();
-        String body = (e.getMessage() + newline + newline +
-                ExceptionUtils.getStackTrace(e));
-//                + e.getStackTrace().toString());
-        try {
-            emailService.sendException(header, body);
-        } catch (EmailServiceException es) {
-            LOG.error("Error sending email", e);
-        }
-    }
 }

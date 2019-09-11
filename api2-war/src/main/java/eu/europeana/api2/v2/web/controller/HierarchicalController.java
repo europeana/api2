@@ -13,10 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -63,9 +60,7 @@ public class HierarchicalController {
 
 
     @ApiOperation(value = "returns the object itself")
-    @RequestMapping(value = "/{collectionId}/{recordId}/self.json",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{collectionId}/{recordId}/self.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getSelf(
             @PathVariable String collectionId,
             @PathVariable String recordId,
@@ -80,9 +75,7 @@ public class HierarchicalController {
     }
 
     @ApiOperation(value = "returns the object, its ancestors and siblings")
-    @RequestMapping(value = "/{collectionId}/{recordId}/ancestor-self-siblings.json",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{collectionId}/{recordId}/ancestor-self-siblings.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getAncestorSelfSiblings(
             @PathVariable String collectionId,
             @PathVariable String recordId,
@@ -97,9 +90,7 @@ public class HierarchicalController {
     }
 
     @ApiOperation(value = "returns the object's children")
-    @RequestMapping(value = "/{collectionId}/{recordId}/children.json",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{collectionId}/{recordId}/children.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getChildren(
             @PathVariable String collectionId,
             @PathVariable String recordId,
@@ -116,9 +107,7 @@ public class HierarchicalController {
     }
 
     @ApiOperation(value = "returns the object's parent")
-    @RequestMapping(value = "/{collectionId}/{recordId}/parent.json",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{collectionId}/{recordId}/parent.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getParent(
             @PathVariable String collectionId,
             @PathVariable String recordId,
@@ -136,10 +125,8 @@ public class HierarchicalController {
 
     // maintain backwards compatibility with previous spelling of "preceeding"
     @ApiOperation(value = "returns the object's preceding siblings")
-    @RequestMapping(value = {"/{collectionId}/{recordId}/preceding-siblings.json",
-            "/{collectionId}/{recordId}/preceeding-siblings.json"},
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = {"/{collectionId}/{recordId}/preceding-siblings.json",
+                         "/{collectionId}/{recordId}/preceeding-siblings.json"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getPrecedingSiblings(
             @PathVariable String collectionId,
             @PathVariable String recordId,
@@ -156,9 +143,7 @@ public class HierarchicalController {
     }
 
     @ApiOperation(value = "returns the object's following siblings")
-    @RequestMapping(value = "/{collectionId}/{recordId}/following-siblings.json",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{collectionId}/{recordId}/following-siblings.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView getFollowingSiblings(
             @PathVariable String collectionId,
             @PathVariable String recordId,
@@ -215,7 +200,7 @@ public class HierarchicalController {
         }
         LOG.error(logMsg.toString());
 
-        return JsonUtils.toJson(new ApiError(wskey, message + " record " + rdfAbout, 999L), callback);
+        return JsonUtils.toJson(new ApiError(wskey, message + " record " + rdfAbout), callback);
     }
 
 }

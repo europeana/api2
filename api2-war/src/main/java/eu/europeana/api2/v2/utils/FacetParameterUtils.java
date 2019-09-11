@@ -1,7 +1,7 @@
 package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
-import eu.europeana.api2.v2.exceptions.InvalidGapException;
+import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
 import eu.europeana.api2.v2.model.NumericFacetParameter;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
@@ -107,7 +107,7 @@ public class FacetParameterUtils {
     // NOTE that there can be more than one facet range parameter for every field, eg:
     // facet.range=timestamp & &facet.range.start=0000-01-01T00:00:00Z & &facet.range.end=NOW & facet.range.gap=+1DAY
     public static Map<String, String> getDateRangeParams(Map<String, String[]> parameters) throws DateMathParseException,
-                                                                                                  InvalidGapException {
+            InvalidRangeOrGapException {
         Map<String, String> dateRangeParams = new HashMap<>();
 
         // first, retrieve & validate field values from comma-separated facet.range parameter
