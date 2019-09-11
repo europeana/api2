@@ -24,18 +24,23 @@ public class ApiError extends ApiResponse {
         this.error = errorMsg;
     }
 
-    public ApiError(String apikey, String errorMsg, String errorDetails) {
+    public ApiError(String apikey, String errorMsg, String errorDetails, String errorCode) {
         super(apikey);
         this.success = false;
         this.error = errorMsg;
         this.errorDetails = errorDetails;
+        this.errorCode = errorCode;
     }
 
     public ApiError(String apikey, EuropeanaException ex) {
-        this(apikey, ex.getMessage(), ex.getErrorDetails());
+        this(apikey, ex.getMessage(), ex.getErrorDetails(), ex.getErrorCode());
         this.errorCode = ex.getErrorCode();
     }
 
+    /**
+     * Europeana specific error code. We generally use codes in the form of <http status code>-<letter>
+     * @return String containing Europeana error code
+     */
     public String getErrorCode() {
         return errorCode;
     }

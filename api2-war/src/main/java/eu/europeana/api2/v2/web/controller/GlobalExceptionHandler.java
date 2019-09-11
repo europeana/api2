@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
         String wskey = request.getParameter("wskey");
         mailLogOrIgnoreError(wskey, ee);
         response.setStatus(getHttpStatus(response, ee));
-        return generateErrorResponse(request, response, ee.getMessage(), ee.getErrorDetails());
+        return generateErrorResponse(request, response, ee.getMessage(), ee.getErrorDetails(), ee.getErrorCode());
     }
 
     private void mailLogOrIgnoreError(String apiKey, EuropeanaException ee) {
@@ -119,7 +119,7 @@ public class GlobalExceptionHandler {
         } else {
             errorMsg = "Required parameter '" + ex.getParameterName() + "' missing";
         }
-        return generateErrorResponse(request, response, errorMsg, null);
+        return generateErrorResponse(request, response, errorMsg, null, null);
     }
 
     /**
@@ -133,7 +133,7 @@ public class GlobalExceptionHandler {
         response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
         String requestedMediaType = ControllerUtils.getRequestedMediaType(request);
         String errorMsg = "The resource identified by this request cannot generate a response of type " + requestedMediaType;
-        return generateErrorResponse(request, response, errorMsg, null);
+        return generateErrorResponse(request, response, errorMsg, null, null);
     }
 
     /**
@@ -147,7 +147,7 @@ public class GlobalExceptionHandler {
         response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
         String requestedContentType = ControllerUtils.getRequestedContentType(request);
         String errorMsg = "Content type '" + requestedContentType + " not supported";
-        return generateErrorResponse(request, response, errorMsg, null);
+        return generateErrorResponse(request, response, errorMsg, null, null);
     }
 
     /**
@@ -161,7 +161,7 @@ public class GlobalExceptionHandler {
             MissingServletRequestPartException.class, TypeMismatchException.class})
     public ModelAndView badRequestHandler(HttpServletRequest request, HttpServletResponse response, Exception e){
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        return generateErrorResponse(request, response, e.getMessage(), null);
+        return generateErrorResponse(request, response, e.getMessage(), null, null);
     }
 
     /**
@@ -174,7 +174,7 @@ public class GlobalExceptionHandler {
     public ModelAndView unsupportedMethodHandler(HttpServletRequest request, HttpServletResponse response){
         response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         String errorMsg = "Request method '" + request.getMethod() + "' is not allowed for the requested resource";
-        return generateErrorResponse(request, response, errorMsg, null);
+        return generateErrorResponse(request, response, errorMsg, null, null);
     }
 
 
@@ -193,11 +193,11 @@ public class GlobalExceptionHandler {
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         String errorMsg = "Internal server error";
         String errorDetails = e.getMessage();
-        return generateErrorResponse(request, response, errorMsg, errorDetails);
+        return generateErrorResponse(request, response, errorMsg, errorDetails, null);
     }
 
     public ModelAndView generateErrorResponse(HttpServletRequest request, HttpServletResponse response,
-                                              String errorMsg, String errorDetails) {
+                                              String errorMsg, String errorDetails, String errorCode) {
         ControllerUtils.addResponseHeaders(response);
         String requestFormat = ControllerUtils.getRequestFormat(request);
         if ("RDF".equalsIgnoreCase(requestFormat)) {
@@ -207,7 +207,7 @@ public class GlobalExceptionHandler {
             response.setContentType("application/xml");
             return generateRssError(errorMsg, errorDetails);
         }
-        return generateJsonError(request, errorMsg, errorDetails);
+        return generateJsonError(request, errorMsg, errorDetails, errorCode);
     }
 
     private ModelAndView generateRdfError(String errorMessage, String errorDetails) {
@@ -232,10 +232,10 @@ public class GlobalExceptionHandler {
         return new ModelAndView("rss", model);
     }
 
-    private ModelAndView generateJsonError(HttpServletRequest request, String errorMsg, String errorDetails) {
+    private ModelAndView generateJsonError(HttpServletRequest request, String errorMsg, String errorDetails, String errorCode) {
         String wskey = request.getParameter("wskey");
         String callback = request.getParameter("callback");
-        return JsonUtils.toJson(new ApiError(wskey, errorMsg, errorDetails), callback);
+        return JsonUtils.toJson(new ApiError(wskey, errorMsg, errorDetails, errorCode), callback);
     }
 
 }
