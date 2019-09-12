@@ -2,6 +2,7 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.json.ApiError;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
@@ -85,7 +86,7 @@ public class GlobalExceptionHandler {
             case MAIL: {
                 LOG.error(ee.getErrorMsgAndDetails(), ee);
                 try {
-                    String subject = "Exception in Search API " + getLocalHostName();
+                    String subject = "Exception in Search API " + Api2UrlService.getBeanInstance().getApi2BaseUrl();;
                     String body = ee.getErrorMsgAndDetails() + "/n" + ExceptionUtils.getStackTrace(ee);
                     emailService.sendException(subject, body);
                     LOG.info("Exception email was sent");
@@ -95,14 +96,6 @@ public class GlobalExceptionHandler {
                 break;
             }
             default: LOG.error(ee.getErrorMsgAndDetails(), ee);
-        }
-    }
-
-    private String getLocalHostName() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException uhe) {
-            return "unknown host";
         }
     }
 
