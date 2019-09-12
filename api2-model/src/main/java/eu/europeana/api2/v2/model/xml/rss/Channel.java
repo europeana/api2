@@ -55,6 +55,10 @@ public class Channel {
 		this.title = title;
 	}
 
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	public void setLink(String link) {
 		this.link = link;
 	}

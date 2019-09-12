@@ -5,7 +5,6 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
-import eu.europeana.api2.v2.model.xml.rss.Item;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.edm.exceptions.SolrIOException;
@@ -32,8 +31,11 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 
 /**
@@ -47,6 +49,12 @@ public class GlobalExceptionHandler {
 
     private static final Logger LOG = LogManager.getLogger(GlobalExceptionHandler.class);
 
+    // urls may or may not start with http(s), so that's why we also need to check for eanadev.org or europeana.eu domain
+    private static final Pattern EUROPEANA_URL = Pattern.compile("(at )?" +
+            "((https?:\\/\\/)?[a-zA-Z0-9-_/.]*(\\.eanadev\\.org|\\.europeana\\.eu))" + // hostname
+            "(:[a-zA-Z0-9-_/.]*)?"); // port and database name
+    private static final String API_KEY_PARAM = "wskey";
+
     @Resource(name = "corelib_web_emailService")
     private EmailService emailService;
 
@@ -55,10 +63,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {EuropeanaException.class})
     public ModelAndView europeanaExceptionHandler(HttpServletRequest request, HttpServletResponse response, EuropeanaException ee) {
-        String wskey = request.getParameter("wskey");
-        mailLogOrIgnoreError(wskey, ee);
-        response.setStatus(getHttpStatus(response, ee));
-        return generateErrorResponse(request, response, ee.getMessage(), ee.getErrorDetails(), ee.getErrorCode());
+        try {
+            String wskey = request.getParameter(API_KEY_PARAM);
+            mailLogOrIgnoreError(wskey, ee);
+            response.setStatus(getHttpStatus(response, ee));
+            return generateErrorResponse(request, response, ee.getMessage(), ee.getErrorDetails(), ee.getErrorCode());
+        } catch (Exception ex) {
+            LOG.error("Error while generating error response", ex);
+            throw ex;
+        }
     }
 
     private void mailLogOrIgnoreError(String apiKey, EuropeanaException ee) {
@@ -72,7 +85,9 @@ public class GlobalExceptionHandler {
             case MAIL: {
                 LOG.error(ee.getErrorMsgAndDetails(), ee);
                 try {
-                    emailService.sendException("Search API exception: " + ee.getErrorMsgAndDetails(), ExceptionUtils.getStackTrace(ee));
+                    String subject = "Exception in Search API " + getLocalHostName();
+                    String body = ee.getErrorMsgAndDetails() + "/n" + ExceptionUtils.getStackTrace(ee);
+                    emailService.sendException(subject, body);
                     LOG.info("Exception email was sent");
                 } catch (EmailServiceException es) {
                     LOG.error("Error sending exception email", es);
@@ -80,6 +95,14 @@ public class GlobalExceptionHandler {
                 break;
             }
             default: LOG.error(ee.getErrorMsgAndDetails(), ee);
+        }
+    }
+
+    private String getLocalHostName() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException uhe) {
+            return "unknown host";
         }
     }
 
@@ -113,7 +136,7 @@ public class GlobalExceptionHandler {
                                                       MissingServletRequestParameterException ex) {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         String errorMsg;
-        if ("wskey".equalsIgnoreCase(ex.getParameterName())) {
+        if (API_KEY_PARAM.equalsIgnoreCase(ex.getParameterName())) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             errorMsg = "No API key provided";
         } else {
@@ -189,25 +212,31 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = {Exception.class})
     public ModelAndView defaultExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e)  {
-        LOG.error("Caught unexpected exception", e);
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        String errorMsg = "Internal server error";
-        String errorDetails = e.getMessage();
-        return generateErrorResponse(request, response, errorMsg, errorDetails, null);
+        try {
+            LOG.error("Caught unexpected exception", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            String errorMsg = "Internal server error";
+            String errorDetails = e.getMessage();
+            return generateErrorResponse(request, response, errorMsg, errorDetails, null);
+        } catch (Exception ex) {
+            LOG.error("Error while generating error response", ex);
+            throw ex;
+        }
     }
 
-    public ModelAndView generateErrorResponse(HttpServletRequest request, HttpServletResponse response,
+    private ModelAndView generateErrorResponse(HttpServletRequest request, HttpServletResponse response,
                                               String errorMsg, String errorDetails, String errorCode) {
-        ControllerUtils.addResponseHeaders(response);
+        response.setCharacterEncoding("UTF-8");
         String requestFormat = ControllerUtils.getRequestFormat(request);
+        String details = filterSensitiveInfo(errorDetails);
         if ("RDF".equalsIgnoreCase(requestFormat)) {
             response.setContentType("application/rdf+xml");
-            return generateRdfError(errorMsg, errorDetails);
+            return generateRdfError(errorMsg, details);
         } else if ("RSS".equalsIgnoreCase(requestFormat)) {
             response.setContentType("application/xml");
-            return generateRssError(errorMsg, errorDetails);
+            return generateRssError(errorMsg, details);
         }
-        return generateJsonError(request, errorMsg, errorDetails, errorCode);
+        return generateJsonError(request, errorMsg, details, errorCode);
     }
 
     private ModelAndView generateRdfError(String errorMessage, String errorDetails) {
@@ -220,11 +249,15 @@ public class GlobalExceptionHandler {
     private ModelAndView generateRssError(String errorMessage, String errorDetails) {
         RssResponse response = new RssResponse();
         Channel channel = response.channel;
-        channel.totalResults.value = 0;
-        Item item = new Item();
-        item.title = "Error";
-        item.description = errorMessage + (StringUtils.isEmpty(errorDetails) ? "" : (" - " + errorDetails));
-        channel.items.add(item);
+        channel.setTitle("Error");
+        channel.setDescription(errorMessage + (StringUtils.isEmpty(errorDetails) ? "" : (" - " + errorDetails)));
+        channel.setAtomLink(null);
+        channel.setLink(null);
+        channel.totalResults = null;
+        channel.startIndex = null;
+        channel.itemsPerPage = null;
+        channel.query = null;
+        channel.image = null;
 
         String xml = xmlUtils.toString(response);
         Map<String, Object> model = new HashMap<>();
@@ -233,9 +266,21 @@ public class GlobalExceptionHandler {
     }
 
     private ModelAndView generateJsonError(HttpServletRequest request, String errorMsg, String errorDetails, String errorCode) {
-        String wskey = request.getParameter("wskey");
+        String wskey = request.getParameter(API_KEY_PARAM);
         String callback = request.getParameter("callback");
         return JsonUtils.toJson(new ApiError(wskey, errorMsg, errorDetails, errorCode), callback);
+    }
+
+    /**
+     * Some error messages include server urls and we don't want to display that to end-users, so that's why we
+     * filter this out.
+     */
+    private String filterSensitiveInfo(String errorMsg) {
+        // just to be sure a simple regex to filter out urls
+        if (StringUtils.isNotEmpty(errorMsg)) {
+            return EUROPEANA_URL.matcher(errorMsg).replaceAll("-");
+        }
+        return errorMsg;
     }
 
 }

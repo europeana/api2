@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.service;
 
+import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
@@ -39,13 +40,6 @@ public class HierarchyRunner {
     private static final Logger LOG = LogManager.getLogger(HierarchyRunner.class);
 
     private static final int MAX_LIMIT = 100;
-    //TODO factor exception email handling out to generic functionality
-    private static final String SUBJECTPREFIX = "Europeana exception email handler: ";
-
-    @Resource(name = "corelib_web_emailService")
-    private EmailService emailService;
-
-    private Neo4jSearchService searchService;
 
     @Async
     public ModelAndView call(RecordType recordType,
@@ -58,9 +52,8 @@ public class HierarchyRunner {
                              HttpServletRequest request,
                              HttpServletResponse response,
                              ApiKeyUtils apiKeyUtils,
-                             Neo4jSearchService searchService) throws EuropeanaException {
+                             Neo4jSearchService searchService) {
 
-        this.searchService = searchService;
         LOG.debug("Running thread for {}", rdfAbout);
 
         long selfIndex = 0L;
@@ -70,7 +63,13 @@ public class HierarchyRunner {
         limit = Math.min(limit, MAX_LIMIT);
 
         long          t1 = System.currentTimeMillis();
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), recordType, profile);
+        LimitResponse limitResponse;
+
+        try {
+            limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), recordType, profile);
+        } catch (ApiKeyException e) {
+            return JsonUtils.toJson(new ApiError(wskey, e), callback);
+        }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Limit: {}", (System.currentTimeMillis() - t1));
@@ -225,8 +224,6 @@ public class HierarchyRunner {
                 LOG.error(message);
             }
             return JsonUtils.toJson(new ApiError(wskey, message), callback);
-            // TODO check if can we dismiss this
-//            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)) sendExceptionEmail(e);
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("get main: {}", (System.currentTimeMillis() - t1));
