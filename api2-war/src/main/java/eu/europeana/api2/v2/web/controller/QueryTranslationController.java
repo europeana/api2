@@ -15,6 +15,7 @@ import eu.europeana.corelib.web.exception.EuropeanaException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,8 +56,10 @@ public class QueryTranslationController {
                 RecordType.TRANSLATE_QUERY, null);
 
         if (StringUtils.isBlank(term)) {
+            response.setStatus(HttpStatus.SC_BAD_REQUEST);
             return JsonUtils.toJson(new ApiError(wskey, ERROR_TERM), callback);
         } else if (StringArrayUtils.isBlank(languageCodes)) {
+            response.setStatus(HttpStatus.SC_BAD_REQUEST);
             return JsonUtils.toJson(new ApiError(wskey, ERROR_LANGUAGE), callback);
         }
 
