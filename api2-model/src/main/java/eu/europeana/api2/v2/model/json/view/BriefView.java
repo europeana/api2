@@ -17,7 +17,7 @@ import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.codehaus.jackson.annotate.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  * A BriefView defines the fields that are returned in search results when using the 'minimal' profile
@@ -138,7 +138,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     @Override
-    public Integer getContentTier() {
+    public String getContentTier() {
         if (isProfile(Profile.DEBUG)) {
             return bean.getContentTier();
         }

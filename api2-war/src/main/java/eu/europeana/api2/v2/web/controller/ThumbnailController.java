@@ -33,7 +33,9 @@ import java.util.Locale;
 /**
  * Retrieves image thumbnails.
  * The thumbnail API doesn't require any form of authentication, providing an API key is optional.
+ * @deprecated 15 August 2019, all thumbnail files are now served by the thumbnail application itself
  */
+@Deprecated
 @RestController
 public class ThumbnailController {
 

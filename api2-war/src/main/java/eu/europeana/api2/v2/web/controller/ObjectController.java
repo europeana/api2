@@ -14,7 +14,6 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.ItemFix;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.ObjectResult;
-import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.xml.srw.Record;
@@ -23,7 +22,6 @@ import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
-import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
@@ -53,7 +51,9 @@ import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
@@ -71,10 +71,28 @@ public class ObjectController {
 
     private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
+    private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
+    private static Object       jsonldContext           = new Object();
 
     private SearchService   searchService;
     private ApiKeyUtils     apiKeyUtils;
     private HttpCacheUtils  httpCacheUtils;
+
+    /**
+     * Create a static Object for JSONLD Context. This will read the file once during initialization
+     *
+     * @param jsonldContext
+     * @throws IOException
+     */
+
+    static {
+        try {
+            InputStream in = ObjectController.class.getResourceAsStream("/jsonld/context.jsonld");
+            jsonldContext = JSONUtils.fromInputStream(in);
+        } catch (IOException e) {
+            LOG.error("Error reading context.jsonld", e);
+        }
+    }
 
     /**
      * Create a new ObjectController
@@ -134,9 +152,9 @@ public class ObjectController {
     @SwaggerIgnore
     @RequestMapping(value = {"/context.jsonld", "/context.json-ld"},
                     method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    produces= MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
-        String jsonld = JSONUtils.toString(getJsonContext());
+        String jsonld = JSONUtils.toString(jsonldContext);
         return JsonUtils.toJson(jsonld, callback);
     }
 
@@ -157,7 +175,7 @@ public class ObjectController {
     @SwaggerIgnore
     @RequestMapping(value = "/{collectionId}/{recordId}.json-ld",
                     method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+                    produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String wskey,
@@ -185,7 +203,7 @@ public class ObjectController {
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
     @RequestMapping(value = "/{collectionId}/{recordId}.jsonld",
                     method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+                    produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String wskey,
@@ -221,7 +239,7 @@ public class ObjectController {
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
     @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld",
                     method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+                    produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String wskey,
@@ -455,7 +473,7 @@ public class ObjectController {
             Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
             Object raw         = JSONLD.fromRDF(modelResult, new JenaRDFParser());
             if (StringUtils.equalsIgnoreCase(data.profile, "compacted")) {
-                raw = JSONLD.compact(raw, getJsonContext(), new Options());
+                raw = JSONLD.compact(raw, jsonldContext, new Options());
             } else if (StringUtils.equalsIgnoreCase(data.profile, "flattened")) {
                 raw = JSONLD.flatten(raw);
             } else if (StringUtils.equalsIgnoreCase(data.profile, "normalized")) {
@@ -467,7 +485,7 @@ public class ObjectController {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
         }
-        return JsonUtils.toJson(jsonld, data.callback);
+        return JsonUtils.toJsonLd(jsonld, data.callback);
     }
 
     private ModelAndView generateRdf(FullBean bean) {
@@ -532,15 +550,6 @@ public class ObjectController {
             url.append('?').append(queryString);
         }
         return url.toString();
-    }
-
-    private Object getJsonContext() {
-        try (InputStream in = this.getClass().getResourceAsStream("/jsonld/context.jsonld")) {
-            return JSONUtils.fromInputStream(in);
-        } catch (IOException e) {
-            LOG.error("Error reading context.jsonld", e);
-        }
-        return null;
     }
 
     private void createXml(SrwResponse response) throws JAXBException {
