@@ -3,11 +3,9 @@ package eu.europeana.api2.config;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
-import eu.europeana.features.ObjectStorageClient;
-import eu.europeana.features.S3ObjectStorageClient;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,19 +53,6 @@ public class AppConfig {
     private String portalBaseUrl;
     @Value("${api2.baseUrl:}")
     private String api2BaseUrl;
-
-    @Deprecated
-    @Value("${sitemap.s3.key}")
-    private String key;
-    @Deprecated
-    @Value("${sitemap.s3.secret}")
-    private String secret;
-    @Deprecated
-    @Value("${sitemap.s3.region}")
-    private String region;
-    @Deprecated
-    @Value("${sitemap.s3.bucket}")
-    private String bucket;
 
     @Value("${postgres.max.stale.sessions:}")
     private Integer pgMaxStaleSessions;
@@ -251,16 +236,5 @@ public class AppConfig {
         return urlService;
     }
 
-    /**
-     * The ObjectStorageClient allows access to our Storage Provider where thumbnails and sitemap files are stored
-     * At the moment we use Amazon S3
-     * @return ObjectStorageClient bean
-     */
-//    @Deprecated
-//    @Bean(name = "api_sitemap_object_storage")
-//    public ObjectStorageClient objectStorageClient(){
-//        LOG.info("Creating new sitemap objectStorage client");
-//        return new S3ObjectStorageClient(key,secret,region,bucket);
-//    }
 
 }
