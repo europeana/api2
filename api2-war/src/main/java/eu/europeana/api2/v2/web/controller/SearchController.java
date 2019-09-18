@@ -195,7 +195,8 @@ public class SearchController {
 
         if (cursorMark != null) {
             if (start > 1) {
-                throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR);
+                throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
+                        "Parameters 'start' and 'cursorMark' cannot be used together");
             }
         }
 
