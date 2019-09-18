@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api2.ApiLimitException;
+import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.entity.relational.ApiKeyImpl;
@@ -8,10 +8,10 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.enums.ApiClientLevel;
+import eu.europeana.corelib.web.exception.ProblemType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.http.HttpStatus;
 
 import javax.annotation.Resource;
 
@@ -38,16 +38,16 @@ public class ApiKeyUtils {
      * @param recordType The type of record, defined by {@link RecordType}
      * @param profile The profile used
      * @return A {@link LimitResponse} consisting of the apiKey and current request number
-     * @throws ApiLimitException {@link ApiLimitException} if an unregistered or unauthorised key is provided, or if the
+     * @throws ApiKeyException {@link ApiKeyException} if an unregistered or unauthorised key is provided, or if the
      *         daily limit has been reached
      *
      * @Deprecated Only checking if a key exists is used at the moment (not the limit)
      *    All functionality will be moved to the new apikey project
      */
     public LimitResponse checkLimit(String wskey, String url, RecordType recordType,
-                                    String profile) throws ApiLimitException {
+                                    String profile) throws ApiKeyException {
         if (StringUtils.isBlank(wskey)) {
-            throw new ApiLimitException(wskey, "No API key provided", 0, HttpStatus.UNAUTHORIZED.value());
+            throw new ApiKeyException(ProblemType.APIKEY_MISSING, null);
         }
 
         ApiKey apiKey;
@@ -57,7 +57,7 @@ public class ApiKeyUtils {
             t = System.currentTimeMillis();
             apiKey = apiService.findByID(wskey);
             if (apiKey == null) {
-                throw new ApiLimitException(wskey, "Invalid API key", 0, HttpStatus.UNAUTHORIZED.value());
+                throw new ApiKeyException(ProblemType.APIKEY_INVALID, wskey);
             }
             LOG.debug("Get apiKey took {} ms",(System.currentTimeMillis() - t));
 
@@ -67,7 +67,7 @@ public class ApiKeyUtils {
 
         } catch (DatabaseException e) {
             LOG.error("Error retrieving apikey", e);
-            ApiLimitException ex = new ApiLimitException(wskey, e.getMessage(), requestNumber, HttpStatus.UNAUTHORIZED.value());
+            ApiKeyException ex = new ApiKeyException(ProblemType.APIKEY_INVALID, wskey);
             ex.initCause(e);
             throw ex;
         } catch (org.hibernate.exception.JDBCConnectionException |

@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.service;
 
-import eu.europeana.api2.ApiLimitException;
+import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
@@ -12,19 +12,15 @@ import eu.europeana.corelib.neo4j.Neo4jSearchService;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
 import eu.europeana.corelib.neo4j.exception.Neo4JException;
-import eu.europeana.corelib.web.exception.EmailServiceException;
-import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
-import eu.europeana.corelib.web.service.EmailService;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
@@ -42,13 +38,6 @@ public class HierarchyRunner {
     private static final Logger LOG = LogManager.getLogger(HierarchyRunner.class);
 
     private static final int MAX_LIMIT = 100;
-    //TODO factor exception email handling out to generic functionality
-    private static final String SUBJECTPREFIX = "Europeana exception email handler: ";
-
-    @Resource(name = "corelib_web_emailService")
-    private EmailService emailService;
-
-    private Neo4jSearchService searchService;
 
     @Async
     public ModelAndView call(RecordType recordType,
@@ -63,7 +52,6 @@ public class HierarchyRunner {
                              ApiKeyUtils apiKeyUtils,
                              Neo4jSearchService searchService) {
 
-        this.searchService = searchService;
         LOG.debug("Running thread for {}", rdfAbout);
 
         long selfIndex = 0L;
@@ -77,9 +65,9 @@ public class HierarchyRunner {
 
         try {
             limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), recordType, profile);
-        } catch (ApiLimitException e) {
-            response.setStatus(e.getHttpStatus());
-            return JsonUtils.toJson(new ApiError(e), callback);
+        } catch (ApiKeyException e) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return JsonUtils.toJson(new ApiError(wskey, e), callback);
         }
 
         if (LOG.isDebugEnabled()) {
@@ -234,11 +222,7 @@ public class HierarchyRunner {
                 message = "Error processing hierarchical request";
                 LOG.error(message);
             }
-            return JsonUtils.toJson(new ApiError(wskey,
-                                                 message,
-                                                 -1L), callback);
-            // TODO check if can we dismiss this
-//            if (e.getProblem().getAction().equals(ProblemResponseAction.MAIL)) sendExceptionEmail(e);
+            return JsonUtils.toJson(new ApiError(wskey, message), callback);
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("get main: {}", (System.currentTimeMillis() - t1));
@@ -254,17 +238,4 @@ public class HierarchyRunner {
         return json;
     }
 
-    private void sendExceptionEmail(EuropeanaException e){
-        String newline = System.getProperty("line.separator");
-
-        String header = SUBJECTPREFIX + e.getProblem().getMessage();
-        String body = (e.getMessage() + newline + newline +
-                ExceptionUtils.getStackTrace(e));
-//                + e.getStackTrace().toString());
-        try {
-            emailService.sendException(header, body);
-        } catch (EmailServiceException es) {
-            LOG.error("Error sending email", e);
-        }
-    }
 }

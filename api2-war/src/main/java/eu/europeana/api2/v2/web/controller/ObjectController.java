@@ -7,16 +7,12 @@ import com.github.jsonldjava.impl.JenaRDFParser;
 import com.github.jsonldjava.utils.JSONUtils;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
-import eu.europeana.api2.ApiLimitException;
 import eu.europeana.api2.model.json.ApiError;
-import eu.europeana.api2.model.xml.srw.SrwResponse;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.ItemFix;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.ObjectResult;
-import eu.europeana.api2.v2.model.json.view.FullDoc;
 import eu.europeana.api2.v2.model.json.view.FullView;
-import eu.europeana.api2.v2.model.xml.srw.Record;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
@@ -38,19 +34,18 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -59,7 +54,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 
 /**
- * Provides record information in all kinds of formats; json, json-ld, rdf and srw
+ * Provides record information in all kinds of formats; json, json-ld and rdf
  *
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
@@ -120,12 +115,10 @@ public class ObjectController {
      * @param servletRequest
      * @param response
      * @return
-     * @throws ApiLimitException
+     * @throws EuropeanaException
      */
     @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
-    @RequestMapping(value = "/{collectionId}/{recordId}.json",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ModelAndView record(@PathVariable String collectionId,
                                @PathVariable String recordId,
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
@@ -133,16 +126,9 @@ public class ObjectController {
                                @RequestParam(value = "callback", required = false) String callback,
                                @ApiIgnore WebRequest webRequest,
                                @ApiIgnore HttpServletRequest servletRequest,
-                               @ApiIgnore HttpServletResponse response) throws ApiLimitException {
+                               @ApiIgnore HttpServletResponse response) throws EuropeanaException {
         RequestData data = new RequestData(collectionId, recordId, wskey, profile, callback, webRequest, servletRequest);
-        try {
-            return (ModelAndView) handleRecordRequest(RecordType.OBJECT, data, response);
-        } catch (EuropeanaException e) {
-            LOG.error("Error retrieving record JSON", e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": " + e.getMessage(),
-                                                 data.apikeyCheckResponse.getRequestNumber()), data.callback);
-        }
+        return (ModelAndView) handleRecordRequest(RecordType.OBJECT, data, response);
     }
 
     /**
@@ -150,9 +136,7 @@ public class ObjectController {
      * @return only the context part of a json-ld record
      */
     @SwaggerIgnore
-    @RequestMapping(value = {"/context.jsonld", "/context.json-ld"},
-                    method = {RequestMethod.GET, RequestMethod.POST},
-    produces= MEDIA_TYPE_JSONLD_UTF8)
+    @GetMapping(value = {"/context.jsonld", "/context.json-ld"}, produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
         String jsonld = JSONUtils.toString(jsonldContext);
         return JsonUtils.toJson(jsonld, callback);
@@ -170,12 +154,10 @@ public class ObjectController {
      * @param servletRequest
      * @param response
      * @return
-     * @throws ApiLimitException
+     * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @SwaggerIgnore
-    @RequestMapping(value = "/{collectionId}/{recordId}.json-ld",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MEDIA_TYPE_JSONLD_UTF8)
+    @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String wskey,
@@ -183,7 +165,7 @@ public class ObjectController {
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @ApiIgnore WebRequest webRequest,
                                       @ApiIgnore HttpServletRequest servletRequest,
-                                      @ApiIgnore HttpServletResponse response) throws ApiLimitException {
+                                      @ApiIgnore HttpServletResponse response) throws EuropeanaException {
         return recordJSONLD(collectionId, recordId, wskey, format, callback, webRequest, servletRequest, response);
     }
 
@@ -198,12 +180,10 @@ public class ObjectController {
      * @param servletRequest
      * @param response
      * @return
-     * @throws ApiLimitException
+     * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
-    @RequestMapping(value = "/{collectionId}/{recordId}.jsonld",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MEDIA_TYPE_JSONLD_UTF8)
+    @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String wskey,
@@ -211,16 +191,10 @@ public class ObjectController {
                                      @RequestParam(value = "callback", required = false) String callback,
                                      @ApiIgnore WebRequest webRequest,
                                      @ApiIgnore HttpServletRequest servletRequest,
-                                     @ApiIgnore HttpServletResponse response) throws ApiLimitException {
+                                     @ApiIgnore HttpServletResponse response) throws EuropeanaException {
 
         RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
-        try {
-            return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
-        } catch (EuropeanaException e) {
-            LOG.error("Error retrieving record JSON-LD", e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": " + e.getMessage(), data.apikeyCheckResponse.getRequestNumber()), data.callback);
-        }
+        return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
     }
 
     /***
@@ -234,12 +208,10 @@ public class ObjectController {
      * @param servletRequest
      * @param response
      * @return
-     * @throws ApiLimitException
+     * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
-    @RequestMapping(value = "/{collectionId}/{recordId}.schema.jsonld",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MEDIA_TYPE_JSONLD_UTF8)
+    @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String wskey,
@@ -247,16 +219,10 @@ public class ObjectController {
                                         @RequestParam(value = "callback", required = false) String callback,
                                         @ApiIgnore WebRequest webRequest,
                                         @ApiIgnore HttpServletRequest servletRequest,
-                                        @ApiIgnore HttpServletResponse response) throws ApiLimitException {
+                                        @ApiIgnore HttpServletResponse response) throws EuropeanaException {
 
         RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
-        try {
-            return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
-        } catch (EuropeanaException e) {
-            LOG.error("Error retrieving record Schema.org JSON-LD", e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": " + e.getMessage(), data.apikeyCheckResponse.getRequestNumber()), data.callback);
-        }
+        return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
     }
 
     /**
@@ -269,65 +235,18 @@ public class ObjectController {
      * @param servletRequest
      * @param response
      * @return
-     * @throws ApiLimitException
+     * @throws EuropeanaException
      */
     @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
-    @RequestMapping(value = "/{collectionId}/{recordId}.rdf",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MEDIA_TYPE_RDF_UTF8)
+    @GetMapping(value = "/{collectionId}/{recordId}.rdf", produces = MEDIA_TYPE_RDF_UTF8)
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "wskey") String wskey,
                                   @ApiIgnore WebRequest webRequest,
                                   @ApiIgnore HttpServletRequest servletRequest,
-                                  @ApiIgnore HttpServletResponse response) throws ApiLimitException {
+                                  @ApiIgnore HttpServletResponse response) throws EuropeanaException {
         RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
-        try {
-            return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
-        } catch (EuropeanaException e) {
-            LOG.error("Error retrieving record RDF", e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(wskey, e.getClass().getSimpleName() + ": " + e.getMessage(), data.apikeyCheckResponse.getRequestNumber()), data.callback);
-        }
-    }
-
-    /**
-     * Provides records in SRU/SRW (XML) format.
-     *
-     * @param collectionId   ID of data collection or data set
-     * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param wskey          pre-api term for 'apikey'
-     * @param webRequest
-     * @param servletRequest
-     * @param response
-     * @return
-     * @throws Exception
-     */
-    // 2017-06-16 This code hasn't been used for a long time (not a single .srw request was logged in Kibana)
-    // However, depending on the results of a to-be-held survey among developers we may bring this back to life again
-    /**
-     * @deprecated Part of SRW responses which officially isn't supported any more
-     */
-    @Deprecated
-    @SwaggerIgnore
-    @RequestMapping(value = "/{collectionId}/{recordId}.srw",
-                    method = {RequestMethod.GET, RequestMethod.POST},
-                    produces = MediaType.TEXT_XML_VALUE)
-    public @ResponseBody
-    SrwResponse recordSrw(@PathVariable String collectionId,
-                          @PathVariable String recordId,
-                          @RequestParam(value = "wskey", required = false) String wskey,
-                          @ApiIgnore WebRequest webRequest,
-                          @ApiIgnore HttpServletRequest servletRequest,
-                          @ApiIgnore HttpServletResponse response) throws ApiLimitException, EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
-        // output can be an SrwResponse (status 200)
-        Object out = handleRecordRequest(RecordType.OBJECT_SRW, data, response);
-        if (out instanceof SrwResponse) {
-            return (SrwResponse) out;
-        }
-        // or output is a ModelAndView and status 404 or 301
-        return null;
+        return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
     }
 
     /**
@@ -335,7 +254,7 @@ public class ObjectController {
      * functionality like setting CORS headers, checking API key, retrieving the record for mongo and setting 301 or 404 if necessary
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
-            throws ApiLimitException, EuropeanaException {
+            throws EuropeanaException {
 
         ModelAndView result;
 
@@ -365,12 +284,9 @@ public class ObjectController {
                 Map<String, Object> model = new HashMap<>();
                 model.put("error", "Non-existing record identifier");
                 result = new ModelAndView("rdf", model);
-            } else if (recordType == RecordType.OBJECT_SRW) {
-                // no official supported way to return xml error message yet
-                result = null;
             } else {
                 result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: "
-                        + data.europeanaObjectId, data.apikeyCheckResponse.getRequestNumber()), data.callback);
+                        + data.europeanaObjectId), data.callback);
             }
             return result;
         }
@@ -432,9 +348,6 @@ public class ObjectController {
             case OBJECT_RDF:
                 output = generateRdf(bean);
                 break;
-            case OBJECT_SRW:
-                output = generateSrw(bean);
-                break;
             case OBJECT_SCHEMA_ORG:
                 output = generateSchemaOrg(bean, data);
                 break;
@@ -494,20 +407,6 @@ public class ObjectController {
         return new ModelAndView("rdf", model);
     }
 
-    @Deprecated
-    private SrwResponse generateSrw(FullBean bean) {
-        SrwResponse srwResponse = new SrwResponse();
-        FullDoc     doc         = new FullDoc(bean); // TODO this will generate date ParseExceptions, need to investigate
-        Record      record      = new Record();
-        record.recordData.dc = doc;
-        srwResponse.records.record.add(record);
-        try {
-            createXml(srwResponse);
-        } catch (JAXBException e) {
-            LOG.error("Error generating xml", e);
-        }
-        return srwResponse;
-    }
 
     /**
      * NOTE this method is called in commented-out code above, check those first before removing this
@@ -550,13 +449,6 @@ public class ObjectController {
             url.append('?').append(queryString);
         }
         return url.toString();
-    }
-
-    private void createXml(SrwResponse response) throws JAXBException {
-        final JAXBContext  context      = JAXBContext.newInstance(SrwResponse.class);
-        final Marshaller   marshaller   = context.createMarshaller();
-        final StringWriter stringWriter = new StringWriter();
-        marshaller.marshal(response, stringWriter);
     }
 
     /**

@@ -11,8 +11,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 public final class ControllerUtils {
 
-    private static final String ALLOWED                 = "GET, HEAD, POST";
-    private static final String ACCEPT                 = "Accept";
+    public static final String ALLOWED_GET_HEAD       = "GET, HEAD";
+    public static final String ALLOWED_GET_HEAD_POST  = "GET, HEAD, POST";
+    private static final String ACCEPT                = "Accept";
 
     private ControllerUtils() {
         // to avoid instantiating this class
@@ -58,6 +59,6 @@ public final class ControllerUtils {
      */
     public static void addResponseHeaders(HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
-        response.addHeader("Allow", ALLOWED);
+        response.addHeader("Allow", ALLOWED_GET_HEAD);
     }
 }

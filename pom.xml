@@ -17,7 +17,7 @@
     <properties>
         <corelib.version>2.9.1-SNAPSHOT</corelib.version>
         <httpclient.version>4.5.2</httpclient.version>
-        <jackson.version>2.6.5</jackson.version>
+        <jackson.version>2.9.9</jackson.version>
         <jodatime.version>2.9.2</jodatime.version>
         <junit.version>4.12</junit.version>
         <mockito.version>1.10.19</mockito.version>
@@ -46,6 +46,29 @@
         <url>https://github.com/europeana/api2</url>
         <tag>HEAD</tag>
     </scm>
+
+    <build>
+        <plugins>
+            <!-- This will be active when running the verify or install goal
+                 To skip (e.g. during debugging) use 'mvn clean package')-->
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>5.2.1</version>
+                <configuration>
+                    <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+                    <skipSystemScope>true</skipSystemScope>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <profile>
