@@ -66,10 +66,28 @@ public class ObjectController {
 
     private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
+    private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
+    private static Object       jsonldContext           = new Object();
 
     private SearchService   searchService;
     private ApiKeyUtils     apiKeyUtils;
     private HttpCacheUtils  httpCacheUtils;
+
+    /**
+     * Create a static Object for JSONLD Context. This will read the file once during initialization
+     *
+     * @param jsonldContext
+     * @throws IOException
+     */
+
+    static {
+        try {
+            InputStream in = ObjectController.class.getResourceAsStream("/jsonld/context.jsonld");
+            jsonldContext = JSONUtils.fromInputStream(in);
+        } catch (IOException e) {
+            LOG.error("Error reading context.jsonld", e);
+        }
+    }
 
     /**
      * Create a new ObjectController
@@ -118,10 +136,9 @@ public class ObjectController {
      * @return only the context part of a json-ld record
      */
     @SwaggerIgnore
-    @GetMapping(value = {"/context.jsonld", "/context.json-ld"},
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = {"/context.jsonld", "/context.json-ld"}, produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
-        String jsonld = JSONUtils.toString(getJsonContext());
+        String jsonld = JSONUtils.toString(jsonldContext);
         return JsonUtils.toJson(jsonld, callback);
     }
 
@@ -140,7 +157,7 @@ public class ObjectController {
      * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @SwaggerIgnore
-    @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String wskey,
@@ -166,7 +183,7 @@ public class ObjectController {
      * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
-    @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String wskey,
@@ -194,8 +211,7 @@ public class ObjectController {
      * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
-    @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld",
-                    produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String wskey,
@@ -370,7 +386,7 @@ public class ObjectController {
             Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
             Object raw         = JSONLD.fromRDF(modelResult, new JenaRDFParser());
             if (StringUtils.equalsIgnoreCase(data.profile, "compacted")) {
-                raw = JSONLD.compact(raw, getJsonContext(), new Options());
+                raw = JSONLD.compact(raw, jsonldContext, new Options());
             } else if (StringUtils.equalsIgnoreCase(data.profile, "flattened")) {
                 raw = JSONLD.flatten(raw);
             } else if (StringUtils.equalsIgnoreCase(data.profile, "normalized")) {
@@ -382,7 +398,7 @@ public class ObjectController {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
         }
-        return JsonUtils.toJson(jsonld, data.callback);
+        return JsonUtils.toJsonLd(jsonld, data.callback);
     }
 
     private ModelAndView generateRdf(FullBean bean) {
@@ -433,15 +449,6 @@ public class ObjectController {
             url.append('?').append(queryString);
         }
         return url.toString();
-    }
-
-    private Object getJsonContext() {
-        try (InputStream in = this.getClass().getResourceAsStream("/jsonld/context.jsonld")) {
-            return JSONUtils.fromInputStream(in);
-        } catch (IOException e) {
-            LOG.error("Error reading context.jsonld", e);
-        }
-        return null;
     }
 
     /**
