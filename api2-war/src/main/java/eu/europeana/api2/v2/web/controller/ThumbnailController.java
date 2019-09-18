@@ -11,10 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 
 import javax.annotation.Resource;
@@ -58,8 +55,7 @@ public class ThumbnailController {
      *             can be: IMAGE, SOUND, VIDEO, TEXT or 3D.
      * @return responsEntity
      */
-    @RequestMapping(value = "/v2/thumbnail-by-url.json",
-                    method = {RequestMethod.GET, RequestMethod.POST})
+    @GetMapping(value = "/v2/thumbnail-by-url.json")
     public ResponseEntity<byte[]> thumbnailByUrl(
             @RequestParam(value = "uri") String url,
             @RequestParam(value = "size", required = false, defaultValue = "w400") String size,
