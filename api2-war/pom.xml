@@ -60,6 +60,13 @@
             <version>${corelib.version}</version>
         </dependency>
 
+        <!-- new facet library from Metis -->
+        <dependency>
+            <groupId>eu.europeana.metis</groupId>
+            <artifactId>metis-indexing</artifactId>
+            <version>${metis.version}</version>
+        </dependency>
+
         <!-- OTHER -->
         <dependency>
             <groupId>com.google.guava</groupId>
