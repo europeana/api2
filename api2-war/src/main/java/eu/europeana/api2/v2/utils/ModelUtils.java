@@ -1,12 +1,13 @@
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api2.v2.utils.technicalfacets.*;
+import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
+import eu.europeana.indexing.solr.facet.*;
+import eu.europeana.indexing.solr.facet.value.*;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
@@ -38,45 +39,46 @@ public class ModelUtils {
         enumFacetList.addAll(solrFacetList);
     }
 
+
+
     /**
-     * if boolean name = true, returns the facet name associated with the tag value
-     * otherwise, returns the facet label
+     * returns a FacetTag object containing the name and label associated with the tag value
      * @param tag  numerically encoded technical facet tag
-     * @param name whether to return the tag name (true) or label (false)
-     * @return tag name / label (String)
+     * @return FacetTag (String name, String label)
      */
-    public static String decodeFacetTag(Integer tag, boolean name) {
-        final MediaTypeEncoding mediaType = CommonTagExtractor.getType(tag);
-        final String mimeType = CommonTagExtractor.getMimeType(tag);
+    public static FacetTag decodeFacetTag(Integer tag) {
 
-        if (StringUtils.isNotBlank(mimeType)) return name ? "MIME_TYPE" : mimeType;
+        final MediaTypeEncoding mediaType = EncodedFacet.MEDIA_TYPE.decodeValue(tag);
+        final MimeTypeEncoding  mimeType  = EncodedFacet.MIME_TYPE.decodeValue(tag);
+        if (mimeType != null) {
+            return new FacetTag("MIME_TYPE", mimeType.getValue());
+        }
 
-        String label;
         switch (mediaType) {
             case IMAGE:
-                label = ImageTagExtractor.getAspectRatio(tag);
-                if (StringUtils.isNotBlank(label)) return name ? "IMAGE_ASPECTRATIO" : label;
-                label = ImageTagExtractor.getColor(tag);
-                if (StringUtils.isNotBlank(label)) return name ? "COLOURPALETTE" : label;
-                label = ImageTagExtractor.getColorSpace(tag);
-                if (StringUtils.isNotBlank(label)) return name ? "IMAGE_COLOUR" : label;
-                label = ImageTagExtractor.getSize(tag);
-                if (StringUtils.isNotBlank(label)) return name ? "IMAGE_SIZE" : label;
-                return label;
+                ImageAspectRatio imageAspectRatio = EncodedFacet.IMAGE_ASPECT_RATIO.decodeValue(tag);
+                if (imageAspectRatio != null) return new FacetTag("IMAGE_ASPECTRATIO", imageAspectRatio.toString());
+                ImageColorEncoding imageColorEncoding = EncodedFacet.IMAGE_COLOR_ENCODING.decodeValue(tag);
+                if (imageColorEncoding != null) return new FacetTag("COLOURPALETTE",imageColorEncoding.getHexStringWithHash());
+                ImageColorSpace imageColorSpace = EncodedFacet.IMAGE_COLOR_SPACE.decodeValue(tag);
+                if (imageColorSpace != null) return new FacetTag("IMAGE_COLOUR", imageColorSpace.toString());
+                ImageSize imageSize = EncodedFacet.IMAGE_SIZE.decodeValue(tag);
+                if (imageSize != null) return new FacetTag("IMAGE_SIZE", imageSize.toString());
+                return new FacetTag("", "");
             case AUDIO:
-                label = SoundTagExtractor.getDuration(tag);
-                if (StringUtils.isNotBlank(label)) return name ? "SOUND_DURATION" : label;
-                label = SoundTagExtractor.getQuality(tag);
-                if (StringUtils.isNotBlank(label)) return name ? "SOUND_HQ" : label;
-                return "";
+                AudioDuration audioDuration = EncodedFacet.AUDIO_DURATION.decodeValue(tag);
+                if (audioDuration != null) return new FacetTag("SOUND_DURATION", audioDuration.toString());
+                AudioQuality audioQuality = EncodedFacet.AUDIO_QUALITY.decodeValue(tag);
+                if (audioQuality != null) return new FacetTag("SOUND_HQ", audioQuality.toString());
+                return new FacetTag("", "");
             case VIDEO:
-                label = VideoTagExtractor.getDuration(tag);
-                if (StringUtils.isNotBlank(label)) return name ? "VIDEO_DURATION" : label;
-                label = VideoTagExtractor.getQuality(tag);
-                if (StringUtils.isNotBlank(label)) return name ? "VIDEO_HD" : label;
-                return "";
+                VideoDuration videoDuration = EncodedFacet.VIDEO_DURATION.decodeValue(tag);
+                if (videoDuration != null) return new FacetTag("VIDEO_DURATION", videoDuration.toString());
+                VideoQuality videoQualityn = EncodedFacet.VIDEO_QUALITY.decodeValue(tag);
+                if (videoQualityn != null) return new FacetTag("VIDEO_HD", videoQualityn.toString());
+                return new FacetTag("", "");
             default:
-                return "";
+                return new FacetTag("", "");
         }
     }
 

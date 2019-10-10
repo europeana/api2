@@ -1,11 +1,12 @@
 package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.v2.utils.technicalfacets.*;
-import org.apache.commons.lang3.StringUtils;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
 import eu.europeana.corelib.definitions.model.Orientation;
+import eu.europeana.indexing.solr.facet.FacetEncoder;
+import eu.europeana.indexing.solr.facet.value.ImageColorEncoding;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 /**
  * @author lúthien (maike.dulk@europeana.eu)
@@ -14,70 +15,66 @@ public class TagUtils {
 
     private TagUtils(){}
 
-    // 1) the fixlist() method cleans up duplicates and replaces NULL Lists with a list containing only "null". This is
-    // to facilitate the default "0" values of the filter tags.
-    // 2) The nested forEach creates a cartesian combination of the input lists
-    // 3) The filtertag integers are assembled right away inside the loops, as it adds nothing to delegate that to
-    // multiple downstream methods. But it compacts the code by a factor 4 at least.
-    public static List<Integer> imageFilterTags(final List<String> imageMimeTypeFacets, final List<String> imageSizeFacets,
-                                                final List<String> imageColourSpaceFacets, final List<String> imageAspectRatioFacets,
-                                                final List<String> imageColourPaletteFacets) {
-        List<Integer> filterTags = new ArrayList<>();
-        fixList(imageMimeTypeFacets).forEach(mimeTypeFacet ->
-        fixList(imageSizeFacets).forEach(sizeFacet ->
-        fixList(imageColourSpaceFacets).forEach(colourSpaceFacet ->
-        fixList(imageAspectRatioFacets).forEach(aspectRatioFacet ->
-        fixList(imageColourPaletteFacets).forEach(colourPaletteFacet -> {
-            filterTags.add(MediaTypeEncoding.IMAGE.getEncodedValue() |
-                           CommonTagExtractor.getMimeTypeCode(mimeTypeFacet.equals("null") ? null : mimeTypeFacet) << TagEncoding.MIME_TYPE.getBitPos() |
-                           ImageTagExtractor.getSizeCode(sizeFacet.equals("null") ? null : sizeFacet) << TagEncoding.IMAGE_SIZE.getBitPos() |
-                           ImageTagExtractor.getColorSpaceCode(colourSpaceFacet.equals("null") ? null : colourSpaceFacet) << TagEncoding.IMAGE_COLOURSPACE.getBitPos() |
-                           ImageTagExtractor.getAspectRatioCode(aspectRatioFacet.equals("null") ? null : getImageOrientation(aspectRatioFacet)) << TagEncoding.IMAGE_ASPECTRATIO.getBitPos() |
-                           ImageTagExtractor.getColorCode(colourPaletteFacet.equals("null") ? null : colourPaletteFacet) << TagEncoding.IMAGE_COLOUR.getBitPos());})))));
-        return filterTags;
-    }
 
-    public static List<Integer> soundFilterTags(List<String> soundMimeTypeFacets, List<String> soundHQFacets, List<String> soundDurationFacets) {
-        final List<Integer> filterTags = new ArrayList<>();
-        fixList(soundMimeTypeFacets).forEach((mimeTypeFacet) ->
-        fixList(soundHQFacets).forEach((hqFacet) ->
-        fixList(soundDurationFacets).forEach((durationFacet) -> {
-            filterTags.add(MediaTypeEncoding.AUDIO.getEncodedValue() |
-                           CommonTagExtractor.getMimeTypeCode(mimeTypeFacet.equals("null") ? null : mimeTypeFacet) << TagEncoding.MIME_TYPE.getBitPos() |
-                           SoundTagExtractor.getQualityCode(hqFacet.equals("null") ? null : hqFacet) << TagEncoding.SOUND_QUALITY.getBitPos() |
-                           SoundTagExtractor.getDurationCode(durationFacet.equals("null") ? null : durationFacet) << TagEncoding.SOUND_DURATION.getBitPos());})));
-        return filterTags;
-    }
-
-    public static List<Integer> videoFilterTags(List<String> videoMimeTypeFacets, List<String> videoHDFacets, List<String> videoDurationFacets) {
-        final List<Integer> filterTags = new ArrayList<>();
-        fixList(videoMimeTypeFacets).forEach((mimeTypeFacet) ->
-        fixList(videoHDFacets).forEach((hdFacet) ->
-        fixList(videoDurationFacets).forEach((durationFacet) ->{
-            filterTags.add(MediaTypeEncoding.VIDEO.getEncodedValue() |
-                           CommonTagExtractor.getMimeTypeCode(mimeTypeFacet.equals("null") ? null : mimeTypeFacet) << TagEncoding.MIME_TYPE.getBitPos() |
-                           VideoTagExtractor.getQualityCode(hdFacet.equals("null") ? null : hdFacet) << TagEncoding.VIDEO_QUALITY.getBitPos() |
-                           VideoTagExtractor.getDurationCode(durationFacet.equals("null") ? null : durationFacet) << TagEncoding.VIDEO_DURATION.getBitPos());})));
-        return filterTags;
-    }
-
-    public static List<Integer> otherFilterTags(List<String> otherMimeTypeFacets) {
-        final List<Integer> filterTags = new ArrayList<>();
-        fixList(otherMimeTypeFacets).forEach((mimeTypeFacet) -> {
-            filterTags.add(MediaTypeEncoding.TEXT.getEncodedValue() |
-                           CommonTagExtractor.getMimeTypeCode(mimeTypeFacet) << TagEncoding.MIME_TYPE.getBitPos());});
-        return filterTags;
-    }
-
-    // specifically for producing the colour palette filter tags associated with the colourPalette parameter
+    // specifically for producing the co
+    // lour palette filter tags associated with the colourPalette parameter
     // i.e. as opposed to the colourPaletteFacets as occurring in the qf:refinements / facets
-    public static List<Integer> colourPaletteFilterTags(List<String> colourPalette) {
-        final List<Integer> filterTags = new ArrayList<>();
-        fixList(colourPalette).forEach((colour) -> {
-            filterTags.add(MediaTypeEncoding.IMAGE.getEncodedValue() |
-                           ImageTagExtractor.getColorCode(colour) << TagEncoding.IMAGE_COLOUR.getBitPos());});
-        return filterTags;
+    // uses Metis facet library
+    public static Set<Integer> encodeColourPalette(List<String> coloursToEncode){
+        Set<ImageColorEncoding> imageColorEncodings = new HashSet<>();
+        final FacetEncoder encoder = new FacetEncoder();
+        for (String colourHexValue : coloursToEncode){
+            imageColorEncodings.add(ImageColorEncoding.categorizeImageColor(colourHexValue));
+        }
+        return encoder.getImageColorCodes(imageColorEncodings);
     }
+
+    public static Long getSizeCode(final String imageSize) {
+        if (StringUtils.isBlank(imageSize)) return 0L;
+        switch (imageSize){
+            case "small":
+                return 1L;
+            case "medium":
+                return 2L;
+            case "large":
+                return 3L;
+            case "extra_large":
+                return 4L;
+            default:
+                return 0L;
+        }
+    }
+
+    public static long getVideoDurationCode(String duration) {
+        if (StringUtils.isBlank(duration)) return 0L;
+        else if(StringUtils.containsIgnoreCase(duration, "short")) return 1L;
+        else if(StringUtils.containsIgnoreCase(duration, "medium")) return 2L;
+        else if(StringUtils.containsIgnoreCase(duration, "long")) return 3L;
+        else return 0L;
+    }
+
+    public static long getAudioDurationCode(String duration) {
+        if (StringUtils.isBlank(duration)) return 0L;
+        else if(StringUtils.equalsIgnoreCase(duration, "very_short")) return 1L;
+        else if(StringUtils.equalsIgnoreCase(duration, "short")) return 2L;
+        else if(StringUtils.equalsIgnoreCase(duration, "medium")) return 3L;
+        else if(StringUtils.equalsIgnoreCase(duration, "long")) return 4L;
+        else return 0L;
+    }
+
+
+    public static boolean isImageMimeType(String type) {
+        return (StringUtils.startsWithIgnoreCase(type, "image"));
+    }
+
+    public static boolean isSoundMimeType(String type) {
+        return (StringUtils.startsWithIgnoreCase(type, "sound") || StringUtils.startsWithIgnoreCase(type, "audio"));
+    }
+
+    public static boolean isVideoMimeType(String type) {
+        return (StringUtils.startsWithIgnoreCase(type, "video"));
+    }
+
 
     // 1) converts Lists of any type to List of String
     // 2) replaces NULL Lists with List of String containing just "null" in order to create the default 'zero'

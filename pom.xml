@@ -16,7 +16,7 @@
 
     <properties>
         <corelib.version>2.9.3-SNAPSHOT</corelib.version>
-        <metis.version>1.5.0</metis.version>
+        <metis.version>1.6.0-SNAPSHOT</metis.version>
         <httpclient.version>4.5.2</httpclient.version>
         <jackson.version>2.9.9</jackson.version>
         <jodatime.version>2.9.2</jodatime.version>
@@ -47,6 +47,14 @@
         <url>https://github.com/europeana/api2</url>
         <tag>HEAD</tag>
     </scm>
+
+    <repositories>
+        <!--ZohoCRM libraries-->
+        <repository>
+            <id>maven.zohodl.com</id>
+            <url>https://maven.zohodl.com</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>
