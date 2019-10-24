@@ -425,7 +425,7 @@ public class SearchController {
                     String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
-                            if (MimeTypeEncoding.categorizeMimeType(refinementValue) != null){
+                            if (Objects.nonNull(MimeTypeEncoding.categorizeMimeType(refinementValue))){
                                 if (TagUtils.isImageMimeType(refinementValue)) {
                                     imageMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     hasImageRefinements = true;
@@ -440,8 +440,11 @@ public class SearchController {
                             }
                             break;
                         case "IMAGE_SIZE":
-                            imageSizeRefinements.add(ImageSize.categorizeImageSize(TagUtils.getSizeCode(refinementValue)));
-                            hasImageRefinements = true;
+                            ImageSize imageSize = TagUtils.getImageSize(refinementValue);
+                            if (Objects.nonNull(imageSize)) {
+                                imageSizeRefinements.add(imageSize);
+                                hasImageRefinements = true;
+                            }
                             break;
                         case "IMAGE_COLOUR":
                         case "IMAGE_COLOR":
@@ -453,10 +456,23 @@ public class SearchController {
                                 hasImageRefinements = true;
                             }
                             break;
+                        case "IMAGE_GREYSCALE":
+                        case "IMAGE_GRAYSCALE":
+                            if (Boolean.parseBoolean(refinementValue)) {
+                                imageColourSpaceRefinements.add(ImageColorSpace.GRAYSCALE);
+                                hasImageRefinements = true;
+                            } else {
+                                imageColourSpaceRefinements.add(ImageColorSpace.COLOR);
+                                hasImageRefinements = true;
+                            }
+                            break;
                         case "COLOURPALETTE":
                         case "COLORPALETTE":
-                            imageColourPaletteRefinements.add(ImageColorEncoding.categorizeImageColor(refinementValue));
-                            hasImageRefinements = true;
+                            ImageColorEncoding imageColorEncoding = ImageColorEncoding.categorizeImageColor(refinementValue);
+                            if (Objects.nonNull(imageColorEncoding)){
+                                imageColourPaletteRefinements.add(imageColorEncoding);
+                                hasImageRefinements = true;
+                            }
                             break;
                         case "IMAGE_ASPECTRATIO":
                             if (StringUtils.containsIgnoreCase(refinementValue, "portrait")) {
@@ -467,25 +483,30 @@ public class SearchController {
                             hasImageRefinements = true;
                             break;
                         case "SOUND_HQ":
-                            soundHQRefinements.add(AudioQuality.categorizeAudioQuality(
-                                    Boolean.parseBoolean(refinementValue)));
-                            hasSoundRefinements = true;
+                            if (Boolean.parseBoolean(refinementValue)){
+                                soundHQRefinements.add(AudioQuality.HIGH);
+                                hasSoundRefinements = true;
+                            }
                             break;
                         case "SOUND_DURATION":
-                            soundDurationRefinements.add(AudioDuration.categorizeAudioDuration(
-                                    TagUtils.getAudioDurationCode(refinementValue)));
-                            hasSoundRefinements = true;
+                            AudioDuration audioDuration = TagUtils.getAudioDurationCode(refinementValue);
+                            if (Objects.nonNull(audioDuration)){
+                                soundDurationRefinements.add(audioDuration);
+                                hasSoundRefinements = true;
+                            }
                             break;
                         case "VIDEO_HD":
-                            videoHDRefinements.add(VideoQuality.categorizeVideoQuality(
-                                    Boolean.parseBoolean(refinementValue)));
-                            hasVideoRefinements = true;
+                            if (Boolean.parseBoolean(refinementValue)){
+                                videoHDRefinements.add(VideoQuality.HIGH);
+                                hasVideoRefinements = true;
+                            }
                             break;
                         case "VIDEO_DURATION":
-
-                            videoDurationRefinements.add(VideoDuration.categorizeVideoDuration(
-                                    TagUtils.getVideoDurationCode(refinementValue)));
-                            hasVideoRefinements = true;
+                            VideoDuration videoDuration = TagUtils.getVideoDurationCode(refinementValue);
+                            if (Objects.nonNull(videoDuration)){
+                                videoDurationRefinements.add(videoDuration);
+                                hasVideoRefinements = true;
+                            }
                             break;
                         case "MEDIA":
                             if (null == media) {
@@ -535,30 +556,30 @@ public class SearchController {
 
         // Encode the faceted refinements ...
         if (hasImageRefinements) {
-            filterTags.addAll(facetEncoder.getImageFacetFilterCodes(imageMimeTypeRefinements,
+            filterTags.addAll(facetEncoder.getImageFacetValueCodes(imageMimeTypeRefinements,
                                                                     imageSizeRefinements,
                                                                     imageColourSpaceRefinements,
                                                                     imageAspectRatioRefinements,
                                                                     imageColourPaletteRefinements));
         }
         if (hasSoundRefinements) {
-            filterTags.addAll(facetEncoder.getAudioFacetFilterCodes(soundMimeTypeRefinements,
+            filterTags.addAll(facetEncoder.getAudioFacetValueCodes(soundMimeTypeRefinements,
                                                                     soundHQRefinements,
                                                                     soundDurationRefinements));
         }
         if (hasVideoRefinements) {
-            filterTags.addAll(facetEncoder.getVideoFacetFilterCodes(videoMimeTypeRefinements,
+            filterTags.addAll(facetEncoder.getVideoFacetValueCodes(videoMimeTypeRefinements,
                                                                     videoHDRefinements,
                                                                     videoDurationRefinements));
         }
         if (!otherMimeTypeRefinements.isEmpty()) {
-            filterTags.addAll(facetEncoder.getTextFacetFilterCodes(otherMimeTypeRefinements));
+            filterTags.addAll(facetEncoder.getTextFacetValueCodes(otherMimeTypeRefinements));
         }
 
         if (LOG.isDebugEnabled()) {
             for (Integer filterTag : filterTags) {
                 if (filterTag != null) {
-                    LOG.debug("filterTag = " + Integer.toBinaryString(filterTag));
+                    LOG.debug("filterTag = {}", Integer.toBinaryString(filterTag));
                 }
             }
         }
