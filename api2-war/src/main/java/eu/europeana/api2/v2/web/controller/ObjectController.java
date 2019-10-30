@@ -24,7 +24,9 @@ import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
+import eu.europeana.corelib.web.exception.EmailServiceException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
+import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,7 +34,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -103,6 +107,7 @@ public class ObjectController {
         this.httpCacheUtils = httpCacheUtils;
     }
 
+
     /**
      * Handles record.json GET requests. Each request should consists of at least a collectionId, a recordId and an api-key (wskey)
      *
@@ -142,6 +147,27 @@ public class ObjectController {
         return JsonUtils.toJson(jsonld, callback);
     }
 
+    @GetMapping(value = "/testemail", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity testEmail(@RequestParam(value = "value") int value) throws EuropeanaException{
+        System.out.println(" I AM HERE IN TESTMAIL ");
+        if(value==2)
+         {
+             System.out.println(" TESTEMAIL2 ");
+
+             throw new EmailServiceException(ProblemType.TESTEMAIL2);
+         }
+         if(value==3){
+             System.out.println(" TESTEMAIL3 ");
+             throw new EmailServiceException(ProblemType.TESTEMAIL3);
+         }
+         if(value==1)
+         {
+             System.out.println(" TESTEMAIL1 ");
+             throw new EmailServiceException(ProblemType.TESTEMAIL1);
+         }
+
+     return new ResponseEntity(HttpStatus.OK);
+    }
     /**
      * Retrieve a record in JSON-LD format (hidden alias for record.jsonld request)
      *
