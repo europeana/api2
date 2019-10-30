@@ -147,27 +147,6 @@ public class ObjectController {
         return JsonUtils.toJson(jsonld, callback);
     }
 
-    @GetMapping(value = "/testemail", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity testEmail(@RequestParam(value = "value") int value) throws EuropeanaException{
-        System.out.println(" I AM HERE IN TESTMAIL ");
-        if(value==2)
-         {
-             System.out.println(" TESTEMAIL2 ");
-
-             throw new EmailServiceException(ProblemType.TESTEMAIL2);
-         }
-         if(value==3){
-             System.out.println(" TESTEMAIL3 ");
-             throw new EmailServiceException(ProblemType.TESTEMAIL3);
-         }
-         if(value==1)
-         {
-             System.out.println(" TESTEMAIL1 ");
-             throw new EmailServiceException(ProblemType.TESTEMAIL1);
-         }
-
-     return new ResponseEntity(HttpStatus.OK);
-    }
     /**
      * Retrieve a record in JSON-LD format (hidden alias for record.jsonld request)
      *

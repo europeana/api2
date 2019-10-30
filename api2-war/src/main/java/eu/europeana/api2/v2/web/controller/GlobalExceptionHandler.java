@@ -101,11 +101,7 @@ public class GlobalExceptionHandler {
        try {
             String subject = "Exception in Search API " + Api2UrlService.getBeanInstance().getApi2BaseUrl();
             String body = error.getEmailMessageBody();
-            // TODO temporarily disabled sending email until we implement EA-1782 (limit number of emails sent)
              emailService.sendException(subject, body);
-             emailErrorsList.remove(error);
-           LOG.info("error removed");
-            LOG.info("Exception email was not sent (temporary disabled)");
        } catch (EmailServiceException es) {
             LOG.error("Error sending exception email", es);
         }
@@ -295,23 +291,25 @@ public class GlobalExceptionHandler {
      * NOTE: the method should not consist of any parameter for the @Scheduled annotation to work.
      */
     @Scheduled(initialDelay = 1000, fixedRate = 120000)
-    public void run() {
-        System.out.println("scheduled at :: " + Calendar.getInstance().getTime());
+    public void sendEmail() {
+        List<EmailError> removeErrors = new ArrayList<>();
         for (EmailError error : emailErrorsList) {
-            System.out.println(" time :: "+TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis()-error.getUpdatedTimestamp()));
             //if count less than 3 send normal email
             if (error.getCount() <= 3) {
-                System.out.println(" Error count <=3");
                 sendErrorEmail(error);
-            }
-            //if count more than three and 5 minutes.
+                removeErrors.add(error);
+            } //if count more than three and 5 minutes.
             else if (error.getCount() > 3 && TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis()-error.getUpdatedTimestamp()) > 5) {
-                System.out.println(" Error count >3 and more than 5 minutes");
                 String emailMessageBody = error.getErrormsg() +" : Error occurred " +error.getCount()+ " times in the last 5 minutes" + error.getEmailMessageBody();
                 error.setEmailMessageBody(emailMessageBody);
                 sendErrorEmail(error);
+                removeErrors.add(error);
             }
         }
+        if(removeErrors.size()>0) {
+            LOG.info("email sent at {} for {} ",new Date(),removeErrors.toString());
+        }
+        emailErrorsList.removeAll(removeErrors);
     }
 
     /**
@@ -320,16 +318,10 @@ public class GlobalExceptionHandler {
      */
     private void addErrorInList(EuropeanaException ee){
         if(emailErrorsList.size()>0){
-            System.out.println(" SIZE OF ERROR LIST ::  "+emailErrorsList.size());
-            if (alreadyExistThenUpdate(ee,emailErrorsList)) {
-                System.out.println(" UPDATed error :: "+emailErrorsList.toString());
-            } else  {  // new error
-                System.out.println(" Doesn't exist adding ");
+            if (!alreadyExistThenUpdate(ee,emailErrorsList)) {
                 addNewError(ee);
             }
-        }
-        else {
-            System.out.println(" NO ERROR ADDED: ADDING NOW ");
+        } else {
             addNewError(ee);
         }
     }
@@ -337,8 +329,7 @@ public class GlobalExceptionHandler {
      * Method to add the new error in the emailErrorsList
      * @param ee Europeana Exception
      */
-    private void addNewError(EuropeanaException ee)
-    {
+    private void addNewError(EuropeanaException ee) {
         String emailMessageBody= ee.getErrorMsgAndDetails() +"/n" +ExceptionUtils.getFullStackTrace(ee);
         EmailError emailError = new EmailError(ee.getErrorCode(), ee.getMessage(), 1, System.currentTimeMillis(), emailMessageBody);
         emailErrorsList.add(emailError);
@@ -353,7 +344,6 @@ public class GlobalExceptionHandler {
     private boolean alreadyExistThenUpdate(EuropeanaException ee, List<EmailError> emailErrorsList){
         for (EmailError error : emailErrorsList) {
             if (StringUtils.equals(ee.getMessage(), error.getErrormsg())) {
-                System.out.println(" THE ERROR ALREADY EXIST :: Updating the count to  "+(error.getCount()+1));
                 error.setCount(error.getCount()+1);
                 error.setUpdatedTimestamp(System.currentTimeMillis());
                 return true;

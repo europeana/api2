@@ -55,8 +55,7 @@ public class EmailError {
     @Override
     public String toString() {
         return "EmailError{" +
-                "errorCode='" + errorCode + '\'' +
-                ", errormsg='" + errormsg + '\'' +
+                " errormsg='" + errormsg + '\'' +
                 ", count=" + count +
                 ", updatedTimestamp=" + updatedTimestamp +
                 '}';
