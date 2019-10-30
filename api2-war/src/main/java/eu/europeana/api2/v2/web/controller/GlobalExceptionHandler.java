@@ -5,6 +5,7 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
+import eu.europeana.api2.v2.model.EmailError;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.utils.ControllerUtils;
@@ -19,6 +20,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -32,10 +35,8 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 
@@ -44,7 +45,7 @@ import java.util.regex.Pattern;
  *
  * Created by luthien on 17/08/15.
  */
-
+@EnableScheduling
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -61,6 +62,15 @@ public class GlobalExceptionHandler {
 
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
+
+    private static List<EmailError> emailErrorsList;
+
+    //Constructor to intialize the emailErrorList
+    GlobalExceptionHandler()
+    {
+        this.emailErrorsList = new ArrayList<>();
+        LOG.info("object created {} ", emailErrorsList);
+    }
 
     @ExceptionHandler(value = {EuropeanaException.class})
     public ModelAndView europeanaExceptionHandler(HttpServletRequest request, HttpServletResponse response, EuropeanaException ee) {
@@ -82,21 +92,23 @@ public class GlobalExceptionHandler {
                 // log apikey plus problem so we can track users who need help
                 LOG.warn("[{}] {}", apiKey, ee.getErrorMsgAndDetails());
                 break;
-            case MAIL: sendErrorEmail(ee);  break;
+            case MAIL: addErrorInList(ee);  break;
             default: LOG.error(ee.getErrorMsgAndDetails(), ee);
         }
     }
 
-    private void sendErrorEmail(EuropeanaException ee) {
-//        try {
-            String subject = "Exception in Search API " + Api2UrlService.getBeanInstance().getApi2BaseUrl();;
-            String body = ee.getErrorMsgAndDetails() + "/n" + ExceptionUtils.getStackTrace(ee);
+    private void sendErrorEmail(EmailError error) {
+       try {
+            String subject = "Exception in Search API " + Api2UrlService.getBeanInstance().getApi2BaseUrl();
+            String body = error.getEmailMessageBody();
             // TODO temporarily disabled sending email until we implement EA-1782 (limit number of emails sent)
-            //emailService.sendException(subject, body);
+             emailService.sendException(subject, body);
+             emailErrorsList.remove(error);
+           LOG.info("error removed");
             LOG.info("Exception email was not sent (temporary disabled)");
-//        } catch (EmailServiceException es) {
-//            LOG.error("Error sending exception email", es);
-//        }
+       } catch (EmailServiceException es) {
+            LOG.error("Error sending exception email", es);
+        }
     }
 
     private int getHttpStatus(HttpServletResponse response, EuropeanaException ee) {
@@ -274,6 +286,80 @@ public class GlobalExceptionHandler {
             return EUROPEANA_URL.matcher(errorMsg).replaceAll("-");
         }
         return errorMsg;
+    }
+
+    /**
+     * Scheduled method to send email every 2 minutes.
+     * sends the email when the count is less than equal to three
+     * sends the email when the count is greater than 3 and time elapsed is more than 5 minutes
+     * NOTE: the method should not consist of any parameter for the @Scheduled annotation to work.
+     */
+    @Scheduled(initialDelay = 1000, fixedRate = 120000)
+    public void run() {
+        System.out.println("scheduled at :: " + Calendar.getInstance().getTime());
+        for (EmailError error : emailErrorsList) {
+            System.out.println(" time :: "+TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis()-error.getUpdatedTimestamp()));
+            //if count less than 3 send normal email
+            if (error.getCount() <= 3) {
+                System.out.println(" Error count <=3");
+                sendErrorEmail(error);
+            }
+            //if count more than three and 5 minutes.
+            else if (error.getCount() > 3 && TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis()-error.getUpdatedTimestamp()) > 5) {
+                System.out.println(" Error count >3 and more than 5 minutes");
+                String emailMessageBody = error.getErrormsg() +" : Error occurred " +error.getCount()+ " times in the last 5 minutes" + error.getEmailMessageBody();
+                error.setEmailMessageBody(emailMessageBody);
+                sendErrorEmail(error);
+            }
+        }
+    }
+
+    /**
+     * Method to add error in the emailErrorsList
+     * @param ee Europeana Exception
+     */
+    private void addErrorInList(EuropeanaException ee){
+        if(emailErrorsList.size()>0){
+            System.out.println(" SIZE OF ERROR LIST ::  "+emailErrorsList.size());
+            if (alreadyExistThenUpdate(ee,emailErrorsList)) {
+                System.out.println(" UPDATed error :: "+emailErrorsList.toString());
+            } else  {  // new error
+                System.out.println(" Doesn't exist adding ");
+                addNewError(ee);
+            }
+        }
+        else {
+            System.out.println(" NO ERROR ADDED: ADDING NOW ");
+            addNewError(ee);
+        }
+    }
+    /**
+     * Method to add the new error in the emailErrorsList
+     * @param ee Europeana Exception
+     */
+    private void addNewError(EuropeanaException ee)
+    {
+        String emailMessageBody= ee.getErrorMsgAndDetails() +"/n" +ExceptionUtils.getFullStackTrace(ee);
+        EmailError emailError = new EmailError(ee.getErrorCode(), ee.getMessage(), 1, System.currentTimeMillis(), emailMessageBody);
+        emailErrorsList.add(emailError);
+    }
+
+    /**
+     * Method to will check if the error already exists and then update the count and timestamp for the error.
+     * @param ee Europeana Exception
+     * @param emailErrorsList Email error list
+     * @return true if error already exists in th emailErrorList
+     */
+    private boolean alreadyExistThenUpdate(EuropeanaException ee, List<EmailError> emailErrorsList){
+        for (EmailError error : emailErrorsList) {
+            if (StringUtils.equals(ee.getMessage(), error.getErrormsg())) {
+                System.out.println(" THE ERROR ALREADY EXIST :: Updating the count to  "+(error.getCount()+1));
+                error.setCount(error.getCount()+1);
+                error.setUpdatedTimestamp(System.currentTimeMillis());
+                return true;
+            }
+        }
+        return false;
     }
 
 }
