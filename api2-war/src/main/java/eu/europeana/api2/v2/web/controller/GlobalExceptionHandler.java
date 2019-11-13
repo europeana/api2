@@ -63,14 +63,7 @@ public class GlobalExceptionHandler {
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
 
-    private static List<EmailError> emailErrorsList;
-
-    //Constructor to intialize the emailErrorList
-    GlobalExceptionHandler()
-    {
-        this.emailErrorsList = new ArrayList<>();
-        LOG.info("object created {} ", emailErrorsList);
-    }
+    private static List<EmailError> emailErrorsList = new ArrayList<>();
 
     @ExceptionHandler(value = {EuropeanaException.class})
     public ModelAndView europeanaExceptionHandler(HttpServletRequest request, HttpServletResponse response, EuropeanaException ee) {
@@ -306,8 +299,8 @@ public class GlobalExceptionHandler {
                 removeErrors.add(error);
             }
         }
-        if(removeErrors.size()>0) {
-            LOG.info("email sent at {} for {} ",new Date(),removeErrors.toString());
+        if (removeErrors.isEmpty()) {
+            LOG.info("email sent at {} for {}", new Date(), removeErrors);
         }
         emailErrorsList.removeAll(removeErrors);
     }
@@ -317,7 +310,7 @@ public class GlobalExceptionHandler {
      * @param ee Europeana Exception
      */
     private void addErrorInList(EuropeanaException ee){
-        if(emailErrorsList.size()>0){
+        if (emailErrorsList.isEmpty()) {
             if (!alreadyExistThenUpdate(ee,emailErrorsList)) {
                 addNewError(ee);
             }
