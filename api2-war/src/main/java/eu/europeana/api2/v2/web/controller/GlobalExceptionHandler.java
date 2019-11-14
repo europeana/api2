@@ -299,7 +299,7 @@ public class GlobalExceptionHandler {
                 removeErrors.add(error);
             }
         }
-        if (removeErrors.isEmpty()) {
+        if (!removeErrors.isEmpty()) {
             LOG.info("email sent at {} for {}", new Date(), removeErrors);
         }
         emailErrorsList.removeAll(removeErrors);
@@ -310,7 +310,7 @@ public class GlobalExceptionHandler {
      * @param ee Europeana Exception
      */
     private void addErrorInList(EuropeanaException ee){
-        if (emailErrorsList.isEmpty()) {
+        if (!emailErrorsList.isEmpty()) {
             if (!alreadyExistThenUpdate(ee,emailErrorsList)) {
                 addNewError(ee);
             }
