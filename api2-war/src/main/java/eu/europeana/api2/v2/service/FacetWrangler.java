@@ -7,7 +7,8 @@ import eu.europeana.api2.v2.model.json.view.submodel.FacetRanger;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.client.solrj.response.RangeFacet.Count;
@@ -22,7 +23,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
  */
 
 public class FacetWrangler {
-    private static Logger log = Logger.getLogger(FacetWrangler.class);
+    private static final Logger LOG = LogManager.getLogger(FacetWrangler.class);
 
     private Map<String, Map<String, Integer>> technicalFacetMap = new LinkedHashMap<>();
 
@@ -100,7 +101,7 @@ public class FacetWrangler {
                             try {
                                 facetTag = decodeFacetTag(Integer.valueOf(encodedTechnicalFacet.getName()));
                                 if (StringUtils.isAnyBlank(facetTag.getLabel(), facetTag.getName())) {
-                                    log.debug("Decoded technical Facet's name and/or label is empty");
+                                    LOG.debug("Decoded technical Facet's name and/or label is empty");
                                     continue;
                                 }
 
@@ -112,9 +113,9 @@ public class FacetWrangler {
                                                                               technicalFacetFieldCount +
                                                                               (int) encodedTechnicalFacet.getCount());
                             } catch (IllegalArgumentException e) {
-                                log.debug("error matching decoded technical facet name " +
-                                          Objects.requireNonNull(facetTag).getName() + " with enum type in [consolidateFacetList] "
-                                          + e.getClass().getSimpleName(), e);
+                                assert facetTag != null;
+                                LOG.debug("error matching decoded technical facet name {} with enum type in [consolidateFacetList]: {}",
+                                          facetTag.getName(), e.getClass().getSimpleName(), e);
                             }
                         }
                     }
@@ -154,7 +155,7 @@ public class FacetWrangler {
                 String facetOffset = "f." + requestedFacetName + ".facet.offset";
 
                 if (technicalFacetMap.get(requestedFacetName).isEmpty()) {
-                    log.debug("couldn't match requested technical facet " + requestedFacetName);
+                    LOG.debug("couldn't match requested technical facet {}", requestedFacetName);
                     cantMatchFacetName = true;
                 }
 
@@ -186,10 +187,9 @@ public class FacetWrangler {
                 facetList.add(facet);
 
             } catch (IllegalArgumentException e) {
-                log.error("error matching requested technical facet name " + requestedFacetName +
-                          " with enum type in [consolidateFacetList] " + e.getClass().getSimpleName(), e);
+                LOG.error("error matching requested technical facet name {} with enum type in [consolidateFacetList]: {}",
+                          requestedFacetName, e.getClass().getSimpleName(), e);
             }
-
         }
     }
 

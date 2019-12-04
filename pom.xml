@@ -48,13 +48,13 @@
         <tag>HEAD</tag>
     </scm>
 
-    <repositories>
+<!--    <repositories>-->
         <!--ZohoCRM libraries-->
-        <repository>
-            <id>maven.zohodl.com</id>
-            <url>https://maven.zohodl.com</url>
-        </repository>
-    </repositories>
+<!--        <repository>-->
+<!--            <id>maven.zohodl.com</id>-->
+<!--            <url>https://maven.zohodl.com</url>-->
+<!--        </repository>-->
+<!--    </repositories>-->
 
     <build>
         <plugins>
