@@ -422,7 +422,9 @@ public class SearchController {
         if (refinementArray != null) {
             for (String qf : refinementArray) {
                 if (StringUtils.contains(qf, ":")){
-                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
+                    String refinementValue = StringUtils.substringAfter(qf, ":")
+                            .toLowerCase(Locale.GERMAN)
+                            .replaceAll("^\"|\"$", "");
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
                             if (Objects.nonNull(MimeTypeEncoding.categorizeMimeType(refinementValue))){
