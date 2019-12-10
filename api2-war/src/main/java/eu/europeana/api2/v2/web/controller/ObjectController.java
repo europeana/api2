@@ -5,10 +5,9 @@ import com.github.jsonldjava.core.JSONLDProcessingError;
 import com.github.jsonldjava.core.Options;
 import com.github.jsonldjava.impl.JenaRDFParser;
 import com.github.jsonldjava.utils.JSONUtils;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.utils.TurtleRecordWriter;
 import eu.europeana.api2.v2.model.ItemFix;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.ObjectResult;
@@ -30,6 +29,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -250,6 +251,32 @@ public class ObjectController {
     }
 
     /**
+     * Retrieve a record in Turtle format
+     *
+     * @param collectionId   ID of data collection or data set
+     * @param recordId       ID of record, item - a.k.a. 'localId'
+     * @param wskey          pre-api term for 'apikey'
+     * @param webRequest
+     * @param servletRequest
+     * @param response
+     * @return matching records in the turtle format
+     * @throws EuropeanaException
+     */
+    @ApiOperation(value = "get single record in turtle format)", nickname = "getSingleRecordTurtle")
+    @GetMapping(value = "/{collectionId}/{recordId}.ttl", produces = {"text/turtle", "application/turtle" , "application/x-turtle"} )
+    public void recordTurtle(@PathVariable String collectionId,
+                             @PathVariable String recordId,
+                             @RequestParam(value = "wskey") String wskey,
+                             @ApiIgnore WebRequest webRequest,
+                             @ApiIgnore HttpServletRequest servletRequest,
+                             @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+
+        System.out.println("Inside method : recordTurtle");
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
+        handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
+    }
+
+    /**
      * The larger part of handling a record is the same for all types of output, so this method handles all the common
      * functionality like setting CORS headers, checking API key, retrieving the record for mongo and setting 301 or 404 if necessary
      */
@@ -337,7 +364,7 @@ public class ObjectController {
 
 
         // generate output depending on type of record
-        Object output;
+        Object output = new Object();
         switch (recordType) {
             case OBJECT:
                 output = generateJson(bean, data, startTime);
@@ -350,6 +377,9 @@ public class ObjectController {
                 break;
             case OBJECT_SCHEMA_ORG:
                 output = generateSchemaOrg(bean, data);
+                break;
+            case OBJECT_TURTLE:
+                generateTurtle(bean, response);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown record output type: " + recordType);
@@ -407,6 +437,16 @@ public class ObjectController {
         return new ModelAndView("rdf", model);
     }
 
+    private void generateTurtle(FullBean bean, HttpServletResponse response) {
+        String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
+        try (InputStream rdfInput = IOUtils.toInputStream(rdf)) {
+            Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
+            TurtleRecordWriter writer= new TurtleRecordWriter(response.getOutputStream());
+            writer.write(modelResult);
+        }catch (Exception  e) {
+            LOG.error("Error parsing Turtle data", e);
+        }
+    }
 
     /**
      * NOTE this method is called in commented-out code above, check those first before removing this
