@@ -3,7 +3,9 @@ package eu.europeana.api2.v2.web.controller;
 import com.github.jsonldjava.core.JSONLD;
 import com.github.jsonldjava.core.JSONLDProcessingError;
 import com.github.jsonldjava.core.Options;
-import com.github.jsonldjava.impl.JenaRDFParser;
+//import com.github.jsonldjava.impl.JenaRDFParser;
+
+import com.github.jsonldjava.jena.JenaRDFParser;
 import com.github.jsonldjava.utils.JSONUtils;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
@@ -443,8 +445,9 @@ public class ObjectController {
             Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
             TurtleRecordWriter writer= new TurtleRecordWriter(response.getOutputStream());
             writer.write(modelResult);
-        }catch (Exception  e) {
+        }catch (IOException e) {
             LOG.error("Error parsing Turtle data", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
