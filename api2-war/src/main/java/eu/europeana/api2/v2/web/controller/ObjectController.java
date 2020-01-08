@@ -272,8 +272,6 @@ public class ObjectController {
                              @ApiIgnore WebRequest webRequest,
                              @ApiIgnore HttpServletRequest servletRequest,
                              @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-
-        System.out.println("Inside method : recordTurtle");
         RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
         handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
     }
@@ -445,6 +443,7 @@ public class ObjectController {
             Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
             TurtleRecordWriter writer= new TurtleRecordWriter(response.getOutputStream());
             writer.write(modelResult);
+            response.setContentType("text/turtle");
         }catch (IOException e) {
             LOG.error("Error parsing Turtle data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
