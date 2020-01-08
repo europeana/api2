@@ -443,7 +443,6 @@ public class ObjectController {
             Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
             TurtleRecordWriter writer= new TurtleRecordWriter(response.getOutputStream());
             writer.write(modelResult);
-            response.setContentType("text/turtle");
         }catch (IOException e) {
             LOG.error("Error parsing Turtle data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
