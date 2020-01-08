@@ -221,22 +221,11 @@
             <version>3.1.0</version>
             <type>pom</type>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.github.jsonld-java</groupId>-->
-<!--            <artifactId>jsonld-java-jena</artifactId>-->
-<!--            <version>0.2</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.slf4j</groupId>-->
-<!--                    <artifactId>slf4j-log4j12</artifactId>-->
-<!--                </exclusion>-->
-<!--                <exclusion>-->
-<!--                    <groupId>log4j</groupId>-->
-<!--                    <artifactId>log4j</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-
+        <dependency>
+            <groupId>com.github.jsonld-java</groupId>
+            <artifactId>jsonld-java-jena</artifactId>
+            <version>0.4.1</version>
+        </dependency>
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
@@ -295,11 +284,6 @@
             <artifactId>mockito-all</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.jsonld-java</groupId>
-            <artifactId>jsonld-java-jena</artifactId>
-            <version>0.4.1</version>
         </dependency>
     </dependencies>
 
