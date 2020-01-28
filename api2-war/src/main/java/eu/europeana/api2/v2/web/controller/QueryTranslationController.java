@@ -52,8 +52,11 @@ public class QueryTranslationController {
 
         languageCodes = StringArrayUtils.splitWebParameter(languageCodes);
 
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
-                RecordType.TRANSLATE_QUERY, null);
+        // TODO deprecate unused apikey parameters
+//        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
+//                RecordType.TRANSLATE_QUERY);
+
+        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey);
 
         if (StringUtils.isBlank(term)) {
             response.setStatus(HttpStatus.SC_BAD_REQUEST);

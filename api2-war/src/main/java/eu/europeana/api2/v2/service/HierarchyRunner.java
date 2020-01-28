@@ -64,7 +64,7 @@ public class HierarchyRunner {
         LimitResponse limitResponse;
 
         try {
-            limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), recordType, profile);
+            limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), recordType);
         } catch (ApiKeyException e) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return JsonUtils.toJson(new ApiError(wskey, e), callback);

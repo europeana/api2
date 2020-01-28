@@ -177,7 +177,9 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
+        // TODO deprecate unused apikey parameters
+//        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH);
+        LimitResponse limitResponse = apiKeyUtils.validateApiKey(wskey);
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -695,7 +697,7 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH_KML, null);
+        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH_KML);
 
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)

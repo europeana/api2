@@ -270,9 +270,12 @@ public class ObjectController {
             LOG.debug("Retrieving record with id " + data.europeanaObjectId + ", type = " + recordType);
         }
 
+        // TODO deprecate unused apikey parameters
+        // data.apikeyCheckResponse = apiKeyUtils.checkLimit(
+        // data.wskey, data.servletRequest.getRequestURL().toString(), recordType);
+
         // 2) check apikey, HTTP 401 if invalid or missing
-        data.apikeyCheckResponse = apiKeyUtils.checkLimit(
-                data.wskey, data.servletRequest.getRequestURL().toString(), recordType, data.profile);
+        data.apikeyCheckResponse = apiKeyUtils.checkLimit(data.wskey);
 
         // retrieve record data
         FullBean bean = searchService.fetchFullBean(data.europeanaObjectId);
