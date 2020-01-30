@@ -18,14 +18,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
-
-import static org.apache.commons.io.IOUtils.*;
-//import eu.europeana.ld.jena.IterativeRecordWriter;
-//import eu.europeana.ld.jena.RecordWriter;
-//import static org.apache.commons.io.IOUtils.*;
-//import static eu.europeana.ld.jena.JenaUtils.*;
 import static org.apache.commons.lang3.StringUtils.*;
-//https://github.com/apache/jena/blob/master/jena-arq/src/main/java/org/apache/jena/riot/out/NodeFormatterTTL.java
 
 public class TurtleRecordWriter
 {

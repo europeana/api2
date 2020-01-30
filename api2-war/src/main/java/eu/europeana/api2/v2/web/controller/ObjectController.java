@@ -1,12 +1,7 @@
 package eu.europeana.api2.v2.web.controller;
 
-import com.github.jsonldjava.core.JSONLD;
-import com.github.jsonldjava.core.JSONLDProcessingError;
-import com.github.jsonldjava.core.Options;
-//import com.github.jsonldjava.impl.JenaRDFParser;
 
-import com.github.jsonldjava.jena.JenaRDFParser;
-import com.github.jsonldjava.utils.JSONUtils;
+//import com.github.jsonldjava.impl.JenaRDFParser;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.TurtleRecordWriter;
@@ -31,8 +26,16 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.JsonLDWriteContext;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.riot.WriterDatasetRIOT;
+import org.apache.jena.riot.system.PrefixMap;
+import org.apache.jena.riot.system.RiotLib;
+import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -47,8 +50,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -70,6 +72,10 @@ public class ObjectController {
     private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
     private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
+    private static final String MEDIA_TYPE_TURTLE_TEXT  = "text/turtle";
+    private static final String MEDIA_TYPE_TURTLE       = "application/turtle";
+    private static final String MEDIA_TYPE_TURTLE_X     = "application/x-turtle";
+
     private static Object       jsonldContext           = new Object();
 
     private SearchService   searchService;
@@ -86,7 +92,7 @@ public class ObjectController {
     static {
         try {
             InputStream in = ObjectController.class.getResourceAsStream("/jsonld/context.jsonld");
-            jsonldContext = JSONUtils.fromInputStream(in);
+            jsonldContext = com.github.jsonldjava.utils.JsonUtils.fromInputStream(in);
         } catch (IOException e) {
             LOG.error("Error reading context.jsonld", e);
         }
@@ -141,7 +147,12 @@ public class ObjectController {
     @SwaggerIgnore
     @GetMapping(value = {"/context.jsonld", "/context.json-ld"}, produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
-        String jsonld = JSONUtils.toString(jsonldContext);
+        String jsonld = null;
+        try {
+            jsonld = com.github.jsonldjava.utils.JsonUtils.toString(jsonldContext);
+        } catch (IOException e) {
+           LOG.error("Error in Json serialization", e);
+        }
         return JsonUtils.toJson(jsonld, callback);
     }
 
@@ -265,15 +276,15 @@ public class ObjectController {
      * @throws EuropeanaException
      */
     @ApiOperation(value = "get single record in turtle format)", nickname = "getSingleRecordTurtle")
-    @GetMapping(value = "/{collectionId}/{recordId}.ttl", produces = {"text/turtle", "application/turtle" , "application/x-turtle"} )
-    public void recordTurtle(@PathVariable String collectionId,
+    @GetMapping(value = "/{collectionId}/{recordId}.ttl", produces = {MEDIA_TYPE_TURTLE, MEDIA_TYPE_TURTLE_TEXT, MEDIA_TYPE_TURTLE_X} )
+    public ModelAndView recordTurtle(@PathVariable String collectionId,
                              @PathVariable String recordId,
                              @RequestParam(value = "wskey") String wskey,
                              @ApiIgnore WebRequest webRequest,
                              @ApiIgnore HttpServletRequest servletRequest,
                              @ApiIgnore HttpServletResponse response) throws EuropeanaException {
         RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
-        handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
+        return (ModelAndView) handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
     }
 
     /**
@@ -364,7 +375,7 @@ public class ObjectController {
 
 
         // generate output depending on type of record
-        Object output = new Object();
+        Object output;
         switch (recordType) {
             case OBJECT:
                 output = generateJson(bean, data, startTime);
@@ -379,7 +390,7 @@ public class ObjectController {
                 output = generateSchemaOrg(bean, data);
                 break;
             case OBJECT_TURTLE:
-                generateTurtle(bean, response);
+                output = generateTurtle(bean, response);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown record output type: " + recordType);
@@ -410,25 +421,31 @@ public class ObjectController {
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
-        String jsonld;
+        OutputStream outputStream = new ByteArrayOutputStream();
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (InputStream rdfInput = IOUtils.toInputStream(rdf)) {
-            Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
-            Object raw         = JSONLD.fromRDF(modelResult, new JenaRDFParser());
-            if (StringUtils.equalsIgnoreCase(data.profile, "compacted")) {
-                raw = JSONLD.compact(raw, jsonldContext, new Options());
-            } else if (StringUtils.equalsIgnoreCase(data.profile, "flattened")) {
-                raw = JSONLD.flatten(raw);
-            } else if (StringUtils.equalsIgnoreCase(data.profile, "normalized")) {
-                raw = JSONLD.normalize(raw);
+             Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
+
+             if (StringUtils.equalsIgnoreCase(data.profile, "compacted")) {
+                 DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
+                 PrefixMap pm = RiotLib.prefixMap(graph);
+                 JsonLDWriteContext ctx = new JsonLDWriteContext();
+                 ctx.setJsonLDContext(ObjectController.jsonldContext);
+                 WriterDatasetRIOT writer = RDFDataMgr.createDatasetWriter(RDFFormat.JSONLD_FLATTEN_PRETTY);
+                 writer.write(outputStream, graph, pm, null, ctx);
+             }
+            else if (StringUtils.equalsIgnoreCase(data.profile, "flattened")) {
+                 RDFDataMgr.write(outputStream, modelResult, RDFFormat.JSONLD_FLAT);
+             } else if (StringUtils.equalsIgnoreCase(data.profile, "normalized")) {
+                //Did not found a normalized format for JSON-LD. Hence for now, I have used JSON-LD_PRETTY
+                 RDFDataMgr.write(outputStream, modelResult, RDFFormat.JSONLD_PRETTY);
             }
-            jsonld = JSONUtils.toString(raw);
-        } catch (IOException | JSONLDProcessingError e) {
+        } catch (IOException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
         }
-        return JsonUtils.toJsonLd(jsonld, data.callback);
+        return JsonUtils.toJsonLd(outputStream.toString(), data.callback);
     }
 
     private ModelAndView generateRdf(FullBean bean) {
@@ -437,16 +454,21 @@ public class ObjectController {
         return new ModelAndView("rdf", model);
     }
 
-    private void generateTurtle(FullBean bean, HttpServletResponse response) {
+    private ModelAndView generateTurtle(FullBean bean, HttpServletResponse response) {
+        OutputStream outputStream = new ByteArrayOutputStream();
+        Map<String, Object> model = new HashMap<>();
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
-        try (InputStream rdfInput = IOUtils.toInputStream(rdf)) {
+        try ( InputStream rdfInput = IOUtils.toInputStream(rdf)) {
             Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
-            TurtleRecordWriter writer= new TurtleRecordWriter(response.getOutputStream());
+            TurtleRecordWriter writer= new TurtleRecordWriter(outputStream);
             writer.write(modelResult);
+            model.put("record", outputStream);
+
         }catch (IOException e) {
             LOG.error("Error parsing Turtle data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
+        return new ModelAndView("ttl", model);
     }
 
     /**
