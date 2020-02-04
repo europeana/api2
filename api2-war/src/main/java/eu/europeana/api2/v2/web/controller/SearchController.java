@@ -25,7 +25,6 @@ import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
-import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -92,6 +91,7 @@ public class SearchController {
     private static final String BREADCRUMB  = "breadcrumb";
     private static final String FACET_RANGE = "facet.range";
     private static final String HITS        = "hits";
+    private static final String NOTHING      = "nothing";
 
     // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
@@ -177,9 +177,13 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        // TODO deprecate unused apikey parameters
-//        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH);
-        LimitResponse limitResponse = apiKeyUtils.validateApiKey(wskey);
+        // EA-1826
+        LimitResponse limitResponse;
+        if (StringUtils.equalsIgnoreCase(urlService.getApikeyValidateUrl(), NOTHING)){
+            limitResponse = apiKeyUtils.checkLimit(wskey);
+        } else {
+            limitResponse = apiKeyUtils.validateApiKey(wskey);
+        }
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -697,7 +701,8 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH_KML);
+//        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH_KML);
+        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey);
 
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)

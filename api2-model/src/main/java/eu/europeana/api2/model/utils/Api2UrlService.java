@@ -18,10 +18,12 @@ import org.apache.logging.log4j.LogManager;
 
 public class Api2UrlService {
 
-    public static final String API_BASEURL = "https://api.europeana.eu";
+    public static final String API_BASEURL  = "https://api.europeana.eu";
+    public static final String NOTHING      = "nothing";
 
     private String portalBaseUrl;
     private String api2BaseUrl;
+    private String apikeyValidateUrl;
 
     /**
      * Provides quick access to this class
@@ -31,10 +33,12 @@ public class Api2UrlService {
         return ApplicationContextContainer.getBean(Api2UrlService.class);
     }
 
-    public Api2UrlService(String portalBaseUrl, String api2BaseUrl) {
-        LogManager.getLogger(Api2UrlService.class).debug("portalBaseUrl = {}, api2BaseUrl = {}", portalBaseUrl, api2BaseUrl);
-        this.portalBaseUrl = portalBaseUrl;
-        this.api2BaseUrl = api2BaseUrl;
+    public Api2UrlService(String portalBaseUrl, String api2BaseUrl, String apikeyValidateUrl) {
+        LogManager.getLogger(Api2UrlService.class).debug("portalBaseUrl = {}, api2BaseUrl = {}, apikeyServiceUrl = {}",
+                                                         portalBaseUrl, api2BaseUrl, apikeyValidateUrl);
+        this.portalBaseUrl     = portalBaseUrl;
+        this.api2BaseUrl       = api2BaseUrl;
+        this.apikeyValidateUrl = apikeyValidateUrl;
     }
 
     /**
@@ -55,6 +59,16 @@ public class Api2UrlService {
             return API_BASEURL;
         }
         return api2BaseUrl;
+    }
+
+    /**
+     * @return either the defined apikey service URL or nothing
+     */
+    public String getApikeyValidateUrl() {
+        if (StringUtils.isEmpty(apikeyValidateUrl)){
+            return NOTHING;
+        }
+        return apikeyValidateUrl;
     }
 
     /**

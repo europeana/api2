@@ -108,7 +108,11 @@ public class GlobalExceptionHandler {
         // set status depending on type of exception
         int result = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         if (ee instanceof ApiKeyException) {
-            result = HttpServletResponse.SC_UNAUTHORIZED;
+            if (((ApiKeyException) ee).getHttpStatus() > 0){
+                result = ((ApiKeyException) ee).getHttpStatus();
+            } else {
+                result = HttpServletResponse.SC_UNAUTHORIZED;
+            }
         } else if (ee instanceof SolrQueryException) {
             result = HttpServletResponse.SC_BAD_REQUEST;
         } else if (ee instanceof SolrIOException) {

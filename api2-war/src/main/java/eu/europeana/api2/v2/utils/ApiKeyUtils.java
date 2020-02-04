@@ -1,8 +1,8 @@
 package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.ApiKeyException;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.model.LimitResponse;
-import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.entity.relational.ApiKeyImpl;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
@@ -10,7 +10,6 @@ import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.enums.ApiClientLevel;
 import eu.europeana.corelib.web.exception.ProblemType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -33,10 +32,14 @@ public class ApiKeyUtils {
     private static final String AUTHORIZATION = "Authorization";
     private static final String UNABLETOVALIDATE = "Unable to validate apikey";
     private static final String ERRORRETRIEVING = "Error retrieving apikey";
+    private static final String UNEXPECTED = "An unexpected error occurred during apikey validation";
     private static final String TEMPKEY = "Temporary key";
 
     @Resource
-    private ApiKeyService apiService;
+    private ApiKeyService  apiService;
+
+    @Resource
+    private Api2UrlService urlService;
 
     /**
      * Check the number requests made to the API in the last (rolling) 24 hours. This is a per-user
@@ -84,10 +87,7 @@ public class ApiKeyUtils {
             // keys when that happens
             LOG.error(UNABLETOVALIDATE, ex);
             requestNumber = 998;
-            apiKey = new ApiKeyImpl();
-            apiKey.setApiKey(wskey);
-            apiKey.setDescription(TEMPKEY);
-            apiKey.setLevel(ApiClientLevel.CLIENT);
+            apiKey = createTempApiKey(wskey);
         }
         return new LimitResponse(apiKey, requestNumber);
     }
@@ -106,14 +106,14 @@ public class ApiKeyUtils {
      */
     public LimitResponse validateApiKey(String key) throws ApiKeyException {
         if (StringUtils.isBlank(key)) {
-            throw new ApiKeyException(ProblemType.APIKEY_MISSING, null);
+            throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
         }
 
         ApiKey apiKey;
         long requestNumber;
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpPost            httpPost = new HttpPost("http://www.example.com");
+            HttpPost            httpPost = new HttpPost(urlService.getApikeyValidateUrl());
             httpPost.setHeader(AUTHORIZATION, "APIKEY " + key);
             long                  t        = System.currentTimeMillis();
             CloseableHttpResponse response = client.execute(httpPost);
@@ -126,27 +126,22 @@ public class ApiKeyUtils {
                 apiKey.setApiKey(key);
             } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
                 LOG.error("Apikey is not registered");
-                ApiKeyException e = new ApiKeyException(ProblemType.APIKEY_NOT_REGISTERED, key);
-                e.initCause(e);
-                throw e;
+                throw new ApiKeyException(ProblemType.APIKEY_NOT_REGISTERED, key, response.getStatusLine().getStatusCode());
             } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_GONE) {
                 LOG.error("Apikey is deprecated");
-                ApiKeyException e = new ApiKeyException(ProblemType.APIKEY_DEPRECATED, key);
-                e.initCause(e);
-                throw e;
+                throw new ApiKeyException(ProblemType.APIKEY_DEPRECATED, key, response.getStatusLine().getStatusCode());
             } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
                 LOG.error("No Apikey provided");
-                ApiKeyException e = new ApiKeyException(ProblemType.APIKEY_MISSING, key);
-                e.initCause(e);
-                throw e;
+                throw new ApiKeyException(ProblemType.APIKEY_MISSING, key, response.getStatusLine().getStatusCode());
             } else {
-                LOG.error(ERRORRETRIEVING + ": Apikey service returned HTTP status {}", response.getStatusLine().getStatusCode());
-                ApiKeyException ex = new ApiKeyException(ProblemType.APIKEY_INVALID, key);
-                ex.initCause(e);
-                throw ex;
+                LOG.error("{}: Apikey service returned HTTP status {}", UNEXPECTED,
+                          response.getStatusLine().getStatusCode());
+                throw new ApiKeyException(ProblemType.APIKEY_OTHER, key, response.getStatusLine().getStatusCode());
             }
 
         } catch (IOException e) {
+            // similar to how this is handled in the old situation (see above), assign a temporary ApiKey if there
+            // is a communication problem
             LOG.error(UNABLETOVALIDATE, e);
             requestNumber = 998;
             apiKey = createTempApiKey(key);
@@ -157,12 +152,14 @@ public class ApiKeyUtils {
     private ApiKey createTempApiKey(String key){
         ApiKey apiKey = createApiKey(key);
         apiKey.setDescription(TEMPKEY);
+        return apiKey;
     }
 
     private ApiKey createApiKey (String key){
         ApiKey apiKey = new ApiKeyImpl();
         apiKey.setApiKey(key);
         apiKey.setLevel(ApiClientLevel.CLIENT);
+        return apiKey;
     }
 
 
