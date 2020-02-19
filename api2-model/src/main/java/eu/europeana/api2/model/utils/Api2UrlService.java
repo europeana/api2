@@ -74,8 +74,8 @@ public class Api2UrlService {
      */
     public String getRecordPortalUrl(String europeanaId) {
         UrlBuilder url = new UrlBuilder(this.getPortalBaseUrl())
-                .addPath("portal", "record")
-                .addPage(europeanaId + ".html");
+                .addPath("record")
+                .addPage(europeanaId);
         return url.toString();
     }
 
