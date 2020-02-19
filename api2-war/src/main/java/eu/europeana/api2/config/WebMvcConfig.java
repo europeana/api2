@@ -50,7 +50,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-        configurer.favorPathExtension(false);
+        configurer.favorPathExtension(true);
     }
 
     @Bean
