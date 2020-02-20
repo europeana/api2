@@ -6,7 +6,8 @@ import eu.europeana.api2.v2.model.json.view.submodel.FacetRanger;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.client.solrj.response.RangeFacet.Count;
@@ -20,7 +21,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
  */
 
 public class FacetWrangler {
-    private static Logger log = Logger.getLogger(FacetWrangler.class);
+    private static Logger log = LogManager.getLogger(FacetWrangler.class);
 
     private Map<TechnicalFacetType, Map<String, Integer>> technicalFacetMap = new EnumMap<>(TechnicalFacetType.class);
 

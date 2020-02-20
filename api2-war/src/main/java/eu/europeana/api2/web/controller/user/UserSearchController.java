@@ -14,7 +14,8 @@ import eu.europeana.corelib.web.utils.UrlBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,7 +40,7 @@ import java.util.List;
 @Deprecated
 public class UserSearchController extends AbstractUserController {
 
-    private static final Logger LOG = Logger.getLogger(UserSearchController.class);
+    private static final Logger LOG = LogManager.getLogger(UserSearchController.class);
 
     @Resource(name = "corelib_web_europeanaUrlService")
     private EuropeanaUrlService europeanaUrlService;

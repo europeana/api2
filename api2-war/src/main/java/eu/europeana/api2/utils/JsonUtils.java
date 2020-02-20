@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.LinkedHashMap;
@@ -12,7 +13,9 @@ import java.util.Map;
 
 public class JsonUtils {
 
-    private static final Logger log = Logger.getLogger(JsonUtils.class);
+    private JsonUtils(){}
+
+    private static final Logger log = LogManager.getLogger(JsonUtils.class);
 
     public static ModelAndView toJson(Object object) {
         return toJson(object, null);

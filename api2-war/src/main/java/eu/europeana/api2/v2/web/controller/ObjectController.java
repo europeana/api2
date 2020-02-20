@@ -30,7 +30,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -64,7 +65,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 @SwaggerSelect
 public class ObjectController {
 
-    private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
+    private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
     private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
     private static Object       jsonldContext           = new Object();

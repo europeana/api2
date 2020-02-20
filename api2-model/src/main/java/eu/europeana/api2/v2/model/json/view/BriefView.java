@@ -16,8 +16,8 @@ import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.apache.logging.log4j.Logger;
 
 /**
  * A BriefView defines the fields that are returned in search results when using the 'minimal' profile
@@ -26,8 +26,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder(alphabetic=true)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
-    private static final Logger  LOG = LogManager.getLogger(BriefView.class);
-    protected Api2UrlService urlService;
+    private static final Logger         LOG = LogManager.getLogger(BriefView.class);
+    protected            Api2UrlService urlService;
 
     protected String profile;
     protected String wskey;
