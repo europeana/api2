@@ -211,7 +211,7 @@ public class ObjectController {
      * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
-    @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = MEDIA_TYPE_JSONLD_UTF8)
+    @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String wskey,
@@ -376,7 +376,8 @@ public class ObjectController {
 
     private ModelAndView generateSchemaOrg(FullBean bean, RequestData data) {
         String jsonld = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
-        return JsonUtils.toJson(jsonld, data.callback);
+        System.out.println("output from scehema.org == > "+jsonld);
+        return JsonUtils.toJsonLd(jsonld, data.callback);
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
