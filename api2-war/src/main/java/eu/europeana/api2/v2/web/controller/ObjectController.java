@@ -376,7 +376,6 @@ public class ObjectController {
 
     private ModelAndView generateSchemaOrg(FullBean bean, RequestData data) {
         String jsonld = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
-        System.out.println("output from scehema.org == > "+jsonld);
         return JsonUtils.toJsonLd(jsonld, data.callback);
     }
 
