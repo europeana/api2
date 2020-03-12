@@ -330,7 +330,7 @@ public class ObjectController {
         // ugly solution for EA-1257, but it works
         ItemFix.apply(bean);
         // now the FullBean can be processed (adding similar items and initiating the AttributionSnippet)
-        bean = searchService.processFullBean(bean, data.europeanaObjectId, false);
+        bean = searchService.processFullBean(bean);
 
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
