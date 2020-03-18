@@ -1,16 +1,22 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.json.ApiError;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.service.HierarchyRunner;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.neo4j.Neo4jSearchService;
+import eu.europeana.corelib.web.exception.EuropeanaException;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +31,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import static eu.europeana.api2.model.utils.Api2UrlService.NOTHING;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -51,7 +59,10 @@ public class HierarchicalController {
     private Neo4jSearchService searchService;
 
     @Resource
-    private ApiKeyUtils apiKeyUtils;
+    private ApiKeyUtils    apiKeyUtils;
+
+    @Resource
+    private Api2UrlService urlService;
 
     @Bean
     public HierarchyRunner hierarchyRunnerBean() {
@@ -65,13 +76,13 @@ public class HierarchicalController {
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws EuropeanaException {
         return hierarchyTemplate(RecordType.HIERARCHY_SELF, collectionId, recordId,
-                profile, wskey, -1, -1, callback, request, response, hierarchyTimeout);
+                profile, apikey, -1, -1, callback, request, response, hierarchyTimeout);
     }
 
     @ApiOperation(value = "returns the object, its ancestors and siblings")
@@ -80,13 +91,13 @@ public class HierarchicalController {
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws EuropeanaException {
         return hierarchyTemplate(RecordType.HIERARCHY_ANCESTOR_SELF_SIBLINGS, collectionId, recordId,
-                profile, wskey, -1, -1, callback, request, response, hierarchyTimeout);
+                profile, apikey, -1, -1, callback, request, response, hierarchyTimeout);
     }
 
     @ApiOperation(value = "returns the object's children")
@@ -95,15 +106,15 @@ public class HierarchicalController {
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             @RequestParam(value = "limit", defaultValue = "10") int limit,
             @RequestParam(value = "offset", defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws EuropeanaException {
         return hierarchyTemplate(RecordType.HIERARCHY_CHILDREN, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response, hierarchyTimeout);
+                profile, apikey, limit, offset, callback, request, response, hierarchyTimeout);
     }
 
     @ApiOperation(value = "returns the object's parent")
@@ -112,15 +123,15 @@ public class HierarchicalController {
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             @RequestParam(value = "limit", defaultValue = "10") int limit,
             @RequestParam(value = "offset", defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws EuropeanaException {
         return hierarchyTemplate(RecordType.HIERARCHY_PARENT, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response, hierarchyTimeout);
+                profile, apikey, limit, offset, callback, request, response, hierarchyTimeout);
     }
 
     // maintain backwards compatibility with previous spelling of "preceeding"
@@ -131,15 +142,15 @@ public class HierarchicalController {
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             @RequestParam(value = "limit", defaultValue = "10") int limit,
             @RequestParam(value = "offset", defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws EuropeanaException {
         return hierarchyTemplate(RecordType.HIERARCHY_PRECEDING_SIBLINGS, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response, hierarchyTimeout);
+                profile, apikey, limit, offset, callback, request, response, hierarchyTimeout);
     }
 
     @ApiOperation(value = "returns the object's following siblings")
@@ -148,22 +159,21 @@ public class HierarchicalController {
             @PathVariable String collectionId,
             @PathVariable String recordId,
             @RequestParam(value = "profile", required = false, defaultValue = "") String profile,
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             @RequestParam(value = "limit", defaultValue = "10") int limit,
             @RequestParam(value = "offset", defaultValue = "0") int offset,
             @RequestParam(value = "callback", required = false) String callback,
             @RequestParam(value = "hierarchytimeout", required = false, defaultValue = "0") int hierarchyTimeout,
             HttpServletRequest request,
-            HttpServletResponse response) {
+            HttpServletResponse response) throws EuropeanaException {
         return hierarchyTemplate(RecordType.HIERARCHY_FOLLOWING_SIBLINGS, collectionId, recordId,
-                profile, wskey, limit, offset, callback, request, response, hierarchyTimeout);
+                profile, apikey, limit, offset, callback, request, response, hierarchyTimeout);
     }
 
     public ModelAndView hierarchyTemplate(RecordType recordType, String collectionId, String recordId,
-                                          String profile, String wskey, int limit, int offset, String callback,
+                                          String profile, String apikey, int limit, int offset, String callback,
                                           HttpServletRequest request, HttpServletResponse response,
-                                          int hierarchyTimeout) {
-
+                                          int hierarchyTimeout) throws EuropeanaException {
 
         String                  rdfAbout = "/" + collectionId + "/" + recordId;
         HierarchyRunner mrBean = hierarchyRunnerBean();
@@ -171,20 +181,27 @@ public class HierarchicalController {
                            (hierarchyTimeout < MIN_HIERARCHY_TIMEOUT ? MIN_HIERARCHY_TIMEOUT :
                            (hierarchyTimeout > MAX_HIERARCHY_TIMEOUT ? MAX_HIERARCHY_TIMEOUT : hierarchyTimeout)));
         try {
+            // EA-1826
+            LimitResponse limitResponse;
+            if (StringUtils.equalsIgnoreCase(urlService.getApikeyValidateUrl(), NOTHING)){
+                limitResponse = apiKeyUtils.checkLimit(apikey);
+            } else {
+                limitResponse = apiKeyUtils.validateApiKey(apikey);
+            }
             Future<ModelAndView> myFlexibleFriend = timeoutExecutorService.submit(()
-                    -> mrBean.call(recordType, rdfAbout, profile, wskey, limit, offset, callback, request,
-                    response, apiKeyUtils, searchService));
+                    -> mrBean.call(recordType, rdfAbout, profile, limit, offset, callback, request,
+                    response, searchService, apikey));
             return myFlexibleFriend.get(hierarchyTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             response.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
-            return generateErrorHierarchy(rdfAbout, wskey, callback, "InterruptedException thrown when processing", e);
+            return generateErrorHierarchy(rdfAbout, apikey, callback, "InterruptedException thrown when processing", e);
         } catch (TimeoutException e) {
             response.setStatus(HttpServletResponse.SC_GATEWAY_TIMEOUT);
-            return generateErrorHierarchy(rdfAbout, wskey, callback, "TimeoutException thrown when processing", e);
+            return generateErrorHierarchy(rdfAbout, apikey, callback, "TimeoutException thrown when processing", e);
         } catch (ExecutionException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return generateErrorHierarchy(rdfAbout, wskey, callback, "ExecutionExeption thrown when processing", e);
+            return generateErrorHierarchy(rdfAbout, apikey, callback, "ExecutionExeption thrown when processing", e);
         }
     }
 

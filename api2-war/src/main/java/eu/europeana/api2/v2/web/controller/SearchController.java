@@ -119,7 +119,7 @@ public class SearchController {
     private String hlMaxAnalyzedChars;
 
     public ModelAndView searchJsonPost(
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
@@ -141,9 +141,9 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
         // TODO implement real POST request (see also EA-605)
-        return searchJsonGet(wskey, queryString, refinementArray, reusabilityArray, profile, start, rows, mixedFacetArray,
-                theme, sort, colourPaletteArray, thumbnail, media, fullText, landingPage, cursorMark, callback, hlFl,
-                hlSelectors, request, response);
+        return searchJsonGet(apikey, queryString, refinementArray, reusabilityArray, profile, start, rows, mixedFacetArray,
+                             theme, sort, colourPaletteArray, thumbnail, media, fullText, landingPage, cursorMark, callback, hlFl,
+                             hlSelectors, request, response);
     }
 
     /**
@@ -155,7 +155,7 @@ public class SearchController {
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
     @GetMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGet(
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
@@ -180,9 +180,9 @@ public class SearchController {
         // EA-1826
         LimitResponse limitResponse;
         if (StringUtils.equalsIgnoreCase(urlService.getApikeyValidateUrl(), NOTHING)){
-            limitResponse = apiKeyUtils.checkLimit(wskey);
+            limitResponse = apiKeyUtils.checkLimit(apikey);
         } else {
-            limitResponse = apiKeyUtils.validateApiKey(wskey);
+            limitResponse = apiKeyUtils.validateApiKey(apikey);
         }
 
         // check query parameter
@@ -356,10 +356,10 @@ public class SearchController {
               ArrayUtils.contains(solrFacets, "DEFAULT")
             ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
 
-        SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
+        SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz);
         result.requestNumber = limitResponse.getRequestNumber();
         if (StringUtils.containsIgnoreCase(profile, "params")) {
-            result.addParams(RequestUtils.getParameterMap(request), "wskey");
+            result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
             result.addParam("start", start);
             result.addParam("rows", rows);
@@ -697,12 +697,12 @@ public class SearchController {
             @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-//        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH_KML);
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey);
+//        LimitResponse limitResponse = apiKeyUtils.checkLimit(apikey, request.getRequestURL().toString(), RecordType.SEARCH_KML);
+        LimitResponse limitResponse = apiKeyUtils.checkLimit(apikey);
 
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)

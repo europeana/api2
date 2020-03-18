@@ -11,9 +11,23 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * @author Peter Kiraly <peter.kiraly@europeana.eu>
+ * @author luthien
  */
 @JsonInclude(NON_EMPTY)
 public class HierarchicalResult extends ApiResponse {
+
+	public HierarchicalResult() {}
+
+	@Deprecated
+	public HierarchicalResult(String apikey) {
+		super(apikey);
+	}
+
+	@Deprecated
+	public HierarchicalResult(String apikey, long requestNumber) {
+		this(apikey);
+		this.requestNumber = requestNumber;
+	}
 
 	public Neo4jBean self;
 
@@ -36,13 +50,4 @@ public class HierarchicalResult extends ApiResponse {
 	public List<Neo4jBean> followingSiblingChildren;
 
 	public String message;
-
-	public HierarchicalResult(String apikey) {
-		super(apikey);
-	}
-
-	public HierarchicalResult(String apikey, long requestNumber) {
-		this(apikey);
-		this.requestNumber = requestNumber;
-	}
 }

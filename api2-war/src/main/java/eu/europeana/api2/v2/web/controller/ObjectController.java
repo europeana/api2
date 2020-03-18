@@ -8,6 +8,7 @@ import com.github.jsonldjava.utils.JSONUtils;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import eu.europeana.api2.model.json.ApiError;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.ItemFix;
 import eu.europeana.api2.v2.model.LimitResponse;
@@ -42,6 +43,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -50,6 +52,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static eu.europeana.api2.model.utils.Api2UrlService.NOTHING;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 
@@ -71,7 +74,10 @@ public class ObjectController {
 
     private SearchService   searchService;
     private ApiKeyUtils     apiKeyUtils;
-    private HttpCacheUtils  httpCacheUtils;
+    private HttpCacheUtils httpCacheUtils;
+
+    @Resource
+    private Api2UrlService urlService;
 
     /**
      * Create a static Object for JSONLD Context. This will read the file once during initialization
@@ -108,7 +114,7 @@ public class ObjectController {
      *
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param wskey          pre-api term for 'apikey'
+     * @param apikey         formerly known as 'wskey' for some unfathomable and dark reason
      * @param profile        supported types are 'params' and 'similar'
      * @param callback
      * @param webRequest
@@ -122,12 +128,12 @@ public class ObjectController {
     public ModelAndView record(@PathVariable String collectionId,
                                @PathVariable String recordId,
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
-                               @RequestParam(value = "wskey") String wskey,
+                               @RequestParam(value = "wskey") String apikey,
                                @RequestParam(value = "callback", required = false) String callback,
                                @ApiIgnore WebRequest webRequest,
                                @ApiIgnore HttpServletRequest servletRequest,
                                @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, profile, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, apikey, profile, callback, webRequest, servletRequest);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT, data, response);
     }
 
@@ -147,7 +153,7 @@ public class ObjectController {
      *
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param wskey          pre-api term for 'apikey'
+     * @param apikey         formerly known as 'wskey' for some unfathomable and dark reason
      * @param format
      * @param callback
      * @param webRequest
@@ -160,20 +166,20 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
-                                      @RequestParam(value = "wskey") String wskey,
+                                      @RequestParam(value = "wskey") String apikey,
                                       @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @ApiIgnore WebRequest webRequest,
                                       @ApiIgnore HttpServletRequest servletRequest,
                                       @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        return recordJSONLD(collectionId, recordId, wskey, format, callback, webRequest, servletRequest, response);
+        return recordJSONLD(collectionId, recordId, apikey, format, callback, webRequest, servletRequest, response);
     }
 
     /***
      * Retrieve a record in JSON-LD format.
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param wskey          pre-api term for 'apikey'
+     * @param apikey         formerly known as 'wskey' for some unfathomable and dark reason
      * @param format         supported types are 'compacted', 'flattened' and 'normalized'
      * @param callback
      * @param webRequest
@@ -186,14 +192,14 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
-                                     @RequestParam(value = "wskey") String wskey,
+                                     @RequestParam(value = "wskey") String apikey,
                                      @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                      @RequestParam(value = "callback", required = false) String callback,
                                      @ApiIgnore WebRequest webRequest,
                                      @ApiIgnore HttpServletRequest servletRequest,
                                      @ApiIgnore HttpServletResponse response) throws EuropeanaException {
 
-        RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, apikey, format, callback, webRequest, servletRequest);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
     }
 
@@ -201,7 +207,7 @@ public class ObjectController {
      * Retrieve a record in Schema.org JSON-LD format.
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param wskey          pre-api term for 'apikey'
+     * @param apikey         formerly known as 'wskey' for some unfathomable and dark reason
      * @param format         supported types are 'compacted', 'flattened' and 'normalized'
      * @param callback       repeats whatever you supply
      * @param webRequest
@@ -214,14 +220,14 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
-                                        @RequestParam(value = "wskey", required = true) String wskey,
+                                        @RequestParam(value = "wskey", required = true) String apikey,
                                         @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                         @RequestParam(value = "callback", required = false) String callback,
                                         @ApiIgnore WebRequest webRequest,
                                         @ApiIgnore HttpServletRequest servletRequest,
                                         @ApiIgnore HttpServletResponse response) throws EuropeanaException {
 
-        RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, apikey, format, callback, webRequest, servletRequest);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
     }
 
@@ -230,7 +236,7 @@ public class ObjectController {
      *
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param wskey          pre-api term for 'apikey'
+     * @param apikey         formerly known as 'wskey' for some unfathomable and dark reason
      * @param webRequest
      * @param servletRequest
      * @param response
@@ -241,11 +247,11 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.rdf", produces = MEDIA_TYPE_RDF_UTF8)
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
-                                  @RequestParam(value = "wskey") String wskey,
+                                  @RequestParam(value = "wskey") String apikey,
                                   @ApiIgnore WebRequest webRequest,
                                   @ApiIgnore HttpServletRequest servletRequest,
                                   @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, apikey, null, null, webRequest, servletRequest);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
     }
 
@@ -271,11 +277,12 @@ public class ObjectController {
         }
 
         // TODO deprecate unused apikey parameters
-        // data.apikeyCheckResponse = apiKeyUtils.checkLimit(
-        // data.wskey, data.servletRequest.getRequestURL().toString(), recordType);
-
-        // 2) check apikey, HTTP 401 if invalid or missing
-        data.apikeyCheckResponse = apiKeyUtils.checkLimit(data.wskey);
+        // 2) check apikey, HTTP 401 if invalid or missing - updated: apikey integration for EA-1826
+        if (StringUtils.equalsIgnoreCase(urlService.getApikeyValidateUrl(), NOTHING)){
+            data.apikeyCheckResponse = apiKeyUtils.checkLimit(data.apikey);
+        } else {
+            data.apikeyCheckResponse = apiKeyUtils.validateApiKey(data.apikey);
+        }
 
         // retrieve record data
         FullBean bean = searchService.fetchFullBean(data.europeanaObjectId);
@@ -288,7 +295,7 @@ public class ObjectController {
                 model.put("error", "Non-existing record identifier");
                 result = new ModelAndView("rdf", model);
             } else {
-                result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: "
+                result = JsonUtils.toJson(new ApiError(data.apikey, "Invalid record identifier: "
                         + data.europeanaObjectId), data.callback);
             }
             return result;
@@ -365,14 +372,14 @@ public class ObjectController {
     }
 
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
-        ObjectResult objectResult = new ObjectResult(data.wskey, data.apikeyCheckResponse.getRequestNumber());
+        ObjectResult objectResult = new ObjectResult(data.apikey, data.apikeyCheckResponse.getRequestNumber());
 
         if (StringUtils.containsIgnoreCase(data.profile, "params")) {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
         }
 
-        objectResult.object = new FullView(bean, data.profile, data.wskey);
+        objectResult.object = new FullView(bean, data.profile, data.apikey);
         objectResult.statsDuration = System.currentTimeMillis() - startTime;
         return JsonUtils.toJson(objectResult, data.callback);
     }
@@ -399,7 +406,7 @@ public class ObjectController {
         } catch (IOException | JSONLDProcessingError e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+            return JsonUtils.toJson(new ApiError(data.apikey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
         }
         return JsonUtils.toJsonLd(jsonld, data.callback);
     }
@@ -460,22 +467,22 @@ public class ObjectController {
     private static class RequestData {
         String             europeanaObjectId;
         protected String   profile;             // called format in json-ld
-        String             wskey;
-        LimitResponse      apikeyCheckResponse;
+        String        apikey;
+        LimitResponse apikeyCheckResponse;
         protected String   callback;
         WebRequest         webRequest;
         HttpServletRequest servletRequest;
 
         RequestData(String collectionId,
                     String recordId,
-                    String wskey,
+                    String apikey,
                     String profile,
                     String callback,
                     WebRequest webRequest,
                     HttpServletRequest servletRequest) {
             this.europeanaObjectId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
-            this.wskey = wskey;
-            this.profile = profile;
+            this.apikey            = apikey;
+            this.profile           = profile;
             this.callback = callback;
             this.webRequest = webRequest;
             this.servletRequest = servletRequest;
