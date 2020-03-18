@@ -1,6 +1,7 @@
 package eu.europeana.api2.model.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
 import eu.europeana.corelib.definitions.solr.DocType;
@@ -48,7 +49,7 @@ public class Api2UrlServiceTest {
         String validateUrl = null;
 
         Api2UrlService s1 = new Api2UrlService(null, null, validateUrl);
-        assertEquals(Api2UrlService.NOTHING, s1.getApikeyValidateUrl());
+        assertNull(s1.getApikeyValidateUrl());
 
         validateUrl = "https://apikey2-test.eanadev.org/apikey/validate";
         Api2UrlService s2 = new Api2UrlService(null, null, validateUrl);

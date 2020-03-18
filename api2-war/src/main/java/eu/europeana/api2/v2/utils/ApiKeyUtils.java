@@ -17,7 +17,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-//import org.springframework.http.HttpStatus;
 import org.apache.http.HttpStatus;
 
 import javax.annotation.Resource;
@@ -34,9 +33,7 @@ public class ApiKeyUtils{
     private static final String AUTHORIZATION    = "Authorization";
     private static final String UNABLETOVALIDATE = "Unable to validate apikey";
     private static final String ERRORRETRIEVING  = "Error retrieving apikey";
-    private static final String UNEXPECTED       = "An unexpected error occurred during apikey validation";
     private static final String TEMPKEY          = "Temporary apikey";
-    private static final String NOTHING          = "nothing";
     private static final int    MAXCONNTOTAL     = 200;
     private static final int    MAXCONNPERROUTE  = 100;
     private static final int    FIXEDREQUESTNR   = 999;
@@ -71,7 +68,7 @@ public class ApiKeyUtils{
      * @throws ApiKeyException {@link ApiKeyException} if an unregistered or unauthorised apikey is provided
      */
     public LimitResponse validateApiKey(String apikey) throws ApiKeyException {
-        if (StringUtils.equalsIgnoreCase(urlService.getApikeyValidateUrl(), NOTHING)) {
+        if (StringUtils.isBlank(urlService.getApikeyValidateUrl())) {
             return checkLimit(apikey);
         } else {
             return validate(apikey);
@@ -120,7 +117,7 @@ public class ApiKeyUtils{
             // EA-1537 we sometimes have connection problems with the database, so we simply log and do not validate
             // keys when that happens
             LOG.error(UNABLETOVALIDATE, ex);
-            requestNumber = FIXEDREQUESTNR - 1;
+            requestNumber = FIXEDREQUESTNR - 1L;
             apiKey        = createTempApiKey(apikey);
         }
         return new LimitResponse(apiKey, requestNumber);
@@ -131,15 +128,13 @@ public class ApiKeyUtils{
             throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
         }
         ApiKey apiKey;
-        long   requestNumber;
-        try {
-            HttpPost httpPost = new HttpPost(urlService.getApikeyValidateUrl());
-            httpPost.setHeader(AUTHORIZATION, "APIKEY " + apikey);
-            long                  t        = System.currentTimeMillis();
-            CloseableHttpResponse response = httpClient.execute(httpPost);
+        long requestNumber;
+        long t = System.currentTimeMillis();
 
-            LOG.debug("Post request to validate apiKey took {} ms", (System.currentTimeMillis() - t));
+        HttpPost httpPost = new HttpPost(urlService.getApikeyValidateUrl());
+        httpPost.setHeader(AUTHORIZATION, "APIKEY " + apikey);
 
+        try (CloseableHttpResponse response = httpClient.execute(httpPost)){
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
                 requestNumber = FIXEDREQUESTNR;
                 apiKey        = createApiKey(apikey);
@@ -155,16 +150,16 @@ public class ApiKeyUtils{
             } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
                 throw new ApiKeyException(ProblemType.APIKEY_MISSING, apikey, response.getStatusLine().getStatusCode());
             } else {
-                throw new ApiKeyException(ProblemType.APIKEY_OTHER, apikey, response.getStatusLine().getStatusCode());
+                throw new ApiKeyException(ProblemType.APIKEY_OTHER, apikey, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
-
         } catch (IOException e) {
             // similar to how this is handled in the old situation (see above), assign a temporary ApiKey if there
             // is a communication problem
             LOG.error(UNABLETOVALIDATE, e);
-            requestNumber = FIXEDREQUESTNR - 1;
+            requestNumber = FIXEDREQUESTNR - 1L;
             apiKey        = createTempApiKey(apikey);
         }
+        LOG.debug("Post request to validate apiKey took {} ms", (System.currentTimeMillis() - t));
         return new LimitResponse(apiKey, requestNumber);
     }
 

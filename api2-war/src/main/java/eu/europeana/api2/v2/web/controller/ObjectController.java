@@ -52,7 +52,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static eu.europeana.api2.model.utils.Api2UrlService.NOTHING;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 
@@ -276,10 +275,8 @@ public class ObjectController {
             LOG.debug("Retrieving record with id " + data.europeanaObjectId + ", type = " + recordType);
         }
 
-        // EA-1826
         data.apikeyCheckResponse = apiKeyUtils.validateApiKey(data.apikey);
 
-        // retrieve record data
         FullBean bean = searchService.fetchFullBean(data.europeanaObjectId);
 
         // 3) Check if record exists, HTTP 404 if not

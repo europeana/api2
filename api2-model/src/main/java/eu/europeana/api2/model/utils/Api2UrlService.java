@@ -19,7 +19,6 @@ import org.apache.logging.log4j.LogManager;
 public class Api2UrlService {
 
     public static final String API_BASEURL  = "https://api.europeana.eu";
-    public static final String NOTHING      = "nothing";
 
     private String portalBaseUrl;
     private String api2BaseUrl;
@@ -62,12 +61,9 @@ public class Api2UrlService {
     }
 
     /**
-     * @return either the defined apikey service URL or nothing
+     * @return the defined apikey service URL or null if not defined
      */
     public String getApikeyValidateUrl() {
-        if (StringUtils.isEmpty(apikeyValidateUrl)){
-            return NOTHING;
-        }
         return apikeyValidateUrl;
     }
 

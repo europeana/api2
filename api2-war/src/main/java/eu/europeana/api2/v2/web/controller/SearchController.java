@@ -91,7 +91,7 @@ public class SearchController {
     private static final String BREADCRUMB  = "breadcrumb";
     private static final String FACET_RANGE = "facet.range";
     private static final String HITS        = "hits";
-    private static final String NOTHING      = "nothing";
+    private static final String ERROR_RETRIEVE_ATTRIBUTES = "error retrieving attributes";
 
     // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
@@ -697,8 +697,6 @@ public class SearchController {
 
         LimitResponse limitResponse = apiKeyUtils.validateApiKey(apikey);
 
-        // workaround of a Spring issue
-        // (https://jira.springsource.org/browse/SPR-7963)
         String[] _qf = request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinementArray.length) {
             refinementArray = _qf;
@@ -820,10 +818,10 @@ public class SearchController {
 
             if (gftChannelAttributes.isEmpty() || gftChannelAttributes.size() < 5) {
                 LOG.error("error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
-                channel.title = "error retrieving attributes";
-                channel.description = "error retrieving attributes";
+                channel.title = ERROR_RETRIEVE_ATTRIBUTES;
+                channel.description = ERROR_RETRIEVE_ATTRIBUTES;
                 channel.language = "--";
-                channel.link = "error retrieving attributes";
+                channel.link = ERROR_RETRIEVE_ATTRIBUTES;
                 channel.image = null;
             } else {
                 channel.title = gftChannelAttributes.get(reqLanguage + "_title") == null || gftChannelAttributes.get(reqLanguage + "_title").equalsIgnoreCase("")
