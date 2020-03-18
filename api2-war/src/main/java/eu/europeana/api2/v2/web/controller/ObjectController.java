@@ -276,13 +276,8 @@ public class ObjectController {
             LOG.debug("Retrieving record with id " + data.europeanaObjectId + ", type = " + recordType);
         }
 
-        // TODO deprecate unused apikey parameters
-        // 2) check apikey, HTTP 401 if invalid or missing - updated: apikey integration for EA-1826
-        if (StringUtils.equalsIgnoreCase(urlService.getApikeyValidateUrl(), NOTHING)){
-            data.apikeyCheckResponse = apiKeyUtils.checkLimit(data.apikey);
-        } else {
-            data.apikeyCheckResponse = apiKeyUtils.validateApiKey(data.apikey);
-        }
+        // EA-1826
+        data.apikeyCheckResponse = apiKeyUtils.validateApiKey(data.apikey);
 
         // retrieve record data
         FullBean bean = searchService.fetchFullBean(data.europeanaObjectId);

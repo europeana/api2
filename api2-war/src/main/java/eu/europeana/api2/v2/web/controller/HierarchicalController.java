@@ -1,6 +1,5 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
@@ -11,12 +10,9 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.neo4j.Neo4jSearchService;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -31,8 +27,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import static eu.europeana.api2.model.utils.Api2UrlService.NOTHING;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -64,8 +58,8 @@ public class HierarchicalController {
     @Resource
     private Api2UrlService urlService;
 
-    @Bean
-    public HierarchyRunner hierarchyRunnerBean() {
+//    @Bean
+    public HierarchyRunner createHierarchyRunner() {
         return new HierarchyRunner();
     }
 
@@ -176,18 +170,13 @@ public class HierarchicalController {
                                           int hierarchyTimeout) throws EuropeanaException {
 
         String                  rdfAbout = "/" + collectionId + "/" + recordId;
-        HierarchyRunner mrBean = hierarchyRunnerBean();
+        HierarchyRunner mrBean = createHierarchyRunner();
         hierarchyTimeout = (hierarchyTimeout == 0 ? DEFAULT_HIERARCHY_TIMEOUT :
                            (hierarchyTimeout < MIN_HIERARCHY_TIMEOUT ? MIN_HIERARCHY_TIMEOUT :
                            (hierarchyTimeout > MAX_HIERARCHY_TIMEOUT ? MAX_HIERARCHY_TIMEOUT : hierarchyTimeout)));
         try {
             // EA-1826
-            LimitResponse limitResponse;
-            if (StringUtils.equalsIgnoreCase(urlService.getApikeyValidateUrl(), NOTHING)){
-                limitResponse = apiKeyUtils.checkLimit(apikey);
-            } else {
-                limitResponse = apiKeyUtils.validateApiKey(apikey);
-            }
+            apiKeyUtils.validateApiKey(apikey);
             Future<ModelAndView> myFlexibleFriend = timeoutExecutorService.submit(()
                     -> mrBean.call(recordType, rdfAbout, profile, limit, offset, callback, request,
                     response, searchService, apikey));

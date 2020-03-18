@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.model.json.ApiError;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.QueryTranslationResult;
@@ -27,6 +28,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 
+import static eu.europeana.api2.model.utils.Api2UrlService.NOTHING;
+
 @Controller
 @SwaggerSelect
 @Api(tags = {"Search"})
@@ -34,6 +37,9 @@ public class QueryTranslationController {
 
     @Resource
     private ApiKeyUtils apiKeyUtils;
+
+    @Resource
+    private Api2UrlService urlService;
 
     private static final String ERROR_TERM = "Invalid parameter: term can not be empty";
     private static final String ERROR_LANGUAGE = "Invalid parameter: languageCodes can not be empty";
@@ -43,7 +49,7 @@ public class QueryTranslationController {
     public ModelAndView translateQuery(
             @RequestParam(value = "term", required = true) String term,
             @RequestParam(value = "languageCodes", required = true) String[] languageCodes,
-            @RequestParam(value = "wskey", required = true) String wskey,
+            @RequestParam(value = "wskey", required = true) String apikey,
             @RequestParam(value = "profile", required = false) String profile,
             @RequestParam(value = "callback", required = false) String callback,
             HttpServletRequest request,
@@ -52,29 +58,26 @@ public class QueryTranslationController {
 
         languageCodes = StringArrayUtils.splitWebParameter(languageCodes);
 
-        // TODO deprecate unused apikey parameters
-//        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(),
-//                RecordType.TRANSLATE_QUERY);
-
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey);
+        // EA-1826
+        LimitResponse limitResponse = apiKeyUtils.validateApiKey(apikey);
 
         if (StringUtils.isBlank(term)) {
             response.setStatus(HttpStatus.SC_BAD_REQUEST);
-            return JsonUtils.toJson(new ApiError(wskey, ERROR_TERM), callback);
+            return JsonUtils.toJson(new ApiError(apikey, ERROR_TERM), callback);
         } else if (StringArrayUtils.isBlank(languageCodes)) {
             response.setStatus(HttpStatus.SC_BAD_REQUEST);
-            return JsonUtils.toJson(new ApiError(wskey, ERROR_LANGUAGE), callback);
+            return JsonUtils.toJson(new ApiError(apikey, ERROR_LANGUAGE), callback);
         }
 
         QueryTranslationResult queryTranslationResult =
-                new QueryTranslationResult(wskey, limitResponse.getRequestNumber());
+                new QueryTranslationResult(apikey, limitResponse.getRequestNumber());
 
         QueryTranslation queryTranslation = SearchUtils.translateQuery(term, Arrays.asList(languageCodes));
         queryTranslationResult.translations = queryTranslation.getLanguageVersions();
         queryTranslationResult.translatedQuery = queryTranslation.getModifiedQuery();
 
         if (StringUtils.isNotBlank(profile) && StringUtils.containsIgnoreCase(profile, "param")) {
-            queryTranslationResult.addParam("wskey", wskey);
+            queryTranslationResult.addParam("wskey", apikey);
             queryTranslationResult.addParam("term", term);
             queryTranslationResult.addParam("languageCodes", languageCodes);
             queryTranslationResult.addParam("profile", profile);

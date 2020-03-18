@@ -177,13 +177,7 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        // EA-1826
-        LimitResponse limitResponse;
-        if (StringUtils.equalsIgnoreCase(urlService.getApikeyValidateUrl(), NOTHING)){
-            limitResponse = apiKeyUtils.checkLimit(apikey);
-        } else {
-            limitResponse = apiKeyUtils.validateApiKey(apikey);
-        }
+        LimitResponse limitResponse = apiKeyUtils.validateApiKey(apikey);
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -701,8 +695,7 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-//        LimitResponse limitResponse = apiKeyUtils.checkLimit(apikey, request.getRequestURL().toString(), RecordType.SEARCH_KML);
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(apikey);
+        LimitResponse limitResponse = apiKeyUtils.validateApiKey(apikey);
 
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)

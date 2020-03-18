@@ -2,12 +2,14 @@ package eu.europeana.api2.v2.service;
 
 import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.json.ApiError;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.HierarchicalResult;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
+import eu.europeana.corelib.definitions.ApplicationContextContainer;
 import eu.europeana.corelib.neo4j.Neo4jSearchService;
 import eu.europeana.corelib.neo4j.entity.Neo4jBean;
 import eu.europeana.corelib.neo4j.entity.Neo4jStructBean;
