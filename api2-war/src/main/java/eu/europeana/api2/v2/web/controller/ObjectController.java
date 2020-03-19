@@ -267,7 +267,7 @@ public class ObjectController {
 
         long startTime = System.currentTimeMillis();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Retrieving record with id " + data.europeanaObjectId + ", type = " + recordType);
+            LOG.debug("Retrieving record with id " + data.europeanaId + ", type = " + recordType);
         }
 
         // 2) check apikey, HTTP 401 if invalid or missing
@@ -275,7 +275,7 @@ public class ObjectController {
                 data.wskey, data.servletRequest.getRequestURL().toString(), recordType, data.profile);
 
         // retrieve record data
-        FullBean bean = searchService.fetchFullBean(data.europeanaObjectId);
+        FullBean bean = searchService.fetchFullBean(data.europeanaId);
 
         // 3) Check if record exists, HTTP 404 if not
         if (Objects.isNull(bean)) {
@@ -286,7 +286,7 @@ public class ObjectController {
                 result = new ModelAndView("rdf", model);
             } else {
                 result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: "
-                        + data.europeanaObjectId), data.callback);
+                        + data.europeanaId), data.callback);
             }
             return result;
         }
@@ -294,16 +294,16 @@ public class ObjectController {
         /*
         * 2017-07-06 PE: the code below was implemented as part of ticket #662. However as collections does not support this
         * yet activation of this functionality is postponed.
-        *        if (!bean.getAbout().equals(data.europeanaObjectId)) {
+        *        if (!bean.getAbout().equals(data.europeanaId)) {
         *            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, bean.getAbout()));
+        *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaId, bean.getAbout()));
         *            return null;
         *        }
         *        */
 
         // ETag is created from timestamp + api version.
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
-        String eTag      = httpCacheUtils.generateETag(data.europeanaObjectId+tsUpdated, true, true);
+        String eTag      = httpCacheUtils.generateETag(data.europeanaId +tsUpdated, true, true);
 
         // If If-None-Match is present: check if it contains a matching eTag OR == '*"
         // Yes: return HTTP 304 + cache headers. Ignore If-Modified-Since (RFC 7232)
@@ -455,7 +455,7 @@ public class ObjectController {
      * Helper class so we can pass all data around in 1 object (and not specify many parameters)
      */
     private static class RequestData {
-        String             europeanaObjectId;
+        String europeanaId;
         protected String   profile;             // called format in json-ld
         String             wskey;
         LimitResponse      apikeyCheckResponse;
@@ -470,8 +470,8 @@ public class ObjectController {
                     String callback,
                     WebRequest webRequest,
                     HttpServletRequest servletRequest) {
-            this.europeanaObjectId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
-            this.wskey = wskey;
+            this.europeanaId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
+            this.wskey       = wskey;
             this.profile = profile;
             this.callback = callback;
             this.webRequest = webRequest;
