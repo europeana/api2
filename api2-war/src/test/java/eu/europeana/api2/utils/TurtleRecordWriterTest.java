@@ -18,10 +18,10 @@ public class TurtleRecordWriterTest {
         OutputStream outputStream = new ByteArrayOutputStream();
         TurtleRecordWriter writer= new TurtleRecordWriter(outputStream);
         writer.write(modelResult);
-
         //check if null
         Assert.assertNotNull(outputStream);
-
+        //close the streams
         outputStream.close();
+        rdfInput.close();
     }
 }

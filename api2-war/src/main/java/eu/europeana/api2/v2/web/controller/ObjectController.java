@@ -144,13 +144,9 @@ public class ObjectController {
      */
     @SwaggerIgnore
     @GetMapping(value = {"/context.jsonld", "/context.json-ld"}, produces = MEDIA_TYPE_JSONLD_UTF8)
-    public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
+    public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) throws IOException {
         String jsonld = null;
-        try {
-            jsonld = com.github.jsonldjava.utils.JsonUtils.toString(jsonldContext);
-        } catch (IOException e) {
-           LOG.error("Error in Json serialization", e);
-        }
+        jsonld = com.github.jsonldjava.utils.JsonUtils.toString(jsonldContext);
         return JsonUtils.toJson(jsonld, callback);
     }
 
@@ -160,7 +156,6 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param wskey          pre-api term for 'apikey'
-     * @param format
      * @param callback
      * @param webRequest
      * @param servletRequest
@@ -173,12 +168,11 @@ public class ObjectController {
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String wskey,
-                                      @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @ApiIgnore WebRequest webRequest,
                                       @ApiIgnore HttpServletRequest servletRequest,
                                       @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        return recordJSONLD(collectionId, recordId, wskey, format, callback, webRequest, servletRequest, response);
+        return recordJSONLD(collectionId, recordId, wskey, callback, webRequest, servletRequest, response);
     }
 
     /***
@@ -186,7 +180,6 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param wskey          pre-api term for 'apikey'
-     * @param format         supported types are 'compacted', 'flattened' and 'normalized'
      * @param callback
      * @param webRequest
      * @param servletRequest
@@ -199,13 +192,12 @@ public class ObjectController {
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String wskey,
-                                     @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                      @RequestParam(value = "callback", required = false) String callback,
                                      @ApiIgnore WebRequest webRequest,
                                      @ApiIgnore HttpServletRequest servletRequest,
                                      @ApiIgnore HttpServletResponse response) throws EuropeanaException {
 
-        RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, callback, webRequest, servletRequest);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
     }
 
@@ -214,7 +206,6 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param wskey          pre-api term for 'apikey'
-     * @param format         supported types are 'compacted', 'flattened' and 'normalized'
      * @param callback       repeats whatever you supply
      * @param webRequest
      * @param servletRequest
@@ -227,13 +218,12 @@ public class ObjectController {
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String wskey,
-                                        @RequestParam(value = "format", required = false, defaultValue = "compacted") String format,
                                         @RequestParam(value = "callback", required = false) String callback,
                                         @ApiIgnore WebRequest webRequest,
                                         @ApiIgnore HttpServletRequest servletRequest,
                                         @ApiIgnore HttpServletResponse response) throws EuropeanaException {
 
-        RequestData data = new RequestData(collectionId, recordId, wskey, format, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, callback, webRequest, servletRequest);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
     }
 
@@ -274,7 +264,7 @@ public class ObjectController {
      * @throws EuropeanaException
      */
     @ApiOperation(value = "get single record in turtle format)", nickname = "getSingleRecordTurtle")
-    @GetMapping(value = "/{collectionId}/{recordId}.ttl", produces = {MEDIA_TYPE_TURTLE, MEDIA_TYPE_TURTLE_TEXT, MEDIA_TYPE_TURTLE_X} )
+    @GetMapping(value = "/{collectionId}/{recordId}.ttl", consumes = {MEDIA_TYPE_TURTLE, MEDIA_TYPE_TURTLE_TEXT, MEDIA_TYPE_TURTLE_X} , produces = MEDIA_TYPE_TURTLE)
     public ModelAndView recordTurtle(@PathVariable String collectionId,
                              @PathVariable String recordId,
                              @RequestParam(value = "wskey") String wskey,
@@ -423,25 +413,25 @@ public class ObjectController {
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (InputStream rdfInput = IOUtils.toInputStream(rdf)) {
              Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
-
-             if (StringUtils.equalsIgnoreCase(data.profile, "compacted")) {
                  DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
                  PrefixMap pm = RiotLib.prefixMap(graph);
                  JsonLDWriteContext ctx = new JsonLDWriteContext();
                  ctx.setJsonLDContext(ObjectController.jsonldContext);
                  WriterDatasetRIOT writer = RDFDataMgr.createDatasetWriter(RDFFormat.JSONLD_FLATTEN_PRETTY);
                  writer.write(outputStream, graph, pm, null, ctx);
-             }
-            else if (StringUtils.equalsIgnoreCase(data.profile, "flattened")) {
-                 RDFDataMgr.write(outputStream, modelResult, RDFFormat.JSONLD_FLAT);
-             } else if (StringUtils.equalsIgnoreCase(data.profile, "normalized")) {
-                //Did not found a normalized format for JSON-LD. Hence for now, I have used JSON-LD_PRETTY
-                 RDFDataMgr.write(outputStream, modelResult, RDFFormat.JSONLD_PRETTY);
-            }
         } catch (IOException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+        }
+        finally {
+             try {
+                 outputStream.flush();
+                 outputStream.close();
+             } catch (IOException e) {
+                LOG.error("Error closing the output stream", e);
+            }
+
         }
         return JsonUtils.toJsonLd(outputStream.toString(), data.callback);
     }
@@ -453,16 +443,15 @@ public class ObjectController {
     }
 
     private ModelAndView generateTurtle(FullBean bean, HttpServletResponse response) {
-        OutputStream outputStream = new ByteArrayOutputStream();
         Map<String, Object> model = new HashMap<>();
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
-        try ( InputStream rdfInput = IOUtils.toInputStream(rdf)) {
+        try (OutputStream outputStream = new ByteArrayOutputStream();
+              InputStream rdfInput = IOUtils.toInputStream(rdf)) {
             Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
             TurtleRecordWriter writer= new TurtleRecordWriter(outputStream);
             writer.write(modelResult);
             model.put("record", outputStream);
-
-        }catch (IOException e) {
+        } catch (IOException e) {
             LOG.error("Error parsing Turtle data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
