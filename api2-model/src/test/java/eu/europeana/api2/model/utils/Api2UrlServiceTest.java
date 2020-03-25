@@ -45,18 +45,18 @@ public class Api2UrlServiceTest {
     public void testGetRecordPortalUrl() {
         String baseUrl = null;
         Api2UrlService s1 = new Api2UrlService(baseUrl,null);
-        assertEquals("https://www.europeana.eu/portal/record/1/2.html",
+        assertEquals("https://www.europeana.eu/record/1/2",
                 s1.getRecordPortalUrl("/1/2"));
 
         baseUrl = "pro.europeana.eu";
         Api2UrlService s2 = new Api2UrlService(baseUrl,null);
         // In this case https:// is added by UrlBuilder class!
-        assertEquals("https://pro.europeana.eu/portal/record/x/y.html",
+        assertEquals("https://pro.europeana.eu/record/x/y",
                 s2.getRecordPortalUrl("/x/y"));
 
         baseUrl = "http://localhost:8080";
         Api2UrlService s3 = new Api2UrlService(baseUrl,null);
-        assertEquals("http://localhost:8080/portal/record/x/y.html",
+        assertEquals("http://localhost:8080/record/x/y",
                 s3.getRecordPortalUrl("/x/y"));
     }
 
