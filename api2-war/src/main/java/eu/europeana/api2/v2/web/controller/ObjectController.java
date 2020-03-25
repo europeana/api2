@@ -11,7 +11,6 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.ItemFix;
-import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
@@ -113,9 +112,9 @@ public class ObjectController {
      *
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param apikey         formerly known as 'wskey' for some unfathomable and dark reason
+     * @param apikey         formerly known as 'wskey'
      * @param profile        supported types are 'params' and 'similar'
-     * @param callback
+     * @param callback       repeats whatever you supply
      * @param webRequest
      * @param servletRequest
      * @param response
@@ -137,7 +136,7 @@ public class ObjectController {
     }
 
     /**
-     * @param callback
+     * @param callback  repeats whatever you supply
      * @return only the context part of a json-ld record
      */
     @SwaggerIgnore
@@ -152,9 +151,9 @@ public class ObjectController {
      *
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param apikey         formerly known as 'wskey' for some unfathomable and dark reason
-     * @param format
-     * @param callback
+     * @param apikey         formerly known as 'wskey'
+     * @param format         specifies the layout: supported types are 'compacted', 'flattened' and 'normalized'
+     * @param callback       repeats whatever you supply
      * @param webRequest
      * @param servletRequest
      * @param response
@@ -178,9 +177,9 @@ public class ObjectController {
      * Retrieve a record in JSON-LD format.
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param apikey         formerly known as 'wskey' for some unfathomable and dark reason
-     * @param format         supported types are 'compacted', 'flattened' and 'normalized'
-     * @param callback
+     * @param apikey         formerly known as 'wskey'
+     * @param format         specifies the layout: supported types are 'compacted', 'flattened' and 'normalized'
+     * @param callback       repeats whatever you supply
      * @param webRequest
      * @param servletRequest
      * @param response
@@ -206,8 +205,8 @@ public class ObjectController {
      * Retrieve a record in Schema.org JSON-LD format.
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param apikey         formerly known as 'wskey' for some unfathomable and dark reason
-     * @param format         supported types are 'compacted', 'flattened' and 'normalized'
+     * @param apikey         formerly known as 'wskey'
+     * @param format         specifies the layout: supported types are 'compacted', 'flattened' and 'normalized'
      * @param callback       repeats whatever you supply
      * @param webRequest
      * @param servletRequest
@@ -235,7 +234,7 @@ public class ObjectController {
      *
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param apikey         formerly known as 'wskey' for some unfathomable and dark reason
+     * @param apikey         formerly known as 'wskey'
      * @param webRequest
      * @param servletRequest
      * @param response
@@ -255,8 +254,9 @@ public class ObjectController {
     }
 
     /**
-     * The larger part of handling a record is the same for all types of output, so this method handles all the common
-     * functionality like setting CORS headers, checking API key, retrieving the record for mongo and setting 301 or 404 if necessary
+     * The larger part of handling a record is the same for all types of output, so this method handles all the
+     * common functionality such as setting CORS headers, checking API key, retrieving the record for mongo
+     * and setting 301 or 404 if necessary
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
             throws EuropeanaException {
@@ -275,7 +275,7 @@ public class ObjectController {
             LOG.debug("Retrieving record with id " + data.europeanaObjectId + ", type = " + recordType);
         }
 
-        data.apikeyCheckResponse = apiKeyUtils.validateApiKey(data.apikey);
+        apiKeyUtils.validateApiKey(data.apikey);
 
         FullBean bean = searchService.fetchFullBean(data.europeanaObjectId);
 
@@ -364,7 +364,7 @@ public class ObjectController {
     }
 
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
-        ObjectResult objectResult = new ObjectResult(data.apikey, data.apikeyCheckResponse.getRequestNumber());
+        ObjectResult objectResult = new ObjectResult(data.apikey);
 
         if (StringUtils.containsIgnoreCase(data.profile, "params")) {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
@@ -454,30 +454,24 @@ public class ObjectController {
     }
 
     /**
-     * Helper class so we can pass all data around in 1 object (and not specify many parameters)
+     * Helper class to pass all data around in 1 object
      */
-    private static class RequestData {
-        String             europeanaObjectId;
-        protected String   profile;             // called format in json-ld
-        String        apikey;
-        LimitResponse apikeyCheckResponse;
-        protected String   callback;
+    private static class RequestData{
+        String europeanaObjectId;
+        protected String profile;             // called format in json-ld
+        String apikey;
+        protected String callback;
         WebRequest         webRequest;
         HttpServletRequest servletRequest;
 
-        RequestData(String collectionId,
-                    String recordId,
-                    String apikey,
-                    String profile,
-                    String callback,
-                    WebRequest webRequest,
-                    HttpServletRequest servletRequest) {
+        RequestData(String collectionId, String recordId, String apikey, String profile, String callback,
+                    WebRequest webRequest, HttpServletRequest servletRequest) {
             this.europeanaObjectId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
             this.apikey            = apikey;
             this.profile           = profile;
-            this.callback = callback;
-            this.webRequest = webRequest;
-            this.servletRequest = servletRequest;
+            this.callback          = callback;
+            this.webRequest        = webRequest;
+            this.servletRequest    = servletRequest;
         }
     }
 }

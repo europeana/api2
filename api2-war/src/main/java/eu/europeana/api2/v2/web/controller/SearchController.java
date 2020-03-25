@@ -6,7 +6,6 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
-import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
@@ -177,7 +176,7 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        LimitResponse limitResponse = apiKeyUtils.validateApiKey(apikey);
+        apiKeyUtils.validateApiKey(apikey);
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -351,7 +350,6 @@ public class SearchController {
             ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
 
         SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz);
-        result.requestNumber = limitResponse.getRequestNumber();
         if (StringUtils.containsIgnoreCase(profile, "params")) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
@@ -695,7 +693,7 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        LimitResponse limitResponse = apiKeyUtils.validateApiKey(apikey);
+        apiKeyUtils.validateApiKey(apikey);
 
         String[] _qf = request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinementArray.length) {

@@ -2,7 +2,6 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.QueryTranslationResult;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
@@ -51,7 +50,7 @@ public class QueryTranslationController {
 
         languageCodes = StringArrayUtils.splitWebParameter(languageCodes);
 
-        LimitResponse limitResponse = apiKeyUtils.validateApiKey(apikey);
+        apiKeyUtils.validateApiKey(apikey);
 
         if (StringUtils.isBlank(term)) {
             response.setStatus(HttpStatus.SC_BAD_REQUEST);
@@ -62,7 +61,7 @@ public class QueryTranslationController {
         }
 
         QueryTranslationResult queryTranslationResult =
-                new QueryTranslationResult(apikey, limitResponse.getRequestNumber());
+                new QueryTranslationResult(apikey);
 
         QueryTranslation queryTranslation = SearchUtils.translateQuery(term, Arrays.asList(languageCodes));
         queryTranslationResult.translations = queryTranslation.getLanguageVersions();

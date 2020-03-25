@@ -210,7 +210,7 @@ public class AppConfig {
     }
 
     /**
-     * Setup utility for checking api key limits (connects to the PostgreSql database)
+     * Utility for validating api keys
      * @return ApiKeyUtils bean
      */
     @Bean

@@ -3,11 +3,9 @@ package eu.europeana.api2.v2.utils;
 import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.model.LimitResponse;
-import eu.europeana.corelib.db.entity.relational.ApiKeyImpl;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
-import eu.europeana.corelib.definitions.db.entity.relational.enums.ApiClientLevel;
 import eu.europeana.corelib.web.exception.ProblemType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -18,7 +16,10 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.http.HttpStatus;
+import org.hibernate.exception.JDBCConnectionException;
+import org.springframework.transaction.CannotCreateTransactionException;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 
@@ -29,14 +30,12 @@ import java.io.IOException;
  */
 public class ApiKeyUtils{
 
-    private static final Logger LOG              = LogManager.getLogger(ApiKeyUtils.class);
-    private static final String AUTHORIZATION    = "Authorization";
-    private static final String UNABLETOVALIDATE = "Unable to validate apikey";
-    private static final String ERRORRETRIEVING  = "Error retrieving apikey";
-    private static final String TEMPKEY          = "Temporary apikey";
-    private static final int    MAXCONNTOTAL     = 200;
-    private static final int    MAXCONNPERROUTE  = 100;
-    private static final int    FIXEDREQUESTNR   = 999;
+    private static final Logger LOG                = LogManager.getLogger(ApiKeyUtils.class);
+    private static final String AUTHORIZATION      = "Authorization";
+    private static final String APIKEYDBERROR      = "Problem connecting to the apikey database";
+    private static final String APIKEYSERVICEERROR = "Problem connecting to the apikey service";
+    private static final int    MAXCONNTOTAL       = 200;
+    private static final int    MAXCONNPERROUTE    = 100;
 
     @Resource
     private ApiKeyService apiService;
@@ -46,7 +45,18 @@ public class ApiKeyUtils{
 
     private CloseableHttpClient httpClient;
 
+    private boolean useApiKeyService = true;
+
+    @PostConstruct
+    public void init() {
+        // check ernly wernce at initialisation if we need to use the fallback 'old school' Apikey Postgres check
+        if (StringUtils.isBlank(urlService.getApikeyValidateUrl())) {
+            useApiKeyService = false;
+        }
+    }
+
     public ApiKeyUtils(){
+
         // configure http client
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(MAXCONNTOTAL);
@@ -67,20 +77,16 @@ public class ApiKeyUtils{
      * @return A {@link LimitResponse} consisting of the apiKey and current request number
      * @throws ApiKeyException {@link ApiKeyException} if an unregistered or unauthorised apikey is provided
      */
-    public LimitResponse validateApiKey(String apikey) throws ApiKeyException {
-        if (StringUtils.isBlank(urlService.getApikeyValidateUrl())) {
-            return checkLimit(apikey);
+    public void validateApiKey(String apikey) throws ApiKeyException {
+        if (useApiKeyService) {
+            validate(apikey);
         } else {
-            return validate(apikey);
+            validateOldStyle(apikey);
         }
     }
 
     /**
-     * Check the number requests made to the API in the last (rolling) 24 hours. This is a per-user
-     * limit (default: 10000) set in the myEuropeana database that is used as a throttling mechanism.
-     *
-     * NOTE: This functionality has currently been disabled (ticket #1742); this method now always
-     * returns the user's apikey and a request number of '999' (unless it's a unregistered user).
+     * This method validates the supplied API key string agaist the Postgres Apikey table. It responds like this:
      *
      * @param apikey The user's API web service apikey
      * @return A {@link LimitResponse} consisting of the apiKey and current request number
@@ -89,58 +95,56 @@ public class ApiKeyUtils{
      * @Deprecated Only checking if a apikey exists is used at the moment (not the limit)
      * All functionality will be moved to the new apikey project
      */
-    private LimitResponse checkLimit(String apikey) throws ApiKeyException {
+    private void validateOldStyle(String apikey) throws ApiKeyException {
         if (StringUtils.isBlank(apikey)) {
-            throw new ApiKeyException(ProblemType.APIKEY_MISSING, null);
+            throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
         }
-
         ApiKey apiKey;
-        long   requestNumber;
         long   t;
         try {
             t      = System.currentTimeMillis();
             apiKey = apiService.findByID(apikey);
             if (apiKey == null) {
-                throw new ApiKeyException(ProblemType.APIKEY_INVALID, apikey);
+                throw new ApiKeyException(ProblemType.APIKEY_DOES_NOT_EXIST,
+                                          apikey,
+                                          HttpStatus.SC_UNAUTHORIZED);
             }
             LOG.debug("Get apiKey took {} ms", (System.currentTimeMillis() - t));
 
-            requestNumber = FIXEDREQUESTNR;
-            LOG.debug("Setting default request number; (checklimit disabled): {} ", requestNumber);
-
-        } catch (DatabaseException e) {
-            LOG.error(ERRORRETRIEVING, e);
-            ApiKeyException ex = new ApiKeyException(ProblemType.APIKEY_INVALID, apikey);
-            ex.initCause(e);
-            throw ex;
-        } catch (org.hibernate.exception.JDBCConnectionException | org.springframework.transaction.CannotCreateTransactionException ex) {
             // EA-1537 we sometimes have connection problems with the database, so we simply log and do not validate
             // keys when that happens
-            LOG.error(UNABLETOVALIDATE, ex);
-            requestNumber = FIXEDREQUESTNR - 1L;
-            apiKey        = createTempApiKey(apikey);
+        } catch (DatabaseException | JDBCConnectionException | CannotCreateTransactionException e) {
+            LOG.error(APIKEYDBERROR, e);
         }
-        return new LimitResponse(apiKey, requestNumber);
     }
 
-    private LimitResponse validate(String apikey) throws ApiKeyException {
+    /*
+     * This method uses the Apikey service to validate API keys. It responds like this:
+     *
+     * - HTTP 400 and APIKEY_MISSING if no apikey is provided OR the Apikey service returns HTTP 400
+     * - HTTP 401 and APIKEY_DOES_NOT_EXIST if the Apikey service returns HTTP 401 (apikey not found)
+     * - HTTP 410 and APIKEY_DEPRECATED if the Apikey service returns HTTP 410 (apikey has past deprecationdate)
+     *
+     * In all other cases the API key is (quietly) suspended in order to not let possible issues with the Apikey
+     * service interfere with the Api functionality.
+     * However, an error is logged if there was a problem connecting to the Apikey service.
+     *
+     * @param apikey The user's API web service apikey
+     * @throws ApiKeyException
+     *
+     */
+    private void validate(String apikey) throws ApiKeyException {
         if (StringUtils.isBlank(apikey)) {
             throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
         }
-        ApiKey apiKey;
-        long requestNumber;
         long t = System.currentTimeMillis();
 
         HttpPost httpPost = new HttpPost(urlService.getApikeyValidateUrl());
         httpPost.setHeader(AUTHORIZATION, "APIKEY " + apikey);
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)){
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-                requestNumber = FIXEDREQUESTNR;
-                apiKey        = createApiKey(apikey);
-                apiKey.setApiKey(apikey);
-            } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-                throw new ApiKeyException(ProblemType.APIKEY_NOT_REGISTERED,
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                throw new ApiKeyException(ProblemType.APIKEY_DOES_NOT_EXIST,
                                           apikey,
                                           response.getStatusLine().getStatusCode());
             } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_GONE) {
@@ -148,31 +152,14 @@ public class ApiKeyUtils{
                                           apikey,
                                           response.getStatusLine().getStatusCode());
             } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
-                throw new ApiKeyException(ProblemType.APIKEY_MISSING, apikey, response.getStatusLine().getStatusCode());
-            } else {
-                throw new ApiKeyException(ProblemType.APIKEY_OTHER, apikey, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                throw new ApiKeyException(ProblemType.APIKEY_MISSING,
+                                          apikey,
+                                          response.getStatusLine().getStatusCode());
             }
         } catch (IOException e) {
-            // similar to how this is handled in the old situation (see above), assign a temporary ApiKey if there
-            // is a communication problem
-            LOG.error(UNABLETOVALIDATE, e);
-            requestNumber = FIXEDREQUESTNR - 1L;
-            apiKey        = createTempApiKey(apikey);
+            // similar to how this is handled in the old situation (see above), log the error and carry on
+            LOG.error(APIKEYSERVICEERROR, e);
         }
         LOG.debug("Post request to validate apiKey took {} ms", (System.currentTimeMillis() - t));
-        return new LimitResponse(apiKey, requestNumber);
-    }
-
-    private ApiKey createTempApiKey(String key) {
-        ApiKey apiKey = createApiKey(key);
-        apiKey.setDescription(TEMPKEY);
-        return apiKey;
-    }
-
-    private ApiKey createApiKey(String key) {
-        ApiKey apiKey = new ApiKeyImpl();
-        apiKey.setApiKey(key);
-        apiKey.setLevel(ApiClientLevel.CLIENT);
-        return apiKey;
     }
 }
