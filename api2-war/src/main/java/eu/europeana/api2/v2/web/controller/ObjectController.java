@@ -145,7 +145,7 @@ public class ObjectController {
     @SwaggerIgnore
     @GetMapping(value = {"/context.jsonld", "/context.json-ld"}, produces = MEDIA_TYPE_JSONLD_UTF8)
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) throws IOException {
-        String jsonld = null;
+        String jsonld;
         jsonld = com.github.jsonldjava.utils.JsonUtils.toString(jsonldContext);
         return JsonUtils.toJson(jsonld, callback);
     }
@@ -264,7 +264,7 @@ public class ObjectController {
      * @throws EuropeanaException
      */
     @ApiOperation(value = "get single record in turtle format)", nickname = "getSingleRecordTurtle")
-    @GetMapping(value = "/{collectionId}/{recordId}.ttl", consumes = {MEDIA_TYPE_TURTLE, MEDIA_TYPE_TURTLE_TEXT, MEDIA_TYPE_TURTLE_X} , produces = MEDIA_TYPE_TURTLE)
+    @GetMapping(value = "/{collectionId}/{recordId}.ttl", produces = {MEDIA_TYPE_TURTLE, MEDIA_TYPE_TURTLE_TEXT, MEDIA_TYPE_TURTLE_X})
     public ModelAndView recordTurtle(@PathVariable String collectionId,
                              @PathVariable String recordId,
                              @RequestParam(value = "wskey") String wskey,
@@ -426,8 +426,7 @@ public class ObjectController {
         }
         finally {
              try {
-                 outputStream.flush();
-                 outputStream.close();
+                  outputStream.close();
              } catch (IOException e) {
                 LOG.error("Error closing the output stream", e);
             }

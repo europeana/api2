@@ -274,7 +274,7 @@ public class TurtleRecordWriter {
               bufferedWriter.flush();
               bufferedWriter.close();
         } catch (IOException e) {
-            LOG.error("Error flushing the buffer writer {} ", e);
+            LOG.error("Error closing the buffer writer ", e);
         }
     }
 }
