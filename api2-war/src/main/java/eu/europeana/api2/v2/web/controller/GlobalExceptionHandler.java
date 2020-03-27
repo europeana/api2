@@ -82,7 +82,10 @@ public class GlobalExceptionHandler {
                 // log apikey plus problem so we can track users who need help
                 LOG.warn("[{}] {}", apiKey, ee.getErrorMsgAndDetails());
                 break;
-            case MAIL: sendErrorEmail(ee);  break;
+            case MAIL:
+                LOG.error(ee.getErrorMsgAndDetails(), ee);
+                sendErrorEmail(ee);
+                break;
             default: LOG.error(ee.getErrorMsgAndDetails(), ee);
         }
     }
