@@ -61,10 +61,10 @@ public class SwaggerConfig {
                 "such as dates, geotags and permissions. For more help and information, head to our " +
                 "comprehensive <a href=\"https://pro.europeana.eu/page/intro\">online documentation</a>.",
                 StringUtils.isNotEmpty(version) ? version : "version unknown",
-        "https://www.europeana.eu/en/rights/api",
+        "https://www.europeana.eu/en/rights/api-terms-of-use",
         "https://pro.europeana.eu/page/intro#general",
         "API terms of use",
-        "https://www.europeana.eu/en/rights/api");
+        "https://www.europeana.eu/en/rights/api-terms-of-use");
     }
 
     class ApiPathProvider extends AbstractPathProvider {
