@@ -6,7 +6,6 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
-import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
@@ -25,7 +24,6 @@ import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
-import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -92,6 +90,7 @@ public class SearchController {
     private static final String BREADCRUMB  = "breadcrumb";
     private static final String FACET_RANGE = "facet.range";
     private static final String HITS        = "hits";
+    private static final String ERROR_RETRIEVE_ATTRIBUTES = "error retrieving attributes";
 
     // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
@@ -119,7 +118,7 @@ public class SearchController {
     private String hlMaxAnalyzedChars;
 
     public ModelAndView searchJsonPost(
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
@@ -141,9 +140,9 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
         // TODO implement real POST request (see also EA-605)
-        return searchJsonGet(wskey, queryString, refinementArray, reusabilityArray, profile, start, rows, mixedFacetArray,
-                theme, sort, colourPaletteArray, thumbnail, media, fullText, landingPage, cursorMark, callback, hlFl,
-                hlSelectors, request, response);
+        return searchJsonGet(apikey, queryString, refinementArray, reusabilityArray, profile, start, rows, mixedFacetArray,
+                             theme, sort, colourPaletteArray, thumbnail, media, fullText, landingPage, cursorMark, callback, hlFl,
+                             hlSelectors, request, response);
     }
 
     /**
@@ -155,7 +154,7 @@ public class SearchController {
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
     @GetMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGet(
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
@@ -177,7 +176,7 @@ public class SearchController {
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
+        apiKeyUtils.validateApiKey(apikey);
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -350,10 +349,9 @@ public class SearchController {
               ArrayUtils.contains(solrFacets, "DEFAULT")
             ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
 
-        SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
-        result.requestNumber = limitResponse.getRequestNumber();
+        SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz);
         if (StringUtils.containsIgnoreCase(profile, "params")) {
-            result.addParams(RequestUtils.getParameterMap(request), "wskey");
+            result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
             result.addParam("start", start);
             result.addParam("rows", rows);
@@ -691,14 +689,12 @@ public class SearchController {
             @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH_KML, null);
+        apiKeyUtils.validateApiKey(apikey);
 
-        // workaround of a Spring issue
-        // (https://jira.springsource.org/browse/SPR-7963)
         String[] _qf = request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinementArray.length) {
             refinementArray = _qf;
@@ -820,10 +816,10 @@ public class SearchController {
 
             if (gftChannelAttributes.isEmpty() || gftChannelAttributes.size() < 5) {
                 LOG.error("error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
-                channel.title = "error retrieving attributes";
-                channel.description = "error retrieving attributes";
+                channel.title = ERROR_RETRIEVE_ATTRIBUTES;
+                channel.description = ERROR_RETRIEVE_ATTRIBUTES;
                 channel.language = "--";
-                channel.link = "error retrieving attributes";
+                channel.link = ERROR_RETRIEVE_ATTRIBUTES;
                 channel.image = null;
             } else {
                 channel.title = gftChannelAttributes.get(reqLanguage + "_title") == null || gftChannelAttributes.get(reqLanguage + "_title").equalsIgnoreCase("")
