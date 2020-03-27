@@ -140,7 +140,7 @@ public class ObjectController {
      * @return only the context part of a json-ld record
      */
     @SwaggerIgnore
-    @GetMapping(value = {"/context.jsonld", "/context.json-ld"}, produces = MEDIA_TYPE_JSONLD_UTF8)
+    @GetMapping(value = {"/context.jsonld", "/context.json-ld"}, produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView contextJSONLD(@RequestParam(value = "callback", required = false) String callback) {
         String jsonld = JSONUtils.toString(jsonldContext);
         return JsonUtils.toJson(jsonld, callback);
@@ -161,7 +161,7 @@ public class ObjectController {
      * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @SwaggerIgnore
-    @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = MEDIA_TYPE_JSONLD_UTF8)
+    @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = { MEDIA_TYPE_JSONLD_UTF8, MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordJSON_LD(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String apikey,
@@ -187,7 +187,7 @@ public class ObjectController {
      * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
-    @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = MEDIA_TYPE_JSONLD_UTF8)
+    @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String apikey,
@@ -215,7 +215,7 @@ public class ObjectController {
      * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
-    @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = MEDIA_TYPE_JSONLD_UTF8)
+    @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String apikey,
@@ -378,7 +378,7 @@ public class ObjectController {
 
     private ModelAndView generateSchemaOrg(FullBean bean, RequestData data) {
         String jsonld = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
-        return JsonUtils.toJson(jsonld, data.callback);
+        return JsonUtils.toJsonLd(jsonld, data.callback);
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
