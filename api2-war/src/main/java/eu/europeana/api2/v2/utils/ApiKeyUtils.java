@@ -2,12 +2,12 @@ package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.utils.Api2UrlService;
-import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.web.exception.ProblemType;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -15,7 +15,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.http.HttpStatus;
 import org.hibernate.exception.JDBCConnectionException;
 import org.springframework.transaction.CannotCreateTransactionException;
 
@@ -74,7 +73,6 @@ public class ApiKeyUtils{
      * including providing a temporary validated apikey if the apikey service cannot be reached
      *
      * @param apikey The user's public apikey
-     * @return A {@link LimitResponse} consisting of the apiKey and current request number
      * @throws ApiKeyException {@link ApiKeyException} if an unregistered or unauthorised apikey is provided
      */
     public void validateApiKey(String apikey) throws ApiKeyException {
@@ -89,7 +87,6 @@ public class ApiKeyUtils{
      * This method validates the supplied API key string agaist the Postgres Apikey table. It responds like this:
      *
      * @param apikey The user's API web service apikey
-     * @return A {@link LimitResponse} consisting of the apiKey and current request number
      * @throws ApiKeyException {@link ApiKeyException} if an unregistered or unauthorised apikey is provided, or if the
      *                         daily limit has been reached
      * @Deprecated Only checking if a apikey exists is used at the moment (not the limit)
@@ -143,18 +140,15 @@ public class ApiKeyUtils{
         httpPost.setHeader(AUTHORIZATION, "APIKEY " + apikey);
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)){
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-                throw new ApiKeyException(ProblemType.APIKEY_DOES_NOT_EXIST,
-                                          apikey,
-                                          response.getStatusLine().getStatusCode());
-            } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_GONE) {
-                throw new ApiKeyException(ProblemType.APIKEY_DEPRECATED,
-                                          apikey,
-                                          response.getStatusLine().getStatusCode());
-            } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
-                throw new ApiKeyException(ProblemType.APIKEY_MISSING,
-                                          apikey,
-                                          response.getStatusLine().getStatusCode());
+            int statusCode = response.getStatusLine().getStatusCode();
+            switch (statusCode) {
+                case HttpStatus.SC_OK: break; // everything is fine, do nothing
+                case HttpStatus.SC_UNAUTHORIZED: throw new ApiKeyException(ProblemType.APIKEY_DOES_NOT_EXIST, apikey,
+                        response.getStatusLine().getStatusCode());
+                case HttpStatus.SC_GONE: throw new ApiKeyException(ProblemType.APIKEY_DEPRECATED, apikey,
+                        response.getStatusLine().getStatusCode());
+                default: LOG.error("{}: {} ({})", "Unexpected API key service response", statusCode,
+                        response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
             // similar to how this is handled in the old situation (see above), log the error and carry on

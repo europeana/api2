@@ -3,7 +3,6 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.service.HierarchyRunner;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
@@ -15,18 +14,16 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
