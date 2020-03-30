@@ -9,7 +9,6 @@ import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.SavedSearch;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
-import eu.europeana.corelib.web.service.EuropeanaUrlService;
 import eu.europeana.corelib.web.utils.UrlBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -41,8 +40,8 @@ public class UserSearchController extends AbstractUserController {
 
     private static final Logger LOG = Logger.getLogger(UserSearchController.class);
 
-    @Resource(name = "corelib_web_europeanaUrlService")
-    private EuropeanaUrlService europeanaUrlService;
+//    @Resource(name = "corelib_web_europeanaUrlService")
+//    private EuropeanaUrlService europeanaUrlService;
 
     @ApiOperation(value = "list a user's saved searches", nickname = "listUserSearches")
     @RequestMapping(
@@ -164,21 +163,21 @@ public class UserSearchController extends AbstractUserController {
     }
 
     private String getQueryString(String query, String[] refinements, String start, User user) {
-        List<ApiKey> apiKeys = apiKeyService.findByEmail(user.getEmail());
-        String firstKey = "";
-        if (!apiKeys.isEmpty()) {
-            firstKey = apiKeys.get(0).getId();
-        }
-        UrlBuilder ub = null;
-        try {
-            String resultRowCount = "50";
-            ub = europeanaUrlService.getApi2SearchJson(firstKey, query, resultRowCount);
-            ub.addParam("qf", refinements, true);
-            ub.addParam("start", start, true);
-            return StringUtils.replace(ub.toString(), "?", "&", 0);
-        } catch (UnsupportedEncodingException e) {
-            LOG.error("Error retrieving saved search", e);
-        }
+//        List<ApiKey> apiKeys = apiKeyService.findByEmail(user.getEmail());
+//        String firstKey = "";
+//        if (!apiKeys.isEmpty()) {
+//            firstKey = apiKeys.get(0).getId();
+//        }
+//        UrlBuilder ub = null;
+//        try {
+//            String resultRowCount = "50";
+//            ub = europeanaUrlService.getApi2SearchJson(firstKey, query, resultRowCount);
+//            ub.addParam("qf", refinements, true);
+//            ub.addParam("start", start, true);
+//            return StringUtils.replace(ub.toString(), "?", "&", 0);
+//        } catch (Exception e) {
+//            LOG.error("Error retrieving saved search", e);
+//        }
         return null;
     }
 }
