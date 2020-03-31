@@ -417,7 +417,7 @@ public class ObjectController {
                  PrefixMap pm = RiotLib.prefixMap(graph);
                  JsonLDWriteContext ctx = new JsonLDWriteContext();
                  ctx.setJsonLDContext(ObjectController.jsonldContext);
-                 WriterDatasetRIOT writer = RDFDataMgr.createDatasetWriter(RDFFormat.JSONLD_FLATTEN_PRETTY);
+                 WriterDatasetRIOT writer = RDFDataMgr.createDatasetWriter(RDFFormat.JSONLD_FLAT);
                  writer.write(outputStream, graph, pm, null, ctx);
         } catch (IOException e) {
             LOG.error("Error parsing JSON-LD data", e);

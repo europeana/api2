@@ -73,9 +73,6 @@ public class TurtleRecordWriter {
             bufferedWriter.newLine();
         } catch (IOException e) {
             LOG.error("Error ocuured while writing resource " + r.getURI(), e);
-        } catch (RuntimeException ex) {
-            throw new IOException("Unexpected exception while writting: "
-                    + r.getURI(), ex);
         }
     }
 
