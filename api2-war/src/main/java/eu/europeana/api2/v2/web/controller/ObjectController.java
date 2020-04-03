@@ -260,12 +260,12 @@ public class ObjectController {
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
             throws EuropeanaException {
-
+System.out.println("Request :: "+data.europeanaObjectId  + "record Type " +recordType);
         ModelAndView result;
 
         // 1) Check if HTTP method is supported, HTTP 405 if not
         if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) &&
-            !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
+                !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
             response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
             return null; // figure out what to return exactly in these cases
         }
@@ -294,14 +294,14 @@ public class ObjectController {
         }
 
         /*
-        * 2017-07-06 PE: the code below was implemented as part of ticket #662. However as collections does not support this
-        * yet activation of this functionality is postponed.
-        *        if (!bean.getAbout().equals(data.europeanaObjectId)) {
-        *            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, bean.getAbout()));
-        *            return null;
-        *        }
-        *        */
+         * 2017-07-06 PE: the code below was implemented as part of ticket #662. However as collections does not support this
+         * yet activation of this functionality is postponed.
+         *        if (!bean.getAbout().equals(data.europeanaObjectId)) {
+         *            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+         *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, bean.getAbout()));
+         *            return null;
+         *        }
+         *        */
 
         // ETag is created from timestamp + api version.
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
@@ -315,15 +315,15 @@ public class ObjectController {
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
                 return null;
             }
-        // If If-Match is present: check if it contains a matching eTag OR == '*"
-        // Yes: proceed. No: return HTTP 412, no cache headers
+            // If If-Match is present: check if it contains a matching eTag OR == '*"
+            // Yes: proceed. No: return HTTP 412, no cache headers
         } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))){
             if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
                 response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
                 return null;
             }
-        // check if If-Modified-Since is present and on or after timestamp_updated
-        // yes: return HTTP 304 no: continue
+            // check if If-Modified-Since is present and on or after timestamp_updated
+            // yes: return HTTP 304 no: continue
         } else if (httpCacheUtils.isNotModifiedSince(data.servletRequest, bean.getTimestampUpdated())){
             response.setStatus(HttpServletResponse.SC_NOT_MODIFIED); // no cache headers
             return null;
