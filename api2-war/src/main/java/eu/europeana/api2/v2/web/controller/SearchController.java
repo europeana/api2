@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
+import com.google.inject.internal.util.$FinalizableWeakReference;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
@@ -175,6 +176,39 @@ public class SearchController {
             @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
+
+        LOG.error("request.getRequestURL() = {}", request.getRequestURL());
+        LOG.error("request.getRequestURI() = {}", request.getRequestURI());
+        LOG.error("request.getPathInfo() = {}", request.getPathInfo());
+        LOG.error("request.getQueryString() = {}", request.getQueryString());
+        LOG.error("request.getContextPath() = {}", request.getContextPath());
+        LOG.error("request.getPathTranslated = {}", request.getPathTranslated());
+        LOG.error("request.getRemoteUser = {}", request.getRemoteUser());
+        LOG.error("request.getRemoteAddr = {}", request.getRemoteAddr());
+        LOG.error("request.getRemoteHost = {}", request.getRemoteHost());
+        LOG.error("request.getRemotePort = {}", request.getRemotePort());
+        LOG.error("request.getMethod = {}", request.getMethod());
+        LOG.error("request.getRequestedSessionId = {}", request.getRequestedSessionId());
+        LOG.error("request.getServletPath = {}", request.getServletPath());
+        LOG.error("request.getServerName = {}", request.getServerName());
+        Enumeration<String> headers = request.getHeaderNames();
+        while (headers.hasMoreElements()) {
+            String header = headers.nextElement();
+            LOG.error("  header {} = {}", header, request.getHeader(header));
+        }
+        Enumeration<String> attributes = request.getAttributeNames();
+        while (attributes.hasMoreElements()) {
+            String attr = attributes.nextElement();
+            LOG.error("  attribute {} = {}", attr, request.getAttribute(attr));
+        }
+        LOG.error("request.getSession().getId() = {}", request.getSession().getId());
+        LOG.error("request.getSession().getServletContext() = {}", request.getSession().getServletContext());
+        Enumeration<String> sesAttributes = request.getSession().getAttributeNames();
+        while (sesAttributes.hasMoreElements()) {
+            String attr = sesAttributes.nextElement();
+            LOG.error("  attribute {} = {}", attr, request.getSession().getAttribute(attr));
+        }
+
 
         apiKeyUtils.validateApiKey(apikey);
 
