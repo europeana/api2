@@ -26,8 +26,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder(alphabetic=true)
 public class BriefView extends IdBeanImpl implements BriefBean {
 
-    private static final Logger  LOG = LogManager.getLogger(BriefView.class);
-    protected Api2UrlService urlService;
+    private static final Logger          LOG = LogManager.getLogger(BriefView.class);
+    protected            Api2UrlService  urlService;
 
     protected String profile;
     protected String wskey;

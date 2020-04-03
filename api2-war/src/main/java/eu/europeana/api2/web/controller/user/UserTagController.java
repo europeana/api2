@@ -13,7 +13,8 @@ import eu.europeana.corelib.neo4j.exception.Neo4JException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +39,7 @@ import static eu.europeana.corelib.utils.EuropeanaUriUtils.createEuropeanaId;
 @Deprecated
 public class UserTagController extends AbstractUserController {
 
-    private Logger log = Logger.getLogger(UserTagController.class);
+    private Logger log = LogManager.getLogger(UserTagController.class);
 
     @ApiOperation(value = "lists a user's data tags", nickname = "listUserTags")
     @RequestMapping(

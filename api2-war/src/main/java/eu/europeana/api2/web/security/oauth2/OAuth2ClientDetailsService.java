@@ -4,7 +4,8 @@ import eu.europeana.api2.web.security.model.OAuth2ClientDetails;
 import eu.europeana.corelib.db.exception.DatabaseException;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
@@ -33,7 +34,7 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
                 return new OAuth2ClientDetails(apiKey);
             }
         } catch (DatabaseException e) {
-            Logger.getLogger(this.getClass()).error(e.getMessage());
+            LogManager.getLogger(this.getClass()).error(e.getMessage());
         }
         throw new OAuth2Exception("OAuth2 ClientId unknown");
     }
