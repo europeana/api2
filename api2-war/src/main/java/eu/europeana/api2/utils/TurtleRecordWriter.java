@@ -48,7 +48,6 @@ public class TurtleRecordWriter implements AutoCloseable {
             }
         } finally {
             iter.close();
-            bufferedWriter.flush();
         }
     }
 
@@ -269,6 +268,7 @@ public class TurtleRecordWriter implements AutoCloseable {
     @Override
     public void close(){
         try {
+             bufferedWriter.flush();
              bufferedWriter.close();
         } catch (IOException e) {
             LOG.error("Error closing the buffer writer ", e);
