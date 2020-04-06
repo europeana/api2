@@ -24,7 +24,7 @@ import org.apache.jena.vocabulary.XSD;
 
 import static org.apache.commons.lang3.StringUtils.*;
 
-public class TurtleRecordWriter {
+public class TurtleRecordWriter implements AutoCloseable {
     private static final Logger LOG  = Logger.getLogger(TurtleRecordWriter.class);
 
     public static final int KB = 1024;
@@ -48,7 +48,7 @@ public class TurtleRecordWriter {
             }
         } finally {
             iter.close();
-            close();
+            bufferedWriter.flush();
         }
     }
 
@@ -266,10 +266,10 @@ public class TurtleRecordWriter {
         return ((dt != null) && !dt.getURI().equals(uri));
     }
 
+    @Override
     public void close(){
         try {
-              bufferedWriter.flush();
-              bufferedWriter.close();
+             bufferedWriter.close();
         } catch (IOException e) {
             LOG.error("Error closing the buffer writer ", e);
         }

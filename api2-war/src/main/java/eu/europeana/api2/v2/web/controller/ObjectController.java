@@ -378,7 +378,7 @@ public class ObjectController {
                 output = generateSchemaOrg(bean, data);
                 break;
             case OBJECT_TURTLE:
-                output = generateTurtle(bean, response);
+                output = generateTurtle(bean, data, response);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown record output type: " + recordType);
@@ -409,30 +409,22 @@ public class ObjectController {
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
-        OutputStream outputStream = new ByteArrayOutputStream();
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
-        try (InputStream rdfInput = IOUtils.toInputStream(rdf)) {
-             Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
+        try (InputStream rdfInput = IOUtils.toInputStream(rdf);
+              OutputStream outputStream = new ByteArrayOutputStream()) {
+                 Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
                  DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
                  PrefixMap pm = RiotLib.prefixMap(graph);
                  JsonLDWriteContext ctx = new JsonLDWriteContext();
                  ctx.setJsonLDContext(ObjectController.jsonldContext);
                  WriterDatasetRIOT writer = RDFDataMgr.createDatasetWriter(RDFFormat.JSONLD_FLAT);
                  writer.write(outputStream, graph, pm, null, ctx);
+                 return JsonUtils.toJsonLd(outputStream.toString(), data.callback);
         } catch (IOException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
         }
-        finally {
-             try {
-                  outputStream.close();
-             } catch (IOException e) {
-                LOG.error("Error closing the output stream", e);
-            }
-
-        }
-        return JsonUtils.toJsonLd(outputStream.toString(), data.callback);
     }
 
     private ModelAndView generateRdf(FullBean bean) {
@@ -441,20 +433,22 @@ public class ObjectController {
         return new ModelAndView("rdf", model);
     }
 
-    private ModelAndView generateTurtle(FullBean bean, HttpServletResponse response) {
+    private ModelAndView generateTurtle(FullBean bean, RequestData data, HttpServletResponse response) {
         Map<String, Object> model = new HashMap<>();
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (OutputStream outputStream = new ByteArrayOutputStream();
-              InputStream rdfInput = IOUtils.toInputStream(rdf)) {
-            Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
-            TurtleRecordWriter writer= new TurtleRecordWriter(outputStream);
-            writer.write(modelResult);
-            model.put("record", outputStream);
+             InputStream rdfInput = IOUtils.toInputStream(rdf);
+             TurtleRecordWriter writer= new TurtleRecordWriter(outputStream)) {
+             Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
+             writer.write(modelResult);
+             model.put("record", outputStream);
+             return new ModelAndView("ttl", model);
         } catch (IOException e) {
             LOG.error("Error parsing Turtle data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+
         }
-        return new ModelAndView("ttl", model);
     }
 
     /**
