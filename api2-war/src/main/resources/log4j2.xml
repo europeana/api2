@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
+<Configuration status="INFO">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <!-- We use a specific patternLayout with JSON formatting. It adds a stacktrace (if available) and removes
@@ -18,5 +18,6 @@
             <AppenderRef ref="Console"/>
         </Root>
         <Logger name="eu.europeana.api2.v2.web.controller" level="INFO"/>
+        <Logger name="org.mongodb.driver" level="INFO"/>
     </Loggers>
 </Configuration>
