@@ -444,7 +444,7 @@ public class ObjectController {
              model.put("record", outputStream);
              return new ModelAndView("ttl", model);
         } catch (IOException e) {
-            LOG.error("Error parsing Turtle data", e);
+            LOG.error("Error parsing Turtle data for record " + bean.getAbout(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
 
