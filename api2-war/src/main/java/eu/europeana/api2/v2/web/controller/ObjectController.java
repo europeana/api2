@@ -159,7 +159,6 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param apikey         formerly known as 'wskey'
-     * @param format         specifies the layout: supported types are 'compacted', 'flattened' and 'normalized'
      * @param callback       repeats whatever you supply
      * @param webRequest
      * @param servletRequest
@@ -200,7 +199,7 @@ public class ObjectController {
                                      @ApiIgnore WebRequest webRequest,
                                      @ApiIgnore HttpServletRequest servletRequest,
                                      @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, apikey, null, callback, webRequest, servletRequest);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
     }
 
@@ -225,7 +224,7 @@ public class ObjectController {
                                         @ApiIgnore WebRequest webRequest,
                                         @ApiIgnore HttpServletRequest servletRequest,
                                         @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, apikey, null, callback, webRequest, servletRequest);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
     }
 
@@ -445,7 +444,7 @@ public class ObjectController {
         } catch (IOException e) {
             LOG.error("Error parsing Turtle data for record " + bean.getAbout(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+            return JsonUtils.toJson(new ApiError(data.apikey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
 
         }
     }
