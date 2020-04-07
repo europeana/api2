@@ -5,10 +5,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+
 import org.apache.log4j.Logger;
 
 import org.apache.jena.datatypes.RDFDatatype;
@@ -24,19 +22,20 @@ import org.apache.jena.vocabulary.XSD;
 
 import static org.apache.commons.lang3.StringUtils.*;
 
+/**
+ * Write RDF record in Turtle format
+ */
 public class TurtleRecordWriter implements AutoCloseable {
     private static final Logger LOG  = Logger.getLogger(TurtleRecordWriter.class);
 
-    public static final int KB = 1024;
-    public static final int BUFFER_SIZE = 32 * KB;
+    private static final int KB = 1024;
+    private static final int BUFFER_SIZE = 32 * KB;
 
     private BufferedWriter bufferedWriter;
-    private Map<String, String> map = new HashMap();
+    private Map<String, String> map = new HashMap<>();
 
     public TurtleRecordWriter(OutputStream out) {
-        bufferedWriter = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8)
-                , BUFFER_SIZE);
-        map.clear();
+        bufferedWriter = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8), BUFFER_SIZE);
     }
 
     public void write(Model m ) throws IOException {
@@ -52,27 +51,23 @@ public class TurtleRecordWriter implements AutoCloseable {
     }
 
     private void writeResource(Resource r) throws IOException {
-        try {
-            Map<String, Property> props = getProperties(r);
-            int len = calcMaxLength(props.keySet());
-            boolean first = true;
-            bufferedWriter.newLine();
-            writeValue(r);
-            for (Map.Entry<String, Property> entry : props.entrySet()) {
-                if (first) {
-                    first = false;
-                } else {
-                    bufferedWriter.append(" ;");
-                }
-                bufferedWriter.newLine();
-                writePropertyDecl(entry.getKey(), len);
-                writePropertyValues(r, entry.getValue());
+        Map<String, Property> props = getProperties(r);
+        int len = calcMaxLength(props.keySet());
+        boolean first = true;
+        bufferedWriter.newLine();
+        writeValue(r);
+        for (Map.Entry<String, Property> entry : props.entrySet()) {
+            if (first) {
+                first = false;
+            } else {
+                bufferedWriter.append(" ;");
             }
-            bufferedWriter.append(" .");
             bufferedWriter.newLine();
-        } catch (IOException e) {
-            LOG.error("Error ocuured while writing resource " + r.getURI(), e);
+            writePropertyDecl(entry.getKey(), len);
+            writePropertyValues(r, entry.getValue());
         }
+        bufferedWriter.append(" .");
+        bufferedWriter.newLine();
     }
 
     private void writeHeader(Model m) throws IOException {
@@ -133,7 +128,9 @@ public class TurtleRecordWriter implements AutoCloseable {
             if (!uri.startsWith(value)) {
                 continue;
             }
-            bufferedWriter.append(entry.getKey() + ":" + uri.substring(value.length()));
+            bufferedWriter.append(entry.getKey())
+                    .append(":")
+                    .append(uri.substring(value.length()));
             return;
         }
         writeAsIRI(uri);
@@ -156,14 +153,14 @@ public class TurtleRecordWriter implements AutoCloseable {
 
     private void escapeUnicode(char c) throws IOException {
         bufferedWriter.append("\\u");
-        String s = Integer.toHexString(c).toUpperCase();
+        String s = Integer.toHexString(c).toUpperCase(Locale.GERMAN);
         for (int i = 4 - s.length(); i > 0; i--) {
             bufferedWriter.append('0');
         }
         bufferedWriter.append(s);
     }
 
-    private BufferedWriter writeAsString(String str) throws IOException {
+    private void writeAsString(String str) throws IOException {
         int len = str.length();
         for (int i = 0; i < len; i++) {
             char c = str.charAt(i);
@@ -181,20 +178,19 @@ public class TurtleRecordWriter implements AutoCloseable {
             }
             bufferedWriter.append(c);
         }
-        return bufferedWriter;
     }
 
-    private BufferedWriter writeDatatype(RDFDatatype dt
-            , Model model) throws IOException {
+    private void writeDatatype(RDFDatatype dt, Model model) throws IOException {
         bufferedWriter.append("^^");
         String uri = dt.getURI();
         String prefix = model.getNsURIPrefix(XSD.NS);
         if (prefix != null && uri.startsWith(XSD.NS)) {
-            bufferedWriter.append(prefix).append(":")
+            bufferedWriter.append(prefix)
+                    .append(":")
                     .append(uri.substring(XSD.NS.length()));
-            return bufferedWriter;
+        } else {
+            writeAsIRI(uri);
         }
-        return writeAsIRI(uri);
     }
 
     private BufferedWriter writeAsIRI(String str) throws IOException {
