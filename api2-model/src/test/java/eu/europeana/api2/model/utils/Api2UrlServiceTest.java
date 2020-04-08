@@ -81,18 +81,18 @@ public class Api2UrlServiceTest {
         String baseUrl = null;
 
         Api2UrlService s1 = new Api2UrlService(null, baseUrl, null);
-        assertEquals("https://api.europeana.eu/api/v2/thumbnail-by-url.json?uri=https%3A%2F%2Ftest1.eu&type=IMAGE",
+        assertEquals("https://api.europeana.eu/thumbnail/v2/url.json?uri=https%3A%2F%2Ftest1.eu&type=IMAGE",
                 s1.getThumbnailUrl("https://test1.eu", DocType.IMAGE));
 
         baseUrl = "api.europeana.eu";
         Api2UrlService s2 = new Api2UrlService(null, baseUrl, null);
         // In this case https:// is added by UrlBuilder class!
-        assertEquals("https://api.europeana.eu/api/v2/thumbnail-by-url.json?uri=https%3A%2F%2Ftest2.eu&type=IMAGE",
+        assertEquals("https://api.europeana.eu/thumbnail/v2/url.json?uri=https%3A%2F%2Ftest2.eu&type=IMAGE",
                 s2.getThumbnailUrl("https://test2.eu", DocType.IMAGE));
 
         baseUrl = "https://localhost";
         Api2UrlService s3 = new Api2UrlService(null, baseUrl, null);
-        assertEquals("https://localhost/api/v2/thumbnail-by-url.json?uri=http%3A%2F%2Ftest3.eu&type=IMAGE",
+        assertEquals("https://localhost/thumbnail/v2/url.json?uri=http%3A%2F%2Ftest3.eu&type=IMAGE",
                 s3.getThumbnailUrl("http://test3.eu", DocType.IMAGE));
     }
 }

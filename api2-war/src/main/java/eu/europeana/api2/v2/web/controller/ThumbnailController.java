@@ -55,7 +55,7 @@ public class ThumbnailController {
      *             can be: IMAGE, SOUND, VIDEO, TEXT or 3D.
      * @return responsEntity
      */
-    @GetMapping(value = "/v2/thumbnail-by-url.json")
+    @GetMapping(value = "/v2/url.json")
     public ResponseEntity<byte[]> thumbnailByUrl(
             @RequestParam(value = "uri") String url,
             @RequestParam(value = "size", required = false, defaultValue = "w400") String size,
