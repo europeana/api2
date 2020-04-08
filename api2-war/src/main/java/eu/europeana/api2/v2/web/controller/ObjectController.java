@@ -15,7 +15,7 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
-import eu.europeana.corelib.search.SearchService;
+import eu.europeana.corelib.record.RecordService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
@@ -77,8 +77,8 @@ public class ObjectController {
 
     private static Object       jsonldContext           = new Object();
 
-    private SearchService   searchService;
-    private ApiKeyUtils     apiKeyUtils;
+    private RecordService  recordService;
+    private ApiKeyUtils    apiKeyUtils;
     private HttpCacheUtils httpCacheUtils;
 
     @Resource
@@ -103,13 +103,13 @@ public class ObjectController {
     /**
      * Create a new ObjectController
      *
-     * @param searchService
+     * @param recordService
      * @param apiKeyUtils
      * @param httpCacheUtils
      */
     @Autowired
-    public ObjectController(SearchService searchService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
-        this.searchService = searchService;
+    public ObjectController(RecordService recordService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
+        this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;
         this.httpCacheUtils = httpCacheUtils;
     }
@@ -299,7 +299,7 @@ public class ObjectController {
 
         apiKeyUtils.validateApiKey(data.apikey);
 
-        FullBean bean = searchService.fetchFullBean(data.europeanaObjectId);
+        FullBean bean = recordService.fetchFullBean(data.europeanaObjectId, true);
 
         // 3) Check if record exists, HTTP 404 if not
         if (Objects.isNull(bean)) {
@@ -353,8 +353,8 @@ public class ObjectController {
 
         // ugly solution for EA-1257, but it works
         ItemFix.apply(bean);
-        // now the FullBean can be processed (adding similar items and initiating the AttributionSnippet)
-        bean = searchService.processFullBean(bean, data.europeanaObjectId, false);
+        // now the FullBean can be processed (adding webresource meta info and initiating the AttributionSnippet)
+        bean = recordService.addWebResourceMetaInfo(bean);
 
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
