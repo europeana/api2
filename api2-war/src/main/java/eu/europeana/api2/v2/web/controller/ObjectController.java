@@ -395,13 +395,15 @@ public class ObjectController {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
         }
-
         objectResult.object = new FullView(bean, data.profile, data.apikey);
         objectResult.statsDuration = System.currentTimeMillis() - startTime;
         return JsonUtils.toJson(objectResult, data.callback);
     }
 
     private ModelAndView generateSchemaOrg(FullBean bean, RequestData data) {
+        //get the thumbnail url for edmPreview
+        String thumbnailUrl = urlService.getThumbnailUrl(bean.getEuropeanaAggregation().getEdmPreview(), bean.getType());
+        bean.getEuropeanaAggregation().setEdmPreview(thumbnailUrl);
         String jsonld = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
         return JsonUtils.toJsonLd(jsonld, data.callback);
     }
