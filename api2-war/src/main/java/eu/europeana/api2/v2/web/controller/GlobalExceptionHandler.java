@@ -82,7 +82,10 @@ public class GlobalExceptionHandler {
                 // log apikey plus problem so we can track users who need help
                 LOG.warn("[{}] {}", apiKey, ee.getErrorMsgAndDetails());
                 break;
-            case MAIL: sendErrorEmail(ee);  break;
+            case MAIL:
+                LOG.error(ee.getErrorMsgAndDetails(), ee);
+                sendErrorEmail(ee);
+                break;
             default: LOG.error(ee.getErrorMsgAndDetails(), ee);
         }
     }
@@ -108,7 +111,11 @@ public class GlobalExceptionHandler {
         // set status depending on type of exception
         int result = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         if (ee instanceof ApiKeyException) {
-            result = HttpServletResponse.SC_UNAUTHORIZED;
+            if (((ApiKeyException) ee).getHttpStatus() > 0){
+                result = ((ApiKeyException) ee).getHttpStatus();
+            } else {
+                result = HttpServletResponse.SC_UNAUTHORIZED;
+            }
         } else if (ee instanceof SolrQueryException) {
             result = HttpServletResponse.SC_BAD_REQUEST;
         } else if (ee instanceof SolrIOException) {

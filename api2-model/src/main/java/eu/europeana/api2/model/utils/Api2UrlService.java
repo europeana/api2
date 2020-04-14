@@ -18,10 +18,11 @@ import org.apache.logging.log4j.LogManager;
 
 public class Api2UrlService {
 
-    public static final String API_BASEURL = "https://api.europeana.eu";
+    public static final String API_BASEURL  = "https://api.europeana.eu";
 
     private String portalBaseUrl;
     private String api2BaseUrl;
+    private String apikeyValidateUrl;
 
     /**
      * Provides quick access to this class
@@ -31,10 +32,12 @@ public class Api2UrlService {
         return ApplicationContextContainer.getBean(Api2UrlService.class);
     }
 
-    public Api2UrlService(String portalBaseUrl, String api2BaseUrl) {
-        LogManager.getLogger(Api2UrlService.class).debug("portalBaseUrl = {}, api2BaseUrl = {}", portalBaseUrl, api2BaseUrl);
-        this.portalBaseUrl = portalBaseUrl;
-        this.api2BaseUrl = api2BaseUrl;
+    public Api2UrlService(String portalBaseUrl, String api2BaseUrl, String apikeyValidateUrl) {
+        LogManager.getLogger(Api2UrlService.class).debug("portalBaseUrl = {}, api2BaseUrl = {}, apikeyServiceUrl = {}",
+                                                         portalBaseUrl, api2BaseUrl, apikeyValidateUrl);
+        this.portalBaseUrl     = portalBaseUrl;
+        this.api2BaseUrl       = api2BaseUrl;
+        this.apikeyValidateUrl = apikeyValidateUrl;
     }
 
     /**
@@ -58,6 +61,13 @@ public class Api2UrlService {
     }
 
     /**
+     * @return the defined apikey service URL or null if not defined
+     */
+    public String getApikeyValidateUrl() {
+        return apikeyValidateUrl;
+    }
+
+    /**
      * Generates an url to retrieve a record from the Europeana website
      * @param collectionId
      * @param itemId
@@ -74,8 +84,8 @@ public class Api2UrlService {
      */
     public String getRecordPortalUrl(String europeanaId) {
         UrlBuilder url = new UrlBuilder(this.getPortalBaseUrl())
-                .addPath("portal", "record")
-                .addPage(europeanaId + ".html");
+                .addPath("item")
+                .addPage(europeanaId);
         return url.toString();
     }
 

@@ -1,11 +1,8 @@
 package eu.europeana.api2.v2.service;
 
-import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.v2.model.LimitResponse;
 import eu.europeana.api2.v2.model.json.HierarchicalResult;
-import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.neo4j.Neo4jSearchService;
@@ -17,7 +14,6 @@ import eu.europeana.corelib.web.utils.RequestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -30,7 +26,7 @@ import java.util.List;
  * Im Luthien hain echant 30/06/15
  * multithreaded version to remedy errors generated
  * when being called multiple times in a short time span
- *
+ * @author luthien
  */
 
 public class HierarchyRunner {
@@ -43,14 +39,13 @@ public class HierarchyRunner {
     public ModelAndView call(RecordType recordType,
                              String rdfAbout,
                              String profile,
-                             String wskey,
                              int limit,
                              int offset,
                              String callback,
                              HttpServletRequest request,
                              HttpServletResponse response,
-                             ApiKeyUtils apiKeyUtils,
-                             Neo4jSearchService searchService) {
+                             Neo4jSearchService searchService,
+                             String apikey) {
 
         LOG.debug("Running thread for {}", rdfAbout);
 
@@ -61,21 +56,13 @@ public class HierarchyRunner {
         limit = Math.min(limit, MAX_LIMIT);
 
         long          t1 = System.currentTimeMillis();
-        LimitResponse limitResponse;
-
-        try {
-            limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), recordType, profile);
-        } catch (ApiKeyException e) {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            return JsonUtils.toJson(new ApiError(wskey, e), callback);
-        }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Limit: {}", (System.currentTimeMillis() - t1));
         }
         t1 = System.currentTimeMillis();
 
-        HierarchicalResult hierarchicalResult = new HierarchicalResult(wskey, limitResponse.getRequestNumber());
+        HierarchicalResult hierarchicalResult = new HierarchicalResult();
         if (StringUtils.containsIgnoreCase(profile, "params")) {
             hierarchicalResult.addParams(RequestUtils.getParameterMap(request), "wskey");
             hierarchicalResult.addParam("profile", profile);
@@ -222,7 +209,7 @@ public class HierarchyRunner {
                 message = "Error processing hierarchical request";
                 LOG.error(message);
             }
-            return JsonUtils.toJson(new ApiError(wskey, message), callback);
+            return JsonUtils.toJson(new ApiError(apikey, message), callback);
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("get main: {}", (System.currentTimeMillis() - t1));

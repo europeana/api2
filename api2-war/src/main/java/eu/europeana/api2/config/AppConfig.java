@@ -33,9 +33,11 @@ import java.util.Arrays;
 @Configuration
 @ImportResource({
         "classpath:corelib-db-context.xml",
+        "classpath:corelib-mongo-context.xml",
         "classpath:corelib-solr-context.xml",
         "classpath:corelib-utils-context.xml",
         "classpath:corelib-web-context.xml",
+        "classpath:corelib-hierarchy-server.xml",
 })
 @EnableScheduling
 @PropertySource("classpath:europeana.properties")
@@ -51,8 +53,12 @@ public class AppConfig {
 
     @Value("${portal.baseUrl:}")
     private String portalBaseUrl;
+
     @Value("${api2.baseUrl:}")
     private String api2BaseUrl;
+
+    @Value("${apikey.validate.url:}")
+    private String apikeyValidateUrl;
 
     @Value("${postgres.max.stale.sessions:}")
     private Integer pgMaxStaleSessions;
@@ -67,8 +73,8 @@ public class AppConfig {
     public void logConfiguration() {
         LOG.info("CF_INSTANCE_INDEX  = {}, CF_INSTANCE_GUID = {}, CF_INSTANCE_IP  = {}",
                 System.getenv("CF_INSTANCE_INDEX"), System.getenv("CF_INSTANCE_GUID"), System.getenv("CF_INSTANCE_IP"));
-        LOG.info("Active Spring profiles:" + Arrays.toString(env.getActiveProfiles()));
-        LOG.info("Default Spring profiles:" + Arrays.toString(env.getDefaultProfiles()));
+        LOG.info("Active Spring profiles: {}", Arrays.toString(env.getActiveProfiles()));
+        LOG.info("Default Spring profiles: {}", Arrays.toString(env.getDefaultProfiles()));
 
         // log to which db we are connected
         try (Connection con = postgres.getConnection()) {
@@ -76,7 +82,7 @@ public class AppConfig {
             if (dbUrl.contains("password")) {
                 dbUrl = dbUrl.substring(0, dbUrl.indexOf("password"));
             }
-            LOG.info("Connected to " + dbUrl);
+            LOG.info("Connected to {}", dbUrl);
         } catch (SQLException e) {
             LOG.error("Error checking database connection", e);
         }
@@ -206,7 +212,7 @@ public class AppConfig {
     }
 
     /**
-     * Setup utility for checking api key limits (connects to the PostgreSql database)
+     * Utility for validating api keys
      * @return ApiKeyUtils bean
      */
     @Bean
@@ -226,13 +232,14 @@ public class AppConfig {
 
     /**
      * Setup service for generating API and Portal urls
-     * @return
+     * @return Api2UrlService bean
      */
     @Bean
     public Api2UrlService api2UrlService() {
-        Api2UrlService urlService = new Api2UrlService(portalBaseUrl, api2BaseUrl);
+        Api2UrlService urlService = new Api2UrlService(portalBaseUrl, api2BaseUrl, apikeyValidateUrl);
         LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl());
         LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl());
+        LogManager.getLogger(Api2UrlService.class).info("Apikey validate url = {}", urlService.getApikeyValidateUrl());
         return urlService;
     }
 
