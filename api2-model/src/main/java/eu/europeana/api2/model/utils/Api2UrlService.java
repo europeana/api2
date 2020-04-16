@@ -23,6 +23,7 @@ public class Api2UrlService {
     private String portalBaseUrl;
     private String api2BaseUrl;
     private String apikeyValidateUrl;
+    private String apiGatewayBaseUrl;
 
     /**
      * Provides quick access to this class
@@ -32,12 +33,13 @@ public class Api2UrlService {
         return ApplicationContextContainer.getBean(Api2UrlService.class);
     }
 
-    public Api2UrlService(String portalBaseUrl, String api2BaseUrl, String apikeyValidateUrl) {
-        LogManager.getLogger(Api2UrlService.class).debug("portalBaseUrl = {}, api2BaseUrl = {}, apikeyServiceUrl = {}",
-                                                         portalBaseUrl, api2BaseUrl, apikeyValidateUrl);
+    public Api2UrlService(String portalBaseUrl, String api2BaseUrl, String apikeyValidateUrl, String apiGatewayBaseUrl) {
+        LogManager.getLogger(Api2UrlService.class).debug("portalBaseUrl = {}, api2BaseUrl = {}, apikeyServiceUrl = {}, apiGatewayBaseUrl = {}",
+                                                         portalBaseUrl, api2BaseUrl, apikeyValidateUrl, apiGatewayBaseUrl);
         this.portalBaseUrl     = portalBaseUrl;
         this.api2BaseUrl       = api2BaseUrl;
         this.apikeyValidateUrl = apikeyValidateUrl;
+        this.apiGatewayBaseUrl = apiGatewayBaseUrl;
     }
 
     /**
@@ -78,6 +80,16 @@ public class Api2UrlService {
     }
 
     /**
+     * @return either the default or alternative configured api gateway url
+     */
+    public String getApiGatewayBaseUrl() {
+        if (StringUtils.isEmpty(apiGatewayBaseUrl)) {
+            return EuropeanaStaticUrl.API_GATEWAY_URL;
+        }
+        return apiGatewayBaseUrl;
+    }
+
+    /**
      * Generates an url to retrieve a record from the Europeana website
      * @param europeanaId
      * @return url as String
@@ -92,9 +104,12 @@ public class Api2UrlService {
     /**
      * Generates an old-style url to retrieve a record from the Europeana website
      * Note that the EuropeanaId database still contains a lot of these urls as 'oldId'
+     * @deprecated
+     *
      * @param europeanaId
      * @return url as String
      */
+    @Deprecated
     public String getRecordResolveUrl(String europeanaId) {
         UrlBuilder url = new UrlBuilder(this.getPortalBaseUrl())
                 .addPath("resolve", "record")
@@ -150,7 +165,7 @@ public class Api2UrlService {
      */
     public String getThumbnailUrl(String uri, String size, DocType type) {
         UrlBuilder url = EuropeanaUrlBuilder.getThumbnailUrl(uri, size, type);
-        String newBaseUrl = this.getApi2BaseUrl();
+        String newBaseUrl = this.getApiGatewayBaseUrl();
         if (newBaseUrl.contains("://")) {
             url.setProtocol(newBaseUrl);
         }
