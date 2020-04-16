@@ -49,13 +49,9 @@ public class Api2UrlServiceTest {
         Api2UrlService s1 = new Api2UrlService(null, null, validateUrl, null);
         assertNull(s1.getApikeyValidateUrl());
 
-        validateUrl = "https://apikey2-test.eanadev.org/apikey/validate";
+        validateUrl = "https://apikey.test.org/apikey/validate";
         Api2UrlService s2 = new Api2UrlService(null, null, validateUrl, null);
         assertEquals(validateUrl, s2.getApikeyValidateUrl());
-
-        validateUrl = "https://apikey.europeana.eu/apikey/validate";
-        Api2UrlService s3 = new Api2UrlService(null, null, validateUrl, null);
-        assertEquals(validateUrl, s3.getApikeyValidateUrl());
     }
 
     @Test
@@ -66,7 +62,7 @@ public class Api2UrlServiceTest {
         assertNotNull(s1.getApiGatewayBaseUrl());
         assertEquals(EuropeanaStaticUrl.API_GATEWAY_URL, s1.getApiGatewayBaseUrl());
 
-        apiGatewayBaseUrl = "https://api-test.eanadev.org";
+        apiGatewayBaseUrl = "api.europeana.eu";
         Api2UrlService s2 = new Api2UrlService(null, null, null, apiGatewayBaseUrl);
         assertEquals(apiGatewayBaseUrl, s2.getApiGatewayBaseUrl());
 
@@ -118,18 +114,18 @@ public class Api2UrlServiceTest {
 
     @Test
     public void testGetRecordApi2Url() {
-        String apiGatewayBaseUrl = null;
+        String baseUrl = null;
 
-        Api2UrlService s1 = new Api2UrlService(null, null, null, apiGatewayBaseUrl);
+        Api2UrlService s1 = new Api2UrlService(null, baseUrl, null, null);
         assertEquals("https://api.europeana.eu/api/v2/record/1/2.json?wskey=test", s1.getRecordApi2Url("/1/2", "test"));
 
-        apiGatewayBaseUrl = "api.europeana.eu";
-        Api2UrlService s2 = new Api2UrlService(null, null, null, apiGatewayBaseUrl);
+        baseUrl = "api.europeana.eu";
+        Api2UrlService s2 = new Api2UrlService(null, baseUrl, null, null);
         // In this case https:// is added by UrlBuilder class!
         assertEquals("https://api.europeana.eu/api/v2/record/x/y.json?wskey=test", s2.getRecordApi2Url("/x/y", "test"));
 
-        apiGatewayBaseUrl = "http://localhost:8080";
-        Api2UrlService s3 = new Api2UrlService(null, null, null, apiGatewayBaseUrl);
+        baseUrl = "http://localhost:8080";
+        Api2UrlService s3 = new Api2UrlService(null, baseUrl, null, null);
         assertEquals("http://localhost:8080/api/v2/record/x/y.json?wskey=test", s3.getRecordApi2Url("/x/y", "test"));
     }
 }

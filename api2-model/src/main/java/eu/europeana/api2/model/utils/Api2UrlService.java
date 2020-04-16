@@ -135,7 +135,7 @@ public class Api2UrlService {
      * @return url as String
      */
     public String getRecordApi2Url(String europeanaId, String wskey) {
-        UrlBuilder url = new UrlBuilder(getApiGatewayBaseUrl())
+        UrlBuilder url = new UrlBuilder(getApi2BaseUrl())
                 .addPath("api", "v2", "record")
                 .addPage(europeanaId + ".json")
                 .addParam("wskey", wskey);
