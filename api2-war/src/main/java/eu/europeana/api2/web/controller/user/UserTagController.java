@@ -153,9 +153,6 @@ public class UserTagController extends AbstractUserController {
             } catch (DatabaseException e) {
                 response.success = false;
                 response.error = e.getMessage();
-            } catch (Neo4JException e) {
-                log.error("Neo4JException thrown: " + e.getMessage());
-                log.error("Cause: " + e.getCause());
             }
         } else {
             response.success = false;
