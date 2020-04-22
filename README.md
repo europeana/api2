@@ -34,7 +34,7 @@ $ mvn clean install
 ```
 
 ## Deploy
-To deploy your instance you can use the Docker files in `docker/compose` folder. This image contains Tomcat, Postgresql and Neo4j
+To deploy your instance you can use the Docker files in `docker/compose` folder. This image contains Tomcat and Postgresql
 database server. However at the moment we do not have a Mongo database, Solr engine, mail server and object storage
 provider in Docker yet (last 2 are optional).
 
@@ -47,7 +47,7 @@ is set to be ignored by git. All settings in the europeana.user.properties will 
 
 ## LICENSE
 
-Copyright 2007-2017 The Europeana Foundation
+Copyright 2007-2020 The Europeana Foundation
 
 Licenced under the EUPL, Version 1.2 (the "Licence") and subsequent versions as approved by the European Commission;
 You may not use this work except in compliance with the Licence.

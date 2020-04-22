@@ -37,7 +37,6 @@ import java.util.Arrays;
         "classpath:corelib-solr-context.xml",
         "classpath:corelib-utils-context.xml",
         "classpath:corelib-web-context.xml",
-        "classpath:corelib-hierarchy-server.xml",
 })
 @EnableScheduling
 @PropertySource("classpath:europeana.properties")

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -11,8 +12,20 @@
     <artifactId>api2</artifactId>
     <version>2.9.4-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Europeana Search, Record, Hierarchical and Thumbnail API</name>
+    <name>Europeana Record, Search and QueryTranslate API data model</name>
     <url>http://www.europeana.eu</url>
+
+    <modules>
+        <module>api2-model</module>
+        <module>api2-war</module>
+    </modules>
+
+    <scm>
+        <connection>scm:git:git@github.com:europeana/api2.git</connection>
+        <developerConnection>scm:git:git@github.com:europeana/api2.git</developerConnection>
+        <url>https://github.com/europeana/api2</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <corelib.version>2.9.4-SNAPSHOT</corelib.version>
@@ -34,18 +47,6 @@
         <springSecurityOauth.version>2.3.4.RELEASE</springSecurityOauth.version>
         <springWebService.version>2.4.3.RELEASE</springWebService.version>
     </properties>
-
-    <modules>
-        <module>api2-model</module>
-        <module>api2-war</module>
-    </modules>
-
-    <scm>
-        <connection>scm:git:git@github.com:europeana/api2.git</connection>
-        <developerConnection>scm:git:git@github.com:europeana/api2.git</developerConnection>
-        <url>https://github.com/europeana/api2</url>
-        <tag>HEAD</tag>
-    </scm>
 
     <build>
         <plugins>
