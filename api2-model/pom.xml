@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -11,21 +12,16 @@
 
     <groupId>eu.europeana.api2</groupId>
     <artifactId>api2-model</artifactId>
-    <name>Europeana Search, Record, Hierarchical and Thumbnail API data model</name>
+    <name>Europeana Record, Search and QueryTranslate API data model</name>
 
-    <organization><name>Europeana Foundation</name></organization>
     <url>http://www.europeana.eu</url>
+    <organization><name>Europeana Foundation</name></organization>
 
     <dependencies>
         <!-- CORELIB -->
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-definitions</artifactId>
-            <version>${corelib.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-hierarchies</artifactId>
             <version>${corelib.version}</version>
         </dependency>
         <dependency>
