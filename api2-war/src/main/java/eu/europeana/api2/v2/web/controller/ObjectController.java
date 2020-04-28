@@ -24,6 +24,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -34,7 +36,6 @@ import org.apache.jena.riot.WriterDatasetRIOT;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -68,7 +69,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 @SwaggerSelect
 public class ObjectController {
 
-    private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
+    private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
     private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
     private static final String MEDIA_TYPE_TURTLE_TEXT  = "text/turtle";
@@ -270,12 +271,11 @@ public class ObjectController {
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
             throws EuropeanaException {
-
         ModelAndView result;
 
         // 1) Check if HTTP method is supported, HTTP 405 if not
         if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) &&
-            !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
+                !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
             response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
             return null; // figure out what to return exactly in these cases
         }
@@ -303,7 +303,7 @@ public class ObjectController {
             return result;
         }
 
-        /*
+       /*
         * 2017-07-06 PE: the code below was implemented as part of ticket #662. However as collections does not support this
         * yet activation of this functionality is postponed.
         *        if (!bean.getAbout().equals(data.europeanaId)) {
@@ -311,7 +311,8 @@ public class ObjectController {
         *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaId, bean.getAbout()));
         *            return null;
         *        }
-        *        */
+        */
+
 
         // ETag is created from timestamp + api version.
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
@@ -325,15 +326,15 @@ public class ObjectController {
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
                 return null;
             }
-        // If If-Match is present: check if it contains a matching eTag OR == '*"
-        // Yes: proceed. No: return HTTP 412, no cache headers
+            // If If-Match is present: check if it contains a matching eTag OR == '*"
+            // Yes: proceed. No: return HTTP 412, no cache headers
         } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))){
             if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
                 response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
                 return null;
             }
-        // check if If-Modified-Since is present and on or after timestamp_updated
-        // yes: return HTTP 304 no: continue
+            // check if If-Modified-Since is present and on or after timestamp_updated
+            // yes: return HTTP 304 no: continue
         } else if (httpCacheUtils.isNotModifiedSince(data.servletRequest, bean.getTimestampUpdated())){
             response.setStatus(HttpServletResponse.SC_NOT_MODIFIED); // no cache headers
             return null;

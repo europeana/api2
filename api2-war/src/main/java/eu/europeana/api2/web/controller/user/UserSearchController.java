@@ -6,14 +6,12 @@ import eu.europeana.api2.v2.model.json.UserResults;
 import eu.europeana.api2.v2.model.json.user.Search;
 import eu.europeana.api2.web.controller.abstracts.AbstractUserController;
 import eu.europeana.corelib.db.exception.DatabaseException;
-import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.definitions.db.entity.relational.SavedSearch;
 import eu.europeana.corelib.definitions.db.entity.relational.User;
-import eu.europeana.corelib.web.utils.UrlBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,11 +20,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.Resource;
-import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.List;
+
 
 /**
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
@@ -38,7 +34,7 @@ import java.util.List;
 @Deprecated
 public class UserSearchController extends AbstractUserController {
 
-    private static final Logger LOG = Logger.getLogger(UserSearchController.class);
+    private static final Logger LOG = LogManager.getLogger(UserSearchController.class);
 
 //    @Resource(name = "corelib_web_europeanaUrlService")
 //    private EuropeanaUrlService europeanaUrlService;

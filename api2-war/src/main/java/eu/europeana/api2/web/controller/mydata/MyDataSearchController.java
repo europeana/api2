@@ -12,7 +12,8 @@ import eu.europeana.corelib.web.utils.UrlBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +33,8 @@ import java.util.ArrayList;
 @Deprecated
 public class MyDataSearchController extends AbstractUserController {
 
+    private static final Logger LOG = LogManager.getLogger(MyDataSearchController.class);
+
     @ApiOperation(value = "lets the user list their saved searches", nickname = "listMySavedSearches")
     @RequestMapping(
             value = "/mydata/savedsearch",
@@ -42,7 +45,7 @@ public class MyDataSearchController extends AbstractUserController {
             @RequestParam(value = "callback", required = false) String callback,
             Principal principal) {
         UserResults<Search> response = new UserResults<>(principal.getName());
-        Logger.getLogger(this.getClass()).info("Principal: " + principal.toString());
+        LOG.info("Principal: {}", principal.toString());
         User user = getUserByApiId(principal.getName());
         if (user != null) {
             response.items = new ArrayList<>();
