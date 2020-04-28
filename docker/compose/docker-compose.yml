@@ -14,15 +14,6 @@ services:
     #
     restart: always
 
-  graph-database:
-    build:
-      context: ./neo4j
-    image: api-neo4j-database
-    ports:
-      - "7474:7474"
-      - "5005:5005"
-    restart: always
-
   appserver:
     build:
       context: ./tomcat
@@ -50,7 +41,6 @@ services:
     volumes:
       - ../../api2-war/target/api:/tomcat/webapps/api
     links:
-      - graph-database:api-neo4j-database
       - relational-database:api-postgresql-database
     # Map ports from tomcat container to the local machine
     ports:
@@ -65,8 +55,6 @@ services:
 #          default:
 #            ipv4_address: 172.18.0.254
     restart: always
-    depends_on:
-      - relational-database
 
   webserver:
     build:

@@ -33,6 +33,7 @@ import java.util.Arrays;
 @Configuration
 @ImportResource({
         "classpath:corelib-db-context.xml",
+        "classpath:corelib-mongo-context.xml",
         "classpath:corelib-solr-context.xml",
         "classpath:corelib-utils-context.xml",
         "classpath:corelib-web-context.xml",
@@ -57,6 +58,9 @@ public class AppConfig {
 
     @Value("${apikey.validate.url:}")
     private String apikeyValidateUrl;
+
+    @Value("${apiGateway.baseUrl:}")
+    private String apiGatewayBaseUrl;
 
     @Value("${postgres.max.stale.sessions:}")
     private Integer pgMaxStaleSessions;
@@ -234,10 +238,11 @@ public class AppConfig {
      */
     @Bean
     public Api2UrlService api2UrlService() {
-        Api2UrlService urlService = new Api2UrlService(portalBaseUrl, api2BaseUrl, apikeyValidateUrl);
+        Api2UrlService urlService = new Api2UrlService(portalBaseUrl, api2BaseUrl, apikeyValidateUrl, apiGatewayBaseUrl);
         LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl());
         LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl());
         LogManager.getLogger(Api2UrlService.class).info("Apikey validate url = {}", urlService.getApikeyValidateUrl());
+        LogManager.getLogger(Api2UrlService.class).info("Api gateway base url = {}", urlService.getApiGatewayBaseUrl());
         return urlService;
     }
 

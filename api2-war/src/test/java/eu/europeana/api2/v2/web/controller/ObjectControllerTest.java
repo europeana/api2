@@ -2,7 +2,7 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
-import eu.europeana.corelib.search.SearchService;
+import eu.europeana.corelib.record.RecordService;
 import org.junit.Before;
 
 import static org.mockito.Mockito.*;
@@ -19,7 +19,7 @@ public class ObjectControllerTest {
     private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
 
     private static ObjectController objectController;
-    private static SearchService searchService;
+    private static RecordService recordService;
     private static ApiKeyUtils apiKeyUtils;
     private static HttpCacheUtils httpCacheUtils;
 
@@ -28,11 +28,11 @@ public class ObjectControllerTest {
     @Before
     public void setup() throws Exception {
 
-        searchService = mock(SearchService.class);
+        recordService = mock(RecordService.class);
         apiKeyUtils = mock(ApiKeyUtils.class);
         httpCacheUtils = mock(HttpCacheUtils.class);
 
-        objectController = spy(new ObjectController(searchService, apiKeyUtils, httpCacheUtils));
+        objectController = spy(new ObjectController(recordService, apiKeyUtils, httpCacheUtils));
 
         objectControllerMock = MockMvcBuilders
                 .standaloneSetup(objectController)

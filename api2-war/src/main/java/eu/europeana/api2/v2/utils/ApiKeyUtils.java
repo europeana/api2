@@ -143,6 +143,7 @@ public class ApiKeyUtils{
             int statusCode = response.getStatusLine().getStatusCode();
             switch (statusCode) {
                 case HttpStatus.SC_OK: break; // everything is fine, do nothing
+                case HttpStatus.SC_NO_CONTENT: break; 
                 case HttpStatus.SC_UNAUTHORIZED: throw new ApiKeyException(ProblemType.APIKEY_DOES_NOT_EXIST, apikey,
                         response.getStatusLine().getStatusCode());
                 case HttpStatus.SC_GONE: throw new ApiKeyException(ProblemType.APIKEY_DEPRECATED, apikey,
