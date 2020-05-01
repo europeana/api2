@@ -1,0 +1,124 @@
+@prefix cc: <http://creativecommons.org/ns#> .
+@prefix ore: <http://www.openarchives.org/ore/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix svcs: <http://rdfs.org/sioc/services#> .
+@prefix dqv: <http://www.w3.org/ns/dqv#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdaGr2: <http://rdvocab.info/ElementsGr2/> .
+@prefix edm: <http://www.europeana.eu/schemas/edm/> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix ebucore: <http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+
+<http://data.europeana.eu/concept/base/1668>
+	a                skos:Concept ;
+	skos:altLabel    "Schwarz-weiss Negative"@de ;
+	skos:broader     <http://data.europeana.eu/concept/base/1665> ;
+	skos:exactMatch  <http://bib.arts.kuleuven.be/photoVocabulary/-photoVocabulary-12003> ;
+	skos:prefLabel   "Čiernobiele negatívy"@sl, "Negativos blanco y negro"@es, "Negatywy czarno-białe"@pl, "Negatiu blanc i negre"@ca, "Чорно-білі негативи"@uk, "Schwarz-weiß Negative"@de, "Black-and-white negatives"@en, "Черно-бял негатив"@bg, "Baltai juodi negatyvai"@lt, "Négatif en noir et blanc"@fr, "Sort-hvide negativer"@da, "Zwart-wit negatief"@nl, "Черно-белые негативы"@ru, "白色底片"@zh, "Negativo in bianco e nero"@it .
+
+<http://bib.arts.kuleuven.be/photoVocabulary/24000>
+	a                skos:Concept ;
+	skos:altLabel    "Professionelle Fotografie"@de, "Profi-Fotografie"@de ;
+	skos:broader     <http://bib.arts.kuleuven.be/photoVocabulary/20000> ;
+	skos:exactMatch  <https://www.wikidata.org/entity/Q828872> ;
+	skos:prefLabel   "professionel fotografering"@da, "професионална фотография"@bg, "Berufsfotografie"@de, "专业摄影"@zh, "profesionálna fotografia"@sl, "Photographie professionnelle"@fr, "Професійна фотографія"@uk, "Professional photography"@en, "fotografía profesional"@es, "fotografia profesjonalna"@pl, "profesonali fotografija"@lt, "fotografia professionale"@it, "Professionele fotografie"@nl, "Профессиональная фотография"@ru, "fotografia professional"@ca .
+
+<http://data.europeana.eu/concept/base/1711>
+	a                skos:Concept ;
+	skos:altLabel    "Fotogradia professionale"@it, "Professionelle Fotografie"@de, "Profi-Fotografie"@de ;
+	skos:broader     <http://data.europeana.eu/concept/base/1683> ;
+	skos:exactMatch  <http://www.wikidata.org/entity/Q828872>, <http://bib.arts.kuleuven.be/photoVocabulary/-photoVocabulary-24000> ;
+	skos:prefLabel   "Berufsfotografie"@de, "Photographie professionnelle"@fr, "Fotografia professionale"@it, "Fotografia profesjonalna"@pl, "Profesonali fotografija"@lt, "Профессиональная фотография"@ru, "Professionele fotografie"@nl, "Fotografía profesional"@es, "Profesionálna fotografia"@sl, "专业摄影"@zh, "Professionel fotografering"@da, "Professional photography"@en, "Професійна фотографія"@uk, "Професионална фотография"@bg, "Fotografia professional"@ca .
+
+<http://data.europeana.eu/proxy/europeana/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407>
+	a                   ore:Proxy ;
+	dc:type             <http://data.europeana.eu/concept/base/1711> ;
+	edm:europeanaProxy  "true" ;
+	edm:type            "IMAGE" ;
+	ore:proxyFor        <http://data.europeana.eu/item/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407> ;
+	ore:proxyIn         <http://data.europeana.eu/aggregation/europeana/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407> .
+
+<http://data.europeana.eu/item/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407#metadataTier>
+	a                dqv:QualityAnnotation ;
+	dcterms:created  "2019-07-17T04:27:01.575Z" ;
+	oa:hasBody       <http://www.europeana.eu/schemas/epf/metadataTierB> ;
+	oa:hasTarget     <http://data.europeana.eu/aggregation/provider/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407> .
+
+<http://data.europeana.eu/proxy/provider/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407>
+	a                   ore:Proxy ;
+	dc:creator          "TopFoto.co.uk"@en ;
+	dc:description      "Paris as seen from the air . Showing the Place de L'etoile . 1 November 1928"@en ;
+	dc:format           "Black-and-white negatives"@en, <http://bib.arts.kuleuven.be/photoVocabulary/12003> ;
+	dc:identifier       "EU017407" ;
+	dc:rights           "TopFoto.co.uk" ;
+	dc:subject          "junction"@en, "between the wars"@en, "french"@en, "1920s 1920's 20s 20's twenties"@en, "France"@en, "Topography"@en, "city"@en, "capital"@en, "europeana photography"@en, "arc de triomphe"@en, "buildings"@en, "Europe"@en, "twentieth century"@en, "black and white"@en, "central news"@en, "monochrome"@en, "aerial view"@en, "roads"@en ;
+	dc:title            "Paris as seen from the air . Showing the Place de L'etoile . 1 November 1928"@en ;
+	dc:type             "Professional photography"@en, "Photography"@en, <http://bib.arts.kuleuven.be/photoVocabulary/24000> ;
+	dcterms:created     "01 November 1928" ;
+	dcterms:extent      "4.25 ins x 3.25 ins (quarter-plate)" ;
+	dcterms:medium      "Glass"@en ;
+	dcterms:spatial     "Paris, France"@en ;
+	edm:europeanaProxy  "false" ;
+	edm:type            "IMAGE" ;
+	ore:proxyFor        <http://data.europeana.eu/item/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407> ;
+	ore:proxyIn         <http://data.europeana.eu/aggregation/provider/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407> .
+
+<http://www.topfoto.co.uk/imageflows/imagepreview/f=EU017407>
+	a                     edm:WebResource ;
+	ebucore:fileByteSize  "167471"^^<http://www.w3.org/2001/XMLSchema#long> ;
+	ebucore:hasMimeType   "image/jpeg" ;
+	ebucore:height        "321"^^<http://www.w3.org/2001/XMLSchema#integer> ;
+	ebucore:orientation   "landscape" ;
+	ebucore:width         "450"^^<http://www.w3.org/2001/XMLSchema#integer> ;
+
+<http://bib.arts.kuleuven.be/photoVocabulary/12003>
+	skos:Concept ;
+	skos:altLabel   "schwarz-weiss Negative"@de ;
+	skos:broader    <http://bib.arts.kuleuven.be/photoVocabulary/12000> ;
+	skos:prefLabel  "negatiu blanc i negre"@ca, "negativo in bianco e nero"@it, "черно-бял негатив"@bg, "Schwarz-weiß Negative"@de, "Black-and-white negatives"@en, "baltai juodi negatyvai"@lt, "negatywy czarno-białe"@pl, "čiernobiele negatívy"@sl, "sort-hvide negativer"@da, "Чорно-білі негативи"@uk, "白色底片"@zh, "Черно-белые негативы"@ru, "Négatif en noir et blanc"@fr, "Zwart-wit negatief"@nl, "negativos blanco y negro"@es .
+
+<http://data.europeana.eu/item/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407#contentTier>
+	a                dqv:QualityAnnotation ;
+	dcterms:created  "2019-07-17T04:27:01.574Z" ;
+	oa:hasBody       <http://www.europeana.eu/schemas/epf/contentTier1> ;
+	oa:hasTarget     <http://data.europeana.eu/aggregation/provider/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407> .
+
+<http://data.europeana.eu/item/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407>
+	a  edm:ProvidedCHO .
+
+<http://data.europeana.eu/aggregation/europeana/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407>
+	a                         edm:EuropeanaAggregation ;
+	dcterms:created           "2013-11-21T15:47:51.794Z" ;
+	dcterms:modified          "2018-06-21T09:46:33.644Z" ;
+	dqv:hasQualityAnnotation  <http://data.europeana.eu/item/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407#metadataTier>, <http://data.europeana.eu/item/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407#contentTier> ;
+	edm:aggregatedCHO         <http://data.europeana.eu/item/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407> ;
+	edm:completeness          "0" ;
+	edm:country               "United Kingdom" ;
+	edm:datasetName           "2024904_Ag_EU_EuropeanaPhotography_TopFoto_1013" ;
+	edm:landingPage           <https://www.europeana.eu/portal/record/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407.html> ;
+	edm:language              "en" ;
+	edm:preview               <http://www.topfoto.co.uk/imageflows/imagepreview/f=EU017407> ;
+	edm:rights                <http://rightsstatements.org/vocab/InC/1.0/> .
+
+<http://www.topfoto.co.uk/imageflows2/preview?EU017407>
+	a                     edm:WebResource ;
+	ebucore:fileByteSize  "41440"^^<http://www.w3.org/2001/XMLSchema#long> ;
+	ebucore:hasMimeType   "text/html" .
+
+<http://data.europeana.eu/aggregation/provider/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407>
+	a                  ore:Aggregation ;
+	dc:rights          "TopFoto.co.uk" ;
+	edm:aggregatedCHO  <http://data.europeana.eu/item/2024904/photography_ProvidedCHO_TopFoto_co_uk_EU017407> ;
+	edm:dataProvider   "TopFoto.co.uk" ;
+	edm:isShownAt      <http://www.topfoto.co.uk/imageflows2/preview?EU017407> ;
+	edm:isShownBy      <http://www.topfoto.co.uk/imageflows/imagepreview/f=EU017407> ;
+	edm:object         <http://www.topfoto.co.uk/imageflows/imagepreview/f=EU017407> ;
+	edm:provider       "Photoconsortium" ;
+	edm:rights         <http://rightsstatements.org/vocab/InC/1.0/> .
