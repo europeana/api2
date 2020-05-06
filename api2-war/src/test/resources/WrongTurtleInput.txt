@@ -1,0 +1,35 @@
+@prefix cc: <http://creativecommons.org/ns#> .
+@prefix ore: <http://www.openarchives.org/ore/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix svcs: <http://rdfs.org/sioc/services#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+
+<https://iiif.europeana.eu/image/GPNNPGBENPQFFOB7PHRRSCK4GJFXZCJ7YFLGCZCJ5QMNJOWVVRJA/presentation_images/c5927d61-022b-11e6-a696-fa163e2dd531/node-3/image/BNL/La_clef_du_cabinet_des_princes_de_l'Europe/1704/09/01/00171/full/full/0/default.jpg>
+	a                       edm:WebResource ;
+	dcterms:isReferencedBy  <https://iiif.europeana.eu/presentation/9200396/BibliographicResource_3000118436341/manifest> ;
+	ebucore:fileByteSize    "324425"^^<http://www.w3.org/2001/XMLSchema#long> ;
+	ebucore:hasMimeType     "image/jpeg" ;
+	ebucore:height          "2048"^^<http://www.w3.org/2001/XMLSchema#integer> ;
+	ebucore:orientation     "portrait" ;
+	ebucore:width           "1256"^^<http://www.w3.org/2001/XMLSchema#integer> ;
+	edm:componentColor      "#696969"^^<http://www.w3.org/2001/XMLSchema#hexBinary>, "#FFFFFF"^^<http://www.w3.org/2001/XMLSchema#hexBinary>, "#808080"^^<http://www.w3.org/2001/XMLSchema#hexBinary>, "#F5F5F5"^^<http://www.w3.org/2001/XMLSchema#hexBinary>, "#A9A9A9"^^<http://www.w3.org/2001/XMLSchema#hexBinary>, "#DCDCDC"^^<http://www.w3.org/2001/XMLSchema#hexBinary> ;
+	edm:hasColorSpace       "grayscale" ;
+	edm:isNextInSequence    <https://iiif.europeana.eu/image/GPNNPGBENPQFFOB7PHRRSCK4GJFXZCJ7YFLGCZCJ5QMNJOWVVRJA/presentation_images/c5927d61-022b-11e6-a696-fa163e2dd531/node-3/image/BNL/La_clef_du_cabinet_des_princes_de_l'Europe/1704/09/01/00170/full/full/0/default.jpg> ;
+	svcs:has_service        <https://iiif.europeana.eu/image/GPNNPGBENPQFFOB7PHRRSCK4GJFXZCJ7YFLGCZCJ5QMNJOWVVRJA/presentation_images/c5927d61-022b-11e6-a696-fa163e2dd531/node-3/image/BNL/La_clef_du_cabinet_des_princes_de_l'Europe/1704/09/01/00171> .
+XXXXXXXXXXXXXXXXXXXXXXXYYYYYYYYYYYYYYYYYYYZZZZZZZZZZZZZZZZZZZ
+RTUYUYUVDFJHKGJEYGGEWUGIHE@OIUL@UEIHIU@HNIY@INNHIL@UYN*IYILS*O ILYNOYNO@U(NYINOYISONYIPU
+
+	dcterms:conformsTo  <http://iiif.io/api/image> ;
+	doap:implements     <http://iiif.io/api/image/2/level1.json> .
+
+<https://iiif.europeana.eu/image/GPNNPGBENPQFFOB7PHRRSCK4GJFXZCJ7YFLGCZCJ5QMNJOWVVRJA/presentation_images/c5927d61-022b-11e6-a696-fa163e2dd531/node-3/image/BNL/La_clef_du_cabinet_des_princes_de_l'Europe/1704/09/01/00200>
+	a                   svcs:Service ;
+	dcterms:conformsTo  <http://iiif.io/api/image> ;
+	doap:implements     <http://iiif.io/api/image/2/level1.json> .
+
+<https://iiif.europeana.eu/image/GPNNPGBENPQFFOB7PHRRSCK4GJFXZCJ7YFLGCZCJ5QMNJOWVVRJA/presentation_images/c5927d61-022b-11e6-a696-fa163e2dd531/node-3/image/BNL/La_clef_du_cabinet_des_princes_de_l'Europe/1704/09/01/00167>
+	a                   svcs:Service ;
+	dcterms:conformsTo  <http://iiif.io/api/image> ;
+	doap:implements     <http://iiif.io/api/image/2/level1.json> .
+
