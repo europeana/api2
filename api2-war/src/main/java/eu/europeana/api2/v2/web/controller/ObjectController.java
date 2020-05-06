@@ -15,7 +15,7 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
-import eu.europeana.corelib.search.SearchService;
+import eu.europeana.corelib.record.RecordService;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
@@ -24,6 +24,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -34,7 +36,6 @@ import org.apache.jena.riot.WriterDatasetRIOT;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.sparql.core.DatasetGraph;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -68,7 +69,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 @SwaggerSelect
 public class ObjectController {
 
-    private static final Logger LOG                     = Logger.getLogger(ObjectController.class);
+    private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
     private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
     private static final String MEDIA_TYPE_TURTLE_TEXT  = "text/turtle";
@@ -77,8 +78,8 @@ public class ObjectController {
 
     private static Object       jsonldContext           = new Object();
 
-    private SearchService   searchService;
-    private ApiKeyUtils     apiKeyUtils;
+    private RecordService  recordService;
+    private ApiKeyUtils    apiKeyUtils;
     private HttpCacheUtils httpCacheUtils;
 
     @Resource
@@ -103,13 +104,13 @@ public class ObjectController {
     /**
      * Create a new ObjectController
      *
-     * @param searchService
+     * @param recordService
      * @param apiKeyUtils
      * @param httpCacheUtils
      */
     @Autowired
-    public ObjectController(SearchService searchService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
-        this.searchService = searchService;
+    public ObjectController(RecordService recordService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
+        this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;
         this.httpCacheUtils = httpCacheUtils;
     }
@@ -122,9 +123,8 @@ public class ObjectController {
      * @param apikey         formerly known as 'wskey'
      * @param profile        supported types are 'params' and 'similar'
      * @param callback       repeats whatever you supply
-     * @param webRequest
-     * @param servletRequest
-     * @param response
+     * @param request        incoming request
+     * @param response       generated response
      * @return
      * @throws EuropeanaException
      */
@@ -135,10 +135,9 @@ public class ObjectController {
                                @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
                                @RequestParam(value = "wskey") String apikey,
                                @RequestParam(value = "callback", required = false) String callback,
-                               @ApiIgnore WebRequest webRequest,
-                               @ApiIgnore HttpServletRequest servletRequest,
+                               @ApiIgnore HttpServletRequest request,
                                @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, profile, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, apikey, profile, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT, data, response);
     }
 
@@ -160,9 +159,8 @@ public class ObjectController {
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param apikey         formerly known as 'wskey'
      * @param callback       repeats whatever you supply
-     * @param webRequest
-     * @param servletRequest
-     * @param response
+     * @param request        incoming request
+     * @param response       generated response
      * @return
      * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
@@ -172,10 +170,9 @@ public class ObjectController {
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String apikey,
                                       @RequestParam(value = "callback", required = false) String callback,
-                                      @ApiIgnore WebRequest webRequest,
-                                      @ApiIgnore HttpServletRequest servletRequest,
+                                      @ApiIgnore HttpServletRequest request,
                                       @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        return recordJSONLD(collectionId, recordId, apikey, callback, webRequest, servletRequest, response);
+        return recordJSONLD(collectionId, recordId, apikey, callback, request, response);
     }
 
     /***
@@ -184,9 +181,8 @@ public class ObjectController {
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param apikey         formerly known as 'wskey'
      * @param callback       repeats whatever you supply
-     * @param webRequest
-     * @param servletRequest
-     * @param response
+     * @param request        incoming request
+     * @param response       generated response
      * @return
      * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
@@ -196,10 +192,9 @@ public class ObjectController {
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String apikey,
                                      @RequestParam(value = "callback", required = false) String callback,
-                                     @ApiIgnore WebRequest webRequest,
-                                     @ApiIgnore HttpServletRequest servletRequest,
+                                     @ApiIgnore HttpServletRequest request,
                                      @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, null, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, apikey, null, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
     }
 
@@ -209,9 +204,8 @@ public class ObjectController {
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param apikey         formerly known as 'wskey'
      * @param callback       repeats whatever you supply
-     * @param webRequest
-     * @param servletRequest
-     * @param response
+     * @param request        incoming request
+     * @param response       generated response
      * @return
      * @throws EuropeanaException
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
@@ -221,10 +215,9 @@ public class ObjectController {
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String apikey,
                                         @RequestParam(value = "callback", required = false) String callback,
-                                        @ApiIgnore WebRequest webRequest,
-                                        @ApiIgnore HttpServletRequest servletRequest,
+                                        @ApiIgnore HttpServletRequest request,
                                         @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, null, callback, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, apikey, null, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
     }
 
@@ -234,9 +227,8 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param apikey         formerly known as 'wskey'
-     * @param webRequest
-     * @param servletRequest
-     * @param response
+     * @param request        incoming request
+     * @param response       generated response
      * @return
      * @throws EuropeanaException
      */
@@ -245,10 +237,9 @@ public class ObjectController {
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "wskey") String apikey,
-                                  @ApiIgnore WebRequest webRequest,
-                                  @ApiIgnore HttpServletRequest servletRequest,
+                                  @ApiIgnore HttpServletRequest request,
                                   @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, null, null, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, apikey, null, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
     }
 
@@ -258,9 +249,8 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param wskey          pre-api term for 'apikey'
-     * @param webRequest
-     * @param servletRequest
-     * @param response
+     * @param request        incoming request
+     * @param response       generated response
      * @return matching records in the turtle format
      * @throws EuropeanaException
      */
@@ -269,10 +259,9 @@ public class ObjectController {
     public ModelAndView recordTurtle(@PathVariable String collectionId,
                              @PathVariable String recordId,
                              @RequestParam(value = "wskey") String wskey,
-                             @ApiIgnore WebRequest webRequest,
-                             @ApiIgnore HttpServletRequest servletRequest,
+                             @ApiIgnore HttpServletRequest request,
                              @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, webRequest, servletRequest);
+        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
     }
 
@@ -282,24 +271,23 @@ public class ObjectController {
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
             throws EuropeanaException {
-
         ModelAndView result;
 
         // 1) Check if HTTP method is supported, HTTP 405 if not
         if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) &&
-            !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
+                !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
             response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
             return null; // figure out what to return exactly in these cases
         }
 
         long startTime = System.currentTimeMillis();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Retrieving record with id " + data.europeanaObjectId + ", type = " + recordType);
+            LOG.debug("Retrieving record with id " + data.europeanaId + ", type = " + recordType);
         }
 
-        apiKeyUtils.validateApiKey(data.apikey);
+        apiKeyUtils.validateApiKey(data.wskey);
 
-        FullBean bean = searchService.fetchFullBean(data.europeanaObjectId);
+        FullBean bean = recordService.fetchFullBean(data.europeanaId, true);
 
         // 3) Check if record exists, HTTP 404 if not
         if (Objects.isNull(bean)) {
@@ -309,25 +297,26 @@ public class ObjectController {
                 model.put("error", "Non-existing record identifier");
                 result = new ModelAndView("rdf", model);
             } else {
-                result = JsonUtils.toJson(new ApiError(data.apikey, "Invalid record identifier: "
-                        + data.europeanaObjectId), data.callback);
+                result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: "
+                        + data.europeanaId), data.callback);
             }
             return result;
         }
 
-        /*
+       /*
         * 2017-07-06 PE: the code below was implemented as part of ticket #662. However as collections does not support this
         * yet activation of this functionality is postponed.
-        *        if (!bean.getAbout().equals(data.europeanaObjectId)) {
+        *        if (!bean.getAbout().equals(data.europeanaId)) {
         *            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaObjectId, bean.getAbout()));
+        *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaId, bean.getAbout()));
         *            return null;
         *        }
-        *        */
+        */
+
 
         // ETag is created from timestamp + api version.
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
-        String eTag      = httpCacheUtils.generateETag(data.europeanaObjectId+tsUpdated, true, true);
+        String eTag      = httpCacheUtils.generateETag(data.europeanaId +tsUpdated, true, true);
 
         // If If-None-Match is present: check if it contains a matching eTag OR == '*"
         // Yes: return HTTP 304 + cache headers. Ignore If-Modified-Since (RFC 7232)
@@ -337,15 +326,15 @@ public class ObjectController {
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
                 return null;
             }
-        // If If-Match is present: check if it contains a matching eTag OR == '*"
-        // Yes: proceed. No: return HTTP 412, no cache headers
+            // If If-Match is present: check if it contains a matching eTag OR == '*"
+            // Yes: proceed. No: return HTTP 412, no cache headers
         } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))){
             if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
                 response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
                 return null;
             }
-        // check if If-Modified-Since is present and on or after timestamp_updated
-        // yes: return HTTP 304 no: continue
+            // check if If-Modified-Since is present and on or after timestamp_updated
+            // yes: return HTTP 304 no: continue
         } else if (httpCacheUtils.isNotModifiedSince(data.servletRequest, bean.getTimestampUpdated())){
             response.setStatus(HttpServletResponse.SC_NOT_MODIFIED); // no cache headers
             return null;
@@ -353,8 +342,8 @@ public class ObjectController {
 
         // ugly solution for EA-1257, but it works
         ItemFix.apply(bean);
-        // now the FullBean can be processed (adding similar items and initiating the AttributionSnippet)
-        bean = searchService.processFullBean(bean, data.europeanaObjectId, false);
+        // now the FullBean can be processed (adding webresource meta info and initiating the AttributionSnippet)
+        bean = recordService.addWebResourceMetaInfo(bean);
 
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
@@ -389,13 +378,13 @@ public class ObjectController {
     }
 
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
-        ObjectResult objectResult = new ObjectResult(data.apikey);
+        ObjectResult objectResult = new ObjectResult(data.wskey);
 
         if (StringUtils.containsIgnoreCase(data.profile, "params")) {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
         }
-        objectResult.object = new FullView(bean, data.profile, data.apikey);
+        objectResult.object = new FullView(bean, data.profile, data.wskey);
         objectResult.statsDuration = System.currentTimeMillis() - startTime;
         return JsonUtils.toJson(objectResult, data.callback);
     }
@@ -423,7 +412,7 @@ public class ObjectController {
         } catch (IOException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.apikey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+            return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
         }
     }
 
@@ -446,7 +435,7 @@ public class ObjectController {
         } catch (IOException e) {
             LOG.error("Error parsing Turtle data for record " + bean.getAbout(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.apikey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+            return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
 
         }
     }
@@ -498,20 +487,18 @@ public class ObjectController {
      * Helper class to pass all data around in 1 object
      */
     private static class RequestData{
-        String europeanaObjectId;
-        protected String profile;             // called format in json-ld
-        String apikey;
-        protected String callback;
-        WebRequest         webRequest;
+        String             europeanaId;
+        String             profile;             // called format in json-ld
+        String             wskey;
+        String             callback;
         HttpServletRequest servletRequest;
 
-        RequestData(String collectionId, String recordId, String apikey, String profile, String callback,
-                    WebRequest webRequest, HttpServletRequest servletRequest) {
-            this.europeanaObjectId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
-            this.apikey            = apikey;
+        RequestData(String collectionId, String recordId, String wskey, String profile, String callback,
+                    HttpServletRequest servletRequest) {
+            this.europeanaId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
+            this.wskey             = wskey;
             this.profile           = profile;
             this.callback          = callback;
-            this.webRequest        = webRequest;
             this.servletRequest    = servletRequest;
         }
     }

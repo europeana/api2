@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -12,10 +13,10 @@
     <groupId>eu.europeana.api2</groupId>
     <artifactId>api2-war</artifactId>
     <packaging>war</packaging>
+    <name>Europeana Record, Search and QueryTranslate API data model</name>
 
-    <name>Europeana Search, Record, Hierarchical and Thumbnail API WAR</name>
-    <organization><name>Europeana Foundation</name></organization>
     <url>http://www.europeana.eu</url>
+    <organization><name>Europeana Foundation</name></organization>
 
     <dependencies>
         <dependency>
@@ -27,11 +28,6 @@
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-db</artifactId>
-            <version>${corelib.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-hierarchies</artifactId>
             <version>${corelib.version}</version>
         </dependency>
         <dependency>
@@ -59,6 +55,19 @@
             <artifactId>corelib-schemaorg</artifactId>
             <version>${corelib.version}</version>
         </dependency>
+
+        <!-- new facet library from Metis -->
+<!--        <dependency>-->
+<!--            <groupId>eu.europeana.metis</groupId>-->
+<!--            <artifactId>metis-indexing</artifactId>-->
+<!--            <version>${metis.version}</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>com.zoho.crm</groupId>-->
+<!--                    <artifactId>java-sdk</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
 
         <!-- OTHER -->
         <dependency>

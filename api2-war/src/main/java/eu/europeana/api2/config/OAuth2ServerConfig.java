@@ -1,8 +1,6 @@
 package eu.europeana.api2.config;
 
 import eu.europeana.api2.web.security.oauth2.ApiApprovalHandler;
-import eu.europeana.api2.web.security.oauth2.ApiTokenStore;
-import org.apache.log4j.Logger;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
