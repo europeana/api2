@@ -4,7 +4,6 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.TurtleRecordWriter;
-import eu.europeana.api2.v2.model.ItemFix;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
@@ -43,7 +42,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -340,14 +338,11 @@ public class ObjectController {
             return null;
         }
 
-        // ugly solution for EA-1257, but it works
-        ItemFix.apply(bean);
-        // now the FullBean can be processed (adding webresource meta info and initiating the AttributionSnippet)
-        bean = recordService.addWebResourceMetaInfo(bean);
+        // now the FullBean can be processed further (adding webresource meta info, set proper urls)
+        bean = recordService.enrichFullBean(bean);
 
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
-
 
         // generate output depending on type of record
         Object output;
@@ -384,15 +379,12 @@ public class ObjectController {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
         }
-        objectResult.object = new FullView(bean, data.profile, data.wskey);
+        objectResult.object = new FullView(bean);
         objectResult.statsDuration = System.currentTimeMillis() - startTime;
         return JsonUtils.toJson(objectResult, data.callback);
     }
 
     private ModelAndView generateSchemaOrg(FullBean bean, RequestData data) {
-        //get the thumbnail url for edmPreview
-        String thumbnailUrl = urlService.getThumbnailUrl(bean.getEuropeanaAggregation().getEdmPreview(), bean.getType());
-        bean.getEuropeanaAggregation().setEdmPreview(thumbnailUrl);
         String jsonld = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
         return JsonUtils.toJsonLd(jsonld, data.callback);
     }

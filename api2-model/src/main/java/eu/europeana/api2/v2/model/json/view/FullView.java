@@ -2,17 +2,12 @@ package eu.europeana.api2.v2.model.json.view;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.api2.model.utils.Api2UrlService;
-import eu.europeana.corelib.definitions.edm.beans.BriefBean;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.*;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.utils.DateUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.Date;
 import java.util.List;
@@ -27,23 +22,17 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @JsonPropertyOrder(alphabetic=true)
 public class FullView implements FullBean {
 
-    private static final Logger LOG = LogManager.getLogger(FullView.class);
-
     private FullBean bean;
-    private String profile;
-    private String apiKey;
-    private Api2UrlService urlService;
     private Date timestampCreated;
     private Date timestampUpdated;
 
-    public FullView(FullBean bean, String profile, String apiKey) {
+    public FullView(FullBean bean) {
         this.bean = bean;
-        this.profile = profile;
-        this.apiKey = apiKey;
-        this.urlService = Api2UrlService.getBeanInstance();
         extractTimestampCreated();
         extractTimestampUpdated();
     }
+
+    // TODO check if setting id's to null is still neccessary
 
     @Override
     public String getId() {
@@ -119,17 +108,6 @@ public class FullView implements FullBean {
         return items;
     }
 
-    /**
-     *
-     * @return
-     * @deprecated June 2019 not used anymore
-     */
-    @Deprecated
-    @Override
-    public List<? extends BriefBean> getSimilarItems() {
-        return null;
-    }
-
     @Override
     public List<? extends ProvidedCHO> getProvidedCHOs() {
         @SuppressWarnings("unchecked")
@@ -147,29 +125,7 @@ public class FullView implements FullBean {
 
     @Override
     public EuropeanaAggregation getEuropeanaAggregation() {
-        EuropeanaAggregation europeanaAggregation = bean.getEuropeanaAggregation();
-        europeanaAggregation.setId(null);
-
-        // to set proper edmPreview we need to change edmPreview original image urls from Corelib into API thumbnail urls
-        String edmPreview = "";
-        // first try edmPreview, else edmObject and else edmIsShownBy
-        if (StringUtils.isNotEmpty(europeanaAggregation.getEdmPreview())) {
-            edmPreview = urlService.getThumbnailUrl(europeanaAggregation.getEdmPreview(), getType());
-            LOG.debug("edmPreview found: {}", europeanaAggregation.getEdmPreview());
-        } else if (StringUtils.isNotEmpty(this.getAggregations().get(0).getEdmObject())) {
-            edmPreview = urlService.getThumbnailUrl(this.getAggregations().get(0).getEdmObject(), getType());
-            LOG.debug("No edmPreview, but edmObject found: {}", this.getAggregations().get(0).getEdmObject());
-        } else if (StringUtils.isNotEmpty(this.getAggregations().get(0).getEdmIsShownBy())) {
-            edmPreview = urlService.getThumbnailUrl(this.getAggregations().get(0).getEdmIsShownBy(), getType());
-            LOG.debug("No edmPreview or edmObject, but edmIsShownBy found: {}", this.getAggregations().get(0).getEdmIsShownBy());
-        } else {
-            LOG.debug("No edmPreview, edmObject or edmIsShownBy found");
-        }
-        europeanaAggregation.setEdmPreview(edmPreview);
-
-        // set proper landingPage
-        europeanaAggregation.setEdmLandingPage(urlService.getRecordPortalUrl(getAbout()));
-        return europeanaAggregation;
+        return bean.getEuropeanaAggregation();
     }
 
     @Override
@@ -299,17 +255,6 @@ public class FullView implements FullBean {
 
     @Override
     public void setProvidedCHOs(List<? extends ProvidedCHO> providedCHOs) {
-        // left empty intentionally
-    }
-
-    /**
-     *
-     * @return
-     * @deprecated June 2019 not used anymore
-     */
-    @Deprecated
-    @Override
-    public void setSimilarItems(List<? extends BriefBean> similarItems) {
         // left empty intentionally
     }
 
