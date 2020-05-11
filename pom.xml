@@ -12,7 +12,7 @@
     <artifactId>api2</artifactId>
     <version>2.9.4-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Europeana Record, Search and QueryTranslate API data model</name>
+    <name>Europeana Record, Search and QueryTranslate API</name>
     <url>http://www.europeana.eu</url>
 
     <modules>
