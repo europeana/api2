@@ -357,7 +357,7 @@ public class ObjectController {
                 output = generateRdf(bean);
                 break;
             case OBJECT_SCHEMA_ORG:
-                output = generateSchemaOrg(bean, data);
+                output = generateSchemaOrg(bean, data, response);
                 break;
             case OBJECT_TURTLE:
                 output = generateTurtle(bean, data, response);
@@ -384,9 +384,15 @@ public class ObjectController {
         return JsonUtils.toJson(objectResult, data.callback);
     }
 
-    private ModelAndView generateSchemaOrg(FullBean bean, RequestData data) {
-        String jsonld = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
-        return JsonUtils.toJsonLd(jsonld, data.callback);
+    private ModelAndView generateSchemaOrg(FullBean bean, RequestData data, HttpServletResponse response) {
+        try {
+            String jsonld = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
+            return JsonUtils.toJsonLd(jsonld, data.callback);
+        } catch (IOException e) {
+            LOG.error("Error generating schema.org data", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+        }
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
