@@ -326,7 +326,7 @@ public class SearchController {
                 }
             }
             query.setParameter("hl", "on");
-            query.setParameter("hl.fl", StringUtils.isBlank(hlFl) ? "*" : hlFl);
+            query.setParameter("hl.fl", StringUtils.isBlank(hlFl) ? "fulltext.*" : hlFl);
             // this sets both the Solr parameter and a separate nrSelectors variable used to limit the result set with
             query.setNrSelectors("hl.snippets", nrSelectors);
             // see EA-1570 (workaround to increase the number of characters that are being considered for highlighting)
