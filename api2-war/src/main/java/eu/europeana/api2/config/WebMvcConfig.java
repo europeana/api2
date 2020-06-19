@@ -1,8 +1,5 @@
 package eu.europeana.api2.config;
 
-import eu.europeana.api2.config.viewresolver.Jaxb2MarshallingXmlViewResolver;
-import eu.europeana.api2.config.viewresolver.JsonViewResolver;
-import eu.europeana.api2.config.viewresolver.JspViewResolver;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
@@ -13,19 +10,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.*;
-import org.springframework.web.servlet.view.ContentNegotiatingViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.xml.MarshallingView;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -37,16 +29,17 @@ import java.util.List;
 @EnableAsync
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
-    // EA-1506 enable proper CORS handling
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("*")
-                .allowedMethods("GET", "HEAD", "POST")
-                .allowedHeaders("Accept", "Accept-Language", "Content-Language", "Content-Type")
-                .exposedHeaders("Allow", "Vary", "Link", "ETag")
-                .maxAge(600);
-    }
+//     EA-1506 enable proper CORS handling
+//    @Override
+//    public void addCorsMappings(CorsRegistry registry) {
+//        System.out.println("here in addCorsMapping");
+//        registry.addMapping("/*")
+//                .allowedOrigins("*")  //done
+//                .allowedMethods("GET", "HEAD", "POST") //done
+//                .allowedHeaders("Accept", "Accept-Language", "Content-Language", "Content-Type")
+//                .exposedHeaders("Allow", "Vary", "Link", "ETag") //done
+//                .maxAge(600);
+//    }
 
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {

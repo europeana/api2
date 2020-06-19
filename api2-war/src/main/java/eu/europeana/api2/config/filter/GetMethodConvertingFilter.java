@@ -1,5 +1,7 @@
 package eu.europeana.api2.config.filter;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -10,6 +12,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -29,8 +32,15 @@ public class GetMethodConvertingFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-
-        chain.doFilter(wrapRequest((HttpServletRequest) request), response);
+            HttpServletRequest servletRequestrequest = (HttpServletRequest)request;
+            if(StringUtils.isNotEmpty(servletRequestrequest.getHeader("Origin"))) {
+                // Authorize (allow) all domains to consume the content
+                ((HttpServletResponse) response).addHeader("Access-Control-Allow-Origin", "*");
+                ((HttpServletResponse) response).addHeader("Access-Control-Allow-Credentials", "true");
+                ((HttpServletResponse) response).addHeader("Access-Control-Expose-Headers", "Allow, Vary, Link, ETag");
+            }
+            // pass the request along the filter chain
+            chain.doFilter(wrapRequest((HttpServletRequest) request), response);
     }
 
     @Override
