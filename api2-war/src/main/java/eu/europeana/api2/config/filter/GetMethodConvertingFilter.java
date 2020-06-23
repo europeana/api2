@@ -18,8 +18,10 @@ import java.io.IOException;
 /**
  * Created by Jeroen Jeurissen on 16-9-16.
  * Fixes tomcat8 put issue (HTTP Status 405 - JSPs only permit GET POST or HEAD)
+ * See http://stackoverflow.com/questions/24673041/405-jsp-error-with-put-method for more information
  *
- *  See http://stackoverflow.com/questions/24673041/405-jsp-error-with-put-method for more information
+ * Also fixes an issue with wildcard CORS headers (other solutions didn't allow us to always return
+ * Access-Control-Allow-Origin:* )
  */
 @WebFilter(filterName = "methodConvertingFilter", urlPatterns = {"/*"}, dispatcherTypes = {DispatcherType.FORWARD})
 public class GetMethodConvertingFilter implements Filter {
@@ -30,10 +32,9 @@ public class GetMethodConvertingFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-            HttpServletRequest servletRequestrequest = (HttpServletRequest)request;
-            if(StringUtils.isNotEmpty(servletRequestrequest.getHeader("Origin"))) {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+            HttpServletRequest servletRequest = (HttpServletRequest)request;
+            if (StringUtils.isNotEmpty(servletRequest.getHeader("Origin"))) {
                 // Authorize (allow) all domains to consume the content
                 ((HttpServletResponse) response).addHeader("Access-Control-Allow-Origin", "*");
                 ((HttpServletResponse) response).addHeader("Access-Control-Allow-Credentials", "true");

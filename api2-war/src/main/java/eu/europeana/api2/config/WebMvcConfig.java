@@ -29,86 +29,18 @@ import java.util.Collections;
 @EnableAsync
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
-//     EA-1506 enable proper CORS handling
-//    @Override
-//    public void addCorsMappings(CorsRegistry registry) {
-//        System.out.println("here in addCorsMapping");
-//        registry.addMapping("/*")
-//                .allowedOrigins("*")  //done
-//                .allowedMethods("GET", "HEAD", "POST") //done
-//                .allowedHeaders("Accept", "Accept-Language", "Content-Language", "Content-Type")
-//                .exposedHeaders("Allow", "Vary", "Link", "ETag") //done
-//                .maxAge(600);
-//    }
-
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
         configurer.favorPathExtension(true);
     }
 
     @Bean
-    public ViewResolver contentViewResolver() throws Exception {
+    public ViewResolver contentViewResolver() {
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
         viewResolver.setPrefix("/WEB-INF/jsp/");
         viewResolver.setSuffix(".jsp");
         return viewResolver;
     }
-
-//    @Bean
-//    public ContentNegotiatingViewResolver contentViewResolver() throws Exception {
-//        ContentNegotiationManagerFactoryBean contentNegotiationManager = new ContentNegotiationManagerFactoryBean();
-//        contentNegotiationManager.addMediaType("json", MediaType.APPLICATION_JSON);
-//
-//        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
-//        viewResolver.setPrefix("/WEB-INF/jsp/");
-//        viewResolver.setSuffix(".jsp");
-//
-//        MappingJackson2JsonView defaultView = new MappingJackson2JsonView();
-//        defaultView.setExtractValueFromSingleKeyModel(true);
-//
-//        ContentNegotiatingViewResolver contentViewResolver = new ContentNegotiatingViewResolver();
-//        contentViewResolver.setContentNegotiationManager(contentNegotiationManager.getObject());
-//        contentViewResolver.setViewResolvers(Collections.<ViewResolver>singletonList(viewResolver));
-//        contentViewResolver.setDefaultViews(Collections.<View>singletonList(defaultView));
-//        return contentViewResolver;
-//    }
-
-//    @Override
-//    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-//        configurer.ignoreAcceptHeader(true).defaultContentType(
-//                MediaType.TEXT_HTML);
-//    }
-//
-//    @Bean
-//    public ViewResolver contentNegotiatingViewResolver(ContentNegotiationManager manager) {
-//        ContentNegotiatingViewResolver resolver = new ContentNegotiatingViewResolver();
-//        resolver.setContentNegotiationManager(manager);
-//
-//        // Define all possible view resolvers
-//        List<ViewResolver> resolvers = new ArrayList<>();
-//
-//        resolvers.add(jaxb2MarshallingXmlViewResolver());
-////        resolvers.add(jsonViewResolver());
-//        resolvers.add(jspViewResolver());
-//
-//        resolver.setViewResolvers(resolvers);
-//        return resolver;
-//    }
-
-//    @Bean
-//    public ViewResolver jaxb2MarshallingXmlViewResolver() {
-//        return new Jaxb2MarshallingXmlViewResolver(jaxb2Marshaller());
-//    }
-
-//    @Bean
-//    public ViewResolver jsonViewResolver() {
-//        return new JsonViewResolver();
-//    }
-
-//    @Bean
-//    public ViewResolver jspViewResolver() {
-//        return new JspViewResolver();
-//    }
 
     @Bean(name = "api2_mvc_views_jaxbmarshaller")
     public Jaxb2Marshaller jaxb2Marshaller() {
