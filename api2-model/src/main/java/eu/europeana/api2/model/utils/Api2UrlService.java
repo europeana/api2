@@ -197,7 +197,7 @@ public class Api2UrlService {
      * @return string array with path to record.
      */
     private String[] getApiRecordPath() {
-        if (!API_BASEURL.equals(api2BaseUrl)) {
+        if (!API_BASEURL.equals(getApi2BaseUrl())) {
             return new String[]{"api", "v2"};
         } else {
             return new String[]{};
