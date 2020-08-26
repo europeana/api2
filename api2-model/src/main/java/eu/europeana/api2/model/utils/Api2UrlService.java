@@ -128,6 +128,7 @@ public class Api2UrlService {
         return getRecordApi2Url("/" + collectionId + "/" +itemId, wskey);
     }
 
+
     /**
      * Generates an url to retrieve record JSON data from the Record API
      * @param europeanaId
@@ -136,7 +137,8 @@ public class Api2UrlService {
      */
     public String getRecordApi2Url(String europeanaId, String wskey) {
         UrlBuilder url = new UrlBuilder(getApi2BaseUrl())
-                .addPath("api", "v2", "record")
+                .addPath(getApiRecordPath())
+                .addPath("record")
                 .addPage(europeanaId + ".json")
                 .addParam("wskey", wskey);
         return url.toString();
@@ -187,4 +189,18 @@ public class Api2UrlService {
         return url.toString();
     }
 
+    /**
+     * Generates URL path to search result record.
+     * /api/v2/ path prefix not required if running on the live environment (EA-2151)
+     *
+     * TODO: Remove hardcoded url check
+     * @return string array with path to record.
+     */
+    private String[] getApiRecordPath() {
+        if (!API_BASEURL.equals(getApi2BaseUrl())) {
+            return new String[]{"api", "v2"};
+        } else {
+            return new String[]{};
+        }
+    }
 }

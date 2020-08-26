@@ -114,15 +114,20 @@ public class Api2UrlServiceTest {
 
     @Test
     public void testGetRecordApi2Url() {
+        /**
+         * EA-2151: /api/v2/ only included in URLs when:
+         *          - baseUrl is specified; and
+         *          - its value is not https://api.europeana.eu
+         */
         String baseUrl = null;
 
         Api2UrlService s1 = new Api2UrlService(null, baseUrl, null, null);
-        assertEquals("https://api.europeana.eu/api/v2/record/1/2.json?wskey=test", s1.getRecordApi2Url("/1/2", "test"));
+        assertEquals("https://api.europeana.eu/record/1/2.json?wskey=test", s1.getRecordApi2Url("/1/2", "test"));
 
-        baseUrl = "api.europeana.eu";
+        baseUrl = "https://api.europeana.eu";
         Api2UrlService s2 = new Api2UrlService(null, baseUrl, null, null);
         // In this case https:// is added by UrlBuilder class!
-        assertEquals("https://api.europeana.eu/api/v2/record/x/y.json?wskey=test", s2.getRecordApi2Url("/x/y", "test"));
+        assertEquals("https://api.europeana.eu/record/x/y.json?wskey=test", s2.getRecordApi2Url("/x/y", "test"));
 
         baseUrl = "http://localhost:8080";
         Api2UrlService s3 = new Api2UrlService(null, baseUrl, null, null);
