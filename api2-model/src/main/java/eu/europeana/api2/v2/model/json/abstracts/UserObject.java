@@ -29,7 +29,7 @@ public abstract class UserObject {
 
     public String edmPreview;
 
-    public DocType type = DocType.IMAGE;
+    public String type = DocType.IMAGE.getEnumNameValue();
 
     public Date dateSaved;
 
@@ -60,7 +60,7 @@ public abstract class UserObject {
         return null;
     }
 
-    public DocType getType() {
+    public String getType() {
         return type;
     }
 

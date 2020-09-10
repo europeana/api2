@@ -149,7 +149,7 @@ public class FullView implements FullBean {
     }
 
     @Override
-    public DocType getType() {
+    public String getType() {
         return bean.getType();
     }
 
@@ -289,7 +289,7 @@ public class FullView implements FullBean {
     }
 
     @Override
-    public void setType(DocType type) {
+    public void setType(String type) {
         // left empty intentionally
     }
 

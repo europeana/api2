@@ -2,7 +2,6 @@ package eu.europeana.api2.model.utils;
 
 import eu.europeana.corelib.definitions.ApplicationContextContainer;
 import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
-import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlBuilder;
 import eu.europeana.corelib.web.utils.UrlBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -152,7 +151,7 @@ public class Api2UrlService {
      * @param type defaults to IMAGE (optional)
      * @return url as String
      */
-    public String getThumbnailUrl(String uri, DocType type) {
+    public String getThumbnailUrl(String uri, String type) {
         return getThumbnailUrl(uri, null, type);
     }
 
@@ -165,7 +164,7 @@ public class Api2UrlService {
      * @param type defaults to IMAGE (optional)
      * @return url as String
      */
-    public String getThumbnailUrl(String uri, String size, DocType type) {
+    public String getThumbnailUrl(String uri, String size, String type) {
         UrlBuilder url = EuropeanaUrlBuilder.getThumbnailUrl(uri, size, type);
         String newBaseUrl = this.getApiGatewayBaseUrl();
         if (newBaseUrl.contains("://")) {

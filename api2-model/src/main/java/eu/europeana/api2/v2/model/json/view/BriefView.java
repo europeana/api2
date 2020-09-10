@@ -1,23 +1,20 @@
 package eu.europeana.api2.v2.model.json.view;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
-
-import java.util.*;
-
-import eu.europeana.api2.model.utils.Api2UrlService;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
-
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.model.utils.LinkUtils;
 import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
-import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.solr.bean.impl.IdBeanImpl;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+import java.util.*;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * A BriefView defines the fields that are returned in search results when using the 'minimal' profile
@@ -104,7 +101,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     @Override
-    public DocType getType() {
+    public String getType() {
         return bean.getType();
     }
 
