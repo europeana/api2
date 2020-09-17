@@ -157,7 +157,7 @@ public class Api2UrlService {
 
     /**
      * Generates an url to retrieve a thumbnail from the Europeana Thumbnail Storage
-     * The url is process eventually by the ThumbnailController in the API2 project.
+     * The url is processed by the Thumbnail API.
      * @param uri uri of original thumbnail. A null value can be provided but will result in a not-working thumbnail-url
      *            so for proper working an uri is required.
      * @param size either w200 or w400, other values are ignored (optional)
