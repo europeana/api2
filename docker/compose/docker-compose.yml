@@ -15,7 +15,7 @@ services:
     restart: always
 
   appserver:
-    image: tomcat:9.0
+    image: library/tomcat:9.0-jdk11
     environment:
       #Memory monitoring (JConsole connection possible via localhost:1099)
       CATALINA_OPTS: '
