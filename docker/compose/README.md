@@ -1,8 +1,7 @@
 #Using the Dockerized API development environment
 
-You can use Docker to quickly setup an API development environment. The docker environment consists of 4 components:
- - Apache webserver
- - Tomcat server
+You can use Docker to quickly setup an API development environment. The docker environment consists of 2 components:
+ - Tomcat server to deploy the API.war
  - Postgresql database
  
 The postgresql database is prefilled with an api key (api2demo/verysecret) and testuser (test@test.com/test)
@@ -23,8 +22,7 @@ be able to run it ([installation instructions here](https://github.com/docker/co
    executing docker-compose up again. If you want to do a clean start you can throw your old containers away first with
    this command: `docker rm docker_webserver_1 docker_appserver_1 docker_relational-database_1`
  - For debugging use Java/Tomcat port = 8000
- - By default we enable SLL and re-route all http-requests to https. To disable this simply comment out the line `RUN a2enmod ssl` 
-in the Apache Dockerfile. You may also need to clear your browser cache, as previously visited urls may cache the SSL redirect.
+ - By default we enable SLL and re-route all http-requests to https.
 
 ##Favorite Docker commands:
 
@@ -51,10 +49,3 @@ docker exec -i -t docker_relational-database_1 /bin/bash
 **Start your container with environment parameters and self destruct after you stop it with ctrl-c on local port 5433**:
 docker run -i -t -e POSTGRES_USER=europeana -e POSTGRES_PASSWORD=culture -p 5433:5432 --name test-postgres-config --rm api-postgresql-database
 
-Using the decker docker server:
-export DOCKER_HOST=tcp://10.101.41.249:2375
-
-Pushing images to the docker registry server:
-Set your insecure registry host in the following configuration file:
-/etc/docker/daemon.json
-    { "insecure-registries":["10.101.41.249:5000"] }

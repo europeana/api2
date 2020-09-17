@@ -15,54 +15,32 @@ services:
     restart: always
 
   appserver:
-    build:
-      context: ./tomcat
-    image: api-tomcat-server
+    image: library/tomcat:9.0-jdk11
     environment:
-      #Memory monitoring
+      #Memory monitoring (JConsole connection possible via localhost:1099)
       CATALINA_OPTS: '
-            -XX:+UseConcMarkSweepGC
-            -XX:NativeMemoryTracking=summary
-
-            -Djava.rmi.server.hostname=172.18.0.4
-            -Dcom.sun.management.jmxremote 
-            -Dcom.sun.management.jmxremote.port=1099
-            -Dcom.sun.management.jmxremote.rmi.port=1099
-            -Dcom.sun.management.jmxremote.local.only=false 
-            -Dcom.sun.management.jmxremote.authenticate=false
-            -Dcom.sun.management.jmxremote.ssl=false
+                -Djava.rmi.server.hostname=0.0.0.0
+                -Dcom.sun.management.jmxremote
+                -Dcom.sun.management.jmxremote.port=1099
+                -Dcom.sun.management.jmxremote.rmi.port=1099
+                -Dcom.sun.management.jmxremote.local.only=false
+                -Dcom.sun.management.jmxremote.authenticate=false
+                -Dcom.sun.management.jmxremote.ssl=false
                 '
-      # -Xms512M -Xmx4096M -server -XX:+UseParallelGC
-      #Debugging port
-      JPDA_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000
 
     # Mount point for application in tomcat
     # (the target folder on your workspace is directly mounted to the tomcat container)
     volumes:
-      - ../../api2-war/target/api:/tomcat/webapps/api
+      - ../../api2-war/target/api:/usr/local/tomcat/webapps/api
     links:
       - relational-database:api-postgresql-database
     # Map ports from tomcat container to the local machine
     ports:
-    #local:container
       #Tomcat http port
       - "8080:8080"
       #Debug port
       - "8000:8000"
       #JMX Port
       - "1099:1099"
-#    networks:
-#          default:
-#            ipv4_address: 172.18.0.254
-    restart: always
-
-  webserver:
-    build:
-      context: ./apache
-    image: api-webserver
-    links:
-          - appserver:api-tomcat-server
-    ports:
-      - "80:80"
-      - "443:443"
     restart: always
