@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.*;
-import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.utils.DateUtils;
 import org.bson.types.ObjectId;
 
@@ -44,78 +43,99 @@ public class FullView implements FullBean {
         return bean.getUserTags();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<? extends Place> getPlaces() {
-        @SuppressWarnings("unchecked")
-        List<Place> items = (List<Place>) bean.getPlaces();
-        for (Place item : items) {
-            item.setId(null);
+        if (bean.getPlaces() != null) {
+            List<Place> items = (List<Place>) bean.getPlaces();
+            for (Place item : items) {
+                item.setId(null);
+            }
+            return items;
         }
-        return items;
+        return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<? extends Agent> getAgents() {
-        @SuppressWarnings("unchecked")
-        List<Agent> items = (List<Agent>) bean.getAgents();
-        for (Agent item : items) {
-            item.setId(null);
+        if (bean.getAgents() != null) {
+            List<Agent> items = (List<Agent>) bean.getAgents();
+            for (Agent item : items) {
+                item.setId(null);
+            }
+            return items;
         }
-        return items;
+        return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<? extends Timespan> getTimespans() {
-        @SuppressWarnings("unchecked")
-        List<Timespan> items = (List<Timespan>) bean.getTimespans();
-        for (Timespan item : items) {
-            item.setId(null);
+        if (bean.getTimespans() != null) {
+            List<Timespan> items = (List<Timespan>) bean.getTimespans();
+            for (Timespan item : items) {
+                item.setId(null);
+            }
+            return items;
         }
-        return items;
+        return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<? extends Concept> getConcepts() {
-        @SuppressWarnings("unchecked")
-        List<Concept> items = (List<Concept>) bean.getConcepts();
-        for (Concept item : items) {
-            item.setId(null);
+        if (bean.getConcepts() != null) {
+            List<Concept> items = (List<Concept>) bean.getConcepts();
+            for (Concept item : items) {
+                item.setId(null);
+            }
+            return items;
         }
-        return items;
+        return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<? extends Proxy> getProxies() {
-        @SuppressWarnings("unchecked")
-        List<Proxy> items = (List<Proxy>) bean.getProxies();
-        for (Proxy item : items) {
-            item.setId(null);
+        if (bean.getProxies() != null) {
+            List<Proxy> items = (List<Proxy>) bean.getProxies();
+            for (Proxy item : items) {
+                item.setId(null);
+            }
+            return items;
         }
-        return items;
+        return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<? extends Aggregation> getAggregations() {
-        @SuppressWarnings("unchecked")
-        List<Aggregation> items = (List<Aggregation>) bean.getAggregations();
-        for (Aggregation item : items) {
-            item.setId(null);
-            // also remove webresources IDs
-            for (int j = 0, lw = item.getWebResources().size(); j < lw; j++) {
-                item.getWebResources().get(j).setId(null);
+        if (bean.getAggregations() != null) {
+            List<Aggregation> items = (List<Aggregation>) bean.getAggregations();
+            for (Aggregation item : items) {
+                item.setId(null);
+                // also remove webresources IDs
+                for (int j = 0, lw = item.getWebResources().size(); j < lw; j++) {
+                    item.getWebResources().get(j).setId(null);
+                }
             }
+            return items;
         }
-        return items;
+        return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<? extends ProvidedCHO> getProvidedCHOs() {
-        @SuppressWarnings("unchecked")
-        List<ProvidedCHO> items = (List<ProvidedCHO>) bean.getProvidedCHOs();
-        for (ProvidedCHO item : items) {
-            item.setId(null);
+        if (bean.getProvidedCHOs() != null) {
+            List<ProvidedCHO> items = (List<ProvidedCHO>) bean.getProvidedCHOs();
+            for (ProvidedCHO item : items) {
+                item.setId(null);
+            }
+            return items;
         }
-        return items;
+        return null;
     }
 
     @Override
@@ -149,7 +169,7 @@ public class FullView implements FullBean {
     }
 
     @Override
-    public DocType getType() {
+    public String getType() {
         return bean.getType();
     }
 
@@ -289,7 +309,7 @@ public class FullView implements FullBean {
     }
 
     @Override
-    public void setType(DocType type) {
+    public void setType(String type) {
         // left empty intentionally
     }
 

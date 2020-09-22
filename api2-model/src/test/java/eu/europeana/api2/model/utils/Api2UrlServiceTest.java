@@ -94,22 +94,22 @@ public class Api2UrlServiceTest {
 
         Api2UrlService s1 = new Api2UrlService(null, null, null, apiGatewayBaseUrl);
         assertEquals("https://api.europeana.eu/thumbnail/v2/url.json?uri=https%3A%2F%2Ftest1.eu&type=IMAGE",
-                s1.getThumbnailUrl("https://test1.eu", DocType.IMAGE));
+                s1.getThumbnailUrl("https://test1.eu", DocType.IMAGE.getEnumNameValue()));
 
         apiGatewayBaseUrl = "api.europeana.eu";
         Api2UrlService s2 = new Api2UrlService(null, null, null, apiGatewayBaseUrl);
         // In this case https:// is added by UrlBuilder class!
         assertEquals("https://api.europeana.eu/thumbnail/v2/url.json?uri=https%3A%2F%2Ftest2.eu&type=IMAGE",
-                s2.getThumbnailUrl("https://test2.eu", DocType.IMAGE));
+                s2.getThumbnailUrl("https://test2.eu", DocType.IMAGE.getEnumNameValue()));
 
         apiGatewayBaseUrl = "https://localhost";
         Api2UrlService s3 = new Api2UrlService(null, null, null, apiGatewayBaseUrl);
         assertEquals("https://localhost/thumbnail/v2/url.json?uri=http%3A%2F%2Ftest3.eu&type=IMAGE",
-                s3.getThumbnailUrl("http://test3.eu", DocType.IMAGE));
+                s3.getThumbnailUrl("http://test3.eu", DocType.IMAGE.getEnumNameValue()));
 
         Api2UrlService s4 = new Api2UrlService(null, "https://testing", null, null);
         assertEquals("https://api.europeana.eu/thumbnail/v2/url.json?uri=https%3A%2F%2Ftest1.eu&type=IMAGE",
-                s4.getThumbnailUrl("https://test1.eu", DocType.IMAGE));
+                s4.getThumbnailUrl("https://test1.eu", DocType.IMAGE.getEnumNameValue()));
     }
 
     @Test

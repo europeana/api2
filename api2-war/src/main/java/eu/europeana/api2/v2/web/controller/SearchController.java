@@ -3,7 +3,6 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
@@ -120,13 +119,13 @@ public class SearchController {
 
     public ModelAndView searchJsonPost(
             @RequestParam(value = "wskey") String apikey,
-            @SolrEscape @RequestParam(value = "query") String queryString,
+            @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
             @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
-            @SolrEscape @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
+            @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
             @RequestParam(value = "theme", required = false) String theme,
             @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
@@ -136,7 +135,7 @@ public class SearchController {
             @RequestParam(value = "landingpage", required = false) Boolean landingPage,
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
-            @SolrEscape @RequestParam(value = "hit.fl", required = false) String hlFl,
+            @RequestParam(value = "hit.fl", required = false) String hlFl,
             @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
@@ -156,13 +155,13 @@ public class SearchController {
     @GetMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGet(
             @RequestParam(value = "wskey") String apikey,
-            @SolrEscape  @RequestParam(value = "query") String queryString,
+            @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
             @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
-            @SolrEscape @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
+            @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
             @RequestParam(value = "theme", required = false) String theme,
             @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
@@ -172,7 +171,7 @@ public class SearchController {
             @RequestParam(value = "landingpage", required = false) Boolean landingPage,
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
-            @SolrEscape @RequestParam(value = "hit.fl", required = false) String hlFl,
+            @RequestParam(value = "hit.fl", required = false) String hlFl,
             @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
@@ -687,7 +686,7 @@ public class SearchController {
     @ResponseBody
     @Deprecated
     public KmlResponse searchKml(
-            @SolrEscape @RequestParam(value = "query") String queryString,
+            @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
             @RequestParam(value = "wskey") String apikey,
@@ -730,7 +729,7 @@ public class SearchController {
             produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public ModelAndView openSearchRss(
-            @SolrEscape @RequestParam(value = "searchTerms") String queryString,
+            @RequestParam(value = "searchTerms") String queryString,
             @RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
             @RequestParam(value = "count", required = false, defaultValue = "12") int count,
             HttpServletResponse response)  throws EuropeanaException {
@@ -790,7 +789,7 @@ public class SearchController {
     @ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
     @GetMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
     public ModelAndView fieldTripRss(
-            @SolrEscape @RequestParam(value = "query") String queryTerms,
+            @RequestParam(value = "query") String queryTerms,
             @RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "12") int limit,
             @RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
