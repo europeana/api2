@@ -1,25 +1,38 @@
 package eu.europeana.api2.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import eu.europeana.api2.utils.SolrEscape;
+import eu.europeana.api2.utils.SolrEscapeDeserializer;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * Model class for search requests
  *
+ * Sanitized fields correspond to request parameters annotated with @SolrEscape in
+ * {@link eu.europeana.api2.v2.web.controller.SearchController#searchJsonGet}
+ *
  * @author Srishti Singh
  * Created on 23 Sep 2020
  */
 @JsonInclude(NON_EMPTY)
 public class SearchRequest {
-
+    @JsonDeserialize(using = SolrEscapeDeserializer.class)
     private String query;
+
     private String[] qf;
     private String[] reusability;
     private String profile = "standard";
     private int start = 1;
     private int rows = 12;
+
+    @JsonDeserialize(using = SolrEscapeDeserializer.class)
     private String[] facet;
+
     private String theme;
     private String sort;
     private String[] colourPalette;
@@ -29,7 +42,10 @@ public class SearchRequest {
     private Boolean landingPage;
     private String cursor;
     private String callback;
+
+    @JsonDeserialize(using = SolrEscapeDeserializer.class)
     private String hitFl;
+
     private String hitSelectors;
 
     public String getQuery() {
