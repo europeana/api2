@@ -7,6 +7,7 @@ import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
+import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
@@ -58,9 +59,7 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -118,32 +117,39 @@ public class SearchController {
     @Value("${api.search.hl.MaxAnalyzedChars}")
     private String hlMaxAnalyzedChars;
 
+    /**
+     * Returns a list of Europeana datasets based on the search terms.
+     * The response is an Array of JSON objects, each one containing the identifier and the name of a dataset.
+     *
+     * @return the JSON response
+     */
+    @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
+    @PostMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonPost(
             @RequestParam(value = "wskey") String apikey,
-            @SolrEscape @RequestParam(value = "query") String queryString,
-            @RequestParam(value = "qf", required = false) String[] refinementArray,
-            @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
-            @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
-            @RequestParam(value = "start", required = false, defaultValue = "1") int start,
-            @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
-            @SolrEscape @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
-            @RequestParam(value = "theme", required = false) String theme,
-            @RequestParam(value = "sort", required = false) String sort,
-            @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
-            @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
-            @RequestParam(value = "media", required = false) Boolean media,
-            @RequestParam(value = "text_fulltext", required = false) Boolean fullText,
-            @RequestParam(value = "landingpage", required = false) Boolean landingPage,
-            @RequestParam(value = "cursor", required = false) String cursorMark,
-            @RequestParam(value = "callback", required = false) String callback,
-            @SolrEscape @RequestParam(value = "hit.fl", required = false) String hlFl,
-            @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
+            @RequestBody SearchRequest searchRequest,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
-        // TODO implement real POST request (see also EA-605)
-        return searchJsonGet(apikey, queryString, refinementArray, reusabilityArray, profile, start, rows, mixedFacetArray,
-                             theme, sort, colourPaletteArray, thumbnail, media, fullText, landingPage, cursorMark, callback, hlFl,
-                             hlSelectors, request, response);
+        return searchJsonGet(apikey,
+                searchRequest.getQuery(),
+                searchRequest.getQf(),
+                searchRequest.getReusability(),
+                searchRequest.getProfile(),
+                searchRequest.getStart(),
+                searchRequest.getRows(),
+                searchRequest.getFacet(),
+                searchRequest.getTheme(),
+                searchRequest.getSort(),
+                searchRequest.getColourPalette(),
+                searchRequest.isThumbnail(),
+                searchRequest.isMedia(),
+                searchRequest.isTextFulltext(),
+                searchRequest.isLandingPage(),
+                searchRequest.getCursor(),
+                searchRequest.getCallback(),
+                searchRequest.getHitFl(),
+                searchRequest.getHitSelectors(),
+                request, response);
     }
 
     /**
