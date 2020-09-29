@@ -55,18 +55,18 @@
             <version>${corelib.version}</version>
         </dependency>
 
-        <!-- new facet library from Metis -->
-<!--        <dependency>-->
-<!--            <groupId>eu.europeana.metis</groupId>-->
-<!--            <artifactId>metis-indexing</artifactId>-->
-<!--            <version>${metis.version}</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>com.zoho.crm</groupId>-->
-<!--                    <artifactId>java-sdk</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
+        <!-- facet library from Metis -->
+        <dependency>
+            <groupId>eu.europeana.metis</groupId>
+            <artifactId>metis-indexing</artifactId>
+            <version>${metis.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.zoho.crm</groupId>
+                    <artifactId>java-sdk</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- OTHER -->
         <dependency>

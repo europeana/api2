@@ -7,6 +7,7 @@ import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
+import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -23,7 +24,6 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.utils.*;
-import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.service.ApiKeyService;
@@ -48,6 +48,8 @@ import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import eu.europeana.indexing.solr.facet.FacetEncoder;
+import eu.europeana.indexing.solr.facet.value.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections.MapUtils;
@@ -222,7 +224,7 @@ public class SearchController {
             }
         }
 
-        List<String> colourPalette = new ArrayList();
+        List<String>            colourPalette = new ArrayList();
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
             StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         }
@@ -231,7 +233,7 @@ public class SearchController {
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
         if (!colourPalette.isEmpty()) {
-            queryString = filterQueryBuilder(TagUtils.colourPaletteFilterTags(colourPalette).iterator(),
+            queryString = filterQueryBuilder(TagUtils.encodeColourPalette(colourPalette).iterator(),
                                              queryString,
                                              " AND ",
                                              false);
@@ -274,7 +276,7 @@ public class SearchController {
         if (ArrayUtils.isNotEmpty(reusabilities)) {
             valueReplacements = RightReusabilityCategorizer.mapValueReplacements(reusabilities, true);
             if (null != valueReplacements && !valueReplacements.isEmpty()){
-                refinementArray = ArrayUtils.addAll(refinementArray, new String[]{"REUSABILITY:list"});
+                refinementArray = ArrayUtils.addAll(refinementArray, "REUSABILITY:list");
             }
         }
 
@@ -402,20 +404,21 @@ public class SearchController {
         boolean      hasImageRefinements            = false;
         boolean      hasSoundRefinements            = false;
         boolean      hasVideoRefinements            = false;
+        FacetEncoder facetEncoder = new FacetEncoder();
         List<String> newRefinements                 = new ArrayList<>();
-        List<String> imageMimeTypeRefinements       = new ArrayList<>();
-        List<String> soundMimeTypeRefinements       = new ArrayList<>();
-        List<String> videoMimeTypeRefinements       = new ArrayList<>();
-        List<String> otherMimeTypeRefinements       = new ArrayList<>();
-        List<String> imageSizeRefinements           = new ArrayList<>();
-        List<String> imageAspectRatioRefinements    = new ArrayList<>();
-        List<String> soundDurationRefinements       = new ArrayList<>();
-        List<String> videoDurationRefinements       = new ArrayList<>();
-        List<String> imageColourSpaceRefinements    = new ArrayList<>();
-        List<String> videoHDRefinements             = new ArrayList<>();
-        List<String> soundHQRefinements             = new ArrayList<>();
-        // NOTE: ColourPalette is a *parameter*; imageColourPaletteRefinements are *facets*
-        List<String> imageColourPaletteRefinements  = new ArrayList<>();
+
+        Set<MimeTypeEncoding>   imageMimeTypeRefinements = new HashSet<>();
+        Set<MimeTypeEncoding>   soundMimeTypeRefinements = new HashSet<>();
+        Set<MimeTypeEncoding>   videoMimeTypeRefinements = new HashSet<>();
+        Set<MimeTypeEncoding>   otherMimeTypeRefinements = new HashSet<>();
+        Set<ImageSize>          imageSizeRefinements = new HashSet<>();
+        Set<ImageAspectRatio>   imageAspectRatioRefinements = new HashSet<>();
+        Set<AudioDuration>      soundDurationRefinements = new HashSet<>();
+        Set<VideoDuration>      videoDurationRefinements = new HashSet<>();
+        Set<ImageColorSpace>    imageColourSpaceRefinements = new HashSet<>();
+        Set<VideoQuality>       videoHDRefinements = new HashSet<>();
+        Set<AudioQuality>       soundHQRefinements = new HashSet<>();
+        Set<ImageColorEncoding> imageColourPaletteRefinements = new HashSet<>();
 
         // retrieves the faceted refinements from the QF part of the request and stores them separately
         // the rest of the refinements is kept in the refinementArray
@@ -424,61 +427,93 @@ public class SearchController {
         if (refinementArray != null) {
             for (String qf : refinementArray) {
                 if (StringUtils.contains(qf, ":")){
-                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
+                    String refinementValue = StringUtils.substringAfter(qf, ":")
+                            .toLowerCase(Locale.GERMAN)
+                            .replaceAll("^\"|\"$", "");
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
-                            if(CommonTagExtractor.isValidMimeType(refinementValue)) {       //will check if mimetype is valid
-                                if (CommonTagExtractor.isImageMimeType(refinementValue)) {
-                                    imageMimeTypeRefinements.add(refinementValue);
+                            if (Objects.nonNull(MimeTypeEncoding.categorizeMimeType(refinementValue))){
+                                if (TagUtils.isImageMimeType(refinementValue)) {
+                                    imageMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     hasImageRefinements = true;
-                                } else if (CommonTagExtractor.isSoundMimeType(refinementValue)) {
-                                    soundMimeTypeRefinements.add(refinementValue);
+                                } else if (TagUtils.isSoundMimeType(refinementValue)) {
+                                    soundMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     hasSoundRefinements = true;
-                                } else if (CommonTagExtractor.isVideoMimeType(refinementValue)) {
-                                    videoMimeTypeRefinements.add(refinementValue);
+                                } else if (TagUtils.isVideoMimeType(refinementValue)) {
+                                    videoMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     hasVideoRefinements = true;
                                 } else
-                                    otherMimeTypeRefinements.add(refinementValue);
+                                    otherMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
                             }
                             break;
                         case "IMAGE_SIZE":
-                            imageSizeRefinements.add(refinementValue);
-                            hasImageRefinements = true;
+                            ImageSize imageSize = TagUtils.getImageSize(refinementValue);
+                            if (Objects.nonNull(imageSize)) {
+                                imageSizeRefinements.add(imageSize);
+                                hasImageRefinements = true;
+                            }
                             break;
                         case "IMAGE_COLOUR":
                         case "IMAGE_COLOR":
-                            if (Boolean.valueOf(refinementValue)) {
-                                imageColourSpaceRefinements.add("rgb");
+                            if (Boolean.parseBoolean(refinementValue)) {
+                                imageColourSpaceRefinements.add(ImageColorSpace.COLOR);
                                 hasImageRefinements = true;
-                            } else if (StringUtils.equalsIgnoreCase(refinementValue, "false")){
-                                imageColourSpaceRefinements.add("grayscale");
+                            } else {
+                                imageColourSpaceRefinements.add(ImageColorSpace.GRAYSCALE);
+                                hasImageRefinements = true;
+                            }
+                            break;
+                        case "IMAGE_GREYSCALE":
+                        case "IMAGE_GRAYSCALE":
+                            if (Boolean.parseBoolean(refinementValue)) {
+                                imageColourSpaceRefinements.add(ImageColorSpace.GRAYSCALE);
+                                hasImageRefinements = true;
+                            } else {
+                                imageColourSpaceRefinements.add(ImageColorSpace.COLOR);
                                 hasImageRefinements = true;
                             }
                             break;
                         case "COLOURPALETTE":
                         case "COLORPALETTE":
-                            imageColourPaletteRefinements.add(refinementValue.toUpperCase(Locale.GERMAN));
-                            hasImageRefinements = true;
+                            ImageColorEncoding imageColorEncoding = ImageColorEncoding.categorizeImageColor(refinementValue);
+                            if (Objects.nonNull(imageColorEncoding)){
+                                imageColourPaletteRefinements.add(imageColorEncoding);
+                                hasImageRefinements = true;
+                            }
                             break;
                         case "IMAGE_ASPECTRATIO":
-                            imageAspectRatioRefinements.add(refinementValue);
+                            if (StringUtils.containsIgnoreCase(refinementValue, "portrait")) {
+                                imageAspectRatioRefinements.add(ImageAspectRatio.PORTRAIT);
+                            } else if (StringUtils.containsIgnoreCase(refinementValue, "landscape")) {
+                                imageAspectRatioRefinements.add(ImageAspectRatio.LANDSCAPE);
+                            }
                             hasImageRefinements = true;
                             break;
                         case "SOUND_HQ":
-                            soundHQRefinements.add(Boolean.valueOf(refinementValue) ? "true" : "false");
-                            hasSoundRefinements = true;
+                            if (Boolean.parseBoolean(refinementValue)){
+                                soundHQRefinements.add(AudioQuality.HIGH);
+                                hasSoundRefinements = true;
+                            }
                             break;
                         case "SOUND_DURATION":
-                            soundDurationRefinements.add(refinementValue);
-                            hasSoundRefinements = true;
+                            AudioDuration audioDuration = TagUtils.getAudioDurationCode(refinementValue);
+                            if (Objects.nonNull(audioDuration)){
+                                soundDurationRefinements.add(audioDuration);
+                                hasSoundRefinements = true;
+                            }
                             break;
                         case "VIDEO_HD":
-                            videoHDRefinements.add(Boolean.valueOf(refinementValue) ? "true" : "false");
-                            hasVideoRefinements = true;
+                            if (Boolean.parseBoolean(refinementValue)){
+                                videoHDRefinements.add(VideoQuality.HIGH);
+                                hasVideoRefinements = true;
+                            }
                             break;
                         case "VIDEO_DURATION":
-                            videoDurationRefinements.add(refinementValue);
-                            hasVideoRefinements = true;
+                            VideoDuration videoDuration = TagUtils.getVideoDurationCode(refinementValue);
+                            if (Objects.nonNull(videoDuration)){
+                                videoDurationRefinements.add(videoDuration);
+                                hasVideoRefinements = true;
+                            }
                             break;
                         case "MEDIA":
                             if (null == media) {
@@ -528,22 +563,30 @@ public class SearchController {
 
         // Encode the faceted refinements ...
         if (hasImageRefinements) {
-            filterTags.addAll(TagUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
-                                                       imageAspectRatioRefinements, imageColourPaletteRefinements));
+            filterTags.addAll(facetEncoder.getImageFacetValueCodes(imageMimeTypeRefinements,
+                                                                    imageSizeRefinements,
+                                                                    imageColourSpaceRefinements,
+                                                                    imageAspectRatioRefinements,
+                                                                    imageColourPaletteRefinements));
         }
         if (hasSoundRefinements) {
-            filterTags.addAll(TagUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
+            filterTags.addAll(facetEncoder.getAudioFacetValueCodes(soundMimeTypeRefinements,
+                                                                    soundHQRefinements,
+                                                                    soundDurationRefinements));
         }
         if (hasVideoRefinements) {
-            filterTags.addAll(TagUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
+            filterTags.addAll(facetEncoder.getVideoFacetValueCodes(videoMimeTypeRefinements,
+                                                                    videoHDRefinements,
+                                                                    videoDurationRefinements));
         }
         if (!otherMimeTypeRefinements.isEmpty()) {
-            filterTags.addAll(TagUtils.otherFilterTags(otherMimeTypeRefinements));
+            filterTags.addAll(facetEncoder.getTextFacetValueCodes(otherMimeTypeRefinements));
         }
+
         if (LOG.isDebugEnabled()) {
             for (Integer filterTag : filterTags) {
                 if (filterTag != null) {
-                    LOG.debug("filterTag = " + Integer.toBinaryString(filterTag));
+                    LOG.debug("filterTag = {}", Integer.toBinaryString(filterTag));
                 }
             }
         }
@@ -887,17 +930,14 @@ public class SearchController {
     public ModelAndView searchJson(
             @RequestParam(value = "tag") String tag) {
 
-        String decodedTagName;
-        String decodedTagValue;
+        FacetTag facetTag;
         if (tag.matches("[0-9]+") && tag.length() > 7) {
-            decodedTagName = decodeFacetTag(Integer.valueOf(tag), true);
-            decodedTagValue = decodeFacetTag(Integer.valueOf(tag), false);
+            facetTag = decodeFacetTag(Integer.valueOf(tag));
         } else {
-            decodedTagName = "You're not doing it right, dude / diderina";
-            decodedTagValue = "a tag must be numerical and 8 digits long";
+            facetTag =  new FacetTag("You're not doing it right, dude / diderina",
+                                     "a tag must be numerical and 8 digits long");
         }
-
-        return JsonUtils.toJson(decodedTagName + ": " + decodedTagValue);
+        return JsonUtils.toJson(facetTag.getName() + ": " + facetTag.getLabel());
     }
 
     /**
