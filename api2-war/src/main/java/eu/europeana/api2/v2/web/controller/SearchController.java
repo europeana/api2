@@ -3,11 +3,12 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
 import eu.europeana.api2.v2.model.FacetTag;
-import eu.europeana.api2.v2.model.LimitResponse;
+import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
@@ -25,7 +26,6 @@ import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
-import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -61,9 +61,7 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -94,6 +92,7 @@ public class SearchController {
     private static final String BREADCRUMB  = "breadcrumb";
     private static final String FACET_RANGE = "facet.range";
     private static final String HITS        = "hits";
+    private static final String ERROR_RETRIEVE_ATTRIBUTES = "error retrieving attributes";
 
     // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
@@ -120,32 +119,39 @@ public class SearchController {
     @Value("${api.search.hl.MaxAnalyzedChars}")
     private String hlMaxAnalyzedChars;
 
+    /**
+     * Returns a list of Europeana datasets based on the search terms.
+     * The response is an Array of JSON objects, each one containing the identifier and the name of a dataset.
+     *
+     * @return the JSON response
+     */
+    @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
+    @PostMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonPost(
-            @RequestParam(value = "wskey") String wskey,
-            @RequestParam(value = "query") String queryString,
-            @RequestParam(value = "qf", required = false) String[] refinementArray,
-            @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
-            @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
-            @RequestParam(value = "start", required = false, defaultValue = "1") int start,
-            @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
-            @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
-            @RequestParam(value = "theme", required = false) String theme,
-            @RequestParam(value = "sort", required = false) String sort,
-            @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
-            @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
-            @RequestParam(value = "media", required = false) Boolean media,
-            @RequestParam(value = "text_fulltext", required = false) Boolean fullText,
-            @RequestParam(value = "landingpage", required = false) Boolean landingPage,
-            @RequestParam(value = "cursor", required = false) String cursorMark,
-            @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hit.fl", required = false) String hlFl,
-            @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
+            @RequestParam(value = "wskey") String apikey,
+            @RequestBody SearchRequest searchRequest,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
-        // TODO implement real POST request (see also EA-605)
-        return searchJsonGet(wskey, queryString, refinementArray, reusabilityArray, profile, start, rows, mixedFacetArray,
-                theme, sort, colourPaletteArray, thumbnail, media, fullText, landingPage, cursorMark, callback, hlFl,
-                hlSelectors, request, response);
+        return searchJsonGet(apikey,
+                searchRequest.getQuery(),
+                searchRequest.getQf(),
+                searchRequest.getReusability(),
+                searchRequest.getProfile(),
+                searchRequest.getStart(),
+                searchRequest.getRows(),
+                searchRequest.getFacet(),
+                searchRequest.getTheme(),
+                searchRequest.getSort(),
+                searchRequest.getColourPalette(),
+                searchRequest.isThumbnail(),
+                searchRequest.isMedia(),
+                searchRequest.isTextFulltext(),
+                searchRequest.isLandingPage(),
+                searchRequest.getCursor(),
+                searchRequest.getCallback(),
+                searchRequest.getHitFl(),
+                searchRequest.getHitSelectors(),
+                request, response);
     }
 
     /**
@@ -157,14 +163,14 @@ public class SearchController {
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
     @GetMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGet(
-            @RequestParam(value = "wskey") String wskey,
-            @RequestParam(value = "query") String queryString,
+            @RequestParam(value = "wskey") String apikey,
+            @SolrEscape  @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
             @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
-            @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
+            @SolrEscape @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
             @RequestParam(value = "theme", required = false) String theme,
             @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
@@ -174,12 +180,12 @@ public class SearchController {
             @RequestParam(value = "landingpage", required = false) Boolean landingPage,
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hit.fl", required = false) String hlFl,
+            @SolrEscape @RequestParam(value = "hit.fl", required = false) String hlFl,
             @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH, profile);
+        apiKeyUtils.validateApiKey(apikey);
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -329,7 +335,7 @@ public class SearchController {
                 }
             }
             query.setParameter("hl", "on");
-            query.setParameter("hl.fl", StringUtils.isBlank(hlFl) ? "*" : hlFl);
+            query.setParameter("hl.fl", StringUtils.isBlank(hlFl) ? "fulltext.*" : hlFl);
             // this sets both the Solr parameter and a separate nrSelectors variable used to limit the result set with
             query.setNrSelectors("hl.snippets", nrSelectors);
             // see EA-1570 (workaround to increase the number of characters that are being considered for highlighting)
@@ -352,10 +358,9 @@ public class SearchController {
               ArrayUtils.contains(solrFacets, "DEFAULT")
             ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
 
-        SearchResults<? extends IdBean> result = createResults(wskey, profile, query, clazz);
-        result.requestNumber = limitResponse.getRequestNumber();
+        SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz);
         if (StringUtils.containsIgnoreCase(profile, "params")) {
-            result.addParams(RequestUtils.getParameterMap(request), "wskey");
+            result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
             result.addParam("start", start);
             result.addParam("rows", rows);
@@ -731,17 +736,15 @@ public class SearchController {
     @ResponseBody
     @Deprecated
     public KmlResponse searchKml(
-            @RequestParam(value = "query") String queryString,
+            @SolrEscape @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
-            @RequestParam(value = "wskey") String wskey,
+            @RequestParam(value = "wskey") String apikey,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
 
-        LimitResponse limitResponse = apiKeyUtils.checkLimit(wskey, request.getRequestURL().toString(), RecordType.SEARCH_KML, null);
+        apiKeyUtils.validateApiKey(apikey);
 
-        // workaround of a Spring issue
-        // (https://jira.springsource.org/browse/SPR-7963)
         String[] _qf = request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinementArray.length) {
             refinementArray = _qf;
@@ -776,7 +779,7 @@ public class SearchController {
             produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public ModelAndView openSearchRss(
-            @RequestParam(value = "searchTerms") String queryString,
+            @SolrEscape @RequestParam(value = "searchTerms") String queryString,
             @RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
             @RequestParam(value = "count", required = false, defaultValue = "12") int count,
             HttpServletResponse response)  throws EuropeanaException {
@@ -836,7 +839,7 @@ public class SearchController {
     @ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
     @GetMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
     public ModelAndView fieldTripRss(
-            @RequestParam(value = "query") String queryTerms,
+            @SolrEscape @RequestParam(value = "query") String queryTerms,
             @RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "12") int limit,
             @RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
@@ -863,10 +866,10 @@ public class SearchController {
 
             if (gftChannelAttributes.isEmpty() || gftChannelAttributes.size() < 5) {
                 LOG.error("error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
-                channel.title = "error retrieving attributes";
-                channel.description = "error retrieving attributes";
+                channel.title = ERROR_RETRIEVE_ATTRIBUTES;
+                channel.description = ERROR_RETRIEVE_ATTRIBUTES;
                 channel.language = "--";
-                channel.link = "error retrieving attributes";
+                channel.link = ERROR_RETRIEVE_ATTRIBUTES;
                 channel.image = null;
             } else {
                 channel.title = gftChannelAttributes.get(reqLanguage + "_title") == null || gftChannelAttributes.get(reqLanguage + "_title").equalsIgnoreCase("")

@@ -2,30 +2,39 @@ package eu.europeana.api2.v2.model;
 
 import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 
+/**
+ * @deprecated (since = "march 2019")
+ */
+@Deprecated
 public class LimitResponse {
 
-	private ApiKey apiKey;
-	private long requestNumber = 0;
+    private ApiKey apiKey;
+    private long requestNumber = 0;
 
-	public LimitResponse(ApiKey apiKey, long requestNumber) {
-		super();
-		this.apiKey = apiKey;
-		this.requestNumber = requestNumber;
-	}
+    @Deprecated
+    public LimitResponse(ApiKey apiKey, long requestNumber) {
+        super();
+        this.apiKey = apiKey;
+        this.requestNumber = requestNumber;
+    }
 
-	public ApiKey getApiKey() {
-		return apiKey;
-	}
+    @Deprecated
+    public ApiKey getApiKey() {
+        return apiKey;
+    }
 
-	public void setApiKey(ApiKey apiKey) {
-		this.apiKey = apiKey;
-	}
+    @Deprecated
+    public void setApiKey(ApiKey apiKey) {
+        this.apiKey = apiKey;
+    }
 
-	public long getRequestNumber() {
-		return requestNumber;
-	}
+    @Deprecated
+    public long getRequestNumber() {
+        return requestNumber;
+    }
 
-	public void setRequestNumber(long requestNumber) {
-		this.requestNumber = requestNumber;
-	}
+    @Deprecated
+    public void setRequestNumber(long requestNumber) {
+        this.requestNumber = requestNumber;
+    }
 }

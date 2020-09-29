@@ -23,6 +23,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
  */
 
 public class FacetWrangler {
+  
     private static final Logger LOG = LogManager.getLogger(FacetWrangler.class);
 
     private Map<String, Map<String, Integer>> technicalFacetMap = new LinkedHashMap<>();

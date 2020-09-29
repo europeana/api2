@@ -2,17 +2,11 @@ package eu.europeana.api2.v2.model.json.view;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import eu.europeana.api2.model.utils.Api2UrlService;
-import eu.europeana.corelib.definitions.edm.beans.BriefBean;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.*;
-import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.utils.DateUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.Date;
 import java.util.List;
@@ -27,23 +21,17 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @JsonPropertyOrder(alphabetic=true)
 public class FullView implements FullBean {
 
-    private static final Logger LOG = LogManager.getLogger(FullView.class);
-
     private FullBean bean;
-    private String profile;
-    private String apiKey;
-    private Api2UrlService urlService;
     private Date timestampCreated;
     private Date timestampUpdated;
 
-    public FullView(FullBean bean, String profile, String apiKey) {
+    public FullView(FullBean bean) {
         this.bean = bean;
-        this.profile = profile;
-        this.apiKey = apiKey;
-        this.urlService = Api2UrlService.getBeanInstance();
         extractTimestampCreated();
         extractTimestampUpdated();
     }
+
+    // TODO check if setting id's to null is still neccessary
 
     @Override
     public String getId() {
@@ -55,89 +43,99 @@ public class FullView implements FullBean {
         return bean.getUserTags();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<? extends Place> getPlaces() {
-        @SuppressWarnings("unchecked")
-        List<Place> items = (List<Place>) bean.getPlaces();
-        for (Place item : items) {
-            item.setId(null);
-        }
-        return items;
-    }
-
-    @Override
-    public List<? extends Agent> getAgents() {
-        @SuppressWarnings("unchecked")
-        List<Agent> items = (List<Agent>) bean.getAgents();
-        for (Agent item : items) {
-            item.setId(null);
-        }
-        return items;
-    }
-
-    @Override
-    public List<? extends Timespan> getTimespans() {
-        @SuppressWarnings("unchecked")
-        List<Timespan> items = (List<Timespan>) bean.getTimespans();
-        for (Timespan item : items) {
-            item.setId(null);
-        }
-        return items;
-    }
-
-    @Override
-    public List<? extends Concept> getConcepts() {
-        @SuppressWarnings("unchecked")
-        List<Concept> items = (List<Concept>) bean.getConcepts();
-        for (Concept item : items) {
-            item.setId(null);
-        }
-        return items;
-    }
-
-    @Override
-    public List<? extends Proxy> getProxies() {
-        @SuppressWarnings("unchecked")
-        List<Proxy> items = (List<Proxy>) bean.getProxies();
-        for (Proxy item : items) {
-            item.setId(null);
-        }
-        return items;
-    }
-
-    @Override
-    public List<? extends Aggregation> getAggregations() {
-        @SuppressWarnings("unchecked")
-        List<Aggregation> items = (List<Aggregation>) bean.getAggregations();
-        for (Aggregation item : items) {
-            item.setId(null);
-            // also remove webresources IDs
-            for (int j = 0, lw = item.getWebResources().size(); j < lw; j++) {
-                item.getWebResources().get(j).setId(null);
+        if (bean.getPlaces() != null) {
+            List<Place> items = (List<Place>) bean.getPlaces();
+            for (Place item : items) {
+                item.setId(null);
             }
+            return items;
         }
-        return items;
-    }
-
-    /**
-     *
-     * @return
-     * @deprecated June 2019 not used anymore
-     */
-    @Deprecated
-    @Override
-    public List<? extends BriefBean> getSimilarItems() {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<? extends Agent> getAgents() {
+        if (bean.getAgents() != null) {
+            List<Agent> items = (List<Agent>) bean.getAgents();
+            for (Agent item : items) {
+                item.setId(null);
+            }
+            return items;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<? extends Timespan> getTimespans() {
+        if (bean.getTimespans() != null) {
+            List<Timespan> items = (List<Timespan>) bean.getTimespans();
+            for (Timespan item : items) {
+                item.setId(null);
+            }
+            return items;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<? extends Concept> getConcepts() {
+        if (bean.getConcepts() != null) {
+            List<Concept> items = (List<Concept>) bean.getConcepts();
+            for (Concept item : items) {
+                item.setId(null);
+            }
+            return items;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<? extends Proxy> getProxies() {
+        if (bean.getProxies() != null) {
+            List<Proxy> items = (List<Proxy>) bean.getProxies();
+            for (Proxy item : items) {
+                item.setId(null);
+            }
+            return items;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<? extends Aggregation> getAggregations() {
+        if (bean.getAggregations() != null) {
+            List<Aggregation> items = (List<Aggregation>) bean.getAggregations();
+            for (Aggregation item : items) {
+                item.setId(null);
+                // also remove webresources IDs
+                for (int j = 0, lw = item.getWebResources().size(); j < lw; j++) {
+                    item.getWebResources().get(j).setId(null);
+                }
+            }
+            return items;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
     public List<? extends ProvidedCHO> getProvidedCHOs() {
-        @SuppressWarnings("unchecked")
-        List<ProvidedCHO> items = (List<ProvidedCHO>) bean.getProvidedCHOs();
-        for (ProvidedCHO item : items) {
-            item.setId(null);
+        if (bean.getProvidedCHOs() != null) {
+            List<ProvidedCHO> items = (List<ProvidedCHO>) bean.getProvidedCHOs();
+            for (ProvidedCHO item : items) {
+                item.setId(null);
+            }
+            return items;
         }
-        return items;
+        return null;
     }
 
     @Override
@@ -147,29 +145,7 @@ public class FullView implements FullBean {
 
     @Override
     public EuropeanaAggregation getEuropeanaAggregation() {
-        EuropeanaAggregation europeanaAggregation = bean.getEuropeanaAggregation();
-        europeanaAggregation.setId(null);
-
-        // to set proper edmPreview we need to change edmPreview original image urls from Corelib into API thumbnail urls
-        String edmPreview = "";
-        // first try edmPreview, else edmObject and else edmIsShownBy
-        if (StringUtils.isNotEmpty(europeanaAggregation.getEdmPreview())) {
-            edmPreview = urlService.getThumbnailUrl(europeanaAggregation.getEdmPreview(), getType());
-            LOG.debug("edmPreview found: {}", europeanaAggregation.getEdmPreview());
-        } else if (StringUtils.isNotEmpty(this.getAggregations().get(0).getEdmObject())) {
-            edmPreview = urlService.getThumbnailUrl(this.getAggregations().get(0).getEdmObject(), getType());
-            LOG.debug("No edmPreview, but edmObject found: {}", this.getAggregations().get(0).getEdmObject());
-        } else if (StringUtils.isNotEmpty(this.getAggregations().get(0).getEdmIsShownBy())) {
-            edmPreview = urlService.getThumbnailUrl(this.getAggregations().get(0).getEdmIsShownBy(), getType());
-            LOG.debug("No edmPreview or edmObject, but edmIsShownBy found: {}", this.getAggregations().get(0).getEdmIsShownBy());
-        } else {
-            LOG.debug("No edmPreview, edmObject or edmIsShownBy found");
-        }
-        europeanaAggregation.setEdmPreview(edmPreview);
-
-        // set proper landingPage
-        europeanaAggregation.setEdmLandingPage(urlService.getRecordPortalUrl(getAbout()));
-        return europeanaAggregation;
+        return bean.getEuropeanaAggregation();
     }
 
     @Override
@@ -193,7 +169,7 @@ public class FullView implements FullBean {
     }
 
     @Override
-    public DocType getType() {
+    public String getType() {
         return bean.getType();
     }
 
@@ -302,17 +278,6 @@ public class FullView implements FullBean {
         // left empty intentionally
     }
 
-    /**
-     *
-     * @return
-     * @deprecated June 2019 not used anymore
-     */
-    @Deprecated
-    @Override
-    public void setSimilarItems(List<? extends BriefBean> similarItems) {
-        // left empty intentionally
-    }
-
     @Override
     public void setEuropeanaAggregation(EuropeanaAggregation europeanaAggregation) {
         // left empty intentionally
@@ -344,7 +309,7 @@ public class FullView implements FullBean {
     }
 
     @Override
-    public void setType(DocType type) {
+    public void setType(String type) {
         // left empty intentionally
     }
 
