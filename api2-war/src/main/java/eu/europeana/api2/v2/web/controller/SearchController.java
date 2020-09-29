@@ -134,12 +134,12 @@ public class SearchController {
                 searchRequest.getQuery(),
                 searchRequest.getQf(),
                 searchRequest.getReusability(),
-                searchRequest.getProfile(),
+                StringUtils.join(searchRequest.getProfile(),","),
                 searchRequest.getStart(),
                 searchRequest.getRows(),
                 searchRequest.getFacet(),
                 searchRequest.getTheme(),
-                searchRequest.getSort(),
+                StringUtils.join(searchRequest.getSort(),","),
                 searchRequest.getColourPalette(),
                 searchRequest.isThumbnail(),
                 searchRequest.isMedia(),
@@ -147,8 +147,8 @@ public class SearchController {
                 searchRequest.isLandingPage(),
                 searchRequest.getCursor(),
                 searchRequest.getCallback(),
-                searchRequest.getHitFl(),
-                searchRequest.getHitSelectors(),
+                searchRequest.getHit().getFl(),
+                searchRequest.getHit().getSelectors(),
                 request, response);
     }
 
@@ -168,7 +168,7 @@ public class SearchController {
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
             @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
-            @SolrEscape @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
+            @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
             @RequestParam(value = "theme", required = false) String theme,
             @RequestParam(value = "sort", required = false) String sort,
             @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
@@ -968,5 +968,10 @@ public class SearchController {
     private String getIdFromQueryTerms(String queryTerms) {
         return queryTerms.substring(queryTerms.indexOf(':'), queryTerms.indexOf('*')).replaceAll(
                 "\\D+", "");
+    }
+
+    public static void main(String args[]) {
+        String [] profiles = {"amit", "rahul", "surya"};
+        System.out.println(StringUtils.join(profiles,","));
     }
 }
