@@ -2,11 +2,9 @@ package eu.europeana.api2.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.SolrEscapeDeserializer;
+import io.swagger.annotations.ApiModelProperty;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
@@ -21,20 +19,22 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
  */
 @JsonInclude(NON_EMPTY)
 public class SearchRequest {
+
+    @ApiModelProperty(required = true)
     @JsonDeserialize(using = SolrEscapeDeserializer.class)
     private String query;
 
     private String[] qf;
     private String[] reusability;
-    private String profile = "standard";
+    private String[] profile = {"standard"};
     private int start = 1;
     private int rows = 12;
 
-    @JsonDeserialize(using = SolrEscapeDeserializer.class)
+    // TODO find out way to achieve Sanitization with @SolrEscape for String []
     private String[] facet;
 
     private String theme;
-    private String sort;
+    private String[] sort;
     private String[] colourPalette;
     private Boolean thumbnail;
     private Boolean media;
@@ -42,11 +42,7 @@ public class SearchRequest {
     private Boolean landingPage;
     private String cursor;
     private String callback;
-
-    @JsonDeserialize(using = SolrEscapeDeserializer.class)
-    private String hitFl;
-
-    private String hitSelectors;
+    private Hit hit = new Hit();
 
     public String getQuery() {
         return query;
@@ -72,11 +68,11 @@ public class SearchRequest {
         this.reusability = reusability;
     }
 
-    public String getProfile() {
+    public String[] getProfile() {
         return profile;
     }
 
-    public void setProfile(String profile) {
+    public void setProfile(String[] profile) {
         this.profile = profile;
     }
 
@@ -112,11 +108,11 @@ public class SearchRequest {
         this.theme = theme;
     }
 
-    public String getSort() {
+    public String[] getSort() {
         return sort;
     }
 
-    public void setSort(String sort) {
+    public void setSort(String[] sort) {
         this.sort = sort;
     }
 
@@ -176,20 +172,11 @@ public class SearchRequest {
         this.callback = callback;
     }
 
-    public String getHitFl() {
-        return hitFl;
+    public Hit getHit() {
+        return hit;
     }
 
-    public void setHitFl(String hitFl) {
-        this.hitFl = hitFl;
+    public void setHit(Hit hit) {
+        this.hit = hit;
     }
-
-    public String getHitSelectors() {
-        return hitSelectors;
-    }
-
-    public void setHitSelectors(String hitSelectors) {
-        this.hitSelectors = hitSelectors;
-    }
-
 }
