@@ -1,16 +1,16 @@
 package eu.europeana.api2.config;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import static eu.europeana.corelib.utils.ConfigUtils.containsKeyPrefix;
 
 /**
  * Loads configuration settings mapping request routes to data sources.
@@ -19,9 +19,8 @@ import java.util.Properties;
 @Configuration
 public class RouteConfigLoader {
 
-    private final Logger log = LogManager.getLogger(RouteConfigLoader.class);
-
     private final Map<String, String> routeDataSourceMap = new HashMap<>();
+    private final Map<String, String> routeSolrMap = new HashMap<>();
     private static final String SEPARATOR = ".";
 
     /**
@@ -46,11 +45,15 @@ public class RouteConfigLoader {
 
             String routePath = properties.getProperty(basePath + "path");
             String dataSourceId = properties.getProperty(basePath + "data-source");
+            String solrId = properties.getProperty(basePath + "solr");
 
-            if (StringUtils.isEmpty(routePath) || StringUtils.isEmpty(dataSourceId)) {
-                log.warn("Empty route mapping found. Check that all routes in .properties file are mapped to a data source. Property prefix = {}", basePath);
+            if (StringUtils.isAnyBlank(routePath, dataSourceId, solrId)) {
+                throw new IllegalStateException(
+                        String.format("Empty route mapping found in config - route:%s, data-source:%s, solr:%s, config prop:%s",
+                                routePath, dataSourceId, solrId, basePath));
             }
             routeDataSourceMap.put(routePath, dataSourceId);
+            routeSolrMap.put(routePath, solrId);
             routeNo++;
         }
 
@@ -65,15 +68,9 @@ public class RouteConfigLoader {
     }
 
     /**
-     * Checks if a key with the given prefix is contained within a Properties object.
-     *
-     * @param properties Properties object
-     * @param keyPrefix  key prefix to check for
-     * @return true if prefix is contained within properties object, false otherwise.
+     * Gets route-to-solr map
      */
-    private boolean containsKeyPrefix(Properties properties, String keyPrefix) {
-        return properties.keySet().stream().anyMatch(k
-                -> k.toString().startsWith(keyPrefix)
-        );
+    public Map<String, String> getRouteSolrMap() {
+        return routeSolrMap;
     }
 }

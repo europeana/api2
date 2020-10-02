@@ -15,8 +15,11 @@ public class RouteConfigLoaderTest {
 
         props.setProperty("route1.path", "test.1.com");
         props.setProperty("route1.data-source", "dataSource1");
+        props.setProperty("route1.solr", "solr-id-1");
+
         props.setProperty("route2.path", "test.2.com");
         props.setProperty("route2.data-source", "dataSource2");
+        props.setProperty("route2.solr", "solr-id-2");
 
         RouteConfigLoader configLoader = new RouteConfigLoader(props);
         configLoader.loadRouteConfig();
