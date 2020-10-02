@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.Optional;
 
@@ -22,6 +23,8 @@ public class RouteDataService {
     @Autowired
     private RecordServerBeanConfig recordServerConfig;
 
+    private static final Logger LOG = LogManager.getLogger(RouteDataService.class);
+
     public RouteDataService() {
     }
 
@@ -31,7 +34,24 @@ public class RouteDataService {
         this.recordServerConfig = recordServerConfig;
     }
 
-    private static final Logger LOG = LogManager.getLogger(RouteDataService.class);
+    @PostConstruct
+    void validateRouteConfig() {
+        String route, dsId;
+        boolean isConfigValid = true;
+        for (Map.Entry<String, String> dsMap : routeConfig.getRouteDataSourceMap().entrySet()) {
+            route = dsMap.getKey();
+            dsId = dsMap.getValue();
+            if (recordServerConfig.getDataSourceById(dsId).isEmpty()) {
+                LOG.error("Invalid data source configured for route {}: no data source found with id {}", route, dsId);
+                isConfigValid = false;
+            }
+        }
+
+        if (!isConfigValid) {
+            throw new IllegalStateException("Invalid route configuration");
+        }
+    }
+
 
     /**
      * Gets data source to be used in handling request, based on the top-level request route

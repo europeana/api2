@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
-// Mock out relevant dependencies instead of loading Spring context
+// Mock out relevant dependencies instead of dealing with Spring context
 @RunWith(MockitoJUnitRunner.class)
 public class RouteDataServiceTest {
 
@@ -34,18 +34,28 @@ public class RouteDataServiceTest {
     private final DataSourceWrapper ds1 = new DataSourceWrapper();
     private final DataSourceWrapper ds2 = new DataSourceWrapper();
 
+    private Map<String, String> routeDataSourceMapping;
+
     @Before
     public void setUp() throws Exception {
-        Map<String, String> routeDataSourceMapping = new HashMap<>();
+        routeDataSourceMapping = new HashMap<>();
         routeDataSourceMapping.put("localhost", "ds-1");
         routeDataSourceMapping.put("api-acceptance", "ds-2");
-
 
         when(routeConfig.getRouteDataSourceMap()).thenReturn(routeDataSourceMapping);
         when(recordServerConfig.getDataSourceById(eq("ds-1"))).thenReturn(Optional.of(ds1));
         when(recordServerConfig.getDataSourceById(eq("ds-2"))).thenReturn(Optional.of(ds2));
 
         routeService = new RouteDataService(routeConfig, recordServerConfig);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowOnInvalidRouteConfig() {
+        // un-configured datasource in mapping
+        routeDataSourceMapping.put("test-route", "invalid-data-source");
+        when(recordServerConfig.getDataSourceById(eq("invalid-data-source"))).thenReturn(Optional.empty());
+
+        routeService.validateRouteConfig();
     }
 
     @Test
