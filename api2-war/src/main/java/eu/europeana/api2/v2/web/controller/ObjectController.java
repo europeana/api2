@@ -18,7 +18,7 @@ import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.mongo.server.EdmMongoServer;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
-import eu.europeana.corelib.record.config.RecordServerBeanConfig;
+import eu.europeana.corelib.record.config.RecordServerConfig;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
@@ -118,7 +118,7 @@ public class ObjectController {
      * @param recordServerConfig
      */
     @Autowired
-    public ObjectController(RecordService recordService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils, RecordServerBeanConfig recordServerConfig) {
+    public ObjectController(RecordService recordService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils, RecordServerConfig recordServerConfig) {
         this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;
         this.httpCacheUtils = httpCacheUtils;

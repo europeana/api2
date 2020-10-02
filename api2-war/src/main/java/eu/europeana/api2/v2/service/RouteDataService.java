@@ -2,7 +2,7 @@ package eu.europeana.api2.v2.service;
 
 import eu.europeana.api2.config.RouteConfigLoader;
 import eu.europeana.corelib.record.DataSourceWrapper;
-import eu.europeana.corelib.record.config.RecordServerBeanConfig;
+import eu.europeana.corelib.record.config.RecordServerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ public class RouteDataService {
     private RouteConfigLoader routeConfig;
 
     @Autowired
-    private RecordServerBeanConfig recordServerConfig;
+    private RecordServerConfig recordServerConfig;
 
     private static final Logger LOG = LogManager.getLogger(RouteDataService.class);
 
@@ -29,7 +29,7 @@ public class RouteDataService {
     }
 
     @Autowired
-    public RouteDataService(RouteConfigLoader routeConfig, RecordServerBeanConfig recordServerConfig) {
+    public RouteDataService(RouteConfigLoader routeConfig, RecordServerConfig recordServerConfig) {
         this.routeConfig = routeConfig;
         this.recordServerConfig = recordServerConfig;
     }

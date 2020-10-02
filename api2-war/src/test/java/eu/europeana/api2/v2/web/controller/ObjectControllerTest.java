@@ -3,7 +3,7 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.corelib.record.RecordService;
-import eu.europeana.corelib.record.config.RecordServerBeanConfig;
+import eu.europeana.corelib.record.config.RecordServerConfig;
 import org.junit.Before;
 
 import static org.mockito.Mockito.*;
@@ -25,7 +25,7 @@ public class ObjectControllerTest {
     private static HttpCacheUtils httpCacheUtils;
 
     private static MockMvc objectControllerMock;
-    private RecordServerBeanConfig recordServerConfig;
+    private RecordServerConfig recordServerConfig;
 
     @Before
     public void setup() throws Exception {
@@ -33,7 +33,7 @@ public class ObjectControllerTest {
         recordService = mock(RecordService.class);
         apiKeyUtils = mock(ApiKeyUtils.class);
         httpCacheUtils = mock(HttpCacheUtils.class);
-        recordServerConfig = mock(RecordServerBeanConfig.class);
+        recordServerConfig = mock(RecordServerConfig.class);
 
         objectController = spy(new ObjectController(recordService, apiKeyUtils, httpCacheUtils,recordServerConfig));
 

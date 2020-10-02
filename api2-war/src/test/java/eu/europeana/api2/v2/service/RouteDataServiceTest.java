@@ -2,7 +2,7 @@ package eu.europeana.api2.v2.service;
 
 import eu.europeana.api2.config.RouteConfigLoader;
 import eu.europeana.corelib.record.DataSourceWrapper;
-import eu.europeana.corelib.record.config.RecordServerBeanConfig;
+import eu.europeana.corelib.record.config.RecordServerConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +29,7 @@ public class RouteDataServiceTest {
 
 
     @Mock
-    private RecordServerBeanConfig recordServerConfig;
+    private RecordServerConfig recordServerConfig;
 
     private final DataSourceWrapper ds1 = new DataSourceWrapper();
     private final DataSourceWrapper ds2 = new DataSourceWrapper();
