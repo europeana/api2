@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -56,21 +57,19 @@ public class RouteConfigLoader {
             routeSolrMap.put(routePath, solrId);
             routeNo++;
         }
-
-
     }
 
     /**
      * Gets route-to-dataSource map
      */
     public Map<String, String> getRouteDataSourceMap() {
-        return routeDataSourceMap;
+        return Collections.unmodifiableMap(routeDataSourceMap);
     }
 
     /**
      * Gets route-to-solr map
      */
     public Map<String, String> getRouteSolrMap() {
-        return routeSolrMap;
+        return Collections.unmodifiableMap(routeSolrMap);
     }
 }

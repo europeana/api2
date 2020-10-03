@@ -3,7 +3,7 @@ package eu.europeana.api2.v2.service;
 import eu.europeana.api2.config.RouteConfigLoader;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.config.RecordServerConfig;
-import eu.europeana.corelib.search.config.SearchServerBeanConfig;
+import eu.europeana.corelib.search.config.SearchServerConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -26,7 +26,7 @@ public class RouteDataService {
     private RecordServerConfig recordServerConfig;
 
     @Autowired
-    private SearchServerBeanConfig searchServerConfig;
+    private SearchServerConfig searchServerConfig;
 
     private static final Logger LOG = LogManager.getLogger(RouteDataService.class);
 
@@ -34,7 +34,7 @@ public class RouteDataService {
     }
 
     @Autowired
-    public RouteDataService(RouteConfigLoader routeConfig, RecordServerConfig recordServerConfig, SearchServerBeanConfig searchServerConfig) {
+    public RouteDataService(RouteConfigLoader routeConfig, RecordServerConfig recordServerConfig, SearchServerConfig searchServerConfig) {
         this.routeConfig = routeConfig;
         this.recordServerConfig = recordServerConfig;
         this.searchServerConfig = searchServerConfig;
@@ -126,7 +126,7 @@ public class RouteDataService {
         // exact matching
         String result = routeConfig.getRouteSolrMap().get(topLevelName);
         if (result != null) {
-            LOG.debug("Route {} - found exact data source match", topLevelName);
+            LOG.debug("Route {} - found exact Solr match", topLevelName);
             return Optional.of(result);
         }
 
