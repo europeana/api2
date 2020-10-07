@@ -42,12 +42,15 @@ public class RouteDataService {
 
     @PostConstruct
     void validateRouteConfig() {
-        String route, dsId;
+        String route;
+        String dsId;
         boolean isConfigValid = true;
         for (Map.Entry<String, String> dsMap : routeConfig.getRouteDataSourceMap().entrySet()) {
             route = dsMap.getKey();
             dsId = dsMap.getValue();
-            if (recordServerConfig.getDataSourceById(dsId).isEmpty()) {
+            if (recordServerConfig.getDataSourceById(dsId).isPresent()) {
+                LOG.info("Route {} - data source id {} configured", route, dsId);
+            } else {
                 LOG.error("Invalid data source configured for route {}: no data source found with id {}", route, dsId);
                 isConfigValid = false;
             }
@@ -58,14 +61,13 @@ public class RouteDataService {
             route = solrMap.getKey();
             solrId = solrMap.getValue();
 
-            if (searchServerConfig.getSolrClientById(solrId).isEmpty()) {
+            if (searchServerConfig.getSolrClientById(solrId).isPresent()) {
+                LOG.info("Route {} - solr client id {} configured", route, solrId);
+            } else {
                 LOG.error("Invalid solr config for route {}: no solr client with id {}", route, solrId);
                 isConfigValid = false;
             }
         }
-        ;
-
-
         if (!isConfigValid) {
             throw new IllegalStateException("Invalid route configuration");
         }
