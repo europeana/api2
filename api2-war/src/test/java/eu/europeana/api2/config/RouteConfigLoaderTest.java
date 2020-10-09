@@ -1,17 +1,24 @@
 package eu.europeana.api2.config;
 
+import eu.europeana.corelib.record.BaseUrlWrapper;
 import org.junit.Test;
 
 import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class RouteConfigLoaderTest {
 
+
+    private final String PORTAL_TEST_URL = "http://portal-url";
+    private final String GATEWAY_TEST_URL = "http://gateway-url";
+    private final String API_TEST_URL = "http://api-url";
+
     @Test
     public void shouldLoadConfigCorrectly() {
-        Properties props = new Properties();
+        Properties props = setBaseUrls();
 
         props.setProperty("route1.path", "test.1.com");
         props.setProperty("route1.data-source", "dataSource1");
@@ -29,5 +36,75 @@ public class RouteConfigLoaderTest {
         assertEquals(2, map.size());
         assertEquals("dataSource1", map.get("test.1.com"));
         assertEquals("dataSource2", map.get("test.2.com"));
+    }
+
+
+    @Test
+    public void shouldLoadDefaultBaseUrls() {
+        Properties props = setBaseUrls();
+        String routePath = configureRoute(props);
+
+        RouteConfigLoader configLoader = new RouteConfigLoader(props);
+        configLoader.loadRouteConfig();
+
+        BaseUrlWrapper urls = configLoader.getRouteBaseUrlMap().get(routePath);
+        assertEquals(PORTAL_TEST_URL, urls.getPortalBaseUrl());
+        assertEquals(GATEWAY_TEST_URL, urls.getApiGatewayBaseUrl());
+        assertEquals(API_TEST_URL, urls.getApi2BaseUrl());
+    }
+
+
+    @Test
+    public void shouldLoadBaseUrlOverrides() {
+        Properties props = setBaseUrls();
+        String routePath = configureRoute(props);
+
+        String portalBaseUrl = "http://portal-route-override";
+        String gatewayBaseUrl = "http://gateway-route-override";
+        String apiBaseUrl = "http://api-route-override";
+
+        props.setProperty("route1.portal.baseUrl", portalBaseUrl);
+        props.setProperty("route1.apiGateway.baseUrl", gatewayBaseUrl);
+        props.setProperty("route1.api2.baseUrl", apiBaseUrl);
+
+        RouteConfigLoader configLoader = new RouteConfigLoader(props);
+        configLoader.loadRouteConfig();
+
+        BaseUrlWrapper urls = configLoader.getRouteBaseUrlMap().get(routePath);
+        assertEquals(portalBaseUrl, urls.getPortalBaseUrl());
+        assertEquals(gatewayBaseUrl, urls.getApiGatewayBaseUrl());
+        assertEquals(apiBaseUrl, urls.getApi2BaseUrl());
+    }
+
+    @Test
+    public void shouldReturnEmptyBaseUrlsIfNoneConfigured() {
+        // no baseURl props set
+        Properties props = new Properties();
+        String routePath = configureRoute(props);
+
+        RouteConfigLoader configLoader = new RouteConfigLoader(props);
+        configLoader.loadRouteConfig();
+
+        BaseUrlWrapper urls = configLoader.getRouteBaseUrlMap().get(routePath);
+        assertTrue(urls.getPortalBaseUrl().isEmpty());
+        assertTrue(urls.getApiGatewayBaseUrl().isEmpty());
+        assertTrue(urls.getApi2BaseUrl().isEmpty());
+    }
+
+    private Properties setBaseUrls() {
+        Properties props = new Properties();
+        props.setProperty("portal.baseUrl", PORTAL_TEST_URL);
+        props.setProperty("apiGateway.baseUrl", GATEWAY_TEST_URL);
+        props.setProperty("api2.baseUrl", API_TEST_URL);
+        return props;
+    }
+
+
+    private String configureRoute(Properties props) {
+        String routePath = "test.1.com";
+        props.setProperty("route1.path", routePath);
+        props.setProperty("route1.data-source", "dataSource1");
+        props.setProperty("route1.solr", "solr-id-1");
+        return routePath;
     }
 }
