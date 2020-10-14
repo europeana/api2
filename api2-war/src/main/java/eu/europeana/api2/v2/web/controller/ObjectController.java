@@ -16,6 +16,7 @@ import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.mongo.server.EdmMongoServer;
+import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
 import eu.europeana.corelib.record.config.RecordServerConfig;
@@ -296,6 +297,7 @@ public class ObjectController {
 
         apiKeyUtils.validateApiKey(data.wskey);
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
+        BaseUrlWrapper urls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
 
         if (dataSource.isEmpty() || dataSource.get().getRecordServer().isEmpty()) {
             LOG.warn("Error while retrieving record id {}, type= {}. No record server configured for route {}", data.europeanaId, recordType, data.servletRequest.getServerName());
@@ -358,8 +360,9 @@ public class ObjectController {
 
         // cannot be null here, as method has already checked for record server
         EdmMongoServer recordServer = dataSource.get().getRecordServer().get();
+
         // now the FullBean can be processed further (adding webresource meta info, set proper urls)
-        bean = recordService.enrichFullBean(recordServer, bean);
+        bean = recordService.enrichFullBean(recordServer, bean, urls);
 
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);

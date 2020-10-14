@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.service;
 
 import eu.europeana.api2.config.RouteConfigLoader;
+import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.config.RecordServerConfig;
 import eu.europeana.corelib.search.config.SearchServerConfig;
@@ -40,8 +41,12 @@ public class RouteDataServiceTest {
     private final SolrClient solrClient1 = mock(SolrClient.class);
     private final SolrClient solrClient2 = mock(SolrClient.class);
 
+    private final BaseUrlWrapper localhostBaseUrls = new BaseUrlWrapper("api-url-1", "gateway-url-1", "portal-url-1");
+    private final BaseUrlWrapper apiAcceptanceBaseUrls = new BaseUrlWrapper("api-url-2", "gateway-url-2", "portal-url-2");
+
     private Map<String, String> mongoRouteMapping;
     private Map<String, String> solrRouteMapping;
+    private Map<String, BaseUrlWrapper> baseUrlMapping;
 
 
     @Before
@@ -54,6 +59,10 @@ public class RouteDataServiceTest {
         solrRouteMapping.put("localhost", "solr-client-1");
         solrRouteMapping.put("api-acceptance", "solr-client-2");
 
+        baseUrlMapping = new HashMap<>();
+        baseUrlMapping.put("localhost", localhostBaseUrls);
+        baseUrlMapping.put("api-acceptance", apiAcceptanceBaseUrls);
+
         when(routeConfig.getRouteDataSourceMap()).thenReturn(mongoRouteMapping);
         when(recordServerConfig.getDataSourceById(eq("ds-1"))).thenReturn(Optional.of(ds1));
         when(recordServerConfig.getDataSourceById(eq("ds-2"))).thenReturn(Optional.of(ds2));
@@ -61,6 +70,8 @@ public class RouteDataServiceTest {
         when(routeConfig.getRouteSolrMap()).thenReturn(solrRouteMapping);
         when(searchServerConfig.getSolrClientById(eq("solr-client-1"))).thenReturn(Optional.of(solrClient1));
         when(searchServerConfig.getSolrClientById(eq("solr-client-2"))).thenReturn(Optional.of(solrClient2));
+
+        when(routeConfig.getRouteBaseUrlMap()).thenReturn(baseUrlMapping);
 
         routeService = new RouteDataService(routeConfig, recordServerConfig, searchServerConfig);
     }
@@ -101,5 +112,17 @@ public class RouteDataServiceTest {
         Optional<SolrClient> result = routeService.getSolrClientForRequest("search-api-acceptance.eanadev.org");
         assertTrue(result.isPresent());
         assertEquals(solrClient2, result.get());
+    }
+
+    @Test
+    public void shouldMatchFullPathForBaseUrls() {
+        BaseUrlWrapper url = routeService.getBaseUrlsForRequest("localhost");
+        assertEquals(localhostBaseUrls, url);
+    }
+
+    @Test
+    public void shouldMatchPartialPathForBaseUrls() {
+        BaseUrlWrapper url = routeService.getBaseUrlsForRequest("search-api-acceptance.eanadev.org");
+        assertEquals(apiAcceptanceBaseUrls, url);
     }
 }
