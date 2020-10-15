@@ -23,6 +23,7 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
+import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
@@ -57,7 +58,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -112,6 +115,9 @@ public class SearchController {
 
     @Resource
     private ApiKeyUtils apiKeyUtils;
+
+    @Autowired
+    private RouteDataService routeService;
 
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
@@ -358,7 +364,7 @@ public class SearchController {
               ArrayUtils.contains(solrFacets, "DEFAULT")
             ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
 
-        SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz);
+        SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz, request.getServerName());
         if (StringUtils.containsIgnoreCase(profile, "params")) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
@@ -654,14 +660,17 @@ public class SearchController {
             String apiKey,
             String profile,
             Query query,
-            Class<T> clazz)
+            Class<T> clazz, String requestRoute)
             throws EuropeanaException {
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
+
+        SolrClient solrClient = getSolrClient(requestRoute);
+
         if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
-            resultSet = searchService.search(clazz, query, true);
+            resultSet = searchService.search(solrClient, clazz, query, true);
         } else {
-            resultSet = searchService.search(clazz, query);
+            resultSet = searchService.search(solrClient, clazz, query);
         }
         response.totalResults = resultSet.getResultSize();
         if ( StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) &&
@@ -744,6 +753,7 @@ public class SearchController {
             HttpServletResponse response) throws EuropeanaException {
 
         apiKeyUtils.validateApiKey(apikey);
+        SolrClient solrClient = getSolrClient(request.getServerName());
 
         String[] _qf = request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinementArray.length) {
@@ -754,12 +764,28 @@ public class SearchController {
                 new Query(SearchUtils.rewriteQueryFields(queryString)).setRefinements(refinementArray)
                         .setApiQuery(true).setSpellcheckAllowed(false).setFacetsAllowed(false);
         query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
-        ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
+        ResultSet<BriefBean> resultSet = searchService.search(solrClient, BriefBean.class, query);
         kmlResponse.document.extendedData.totalResults.value =
                 Long.toString(resultSet.getResultSize());
         kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
         kmlResponse.setItems(resultSet.getResults());
         return kmlResponse;
+    }
+
+    /**
+     * Gets Solr client to use for request
+     * @param route request route
+     * @return Solr client
+     * @throws SolrQueryException if no SolrClient is configured for route
+     */
+    private SolrClient getSolrClient(String route) throws SolrQueryException {
+        Optional<SolrClient> solrClient = routeService.getSolrClientForRequest(route);
+        if (solrClient.isEmpty()) {
+            LOG.warn("Error: no Solr client configured for route {}", route);
+            throw new SolrQueryException(ProblemType.CANT_CONNECT_SOLR);
+        }
+
+        return solrClient.get();
     }
 
     /**
@@ -782,6 +808,7 @@ public class SearchController {
             @SolrEscape @RequestParam(value = "searchTerms") String queryString,
             @RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
             @RequestParam(value = "count", required = false, defaultValue = "12") int count,
+            HttpServletRequest request,
             HttpServletResponse response)  throws EuropeanaException {
 
         if (LOG.isDebugEnabled()) {
@@ -796,10 +823,11 @@ public class SearchController {
         channel.query.searchTerms = queryString;
         channel.query.startPage = start;
 
+        SolrClient solrClient = getSolrClient(request.getServerName());
         Query query = new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true)
                 .setPageSize(count).setStart(start - 1).setFacetsAllowed(false)
                 .setSpellcheckAllowed(false);
-        ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
+        ResultSet<BriefBean> resultSet = searchService.search(solrClient,BriefBean.class, query);
         channel.totalResults.value = resultSet.getResultSize();
         for (BriefBean bean : resultSet.getResults()) {
             Item item = new Item();
@@ -844,6 +872,7 @@ public class SearchController {
             @RequestParam(value = "limit", required = false, defaultValue = "12") int limit,
             @RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
             @RequestParam(value = "language", required = false) String reqLanguage,
+            HttpServletRequest request,
             HttpServletResponse response) {
         ControllerUtils.addResponseHeaders(response);
 
@@ -892,10 +921,12 @@ public class SearchController {
             if (StringUtils.equals(profile, "FieldTrip")) {
                 offset++;
             }
+
             try {
                 Query query = new Query(SearchUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
                         .setStart(offset - 1).setFacetsAllowed(false).setSpellcheckAllowed(false);
-                ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
+                SolrClient client = getSolrClient(request.getServerName());
+                ResultSet<RichBean> resultSet = searchService.search(client, RichBean.class, query);
                 for (RichBean bean : resultSet.getResults()) {
                     if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
                         channel.items.add(fieldTripUtils.createItem(bean));

@@ -1,6 +1,7 @@
 package eu.europeana.api2.config;
 
 import eu.europeana.api2.model.utils.Api2UrlService;
+import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,8 +34,6 @@ import java.util.Arrays;
 @Configuration
 @ImportResource({
         "classpath:corelib-db-context.xml",
-        "classpath:corelib-mongo-context.xml",
-        "classpath:corelib-solr-context.xml",
         "classpath:corelib-utils-context.xml",
         "classpath:corelib-web-context.xml",
 })
@@ -246,5 +245,13 @@ public class AppConfig {
         return urlService;
     }
 
+    @Bean
+    public RouteConfigLoader routeConfigLoader(){
+        return new RouteConfigLoader();
+    }
 
+    @Bean
+    public RouteDataService routeService(){
+        return new RouteDataService();
+    }
 }

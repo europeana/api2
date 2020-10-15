@@ -6,6 +6,7 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.TurtleRecordWriter;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
+import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
@@ -14,7 +15,11 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
+import eu.europeana.corelib.mongo.server.EdmMongoServer;
+import eu.europeana.corelib.record.BaseUrlWrapper;
+import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
+import eu.europeana.corelib.record.config.RecordServerConfig;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
@@ -23,8 +28,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -35,6 +38,8 @@ import org.apache.jena.riot.WriterDatasetRIOT;
 import org.apache.jena.riot.system.PrefixMap;
 import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -48,10 +53,14 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
@@ -83,6 +92,9 @@ public class ObjectController {
     @Resource
     private Api2UrlService urlService;
 
+    @Autowired
+    private RouteDataService routeService;
+
     /**
      * Create a static Object for JSONLD Context. This will read the file once during initialization
      *
@@ -101,13 +113,13 @@ public class ObjectController {
 
     /**
      * Create a new ObjectController
-     *
-     * @param recordService
+     *  @param recordService
      * @param apiKeyUtils
      * @param httpCacheUtils
+     * @param recordServerConfig
      */
     @Autowired
-    public ObjectController(RecordService recordService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
+    public ObjectController(RecordService recordService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils, RecordServerConfig recordServerConfig) {
         this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;
         this.httpCacheUtils = httpCacheUtils;
@@ -284,8 +296,16 @@ public class ObjectController {
         }
 
         apiKeyUtils.validateApiKey(data.wskey);
+        Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
+        BaseUrlWrapper urls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
 
-        FullBean bean = recordService.fetchFullBean(data.europeanaId, true);
+        if (dataSource.isEmpty() || dataSource.get().getRecordServer().isEmpty()) {
+            LOG.warn("Error while retrieving record id {}, type= {}. No record server configured for route {}", data.europeanaId, recordType, data.servletRequest.getServerName());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return JsonUtils.toJson(new ApiError(data.wskey, "Server configuration error"));
+        }
+
+        FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true);
 
         // 3) Check if record exists, HTTP 404 if not
         if (Objects.isNull(bean)) {
@@ -338,8 +358,11 @@ public class ObjectController {
             return null;
         }
 
+        // cannot be null here, as method has already checked for record server
+        EdmMongoServer recordServer = dataSource.get().getRecordServer().get();
+
         // now the FullBean can be processed further (adding webresource meta info, set proper urls)
-        bean = recordService.enrichFullBean(bean);
+        bean = recordService.enrichFullBean(recordServer, bean, urls);
 
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
