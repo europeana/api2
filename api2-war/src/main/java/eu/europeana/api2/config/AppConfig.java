@@ -237,11 +237,12 @@ public class AppConfig {
      */
     @Bean
     public Api2UrlService api2UrlService() {
-        Api2UrlService urlService = new Api2UrlService(portalBaseUrl, api2BaseUrl, apikeyValidateUrl, apiGatewayBaseUrl);
-        LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl());
-        LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl());
+        Api2UrlService urlService = new Api2UrlService(routeConfigLoader().getRouteBaseUrlMap(), apikeyValidateUrl);
+        // log default baseUrls used for requests without a matching route in the config
+        LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl(""));
+        LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl(""));
         LogManager.getLogger(Api2UrlService.class).info("Apikey validate url = {}", urlService.getApikeyValidateUrl());
-        LogManager.getLogger(Api2UrlService.class).info("Api gateway base url = {}", urlService.getApiGatewayBaseUrl());
+        LogManager.getLogger(Api2UrlService.class).info("Api gateway base url = {}", urlService.getApiGatewayBaseUrl(""));
         return urlService;
     }
 

@@ -29,12 +29,14 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     protected String profile;
     protected String wskey;
     protected BriefBean bean;
+    protected String requestRoute;
     private String[] thumbnails;
 
-    public BriefView(BriefBean bean, String profile, String wskey) {
+    public BriefView(BriefBean bean, String profile, String wskey, String requestRoute) {
         this.bean = bean;
         this.profile = profile;
         this.wskey = wskey;
+        this.requestRoute = requestRoute;
         urlService = Api2UrlService.getBeanInstance();
     }
 
@@ -304,18 +306,18 @@ public class BriefView extends IdBeanImpl implements BriefBean {
             /// first try to generate from edmPreview
             String preview = getFirstNonEmptyString(bean.getEdmPreview());
             if (StringUtils.isNotEmpty(preview)) {
-                thumbs.add(urlService.getThumbnailUrl(preview, getType()));
+                thumbs.add(urlService.getThumbnailUrl(requestRoute, preview, getType()));
                 LOG.debug("edmPreview {}, result = {}",  preview, thumbs.get(0));
             } else {
                 // second try edmObject
                 String object = getFirstNonEmptyString(bean.getEdmObject());
                 if (StringUtils.isNotEmpty(object)) {
-                    thumbs.add(urlService.getThumbnailUrl(object, getType()));
+                    thumbs.add(urlService.getThumbnailUrl(requestRoute, object, getType()));
                     LOG.debug("edmObject {}, result = {}",  object, thumbs.get(0));
                 } else {
                     String isShownBy = getFirstNonEmptyString(bean.getEdmIsShownBy());
                     if (StringUtils.isNotEmpty(isShownBy)) {
-                        thumbs.add(urlService.getThumbnailUrl(isShownBy, getType()));
+                        thumbs.add(urlService.getThumbnailUrl(requestRoute, isShownBy, getType()));
                         LOG.debug("edmIsShownBy {}, result = {}",  isShownBy, thumbs.get(0));
                     }
                 }
@@ -338,13 +340,13 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     public String getLink() {
-        return urlService.getRecordApi2Url(getId(), wskey);
+        return urlService.getRecordApi2Url(requestRoute, getId(), wskey);
     }
 
     /* January 2018: method potentially deprecated!?
        GUID is a field that was introduced years ago, but there isn't any documentation on it. It's unclear if it's still used */
     public String getGuid() {
-        return LinkUtils.addCampaignCodes(urlService.getRecordPortalUrl(getId()), wskey);
+        return LinkUtils.addCampaignCodes(urlService.getRecordPortalUrl(requestRoute, getId()), wskey);
     }
 
     @Override
