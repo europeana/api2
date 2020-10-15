@@ -24,13 +24,19 @@ public class Api2UrlService {
 
     public static final String API_BASEURL  = "https://api.europeana.eu";
 
+    private String portalBaseUrl;
     private final String apikeyValidateUrl;
+    private String api2BaseUrl;
+    private String apiGatewayBaseUrl;
 
     private final Map<String, BaseUrlWrapper> routeBaseUrlMap;
 
-    public Api2UrlService(Map<String, BaseUrlWrapper> routeBaseUrlMap, String apikeyValidateUrl) {
+    public Api2UrlService(Map<String, BaseUrlWrapper> routeBaseUrlMap, String portalBaseUrl, String api2BaseUrl, String apikeyValidateUrl, String apiGatewayBaseUrl) {
         this.routeBaseUrlMap = routeBaseUrlMap;
+        this.portalBaseUrl = portalBaseUrl;
         this.apikeyValidateUrl = apikeyValidateUrl;
+        this.api2BaseUrl = api2BaseUrl;
+        this.apiGatewayBaseUrl = apiGatewayBaseUrl;
     }
 
 
@@ -50,10 +56,12 @@ public class Api2UrlService {
         Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Portal BaseUrl");
 
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getPortalBaseUrl())) {
-            return EuropeanaStaticUrl.EUROPEANA_PORTAL_URL;
+            return StringUtils.isNotBlank(portalBaseUrl) ? portalBaseUrl : EuropeanaStaticUrl.EUROPEANA_PORTAL_URL;
         }
         return baseUrls.get().getPortalBaseUrl();
     }
+
+
 
     /**
      * @return either the default or alternative configured base url for the API
@@ -61,7 +69,7 @@ public class Api2UrlService {
     public String getApi2BaseUrl(String route) {
         Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Api2 BaseUrl");
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getApi2BaseUrl())) {
-            return API_BASEURL;
+            return StringUtils.isNotBlank(api2BaseUrl) ? api2BaseUrl : API_BASEURL;
         }
         return baseUrls.get().getApi2BaseUrl();
     }
@@ -89,10 +97,12 @@ public class Api2UrlService {
     public String getApiGatewayBaseUrl(String route) {
         Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Api Gateway BaseUrl");
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getApiGatewayBaseUrl())) {
-            return EuropeanaStaticUrl.API_GATEWAY_URL;
+            return StringUtils.isNotBlank(apiGatewayBaseUrl) ? apiGatewayBaseUrl : EuropeanaStaticUrl.API_GATEWAY_URL;
         }
         return baseUrls.get().getApiGatewayBaseUrl();
     }
+
+
 
     /**
      * Generates an url to retrieve a record from the Europeana website.
