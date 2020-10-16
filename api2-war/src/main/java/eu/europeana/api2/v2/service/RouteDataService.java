@@ -15,6 +15,8 @@ import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.Optional;
 
+import static eu.europeana.api2.model.utils.RouteMatcher.getEntryForRoute;
+
 /**
  * Maps request routes to the configured data sources.
  */
@@ -93,7 +95,7 @@ public class RouteDataService {
      * @return Optional containing data source
      */
     public Optional<DataSourceWrapper> getRecordServerForRequest(String requestRoute) {
-        Optional<String> dataSourceId = getDataMappingForRoute(requestRoute, routeConfig.getRouteDataSourceMap(), "Mongo data source");
+        Optional<String> dataSourceId = getEntryForRoute(requestRoute, routeConfig.getRouteDataSourceMap(), "Mongo data source");
 
         if (dataSourceId.isEmpty()) {
             return Optional.empty();
@@ -109,7 +111,7 @@ public class RouteDataService {
      * @return Optional containing Solr client
      */
     public Optional<SolrClient> getSolrClientForRequest(String requestRoute) {
-        Optional<String> solrId = getDataMappingForRoute(requestRoute, routeConfig.getRouteSolrMap(), "Solr Client");
+        Optional<String> solrId = getEntryForRoute(requestRoute, routeConfig.getRouteSolrMap(), "Solr Client");
 
         if (solrId.isEmpty()) {
             return Optional.empty();
@@ -125,49 +127,13 @@ public class RouteDataService {
      * @return Optional containing Base URL wrapper instance
      */
     public BaseUrlWrapper getBaseUrlsForRequest(String requestRoute) {
-        Optional<BaseUrlWrapper> baseUrl = getDataMappingForRoute(requestRoute, routeConfig.getRouteBaseUrlMap(), "baseUrl");
+        Optional<BaseUrlWrapper> baseUrl = getEntryForRoute(requestRoute, routeConfig.getRouteBaseUrlMap(), "baseUrl");
         if(baseUrl.isEmpty()) {
             // empty baseUrl values handled by corelib
             LOG.warn("No baseUrl configured. Using empty strings as baseUrl values");
             return EMPTY_BASE_URL;
         }
         return baseUrl.get();
-    }
-
-
-    private String getTopLevelName(String route) {
-        int i = route.indexOf('.');
-        if (i >= 0) {
-            return route.substring(0, i);
-        }
-        return route;
-    }
-
-    /**
-     * Finds matching data source for route.
-     * Code reproduced from Thumbnail API
-     */
-    private <T> Optional<T> getDataMappingForRoute(String route, Map<String, T> sourceMap, String type) {
-        // make sure we use only the highest level part for matching and not the FQDN
-        String topLevelName = getTopLevelName(route);
-
-        // exact matching
-        T result = sourceMap.get(topLevelName);
-        if (result != null) {
-            LOG.debug("Route {} - found exact match for {}", topLevelName, type);
-            return Optional.of(result);
-        }
-
-        // fallback 1: try to match with "contains"
-        for (Map.Entry<String, T> entry : sourceMap.entrySet()) {
-            if (topLevelName.contains(entry.getKey())) {
-                LOG.debug("Route {} - matched with {} for {}", topLevelName, entry.getKey(), type);
-                return Optional.ofNullable(entry.getValue());
-            }
-        }
-
-        LOG.warn("Route {} - no configured {} found", topLevelName, type);
-        return Optional.empty();
     }
 }
 

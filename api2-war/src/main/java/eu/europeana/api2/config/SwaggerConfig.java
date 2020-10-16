@@ -32,7 +32,8 @@ public class SwaggerConfig {
 
     private String getApiBaseUrl(){
         return StringUtils.substringAfter(
-                Api2UrlService.getBeanInstance().getApi2BaseUrl(),
+                // empty route argument used to return default values
+                Api2UrlService.getBeanInstance().getApi2BaseUrl(""),
                 "://");
     }
 

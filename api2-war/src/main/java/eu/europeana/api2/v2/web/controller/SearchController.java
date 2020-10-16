@@ -684,11 +684,11 @@ public class SearchController {
         List<T> beans = new ArrayList<>();
         for (T b : resultSet.getResults()) {
             if (b instanceof RichBean) {
-                beans.add((T) new RichView((RichBean) b, profile, apiKey));
+                beans.add((T) new RichView((RichBean) b, profile, apiKey, requestRoute));
             } else if (b instanceof ApiBean) {
-                beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
+                beans.add((T) new ApiView((ApiBean) b, profile, apiKey, requestRoute));
             } else if (b instanceof BriefBean) {
-                beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
+                beans.add((T) new BriefView((BriefBean) b, profile, apiKey, requestRoute));
             }
         }
 
@@ -831,7 +831,7 @@ public class SearchController {
         channel.totalResults.value = resultSet.getResultSize();
         for (BriefBean bean : resultSet.getResults()) {
             Item item = new Item();
-            item.guid = urlService.getRecordPortalUrl(bean.getId());
+            item.guid = urlService.getRecordPortalUrl(request.getServerName(), bean.getId());
             item.title = getTitle(bean);
             item.description = getDescription(bean);
             item.link = item.guid;
@@ -929,7 +929,7 @@ public class SearchController {
                 ResultSet<RichBean> resultSet = searchService.search(client, RichBean.class, query);
                 for (RichBean bean : resultSet.getResults()) {
                     if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
-                        channel.items.add(fieldTripUtils.createItem(bean));
+                        channel.items.add(fieldTripUtils.createItem(request.getServerName(), bean));
                     }
                 }
             } catch (EuropeanaException|MissingResourceException e) {

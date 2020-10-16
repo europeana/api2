@@ -2,10 +2,15 @@ package eu.europeana.api2.model.utils;
 
 import eu.europeana.corelib.definitions.ApplicationContextContainer;
 import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
+import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlBuilder;
 import eu.europeana.corelib.web.utils.UrlBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
+
+import java.util.Map;
+import java.util.Optional;
+
+import static eu.europeana.api2.model.utils.RouteMatcher.getEntryForRoute;
 
 
 /**
@@ -19,10 +24,22 @@ public class Api2UrlService {
 
     public static final String API_BASEURL  = "https://api.europeana.eu";
 
-    private String portalBaseUrl;
-    private String api2BaseUrl;
-    private String apikeyValidateUrl;
-    private String apiGatewayBaseUrl;
+    private final String apikeyValidateUrl;
+
+    private final String defaultPortalBaseUrl;
+    private final String defaultApi2BaseUrl;
+    private final String defaultApiGatewayBaseUrl;
+
+    private final Map<String, BaseUrlWrapper> routeBaseUrlMap;
+
+    public Api2UrlService(Map<String, BaseUrlWrapper> routeBaseUrlMap, String portalBaseUrl, String api2BaseUrl, String apikeyValidateUrl, String apiGatewayBaseUrl) {
+        this.routeBaseUrlMap = routeBaseUrlMap;
+        this.defaultPortalBaseUrl = StringUtils.isNotBlank(portalBaseUrl) ? portalBaseUrl : EuropeanaStaticUrl.EUROPEANA_PORTAL_URL;
+        this.defaultApi2BaseUrl = StringUtils.isNotBlank(api2BaseUrl) ? api2BaseUrl : API_BASEURL;
+        this.apikeyValidateUrl = apikeyValidateUrl;
+        this.defaultApiGatewayBaseUrl = StringUtils.isNotBlank(apiGatewayBaseUrl) ? apiGatewayBaseUrl : EuropeanaStaticUrl.API_GATEWAY_URL;
+    }
+
 
     /**
      * Provides quick access to this class
@@ -32,33 +49,30 @@ public class Api2UrlService {
         return ApplicationContextContainer.getBean(Api2UrlService.class);
     }
 
-    public Api2UrlService(String portalBaseUrl, String api2BaseUrl, String apikeyValidateUrl, String apiGatewayBaseUrl) {
-        LogManager.getLogger(Api2UrlService.class).debug("portalBaseUrl = {}, api2BaseUrl = {}, apikeyServiceUrl = {}, apiGatewayBaseUrl = {}",
-                                                         portalBaseUrl, api2BaseUrl, apikeyValidateUrl, apiGatewayBaseUrl);
-        this.portalBaseUrl     = portalBaseUrl;
-        this.api2BaseUrl       = api2BaseUrl;
-        this.apikeyValidateUrl = apikeyValidateUrl;
-        this.apiGatewayBaseUrl = apiGatewayBaseUrl;
-    }
-
     /**
      * @return either the default or alternative configured base url for the main Europeana website (a.k.a. Portal)
+     * @param route
      */
-    public String getPortalBaseUrl() {
-        if (StringUtils.isEmpty(portalBaseUrl)) {
-            return EuropeanaStaticUrl.EUROPEANA_PORTAL_URL;
+    public String getPortalBaseUrl(String route) {
+        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Portal BaseUrl");
+
+        if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getPortalBaseUrl())) {
+            return defaultPortalBaseUrl;
         }
-        return portalBaseUrl;
+        return baseUrls.get().getPortalBaseUrl();
     }
+
+
 
     /**
      * @return either the default or alternative configured base url for the API
      */
-    public String getApi2BaseUrl() {
-        if (StringUtils.isEmpty(api2BaseUrl)) {
-            return API_BASEURL;
+    public String getApi2BaseUrl(String route) {
+        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Api2 BaseUrl");
+        if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getApi2BaseUrl())) {
+            return defaultApi2BaseUrl;
         }
-        return api2BaseUrl;
+        return baseUrls.get().getApi2BaseUrl();
     }
 
     /**
@@ -74,27 +88,32 @@ public class Api2UrlService {
      * @param itemId
      * @return url as String
      */
-    public String getRecordPortalUrl(String collectionId, String itemId) {
-        return getRecordPortalUrl("/" + collectionId + "/" +itemId);
+    public String getRecordPortalUrl(String route, String collectionId, String itemId) {
+        return getRecordPortalUrl(route, "/" + collectionId + "/" +itemId);
     }
 
     /**
      * @return either the default or alternative configured api gateway url
      */
-    public String getApiGatewayBaseUrl() {
-        if (StringUtils.isEmpty(apiGatewayBaseUrl)) {
-            return EuropeanaStaticUrl.API_GATEWAY_URL;
+    public String getApiGatewayBaseUrl(String route) {
+        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Api Gateway BaseUrl");
+        if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getApiGatewayBaseUrl())) {
+            return defaultApiGatewayBaseUrl;
         }
-        return apiGatewayBaseUrl;
+        return baseUrls.get().getApiGatewayBaseUrl();
     }
 
+
+
     /**
-     * Generates an url to retrieve a record from the Europeana website
+     * Generates an url to retrieve a record from the Europeana website.
+     *
+     * @param route server name from HTTP request from which this is triggered
      * @param europeanaId
      * @return url as String
      */
-    public String getRecordPortalUrl(String europeanaId) {
-        UrlBuilder url = new UrlBuilder(this.getPortalBaseUrl())
+    public String getRecordPortalUrl(String route, String europeanaId) {
+        UrlBuilder url = new UrlBuilder(this.getPortalBaseUrl(route))
                 .addPath("item")
                 .addPage(europeanaId);
         return url.toString();
@@ -109,8 +128,8 @@ public class Api2UrlService {
      * @return url as String
      */
     @Deprecated
-    public String getRecordResolveUrl(String europeanaId) {
-        UrlBuilder url = new UrlBuilder(this.getPortalBaseUrl())
+    public String getRecordResolveUrl(String route, String europeanaId) {
+        UrlBuilder url = new UrlBuilder(this.getPortalBaseUrl(route))
                 .addPath("resolve", "record")
                 .addPage(europeanaId);
         return url.toString();
@@ -123,8 +142,8 @@ public class Api2UrlService {
      * @param wskey
      * @return url as String
      */
-    public String getRecordApi2Url(String collectionId, String itemId, String wskey) {
-        return getRecordApi2Url("/" + collectionId + "/" +itemId, wskey);
+    public String getRecordApi2Url(String route, String collectionId, String itemId, String wskey) {
+        return getRecordApi2Url(route, "/" + collectionId + "/" +itemId, wskey);
     }
 
 
@@ -134,9 +153,9 @@ public class Api2UrlService {
      * @param wskey
      * @return url as String
      */
-    public String getRecordApi2Url(String europeanaId, String wskey) {
-        UrlBuilder url = new UrlBuilder(getApi2BaseUrl())
-                .addPath(getApiRecordPath())
+    public String getRecordApi2Url(String route, String europeanaId, String wskey) {
+        UrlBuilder url = new UrlBuilder(getApi2BaseUrl(route))
+                .addPath(getApiRecordPath(route))
                 .addPath("record")
                 .addPage(europeanaId + ".json")
                 .addParam("wskey", wskey);
@@ -151,8 +170,8 @@ public class Api2UrlService {
      * @param type defaults to IMAGE (optional)
      * @return url as String
      */
-    public String getThumbnailUrl(String uri, String type) {
-        return getThumbnailUrl(uri, null, type);
+    public String getThumbnailUrl(String route, String uri, String type) {
+        return getThumbnailUrl(route, uri, null, type);
     }
 
     /**
@@ -164,9 +183,9 @@ public class Api2UrlService {
      * @param type defaults to IMAGE (optional)
      * @return url as String
      */
-    public String getThumbnailUrl(String uri, String size, String type) {
+    public String getThumbnailUrl(String route, String uri, String size, String type) {
         UrlBuilder url = EuropeanaUrlBuilder.getThumbnailUrl(uri, size, type);
-        String newBaseUrl = this.getApiGatewayBaseUrl();
+        String newBaseUrl = this.getApiGatewayBaseUrl(route);
         if (newBaseUrl.contains("://")) {
             url.setProtocol(newBaseUrl);
         }
@@ -175,14 +194,14 @@ public class Api2UrlService {
     }
 
     @Deprecated
-    public String getRedirectUrl(String wskey, String isShownAtUri, String provider, String europeanaId, String profile) {
-        UrlBuilder url = new UrlBuilder(this.getApi2BaseUrl())
+    public String getRedirectUrl(String route, String wskey, String isShownAtUri, String provider, String europeanaId, String profile) {
+        UrlBuilder url = new UrlBuilder(this.getApi2BaseUrl(route))
                 .addPath("api", String.valueOf(wskey), "redirect").disableTrailingSlash()
                 .addParam("shownAt", isShownAtUri)
                 // Note that provider and id are not required paramaters for the RedirectController, but sent along for
                 // logging purposes.
                 .addParam("provider", provider)
-                .addParam("id", this.getRecordResolveUrl(europeanaId))
+                .addParam("id", this.getRecordResolveUrl(route, europeanaId))
                 // Not sure the profile parameter still serves any purpose, can probably be removed
                 .addParam("profile", profile);
         return url.toString();
@@ -190,13 +209,13 @@ public class Api2UrlService {
 
     /**
      * Generates URL path to search result record.
-     * /api/v2/ path prefix not required if running on the live environment (EA-2151)
+     * /api/v2/ path prefix not required if running in production (EA-2151)
      *
      * TODO: Remove hardcoded url check
      * @return string array with path to record.
      */
-    private String[] getApiRecordPath() {
-        if (!API_BASEURL.equals(getApi2BaseUrl())) {
+    private String[] getApiRecordPath(String route) {
+        if (!API_BASEURL.equals(getApi2BaseUrl(route))) {
             return new String[]{"api", "v2"};
         } else {
             return new String[]{};

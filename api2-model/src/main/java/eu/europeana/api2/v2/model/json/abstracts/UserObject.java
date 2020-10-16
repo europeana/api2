@@ -55,7 +55,7 @@ public abstract class UserObject {
 
     public String getEdmPreview() {
         if (StringUtils.isNotBlank(edmPreview)) {
-            return Api2UrlService.getBeanInstance().getThumbnailUrl(edmPreview, type);
+            return Api2UrlService.getBeanInstance().getThumbnailUrl("", edmPreview, type);
         }
         return null;
     }

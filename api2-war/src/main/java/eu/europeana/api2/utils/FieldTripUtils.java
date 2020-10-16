@@ -37,12 +37,13 @@ public class FieldTripUtils {
      * publication date and link retrieved from the provided Bean instance and
      * the translatedEdmIsShownAtLabel parameter
      *
+     * @param route request server name
      * @param bean containing the Solr query data
      * @return FieldTripItem instance
      */
-    public FieldTripItem createItem(RichBean bean) {
+    public FieldTripItem createItem(String route, RichBean bean) {
         FieldTripItem item = new FieldTripItem();
-        item.guid = urlService.getRecordPortalUrl(bean.getId());
+        item.guid = urlService.getRecordPortalUrl(route, bean.getId());
         item.title = getTitle(bean);
         item.description = extractDescription(bean.getDcDescription());
         item.images = getThumbnail(bean);
