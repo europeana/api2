@@ -24,19 +24,20 @@ public class Api2UrlService {
 
     public static final String API_BASEURL  = "https://api.europeana.eu";
 
-    private String portalBaseUrl;
     private final String apikeyValidateUrl;
-    private String api2BaseUrl;
-    private String apiGatewayBaseUrl;
+
+    private final String defaultPortalBaseUrl;
+    private final String defaultApi2BaseUrl;
+    private final String defaultApiGatewayBaseUrl;
 
     private final Map<String, BaseUrlWrapper> routeBaseUrlMap;
 
     public Api2UrlService(Map<String, BaseUrlWrapper> routeBaseUrlMap, String portalBaseUrl, String api2BaseUrl, String apikeyValidateUrl, String apiGatewayBaseUrl) {
         this.routeBaseUrlMap = routeBaseUrlMap;
-        this.portalBaseUrl = portalBaseUrl;
+        this.defaultPortalBaseUrl = StringUtils.isNotBlank(portalBaseUrl) ? portalBaseUrl : EuropeanaStaticUrl.EUROPEANA_PORTAL_URL;
+        this.defaultApi2BaseUrl = StringUtils.isNotBlank(api2BaseUrl) ? api2BaseUrl : API_BASEURL;
         this.apikeyValidateUrl = apikeyValidateUrl;
-        this.api2BaseUrl = api2BaseUrl;
-        this.apiGatewayBaseUrl = apiGatewayBaseUrl;
+        this.defaultApiGatewayBaseUrl = StringUtils.isNotBlank(apiGatewayBaseUrl) ? apiGatewayBaseUrl : EuropeanaStaticUrl.API_GATEWAY_URL;
     }
 
 
@@ -56,7 +57,7 @@ public class Api2UrlService {
         Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Portal BaseUrl");
 
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getPortalBaseUrl())) {
-            return StringUtils.isNotBlank(portalBaseUrl) ? portalBaseUrl : EuropeanaStaticUrl.EUROPEANA_PORTAL_URL;
+            return defaultPortalBaseUrl;
         }
         return baseUrls.get().getPortalBaseUrl();
     }
@@ -69,7 +70,7 @@ public class Api2UrlService {
     public String getApi2BaseUrl(String route) {
         Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Api2 BaseUrl");
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getApi2BaseUrl())) {
-            return StringUtils.isNotBlank(api2BaseUrl) ? api2BaseUrl : API_BASEURL;
+            return defaultApi2BaseUrl;
         }
         return baseUrls.get().getApi2BaseUrl();
     }
@@ -97,7 +98,7 @@ public class Api2UrlService {
     public String getApiGatewayBaseUrl(String route) {
         Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Api Gateway BaseUrl");
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getApiGatewayBaseUrl())) {
-            return StringUtils.isNotBlank(apiGatewayBaseUrl) ? apiGatewayBaseUrl : EuropeanaStaticUrl.API_GATEWAY_URL;
+            return defaultApiGatewayBaseUrl;
         }
         return baseUrls.get().getApiGatewayBaseUrl();
     }
