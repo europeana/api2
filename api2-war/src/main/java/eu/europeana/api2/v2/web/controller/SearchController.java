@@ -563,24 +563,24 @@ public class SearchController {
 
         // Encode the faceted refinements ...
         if (hasImageRefinements) {
-            filterTags.addAll(facetEncoder.getImageFacetValueCodes(imageMimeTypeRefinements,
+            filterTags.addAll(facetEncoder.getImageFacetSearchCodes(imageMimeTypeRefinements,
                                                                     imageSizeRefinements,
                                                                     imageColourSpaceRefinements,
                                                                     imageAspectRatioRefinements,
                                                                     imageColourPaletteRefinements));
         }
         if (hasSoundRefinements) {
-            filterTags.addAll(facetEncoder.getAudioFacetValueCodes(soundMimeTypeRefinements,
+            filterTags.addAll(facetEncoder.getAudioFacetSearchCodes(soundMimeTypeRefinements,
                                                                     soundHQRefinements,
                                                                     soundDurationRefinements));
         }
         if (hasVideoRefinements) {
-            filterTags.addAll(facetEncoder.getVideoFacetValueCodes(videoMimeTypeRefinements,
+            filterTags.addAll(facetEncoder.getVideoFacetSearchCodes(videoMimeTypeRefinements,
                                                                     videoHDRefinements,
                                                                     videoDurationRefinements));
         }
         if (!otherMimeTypeRefinements.isEmpty()) {
-            filterTags.addAll(facetEncoder.getTextFacetValueCodes(otherMimeTypeRefinements));
+            filterTags.addAll(facetEncoder.getTextFacetSearchCodes(otherMimeTypeRefinements));
         }
 
         if (LOG.isDebugEnabled()) {
