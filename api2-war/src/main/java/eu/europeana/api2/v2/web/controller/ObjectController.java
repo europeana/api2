@@ -15,7 +15,6 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
-import eu.europeana.corelib.mongo.server.EdmMongoServer;
 import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
@@ -24,6 +23,7 @@ import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import eu.europeana.metis.mongo.RecordDao;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
@@ -299,8 +299,9 @@ public class ObjectController {
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
         BaseUrlWrapper urls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
 
-        if (dataSource.isEmpty() || dataSource.get().getRecordServer().isEmpty()) {
-            LOG.warn("Error while retrieving record id {}, type= {}. No record server configured for route {}", data.europeanaId, recordType, data.servletRequest.getServerName());
+        if (dataSource.isEmpty() || dataSource.get().getRecordDao().isEmpty()) {
+            LOG.warn("Error while retrieving record id {}, type= {}. No record dao configured for "
+                + "route {}", data.europeanaId, recordType, data.servletRequest.getServerName());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, "Server configuration error"));
         }
@@ -358,8 +359,8 @@ public class ObjectController {
             return null;
         }
 
-        // cannot be null here, as method has already checked for record server
-        EdmMongoServer recordServer = dataSource.get().getRecordServer().get();
+        // cannot be null here, as method has already checked for record dao
+        RecordDao recordServer = dataSource.get().getRecordDao().get();
 
         // now the FullBean can be processed further (adding webresource meta info, set proper urls)
         bean = recordService.enrichFullBean(recordServer, bean, urls);
