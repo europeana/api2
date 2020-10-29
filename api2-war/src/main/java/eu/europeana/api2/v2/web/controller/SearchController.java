@@ -72,6 +72,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
+import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 /**
  * Controller that handles all search requests (search.json, opensearch.rss, search.rss, and search.kml)
@@ -921,21 +922,39 @@ public class SearchController {
     }
 
     /**
-     * Temporary method to facilitate debugging the facet tags
+     * Method to find all encoded facets in tags
+     *
+     * @return the JSON response
+     */
+    @SwaggerIgnore
+    @GetMapping(value = "/v2/decodetags.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView decodeTags(
+            @RequestParam(value = "tag") String tag) {
+
+        FacetTag facetTag;
+        if (tag.matches("[0-9]+") && tag.length() > 7) {
+            return JsonUtils.toJson(findAllFacetsInTag(Integer.valueOf(tag)));
+        } else {
+            return JsonUtils.toJson("Cannot decode this tag: it must be numerical and 8 digits long");
+        }
+    }
+
+    /**
+     * Method to facilitate debugging the facet tags
      *
      * @return the JSON response
      */
     @SwaggerIgnore
     @GetMapping(value = "/v2/tagdecoder.json", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView searchJson(
+    public ModelAndView tagDecoder(
             @RequestParam(value = "tag") String tag) {
 
         FacetTag facetTag;
         if (tag.matches("[0-9]+") && tag.length() > 7) {
             facetTag = decodeFacetTag(Integer.valueOf(tag));
         } else {
-            facetTag =  new FacetTag("You're not doing it right, dude / diderina",
-                                     "a tag must be numerical and 8 digits long");
+            facetTag =  new FacetTag("Cannot decode this tag:",
+                                     "it must be numerical and 8 digits long");
         }
         return JsonUtils.toJson(facetTag.getName() + ": " + facetTag.getLabel());
     }
