@@ -239,10 +239,13 @@ public class SearchController {
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
         if (!colourPalette.isEmpty()) {
-            queryString = filterQueryBuilder(TagUtils.encodeColourPalette(colourPalette).iterator(),
-                                             queryString,
-                                             " AND ",
-                                             false);
+            Set<Integer> filterTags = TagUtils.encodeColourPalette(colourPalette);
+            if (!filterTags.isEmpty()) {
+                queryString = filterQueryBuilder(filterTags.iterator(),
+                        queryString,
+                        " AND ",
+                        false);
+            }
         }
 
         final List<Integer> filterTags = new ArrayList<>();
