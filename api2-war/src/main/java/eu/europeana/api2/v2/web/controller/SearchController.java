@@ -6,6 +6,7 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
+import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
 import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.SearchRequest;
@@ -33,6 +34,7 @@ import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
+import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.edm.utils.CountryUtils;
 import eu.europeana.corelib.search.SearchService;
@@ -776,13 +778,13 @@ public class SearchController {
      * Gets Solr client to use for request
      * @param route request route
      * @return Solr client
-     * @throws SolrQueryException if no SolrClient is configured for route
+     * @throws SolrIOException if no SolrClient is configured for route
      */
-    private SolrClient getSolrClient(String route) throws SolrQueryException {
+    private SolrClient getSolrClient(String route) throws InvalidConfigurationException {
         Optional<SolrClient> solrClient = routeService.getSolrClientForRequest(route);
         if (solrClient.isEmpty()) {
-            LOG.warn("Error: no Solr client configured for route {}", route);
-            throw new SolrQueryException(ProblemType.CANT_CONNECT_SOLR);
+            LOG.error("No Solr client configured for route {}", route);
+            throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No search engine configured for request route");
         }
 
         return solrClient.get();
