@@ -23,7 +23,7 @@ import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import eu.europeana.metis.mongo.RecordDao;
+import eu.europeana.metis.mongo.dao.RecordDao;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
@@ -360,10 +360,10 @@ public class ObjectController {
         }
 
         // cannot be null here, as method has already checked for record dao
-        RecordDao recordServer = dataSource.get().getRecordDao().get();
+        RecordDao recordDao = dataSource.get().getRecordDao().get();
 
         // now the FullBean can be processed further (adding webresource meta info, set proper urls)
-        bean = recordService.enrichFullBean(recordServer, bean, urls);
+        bean = recordService.enrichFullBean(recordDao, bean, urls);
 
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
