@@ -3,15 +3,24 @@ package eu.europeana.api2.v2.web.controller;
 import static org.junit.Assert.*;
 
 import eu.europeana.api2.v2.utils.ModelUtils;
-import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import eu.europeana.corelib.utils.StringArrayUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class SearchControllerTest {
+
+    private SearchController searchController;
+
+    @Before
+    public void setup() {
+        searchController = new SearchController();
+    }
 
 	@Test
 	public void testLimitFacets() {
@@ -144,5 +153,30 @@ public class SearchControllerTest {
         System.out.println(StringUtils.join(separatedFacets.get("solrfacets"), ", "));
         System.out.println("custom SOLR facets:");
         System.out.println(StringUtils.join(separatedFacets.get("customfacets"), ", "));
+    }
+
+    @Test
+    public void testProcessQFParameters () {
+	    String [] refinementArray = {"MIME_TYPE:application/dash+xml", "IMAGE_SIZE:small", "SOUND_HQ:true"};
+        final List<Integer> filterTags = new ArrayList<>();
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        assertTrue(filterTags.size() == 3);
+        assertTrue(refinementArray.length == 4);
+
+        filterTags.clear();
+        refinementArray = new String[]{"IMAGE_COLOUR:true", "IMAGE_GREYSCALE:true", "COLORPALETTE:#4682b4"};
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        assertTrue(filterTags.size() == 2);
+        assertTrue(refinementArray.length == 4);
+
+        // invalid values
+        filterTags.clear();
+        refinementArray = new String[]{"SOUND_HQ:test", "MIME_TYPE:application/dash+ltxml"};
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        assertTrue(filterTags.size() == 0);
+        assertTrue(refinementArray.length == 4);
     }
 }

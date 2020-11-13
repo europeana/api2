@@ -253,12 +253,16 @@ public class SearchController {
 
         // add the CF filter facets to the query string like this:
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
-        if (!filterTags.isEmpty()) {
-            queryString = filterQueryBuilder(filterTags.iterator(),
-                                             queryString,
-                                             " OR ",
-                                             true);
+        // if filter facets is empty (ie; the qf has invalid values),
+        // one filter_tag = 0 will be added to the query string like this:
+        // [existing-query] AND (filter_tags:0)
+        if(filterTags.isEmpty()) {
+            filterTags.add(0);
         }
+        queryString = filterQueryBuilder(filterTags.iterator(),
+                                          queryString,
+                                          " OR ",
+                                          true);
 
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets = StringArrayUtils.splitWebParameter(mixedFacetArray);
@@ -408,7 +412,7 @@ public class SearchController {
      * Processes all qf parameters. Note that besides returning a new array of refinements we may add new filterTags to
      * the provided filterTags list (if there are image, sound, video or mimetype refinements)
      */
-    private String[] processQfParameters(String[] refinementArray, Boolean media, Boolean thumbnail, Boolean fullText,
+    protected String[] processQfParameters(String[] refinementArray, Boolean media, Boolean thumbnail, Boolean fullText,
                                          Boolean landingPage, List<Integer> filterTags) {
         boolean      hasImageRefinements            = false;
         boolean      hasSoundRefinements            = false;
