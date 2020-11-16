@@ -1,9 +1,9 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.utils.TurtleRecordWriter;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.service.RouteDataService;
