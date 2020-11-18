@@ -221,6 +221,13 @@
             <groupId>eu.europeana.api.commons</groupId>
             <artifactId>commons-web</artifactId>
             <version>${apicommons.version}</version>
+            <exclusions>
+                <!-- mongo dependency clashes with Corelib's-->
+                <exclusion>
+                    <groupId>org.mongodb</groupId>
+                    <artifactId>mongo-java-driver</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
