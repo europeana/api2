@@ -1,5 +1,6 @@
 package eu.europeana.api2.utils;
 
+import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.RiotException;
