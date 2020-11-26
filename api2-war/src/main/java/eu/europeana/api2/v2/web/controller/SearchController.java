@@ -991,7 +991,7 @@ public class SearchController {
                 }
             }
         }
-        return bean.getDataProvider()[0] + " " + bean.getId();
+        return (bean.getDataProvider() == null ? "Unknown data provider " : bean.getDataProvider()[0] + " ") + bean.getId();
     }
 
     /**
