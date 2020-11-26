@@ -104,10 +104,10 @@ public class ModelUtils {
     }
 
     /**
-     * returns a FacetTag object containing the name and label associated with the tag value
+     * returns Map containing the labels and values of the Facets found in the given tag
      *
      * @param tag numerically encoded technical facet tag
-     * @return FacetTag (String name, String label)
+     * @return Map<String label, String value>
      */
     public static Map<String, String> findAllFacetsInTag(Integer tag) {
         Map<String, String> result = new HashMap<>();

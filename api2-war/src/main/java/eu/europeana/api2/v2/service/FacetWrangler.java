@@ -93,7 +93,7 @@ public class FacetWrangler {
                  * - match the technical Facet name against the enum TechnicalFacetType
                  * - values associated with the technical Facet are stored in the technicalFacetMap
                  * Note that technical metadata names are encoded numerically (See eu.europeana.technicalfacets) */
-                if (facetField.getName().equalsIgnoreCase("facet_tags")) {
+                if (StringUtils.equalsIgnoreCase(facetField.getName(), "facet_tags")) {
                     for (FacetField.Count encodedTechnicalFacet : facetField.getValues()) {
                         if (StringUtils.isNotEmpty(encodedTechnicalFacet.getName())
                             && encodedTechnicalFacet.getCount() > 0) {
@@ -105,7 +105,7 @@ public class FacetWrangler {
                                     LOG.debug("Decoded technical Facet's name and/or label is empty");
                                     continue;
                                 }
-
+                                
                                 // retrieve a possibly earlier stored count value for this label. If not available,
                                 // initialise at 0L; then add the count value to the Map for this particular label
                                 Integer technicalFacetFieldCount = technicalFacetMap.get(facetTag.getName()).get(facetTag.getLabel());
