@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.model;
 
+import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -26,9 +27,11 @@ public class FacetTag {
             return "";
         }
     }
-
+    
     public String getLabel() {
-        if (label != null) {
+        if ((StringUtils.isNotBlank(label)) && StringUtils.equals(name, TechnicalFacetType.COLOURPALETTE.getRealName())) {
+            return translateMetisTerms(label);
+        } else if (StringUtils.isNotBlank(label)) {
             return translateMetisTerms(StringUtils.lowerCase(label));
         } else {
             return "";
