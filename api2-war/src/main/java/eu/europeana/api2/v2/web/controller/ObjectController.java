@@ -57,10 +57,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
@@ -371,7 +368,7 @@ public class ObjectController {
         Object output;
         switch (recordType) {
             case OBJECT:
-                output = generateJson(bean, data, startTime);
+                output = generateJson(bean, data, startTime, response);
                 break;
             case OBJECT_JSONLD:
                 output = generateJsonLd(bean, data, response);
@@ -395,13 +392,22 @@ public class ObjectController {
         return output;
     }
 
-    private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
+    private ModelAndView generateJson(FullBean bean, RequestData data, long startTime, HttpServletResponse response) {
+        if (StringUtils.containsIgnoreCase(data.profile, "schemaorg")) {
+            try {
+              bean.setSchemaOrg(SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean));
+            } catch (IOException e) {
+                LOG.error("Error generating schema.org data", e);
+                bean.setSchemaOrg("Error generating schema.org data");
+            }
+        }
         ObjectResult objectResult = new ObjectResult(data.wskey);
 
         if (StringUtils.containsIgnoreCase(data.profile, "params")) {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
         }
+
         objectResult.object = new FullView(bean);
         objectResult.statsDuration = System.currentTimeMillis() - startTime;
         return JsonUtils.toJson(objectResult, data.callback);
