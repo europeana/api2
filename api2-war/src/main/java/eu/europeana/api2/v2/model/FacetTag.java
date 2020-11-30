@@ -27,7 +27,7 @@ public class FacetTag {
             return "";
         }
     }
-    
+
     public String getLabel() {
         if ((StringUtils.isNotBlank(label)) && StringUtils.equals(name, TechnicalFacetType.COLOURPALETTE.getRealName())) {
             return translateMetisTerms(label);
