@@ -132,7 +132,11 @@ public class SearchController {
      * @return the JSON response
      */
     @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
-    @PostMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = {
+            "/v2/search.json",
+            "/record/v2/search.json",
+            "/record/search.json"
+    }, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonPost(
             @RequestParam(value = "wskey") String apikey,
             @RequestBody SearchRequest searchRequest,
@@ -804,7 +808,11 @@ public class SearchController {
      * @return rss response of the query
      */
     @ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
-    @GetMapping(value = "/v2/opensearch.rss",
+    @GetMapping(value = {
+            "/v2/opensearch.rss",
+            "/record/v2/opensearch.rss",
+            "/record/opensearch.rss"
+    },
             produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public ModelAndView openSearchRss(
