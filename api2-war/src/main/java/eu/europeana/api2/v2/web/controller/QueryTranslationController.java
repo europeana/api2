@@ -37,7 +37,7 @@ public class QueryTranslationController {
     private static final String ERROR_LANGUAGE = "Invalid parameter: languageCodes can not be empty";
 
     @ApiOperation(value = "translate a term to different languages")
-    @GetMapping(value = "/v2/translateQuery.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/v2/translateQuery.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView translateQuery(
             @RequestParam(value = "term") String term,
             @RequestParam(value = "languageCodes") String[] languageCodes,

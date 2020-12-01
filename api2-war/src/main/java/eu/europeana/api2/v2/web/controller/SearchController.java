@@ -133,7 +133,7 @@ public class SearchController {
      */
     @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
     @PostMapping(value = {
-            "/v2/search.json",
+            "/api/v2/search.json",
             "/record/v2/search.json",
             "/record/search.json"
     }, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -171,7 +171,11 @@ public class SearchController {
      * @return the JSON response
      */
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
-    @GetMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = {
+            "/api/v2/search.json",
+            "/record/v2/search.json",
+            "/record/search.json"
+    }, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGet(
             @RequestParam(value = "wskey") String apikey,
             @SolrEscape  @RequestParam(value = "query") String queryString,
@@ -747,7 +751,7 @@ public class SearchController {
      * @deprecated 2018-01-09 search with coordinates functionality
      */
     @SwaggerIgnore
-    @GetMapping(value = "/v2/search.kml",
+    @GetMapping(value = "/api/v2/search.kml",
             produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     @Deprecated
@@ -809,7 +813,7 @@ public class SearchController {
      */
     @ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
     @GetMapping(value = {
-            "/v2/opensearch.rss",
+            "/api/v2/opensearch.rss",
             "/record/v2/opensearch.rss",
             "/record/opensearch.rss"
     },
@@ -876,7 +880,7 @@ public class SearchController {
      */
     @SwaggerIgnore
     @ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
-    @GetMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
+    @GetMapping(value = "/api/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
     public ModelAndView fieldTripRss(
             @SolrEscape @RequestParam(value = "query") String queryTerms,
             @RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
@@ -968,7 +972,7 @@ public class SearchController {
      * @return the JSON response
      */
     @SwaggerIgnore
-    @GetMapping(value = "/v2/tagdecoder.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/v2/tagdecoder.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
             @RequestParam(value = "tag") String tag) {
 

@@ -304,7 +304,8 @@
     </dependencies>
 
     <build>
-        <finalName>api</finalName>
+        <!-- Deploys app in Tomcat at the root context path-->
+        <finalName>ROOT</finalName>
     </build>
 
 </project>
