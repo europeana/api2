@@ -59,7 +59,7 @@ public class RedirectController {
      * @return
      * @throws IllegalArgumentException
      */
-    @GetMapping(value = {"/{apiKey}/redirect", "/{apiKey}/redirect.json", "/v2/{apiKey}/redirect", "/v2/{apiKey}/redirect.json"})
+    @GetMapping(value = {"/api/{apiKey}/redirect", "/api/{apiKey}/redirect.json", "/api/v2/{apiKey}/redirect", "/api/v2/{apiKey}/redirect.json"})
     public Object handleRedirect(
             @PathVariable String apiKey,
             @RequestParam(value = "shownAt") String isShownAt,

@@ -1,9 +1,9 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.utils.TurtleRecordWriter;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
@@ -74,7 +74,12 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
  */
 @Controller
 @Api(tags = {"Record"})
-@RequestMapping(value = "/v2/record")
+@RequestMapping(value = {
+        "/api/v2/record",
+        "/v2/record",
+        "/record/v2",
+        "/record",
+})
 @SwaggerSelect
 public class ObjectController {
 
