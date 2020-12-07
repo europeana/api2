@@ -77,10 +77,19 @@ public class RouteDataServiceTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void shouldThrowOnInvalidRouteConfig() {
+    public void shouldThrowOnInvalidDataSource() {
         // un-configured datasource in mapping
         mongoRouteMapping.put("test-route", "invalid-data-source");
         when(recordServerConfig.getDataSourceById(eq("invalid-data-source"))).thenReturn(Optional.empty());
+
+        routeService.validateRouteConfig();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowOnInvalidSolrClient() {
+        // un-configured solr client in mapping
+        solrRouteMapping.put("test-route", "invalid-solr-client");
+        when(searchServerConfig.getSolrClientById(eq("invalid-solr-client"))).thenReturn(Optional.empty());
 
         routeService.validateRouteConfig();
     }

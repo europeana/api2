@@ -54,7 +54,7 @@ public class Api2UrlService {
      * @param route
      */
     public String getPortalBaseUrl(String route) {
-        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Portal BaseUrl");
+        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap);
 
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getPortalBaseUrl())) {
             return defaultPortalBaseUrl;
@@ -68,7 +68,7 @@ public class Api2UrlService {
      * @return either the default or alternative configured base url for the API
      */
     public String getApi2BaseUrl(String route) {
-        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Api2 BaseUrl");
+        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap);
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getApi2BaseUrl())) {
             return defaultApi2BaseUrl;
         }
@@ -96,7 +96,7 @@ public class Api2UrlService {
      * @return either the default or alternative configured api gateway url
      */
     public String getApiGatewayBaseUrl(String route) {
-        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Api Gateway BaseUrl");
+        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap);
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getApiGatewayBaseUrl())) {
             return defaultApiGatewayBaseUrl;
         }

@@ -4,6 +4,7 @@ import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.service.RouteDataService;
@@ -23,6 +24,7 @@ import eu.europeana.corelib.record.config.RecordServerConfig;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
+import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -305,9 +307,8 @@ public class ObjectController {
         BaseUrlWrapper urls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
 
         if (dataSource.isEmpty() || dataSource.get().getRecordServer().isEmpty()) {
-            LOG.warn("Error while retrieving record id {}, type= {}. No record server configured for route {}", data.europeanaId, recordType, data.servletRequest.getServerName());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.wskey, "Server configuration error"));
+            LOG.error("Error while retrieving record id {}, type= {}. No record server configured for route {}", data.europeanaId, recordType, data.servletRequest.getServerName());
+            throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
         }
 
         FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true);
