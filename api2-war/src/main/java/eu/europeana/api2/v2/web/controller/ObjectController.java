@@ -72,7 +72,12 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
  */
 @Controller
 @Api(tags = {"Record"})
-@RequestMapping(value = "/v2/record")
+@RequestMapping(value = {
+        "/api/v2/record",
+        "/v2/record",
+        "/record/v2",
+        "/record",
+})
 @SwaggerSelect
 public class ObjectController {
 
