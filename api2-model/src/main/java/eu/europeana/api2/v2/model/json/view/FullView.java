@@ -363,4 +363,14 @@ public class FullView implements FullBean {
         // left empty intentionally
     }
 
+    @Override
+    public String getSchemaOrg() {
+        return bean.getSchemaOrg();
+    }
+
+    @Override
+    public void setSchemaOrg(String schemaOrgResponse) {
+        // left empty intentionally
+    }
+
 }

@@ -1,5 +1,8 @@
 package eu.europeana.api2.v2.web.controller;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
@@ -13,6 +16,7 @@ import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.definitions.edm.entity.Aggregation;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.mongo.server.EdmMongoServer;
@@ -21,6 +25,7 @@ import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
 import eu.europeana.corelib.record.config.RecordServerConfig;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
+import eu.europeana.corelib.solr.entity.AggregationImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.utils.RequestUtils;
@@ -41,6 +46,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,10 +63,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
@@ -229,6 +232,7 @@ public class ObjectController {
                                         @ApiIgnore HttpServletResponse response) throws EuropeanaException {
         RequestData data = new RequestData(collectionId, recordId, apikey, null, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
+
     }
 
     /**
@@ -306,6 +310,11 @@ public class ObjectController {
         }
 
         FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true);
+        FullBean schema = null;
+        if(data.profile.contains("schemaorg")) {
+             schema = recordService.fetchSchemaOrg(dataSource.get(), data.europeanaId, true);
+
+        }
 
         // 3) Check if record exists, HTTP 404 if not
         if (Objects.isNull(bean)) {
@@ -371,7 +380,7 @@ public class ObjectController {
         Object output;
         switch (recordType) {
             case OBJECT:
-                output = generateJson(bean, data, startTime);
+                output = generateJson(bean, data, startTime, schema);
                 break;
             case OBJECT_JSONLD:
                 output = generateJsonLd(bean, data, response);
@@ -395,12 +404,29 @@ public class ObjectController {
         return output;
     }
 
-    private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
+    private ModelAndView generateJson(FullBean bean, RequestData data, long startTime, FullBean schema) {
         ObjectResult objectResult = new ObjectResult(data.wskey);
 
         if (StringUtils.containsIgnoreCase(data.profile, "params")) {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
+        }
+        List<Aggregation> aggregationList = new ArrayList<>();
+        Aggregation aggregation = new AggregationImpl();
+        aggregationList.add(aggregation);
+        schema.setAggregations(aggregationList);
+        if(schema != null){
+            String schemaOrg = new String();
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            try {
+                schemaOrg = objectMapper.writeValueAsString(schema);
+            } catch (JsonProcessingException e) {
+                String msg = "Error serializing to json";
+                LogManager.getLogger(JsonUtils.class).error(msg, e);
+
+            }
+            bean.setSchemaOrg(schemaOrg);
         }
         objectResult.object = new FullView(bean);
         objectResult.statsDuration = System.currentTimeMillis() - startTime;
