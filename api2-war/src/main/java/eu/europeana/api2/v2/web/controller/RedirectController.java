@@ -2,10 +2,10 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
-import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.web.exception.EuropeanaException;
@@ -59,7 +59,7 @@ public class RedirectController {
      * @return
      * @throws IllegalArgumentException
      */
-    @GetMapping(value = {"/{apiKey}/redirect", "/{apiKey}/redirect.json", "/v2/{apiKey}/redirect", "/v2/{apiKey}/redirect.json"})
+    @GetMapping(value = {"/api/{apiKey}/redirect", "/api/{apiKey}/redirect.json", "/api/v2/{apiKey}/redirect", "/api/v2/{apiKey}/redirect.json"})
     public Object handleRedirect(
             @PathVariable String apiKey,
             @RequestParam(value = "shownAt") String isShownAt,
@@ -99,8 +99,8 @@ public class RedirectController {
                     .setSort(null);
             Optional<SolrClient> solrClient = routeService.getSolrClientForRequest(requestRoute);
             if (solrClient.isEmpty()) {
-                LOG.warn("Error: no Solr client configured for route {}", requestRoute);
-                throw new SolrQueryException(ProblemType.CANT_CONNECT_SOLR);
+                LOG.error("No Solr client configured for route {}", requestRoute);
+                throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No search engine configured for request route");
             }
 
             ResultSet<BriefBean> resultSet = searchService.search(solrClient.get(),BriefBean.class, query);

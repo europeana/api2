@@ -54,7 +54,7 @@ public class Api2UrlService {
      * @param route
      */
     public String getPortalBaseUrl(String route) {
-        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Portal BaseUrl");
+        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap);
 
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getPortalBaseUrl())) {
             return defaultPortalBaseUrl;
@@ -68,7 +68,7 @@ public class Api2UrlService {
      * @return either the default or alternative configured base url for the API
      */
     public String getApi2BaseUrl(String route) {
-        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Api2 BaseUrl");
+        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap);
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getApi2BaseUrl())) {
             return defaultApi2BaseUrl;
         }
@@ -96,7 +96,7 @@ public class Api2UrlService {
      * @return either the default or alternative configured api gateway url
      */
     public String getApiGatewayBaseUrl(String route) {
-        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap, "Api Gateway BaseUrl");
+        Optional<BaseUrlWrapper> baseUrls = getEntryForRoute(route, routeBaseUrlMap);
         if (baseUrls.isEmpty() || StringUtils.isEmpty(baseUrls.get().getApiGatewayBaseUrl())) {
             return defaultApiGatewayBaseUrl;
         }
@@ -155,7 +155,6 @@ public class Api2UrlService {
      */
     public String getRecordApi2Url(String route, String europeanaId, String wskey) {
         UrlBuilder url = new UrlBuilder(getApi2BaseUrl(route))
-                .addPath(getApiRecordPath(route))
                 .addPath("record")
                 .addPage(europeanaId + ".json")
                 .addParam("wskey", wskey);
@@ -205,20 +204,5 @@ public class Api2UrlService {
                 // Not sure the profile parameter still serves any purpose, can probably be removed
                 .addParam("profile", profile);
         return url.toString();
-    }
-
-    /**
-     * Generates URL path to search result record.
-     * /api/v2/ path prefix not required if running in production (EA-2151)
-     *
-     * TODO: Remove hardcoded url check
-     * @return string array with path to record.
-     */
-    private String[] getApiRecordPath(String route) {
-        if (!API_BASEURL.equals(getApi2BaseUrl(route))) {
-            return new String[]{"api", "v2"};
-        } else {
-            return new String[]{};
-        }
     }
 }

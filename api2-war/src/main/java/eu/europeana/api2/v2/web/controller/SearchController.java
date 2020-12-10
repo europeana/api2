@@ -6,6 +6,7 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
+import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
 import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.SearchRequest;
@@ -33,6 +34,7 @@ import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
+import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.edm.utils.CountryUtils;
 import eu.europeana.corelib.search.SearchService;
@@ -132,7 +134,11 @@ public class SearchController {
      * @return the JSON response
      */
     @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
-    @PostMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = {
+            "/api/v2/search.json",
+            "/record/v2/search.json",
+            "/record/search.json"
+    }, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonPost(
             @RequestParam(value = "wskey") String apikey,
             @RequestBody SearchRequest searchRequest,
@@ -167,7 +173,11 @@ public class SearchController {
      * @return the JSON response
      */
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
-    @GetMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = {
+            "/api/v2/search.json",
+            "/record/v2/search.json",
+            "/record/search.json"
+    }, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGet(
             @RequestParam(value = "wskey") String apikey,
             @SolrEscape  @RequestParam(value = "query") String queryString,
@@ -743,7 +753,7 @@ public class SearchController {
      * @deprecated 2018-01-09 search with coordinates functionality
      */
     @SwaggerIgnore
-    @GetMapping(value = "/v2/search.kml",
+    @GetMapping(value = "/api/v2/search.kml",
             produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     @Deprecated
@@ -779,13 +789,13 @@ public class SearchController {
      * Gets Solr client to use for request
      * @param route request route
      * @return Solr client
-     * @throws SolrQueryException if no SolrClient is configured for route
+     * @throws SolrIOException if no SolrClient is configured for route
      */
-    private SolrClient getSolrClient(String route) throws SolrQueryException {
+    private SolrClient getSolrClient(String route) throws InvalidConfigurationException {
         Optional<SolrClient> solrClient = routeService.getSolrClientForRequest(route);
         if (solrClient.isEmpty()) {
-            LOG.warn("Error: no Solr client configured for route {}", route);
-            throw new SolrQueryException(ProblemType.CANT_CONNECT_SOLR);
+            LOG.error("No Solr client configured for route {}", route);
+            throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No search engine configured for request route");
         }
 
         return solrClient.get();
@@ -804,7 +814,11 @@ public class SearchController {
      * @return rss response of the query
      */
     @ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
-    @GetMapping(value = "/v2/opensearch.rss",
+    @GetMapping(value = {
+            "/api/v2/opensearch.rss",
+            "/record/v2/opensearch.rss",
+            "/record/opensearch.rss"
+    },
             produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public ModelAndView openSearchRss(
@@ -868,7 +882,7 @@ public class SearchController {
      */
     @SwaggerIgnore
     @ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
-    @GetMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
+    @GetMapping(value = "/api/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
     public ModelAndView fieldTripRss(
             @SolrEscape @RequestParam(value = "query") String queryTerms,
             @RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
@@ -960,7 +974,7 @@ public class SearchController {
      * @return the JSON response
      */
     @SwaggerIgnore
-    @GetMapping(value = "/v2/tagdecoder.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/v2/tagdecoder.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
             @RequestParam(value = "tag") String tag) {
 
