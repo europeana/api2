@@ -411,11 +411,13 @@ public class ObjectController {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
         }
-        List<Aggregation> aggregationList = new ArrayList<>();
-        Aggregation aggregation = new AggregationImpl();
-        aggregationList.add(aggregation);
-        schema.setAggregations(aggregationList);
         if(schema != null){
+            //temp fix for Json serialisation error
+            List<Aggregation> aggregationList = new ArrayList<>();
+            Aggregation aggregation = new AggregationImpl();
+            aggregationList.add(aggregation);
+            schema.setAggregations(aggregationList);
+
             String schemaOrg = new String();
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
