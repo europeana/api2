@@ -12,7 +12,6 @@
 
 # Local user-specific configuration
 **/europeana.user.properties
-**/old.europeana.user.properties
 
 # docker stuff
 docker/docker-compose.yml
