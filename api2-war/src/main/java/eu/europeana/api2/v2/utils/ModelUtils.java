@@ -25,6 +25,7 @@ public class ModelUtils {
     private static final String SOLRFACETS      = "solrfacets";
     private static final String CUSTOMFACETS    = "customfacets";
     private static final String DEFAULT         = "DEFAULT";
+//    private static final String NEWLINE         = System.lineSeparator();
 
     private static final int          FACET_LIMIT        = 150;
     // static goodies: Lists containing the enum Facet type names
@@ -33,10 +34,10 @@ public class ModelUtils {
     private static final List<String> enumFacetList      = new ArrayList<>();
 
     static {
-        for (final TechnicalFacetType technicalFacet : TechnicalFacetType.values()) {
+        for (final var technicalFacet : TechnicalFacetType.values()) {
             technicalFacetList.add(technicalFacet.name());
         }
-        for (final SolrFacetType solrFacet : SolrFacetType.values()) {
+        for (final var solrFacet : SolrFacetType.values()) {
             solrFacetList.add(solrFacet.toString());
         }
         enumFacetList.addAll(technicalFacetList);
@@ -53,49 +54,49 @@ public class ModelUtils {
      */
     public static FacetTag decodeFacetTag(Integer tag) {
 
-        final MediaTypeEncoding mediaType = EncodedFacet.MEDIA_TYPE.decodeValue(tag);
-        final MimeTypeEncoding  mimeType  = EncodedFacet.MIME_TYPE.decodeValue(tag);
+        final var mediaType = EncodedFacet.MEDIA_TYPE.decodeValue(tag);
+        final var mimeType  = EncodedFacet.MIME_TYPE.decodeValue(tag);
         if (mimeType != null) {
             return new FacetTag("MIME_TYPE", mimeType.getValue());
         }
 
         switch (mediaType) {
             case IMAGE:
-                ImageAspectRatio imageAspectRatio = EncodedFacet.IMAGE_ASPECT_RATIO.decodeValue(tag);
+                var imageAspectRatio = EncodedFacet.IMAGE_ASPECT_RATIO.decodeValue(tag);
                 if (imageAspectRatio != null) {
                     return new FacetTag("IMAGE_ASPECTRATIO", imageAspectRatio.toString());
                 }
-                ImageColorEncoding imageColorEncoding = EncodedFacet.IMAGE_COLOR_ENCODING.decodeValue(tag);
+                var imageColorEncoding = EncodedFacet.IMAGE_COLOR_ENCODING.decodeValue(tag);
                 if (imageColorEncoding != null) {
                     return new FacetTag("COLOURPALETTE", imageColorEncoding.getHexStringWithHash());
                 }
-                ImageColorSpace imageColorSpace = EncodedFacet.IMAGE_COLOR_SPACE.decodeValue(tag);
+                var imageColorSpace = EncodedFacet.IMAGE_COLOR_SPACE.decodeValue(tag);
                 if (imageColorSpace != null) {
                     return new FacetTag("IMAGE_COLOUR", imageColorSpace.toString());
                 }
-                ImageSize imageSize = EncodedFacet.IMAGE_SIZE.decodeValue(tag);
+                var imageSize = EncodedFacet.IMAGE_SIZE.decodeValue(tag);
                 if (imageSize != null) {
                     return new FacetTag("IMAGE_SIZE", imageSize.toString());
                 }
                 return new FacetTag("", "");
             case AUDIO:
-                AudioDuration audioDuration = EncodedFacet.AUDIO_DURATION.decodeValue(tag);
+                var audioDuration = EncodedFacet.AUDIO_DURATION.decodeValue(tag);
                 if (audioDuration != null) {
                     return new FacetTag("SOUND_DURATION", audioDuration.toString());
                 }
-                AudioQuality audioQuality = EncodedFacet.AUDIO_QUALITY.decodeValue(tag);
+                var audioQuality = EncodedFacet.AUDIO_QUALITY.decodeValue(tag);
                 if (audioQuality != null) {
                     return new FacetTag("SOUND_HQ", audioQuality.toString());
                 }
                 return new FacetTag("", "");
             case VIDEO:
-                VideoDuration videoDuration = EncodedFacet.VIDEO_DURATION.decodeValue(tag);
+                var videoDuration = EncodedFacet.VIDEO_DURATION.decodeValue(tag);
                 if (videoDuration != null) {
                     return new FacetTag("VIDEO_DURATION", videoDuration.toString());
                 }
-                VideoQuality videoQualityn = EncodedFacet.VIDEO_QUALITY.decodeValue(tag);
-                if (videoQualityn != null) {
-                    return new FacetTag("VIDEO_HD", videoQualityn.toString());
+                var videoQuality = EncodedFacet.VIDEO_QUALITY.decodeValue(tag);
+                if (videoQuality != null) {
+                    return new FacetTag("VIDEO_HD", videoQuality.toString());
                 }
                 return new FacetTag("", "");
             default:
@@ -103,13 +104,79 @@ public class ModelUtils {
         }
     }
 
+    /**
+     * returns a FacetTag object containing the name and label associated with the tag value
+     *
+     * @param tag numerically encoded technical facet tag
+     * @return FacetTag (String name, String label)
+     */
+    public static Map<String, String> findAllFacetsInTag(Integer tag) {
+        Map<String, String> result = new HashMap<>();
+
+        final var mediaType = EncodedFacet.MEDIA_TYPE.decodeValue(tag);
+        if (mediaType != null) {
+            result.put("MEDIA_TYPE", mediaType.toString());
+            switch (mediaType) {
+                case IMAGE:
+                    var imageAspectRatio = EncodedFacet.IMAGE_ASPECT_RATIO.decodeValue(tag);
+                    if (imageAspectRatio != null) {
+                        result.put("IMAGE_ASPECTRATIO", imageAspectRatio.toString());
+                    }
+                    var imageColorEncoding = EncodedFacet.IMAGE_COLOR_ENCODING.decodeValue(tag);
+                    if (imageColorEncoding != null) {
+                        result.put("COLOURPALETTE", imageColorEncoding.getHexStringWithHash());
+                    }
+                    var imageColorSpace = EncodedFacet.IMAGE_COLOR_SPACE.decodeValue(tag);
+                    if (imageColorSpace != null) {
+                        result.put("IMAGE_COLOUR", imageColorSpace.toString());
+                    }
+                    var imageSize = EncodedFacet.IMAGE_SIZE.decodeValue(tag);
+                    if (imageSize != null) {
+                        result.put("IMAGE_SIZE", imageSize.toString());
+                    }
+                    break;
+                case AUDIO:
+                    var audioDuration = EncodedFacet.AUDIO_DURATION.decodeValue(tag);
+                    if (audioDuration != null) {
+                        result.put("SOUND_DURATION", audioDuration.toString());
+                    }
+                    var audioQuality = EncodedFacet.AUDIO_QUALITY.decodeValue(tag);
+                    if (audioQuality != null) {
+                        result.put("SOUND_HQ", audioQuality.toString());
+                    }
+                    break;
+                case VIDEO:
+                    var videoDuration = EncodedFacet.VIDEO_DURATION.decodeValue(tag);
+                    if (videoDuration != null) {
+                        result.put("VIDEO_DURATION", videoDuration.toString());
+                    }
+                    var videoQuality = EncodedFacet.VIDEO_QUALITY.decodeValue(tag);
+                    if (videoQuality != null) {
+                        result.put("VIDEO_HD", videoQuality.toString());
+                    }
+                    break;
+                case TEXT:
+                    break;
+            }
+        } else {
+            result.put("MEDIA_TYPE", "Unknown");
+        }
+
+        final var mimeType = EncodedFacet.MIME_TYPE.decodeValue(tag);
+        if (mimeType != null) {
+            result.put("MIME_TYPE", mimeType.getValue());
+        }
+
+        return result;
+    }
+
     public static SpellCheck convertSpellCheck(SpellCheckResponse response) {
         if (response != null) {
-            SpellCheck spellCheck = new SpellCheck();
+            var spellCheck = new SpellCheck();
             spellCheck.correctlySpelled = response.isCorrectlySpelled();
             for (Suggestion suggestion : response.getSuggestions()) {
-                for (int i = 0; i < suggestion.getNumFound(); i++) {
-                    LabelFrequency value = new LabelFrequency();
+                for (var i = 0; i < suggestion.getNumFound(); i++) {
+                    var value = new LabelFrequency();
                     value.label = suggestion.getAlternatives().get(i);
                     value.count = suggestion.getAlternativeFrequencies().get(i).longValue();
                     spellCheck.suggestions.add(value);
@@ -138,13 +205,12 @@ public class ModelUtils {
         }
 
         if (ArrayUtils.isNotEmpty(mixedFacetArray)) {
-            List<String> customSolrFacetList = ((List<String>) CollectionUtils.subtract(Arrays.asList(mixedFacetArray),
-                                                                                        enumFacetList));
+            var customSolrFacetList = ((List<String>) CollectionUtils.subtract(Arrays.asList(mixedFacetArray),
+                                                                               enumFacetList));
             if (customSolrFacetList.contains(DEFAULT)) customSolrFacetList.remove(DEFAULT);
             customSolrFacets = (customSolrFacetList).toArray(new String[0]);
             if (defaultFacetsRequested) {
-                facetListMap.put(CUSTOMFACETS,
-                                 safelyLimitArray(customSolrFacets, FACET_LIMIT - enumFacetList.size()));
+                facetListMap.put(CUSTOMFACETS, safelyLimitArray(customSolrFacets, FACET_LIMIT - enumFacetList.size()));
             } else {
                 facetListMap.put(CUSTOMFACETS,
                                  safelyLimitArray(customSolrFacets,
