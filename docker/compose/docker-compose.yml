@@ -32,13 +32,16 @@ services:
     # Mount point for application in tomcat
     # (the target folder on your workspace is directly mounted to the tomcat container)
     volumes:
-      - ../../api2-war/target/api:/usr/local/tomcat/webapps/api
+      # deploy app to root context
+      - ../../api2-war/target/api.war:/usr/local/tomcat/webapps/ROOT.war
     links:
       - relational-database:api-postgresql-database
     # Map ports from tomcat container to the local machine
     ports:
       #Tomcat http port
       - "8080:8080"
+      - "80:8080"
+      - "443:443"
       #Debug port
       - "8000:8000"
       #JMX Port

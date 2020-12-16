@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
     public ModelAndView europeanaExceptionHandler(HttpServletRequest request, HttpServletResponse response, EuropeanaException ee) {
         try {
             String wskey = request.getParameter(API_KEY_PARAM);
-            mailLogOrIgnoreError(wskey, ee);
+            mailLogOrIgnoreError(request.getServerName(), wskey, ee);
             response.setStatus(getHttpStatus(response, ee));
             return generateErrorResponse(request, response, ee.getMessage(), ee.getErrorDetails(), ee.getErrorCode());
         } catch (Exception ex) {
@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
         }
     }
 
-    private void mailLogOrIgnoreError(String apiKey, EuropeanaException ee) {
+    private void mailLogOrIgnoreError(String route, String apiKey, EuropeanaException ee) {
         switch (ee.getAction()) {
             case IGNORE: break;
             case LOG_WARN:
@@ -84,15 +84,15 @@ public class GlobalExceptionHandler {
                 break;
             case MAIL:
                 LOG.error(ee.getErrorMsgAndDetails(), ee);
-                sendErrorEmail(ee);
+                sendErrorEmail(route, ee);
                 break;
             default: LOG.error(ee.getErrorMsgAndDetails(), ee);
         }
     }
 
-    private void sendErrorEmail(EuropeanaException ee) {
+    private void sendErrorEmail(String route, EuropeanaException ee) {
 //        try {
-            String subject = "Exception in Search API " + Api2UrlService.getBeanInstance().getApi2BaseUrl();;
+            String subject = "Exception in Search API " + Api2UrlService.getBeanInstance().getApi2BaseUrl(route);;
             String body = ee.getErrorMsgAndDetails() + "/n" + ExceptionUtils.getStackTrace(ee);
             // TODO temporarily disabled sending email until we implement EA-1782 (limit number of emails sent)
             //emailService.sendException(subject, body);

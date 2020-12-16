@@ -2,14 +2,18 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
+import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.web.exception.EuropeanaException;
+import eu.europeana.corelib.web.exception.ProblemType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,7 +22,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Optional;
 
 /**
  * Controller for redirects urls (e.g. values of edmIsShownAt and edmIsShownBy fields)
@@ -35,9 +41,13 @@ public class RedirectController {
 
     private SearchService searchService;
 
+    private RouteDataService routeService;
+
+
     @Autowired
-    public RedirectController(SearchService searchService) {
+    public RedirectController(SearchService searchService, RouteDataService routeService) {
         this.searchService = searchService;
+        this.routeService = routeService;
     }
 
     /**
@@ -49,17 +59,18 @@ public class RedirectController {
      * @return
      * @throws IllegalArgumentException
      */
-    @GetMapping(value = {"/{apiKey}/redirect", "/{apiKey}/redirect.json", "/v2/{apiKey}/redirect", "/v2/{apiKey}/redirect.json"})
+    @GetMapping(value = {"/api/{apiKey}/redirect", "/api/{apiKey}/redirect.json", "/api/v2/{apiKey}/redirect", "/api/v2/{apiKey}/redirect.json"})
     public Object handleRedirect(
             @PathVariable String apiKey,
             @RequestParam(value = "shownAt") String isShownAt,
+            HttpServletRequest request,
             HttpServletResponse response) {
 
         if (StringUtils.isBlank(isShownAt)) {
             return this.generateError(response, "Empty 'shownAt' parameter", apiKey);
         }
 
-        if (isInEuropeana(isShownAt)) {
+        if (isInEuropeana(isShownAt, request.getServerName())) {
             return "redirect:" + isShownAt;
         } else {
             return this.generateError(response, "Can't redirect: '"+isShownAt+"' is not a known 'shownAt' url", apiKey);
@@ -78,7 +89,7 @@ public class RedirectController {
      * @param url
      * @return true if url is in the Europeana Solr index, otherwise false
      */
-    private boolean isInEuropeana(String url) {
+    private boolean isInEuropeana(String url, String requestRoute) {
         try {
             // it's important to call escapeQueryChars to prevent people messing up the query by adding illegal characters
             Query query = new Query("provider_aggregation_edm_isShownAt:\"" +ClientUtils.escapeQueryChars(url)+ "\"")
@@ -86,7 +97,14 @@ public class RedirectController {
                     .setFacetsAllowed(false)
                     .setSpellcheckAllowed(false)
                     .setSort(null);
-            ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
+            Optional<SolrClient> solrClient = routeService.getSolrClientForRequest(requestRoute);
+            if (solrClient.isEmpty()) {
+                LOG.error("No Solr client configured for route {}", requestRoute);
+                throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No search engine configured for request route");
+            }
+
+            ResultSet<BriefBean> resultSet = searchService.search(solrClient.get(),BriefBean.class, query);
+
             LOG.debug("Redirect query = {}", query.getExecutedQuery());
             return resultSet.getResultSize() > 0;
         } catch (EuropeanaException ste) {

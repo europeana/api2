@@ -1,101 +1,115 @@
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api2.v2.utils.technicalfacets.*;
+import eu.europeana.indexing.solr.facet.FacetEncoder;
+import eu.europeana.indexing.solr.facet.value.AudioDuration;
+import eu.europeana.indexing.solr.facet.value.ImageColorEncoding;
+import eu.europeana.indexing.solr.facet.value.ImageSize;
+import eu.europeana.indexing.solr.facet.value.VideoDuration;
 import org.apache.commons.lang3.StringUtils;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
+
+import java.util.HashSet;
 import java.util.List;
-import eu.europeana.corelib.definitions.model.Orientation;
+import java.util.Set;
 
 /**
  * @author lúthien (maike.dulk@europeana.eu)
  */
 public class TagUtils {
 
-    private TagUtils(){}
+    private TagUtils() {}
 
-    // 1) the fixlist() method cleans up duplicates and replaces NULL Lists with a list containing only "null". This is
-    // to facilitate the default "0" values of the filter tags.
-    // 2) The nested forEach creates a cartesian combination of the input lists
-    // 3) The filtertag integers are assembled right away inside the loops, as it adds nothing to delegate that to
-    // multiple downstream methods. But it compacts the code by a factor 4 at least.
-    public static List<Integer> imageFilterTags(final List<String> imageMimeTypeFacets, final List<String> imageSizeFacets,
-                                                final List<String> imageColourSpaceFacets, final List<String> imageAspectRatioFacets,
-                                                final List<String> imageColourPaletteFacets) {
-        List<Integer> filterTags = new ArrayList<>();
-        fixList(imageMimeTypeFacets).forEach(mimeTypeFacet ->
-        fixList(imageSizeFacets).forEach(sizeFacet ->
-        fixList(imageColourSpaceFacets).forEach(colourSpaceFacet ->
-        fixList(imageAspectRatioFacets).forEach(aspectRatioFacet ->
-        fixList(imageColourPaletteFacets).forEach(colourPaletteFacet -> {
-            filterTags.add(MediaTypeEncoding.IMAGE.getEncodedValue() |
-                           CommonTagExtractor.getMimeTypeCode(mimeTypeFacet.equals("null") ? null : mimeTypeFacet) << TagEncoding.MIME_TYPE.getBitPos() |
-                           ImageTagExtractor.getSizeCode(sizeFacet.equals("null") ? null : sizeFacet) << TagEncoding.IMAGE_SIZE.getBitPos() |
-                           ImageTagExtractor.getColorSpaceCode(colourSpaceFacet.equals("null") ? null : colourSpaceFacet) << TagEncoding.IMAGE_COLOURSPACE.getBitPos() |
-                           ImageTagExtractor.getAspectRatioCode(aspectRatioFacet.equals("null") ? null : getImageOrientation(aspectRatioFacet)) << TagEncoding.IMAGE_ASPECTRATIO.getBitPos() |
-                           ImageTagExtractor.getColorCode(colourPaletteFacet.equals("null") ? null : colourPaletteFacet) << TagEncoding.IMAGE_COLOUR.getBitPos());})))));
-        return filterTags;
+    /**
+     * This method is for producing the colour palette filter tags associated with the colourPalette parameter:
+     * ../search.json?query=*&colourpalette=%234682b4,%23a9a9a9& ...
+     * The faceted COLOURPALETTE refinement (qf=COLOURPALETTE:%234682b4&qf=COLOURPALETTE:%23a9a9a9) is encoded
+     * directly in the ImageColorEncoding class
+     *
+     * @param coloursToEncode a List of Strings containing the hexadecimal colours to encode
+     * @return Set of Integers containing the encoded colours
+     */
+    public static Set<Integer> encodeColourPalette(List<String> coloursToEncode) {
+        Set<ImageColorEncoding> encodedColours = new HashSet<>();
+        final FacetEncoder      encoder        = new FacetEncoder();
+        for (String colourHexValue : coloursToEncode) {
+            encodedColours.add(ImageColorEncoding.categorizeImageColor(colourHexValue));
+        }
+        return encoder.getImageFacetValueCodes(null, null, null, null, encodedColours);
     }
 
-    public static List<Integer> soundFilterTags(List<String> soundMimeTypeFacets, List<String> soundHQFacets, List<String> soundDurationFacets) {
-        final List<Integer> filterTags = new ArrayList<>();
-        fixList(soundMimeTypeFacets).forEach((mimeTypeFacet) ->
-        fixList(soundHQFacets).forEach((hqFacet) ->
-        fixList(soundDurationFacets).forEach((durationFacet) -> {
-            filterTags.add(MediaTypeEncoding.AUDIO.getEncodedValue() |
-                           CommonTagExtractor.getMimeTypeCode(mimeTypeFacet.equals("null") ? null : mimeTypeFacet) << TagEncoding.MIME_TYPE.getBitPos() |
-                           SoundTagExtractor.getQualityCode(hqFacet.equals("null") ? null : hqFacet) << TagEncoding.SOUND_QUALITY.getBitPos() |
-                           SoundTagExtractor.getDurationCode(durationFacet.equals("null") ? null : durationFacet) << TagEncoding.SOUND_DURATION.getBitPos());})));
-        return filterTags;
+    /**
+     * Returns ImageSize enum that matches the input size String
+     * @param size String ("small"|"medium"|"large"|"extra_large" or "huge" <- used by Metis)
+     * @return ImageSize that matches the input value
+     */
+    public static ImageSize getImageSize(final String size) {
+        if (StringUtils.isBlank(size)) return null;
+        switch (size) {
+            case "small":
+                return ImageSize.SMALL;
+            case "medium":
+                return ImageSize.MEDIUM;
+            case "large":
+                return ImageSize.LARGE;
+            case "huge":
+            case "extra_large":
+                return ImageSize.HUGE;
+            default:
+                return null;
+        }
     }
 
-    public static List<Integer> videoFilterTags(List<String> videoMimeTypeFacets, List<String> videoHDFacets, List<String> videoDurationFacets) {
-        final List<Integer> filterTags = new ArrayList<>();
-        fixList(videoMimeTypeFacets).forEach((mimeTypeFacet) ->
-        fixList(videoHDFacets).forEach((hdFacet) ->
-        fixList(videoDurationFacets).forEach((durationFacet) ->{
-            filterTags.add(MediaTypeEncoding.VIDEO.getEncodedValue() |
-                           CommonTagExtractor.getMimeTypeCode(mimeTypeFacet.equals("null") ? null : mimeTypeFacet) << TagEncoding.MIME_TYPE.getBitPos() |
-                           VideoTagExtractor.getQualityCode(hdFacet.equals("null") ? null : hdFacet) << TagEncoding.VIDEO_QUALITY.getBitPos() |
-                           VideoTagExtractor.getDurationCode(durationFacet.equals("null") ? null : durationFacet) << TagEncoding.VIDEO_DURATION.getBitPos());})));
-        return filterTags;
+    /**
+     * Returns VideoDuration enum that matches the input duration String
+     * @param duration String ("short"|"medium"|"long")
+     * @return VideoDuration that matches the input value
+     */
+    public static VideoDuration getVideoDurationCode(String duration) {
+        if (StringUtils.isBlank(duration)) return null;
+        switch (duration) {
+            case "short":
+                return VideoDuration.SHORT;
+            case "medium":
+                return VideoDuration.MEDIUM;
+            case "long":
+                return VideoDuration.LONG;
+            default:
+                return null;
+        }
     }
 
-    public static List<Integer> otherFilterTags(List<String> otherMimeTypeFacets) {
-        final List<Integer> filterTags = new ArrayList<>();
-        fixList(otherMimeTypeFacets).forEach((mimeTypeFacet) -> {
-            filterTags.add(MediaTypeEncoding.TEXT.getEncodedValue() |
-                           CommonTagExtractor.getMimeTypeCode(mimeTypeFacet) << TagEncoding.MIME_TYPE.getBitPos());});
-        return filterTags;
+    /**
+     * Returns AudioDuration enum that matches the input duration String
+     * @param duration String ("very_short" or "tiny" (used by Metis)|"short"|"medium"|"long")
+     * @return AudioDuration that matches the input value
+     */
+    public static AudioDuration getAudioDurationCode(String duration) {
+        if (StringUtils.isBlank(duration)) return null;
+        switch (duration) {
+            case "tiny":
+            case "very_short":
+                return AudioDuration.TINY;
+            case "short":
+                return AudioDuration.SHORT;
+            case "medium":
+                return AudioDuration.MEDIUM;
+            case "long":
+                return AudioDuration.LONG;
+            default:
+                return null;
+        }
     }
 
-    // specifically for producing the colour palette filter tags associated with the colourPalette parameter
-    // i.e. as opposed to the colourPaletteFacets as occurring in the qf:refinements / facets
-    public static List<Integer> colourPaletteFilterTags(List<String> colourPalette) {
-        final List<Integer> filterTags = new ArrayList<>();
-        fixList(colourPalette).forEach((colour) -> {
-            filterTags.add(MediaTypeEncoding.IMAGE.getEncodedValue() |
-                           ImageTagExtractor.getColorCode(colour) << TagEncoding.IMAGE_COLOUR.getBitPos());});
-        return filterTags;
+
+    public static boolean isImageMimeType(String type) {
+        return (StringUtils.startsWithIgnoreCase(type, "image"));
     }
 
-    // 1) converts Lists of any type to List of String
-    // 2) replaces NULL Lists with List of String containing just "null" in order to create the default 'zero'
-    // positions for every possible qf parameter (if they were NULL they would be skipped in the foreach loops)
-    // 3) removes any duplicate values
-    private static List<String> fixList(List<?> fixMe){
-        ArrayList<String> retval = new ArrayList<>();
-        if (fixMe != null && !fixMe.isEmpty()) fixMe.forEach(value -> { retval.add(value.toString());});
-        else retval.add("null");
-        return new ArrayList<>(new LinkedHashSet<>(retval));
+    public static boolean isSoundMimeType(String type) {
+        return (StringUtils.startsWithIgnoreCase(type, "sound") || StringUtils.startsWithIgnoreCase(type, "audio"));
     }
 
-    // why only this property should have its own class representing exactly ONE bit of information?
-    // Add that to the mysteries of life ...
-    private static Orientation getImageOrientation(String imageAspectRatio){
-        if (StringUtils.isBlank(imageAspectRatio)) return null;
-        else if (imageAspectRatio.contains("portrait")) return Orientation.PORTRAIT;
-        else if (imageAspectRatio.contains("landscape")) return Orientation.LANDSCAPE;
-        else return null;
+    public static boolean isVideoMimeType(String type) {
+        return (StringUtils.startsWithIgnoreCase(type, "video"));
     }
+
 }

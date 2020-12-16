@@ -67,8 +67,8 @@ public abstract class AbstractUserController {
 		to.dateSaved = from.getDateSaved();
 		to.type = from.getDocType();
 		to.edmPreview = from.getEuropeanaObject();
-		to.link = urlService.getRecordApi2Url(from.getEuropeanaUri(), wskey);
-		to.guid = LinkUtils.addCampaignCodes(urlService.getRecordPortalUrl(from.getEuropeanaUri()), wskey);
+		to.link = urlService.getRecordApi2Url("", from.getEuropeanaUri(), wskey);
+		to.guid = LinkUtils.addCampaignCodes(urlService.getRecordPortalUrl("", from.getEuropeanaUri()), wskey);
 	}
 
 }

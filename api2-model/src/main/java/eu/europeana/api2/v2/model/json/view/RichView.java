@@ -26,8 +26,8 @@ public class RichView extends ApiView implements RichBean {
     // temporary added for debugging purposes (see EA-1395)
     private Map<String, List<String>> fulltextLangAware;
 
-    public RichView(RichBean bean, String profile, String wskey) {
-        super(bean, profile, wskey);
+    public RichView(RichBean bean, String profile, String wskey, String requestRoute) {
+        super(bean, profile, wskey, requestRoute);
         isShownBy = bean.getEdmIsShownBy();
         edmLandingPage = bean.getEdmLandingPage();
         dcTypeLangAware = bean.getDcTypeLangAware();

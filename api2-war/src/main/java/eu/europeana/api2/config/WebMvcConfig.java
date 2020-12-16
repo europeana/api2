@@ -1,5 +1,6 @@
 package eu.europeana.api2.config;
 
+import eu.europeana.api2.utils.SolrEscapeAnnotationFormatterFactory;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
@@ -9,12 +10,15 @@ import eu.europeana.api2.web.controller.ExceptionController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.xml.MarshallingView;
 
@@ -68,6 +72,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         configurer.enable();
     }
 
+
     /**
      * Configure CORS globally.
      * TODO: Get this working for the Swagger endpoint (/api/api-docs)
@@ -80,5 +85,11 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
                 .allowedMethods("*")
                 .exposedHeaders(HttpHeaders.ALLOW, HttpHeaders.VARY, HttpHeaders.LINK, HttpHeaders.ETAG)
                 .maxAge(1000L); // in seconds
+    }
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        super.addFormatters(registry);
+        registry.addFormatterForFieldAnnotation(new SolrEscapeAnnotationFormatterFactory());
     }
 }

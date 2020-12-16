@@ -3,9 +3,13 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
+import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
+import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
+import eu.europeana.api2.v2.model.FacetTag;
+import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
@@ -20,8 +24,8 @@ import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
+import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.utils.*;
-import eu.europeana.api2.v2.utils.technicalfacets.CommonTagExtractor;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.db.service.ApiKeyService;
@@ -30,6 +34,7 @@ import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
+import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.edm.utils.CountryUtils;
 import eu.europeana.corelib.search.SearchService;
@@ -46,6 +51,8 @@ import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import eu.europeana.indexing.solr.facet.FacetEncoder;
+import eu.europeana.indexing.solr.facet.value.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections.MapUtils;
@@ -53,13 +60,13 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -111,38 +118,52 @@ public class SearchController {
     @Resource
     private ApiKeyUtils apiKeyUtils;
 
+    @Autowired
+    private RouteDataService routeService;
+
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
 
     @Value("${api.search.hl.MaxAnalyzedChars}")
     private String hlMaxAnalyzedChars;
 
+    /**
+     * Returns a list of Europeana datasets based on the search terms.
+     * The response is an Array of JSON objects, each one containing the identifier and the name of a dataset.
+     *
+     * @return the JSON response
+     */
+    @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
+    @PostMapping(value = {
+            "/api/v2/search.json",
+            "/record/v2/search.json",
+            "/record/search.json"
+    }, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonPost(
             @RequestParam(value = "wskey") String apikey,
-            @RequestParam(value = "query") String queryString,
-            @RequestParam(value = "qf", required = false) String[] refinementArray,
-            @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
-            @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
-            @RequestParam(value = "start", required = false, defaultValue = "1") int start,
-            @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
-            @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
-            @RequestParam(value = "theme", required = false) String theme,
-            @RequestParam(value = "sort", required = false) String sort,
-            @RequestParam(value = "colourpalette", required = false) String[] colourPaletteArray,
-            @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
-            @RequestParam(value = "media", required = false) Boolean media,
-            @RequestParam(value = "text_fulltext", required = false) Boolean fullText,
-            @RequestParam(value = "landingpage", required = false) Boolean landingPage,
-            @RequestParam(value = "cursor", required = false) String cursorMark,
-            @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hit.fl", required = false) String hlFl,
-            @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
+            @RequestBody SearchRequest searchRequest,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
-        // TODO implement real POST request (see also EA-605)
-        return searchJsonGet(apikey, queryString, refinementArray, reusabilityArray, profile, start, rows, mixedFacetArray,
-                             theme, sort, colourPaletteArray, thumbnail, media, fullText, landingPage, cursorMark, callback, hlFl,
-                             hlSelectors, request, response);
+        return searchJsonGet(apikey,
+                searchRequest.getQuery(),
+                searchRequest.getQf(),
+                searchRequest.getReusability(),
+                StringUtils.join(searchRequest.getProfile(),","),
+                searchRequest.getStart(),
+                searchRequest.getRows(),
+                searchRequest.getFacet(),
+                searchRequest.getTheme(),
+                StringUtils.join(searchRequest.getSort(),","),
+                searchRequest.getColourPalette(),
+                searchRequest.isThumbnail(),
+                searchRequest.isMedia(),
+                searchRequest.isTextFulltext(),
+                searchRequest.isLandingPage(),
+                searchRequest.getCursor(),
+                searchRequest.getCallback(),
+                searchRequest.getHit().getFl(),
+                searchRequest.getHit().getSelectors(),
+                request, response);
     }
 
     /**
@@ -152,10 +173,14 @@ public class SearchController {
      * @return the JSON response
      */
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
-    @GetMapping(value = "/v2/search.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = {
+            "/api/v2/search.json",
+            "/record/v2/search.json",
+            "/record/search.json"
+    }, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGet(
             @RequestParam(value = "wskey") String apikey,
-            @RequestParam(value = "query") String queryString,
+            @SolrEscape  @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
@@ -171,7 +196,7 @@ public class SearchController {
             @RequestParam(value = "landingpage", required = false) Boolean landingPage,
             @RequestParam(value = "cursor", required = false) String cursorMark,
             @RequestParam(value = "callback", required = false) String callback,
-            @RequestParam(value = "hit.fl", required = false) String hlFl,
+            @SolrEscape @RequestParam(value = "hit.fl", required = false) String hlFl,
             @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
             HttpServletRequest request,
             HttpServletResponse response) throws EuropeanaException {
@@ -215,7 +240,7 @@ public class SearchController {
             }
         }
 
-        List<String> colourPalette = new ArrayList();
+        List<String>            colourPalette = new ArrayList();
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
             StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         }
@@ -224,10 +249,13 @@ public class SearchController {
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
         if (!colourPalette.isEmpty()) {
-            queryString = filterQueryBuilder(TagUtils.colourPaletteFilterTags(colourPalette).iterator(),
-                                             queryString,
-                                             " AND ",
-                                             false);
+            Set<Integer> filterTags = TagUtils.encodeColourPalette(colourPalette);
+            if (!filterTags.isEmpty()) {
+                queryString = filterQueryBuilder(filterTags.iterator(),
+                        queryString,
+                        " AND ",
+                        false);
+            }
         }
 
         final List<Integer> filterTags = new ArrayList<>();
@@ -267,7 +295,7 @@ public class SearchController {
         if (ArrayUtils.isNotEmpty(reusabilities)) {
             valueReplacements = RightReusabilityCategorizer.mapValueReplacements(reusabilities, true);
             if (null != valueReplacements && !valueReplacements.isEmpty()){
-                refinementArray = ArrayUtils.addAll(refinementArray, new String[]{"REUSABILITY:list"});
+                refinementArray = ArrayUtils.addAll(refinementArray, "REUSABILITY:list");
             }
         }
 
@@ -349,7 +377,7 @@ public class SearchController {
               ArrayUtils.contains(solrFacets, "DEFAULT")
             ) ) query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
 
-        SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz);
+        SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz, request.getServerName());
         if (StringUtils.containsIgnoreCase(profile, "params")) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
@@ -395,20 +423,21 @@ public class SearchController {
         boolean      hasImageRefinements            = false;
         boolean      hasSoundRefinements            = false;
         boolean      hasVideoRefinements            = false;
+        FacetEncoder facetEncoder = new FacetEncoder();
         List<String> newRefinements                 = new ArrayList<>();
-        List<String> imageMimeTypeRefinements       = new ArrayList<>();
-        List<String> soundMimeTypeRefinements       = new ArrayList<>();
-        List<String> videoMimeTypeRefinements       = new ArrayList<>();
-        List<String> otherMimeTypeRefinements       = new ArrayList<>();
-        List<String> imageSizeRefinements           = new ArrayList<>();
-        List<String> imageAspectRatioRefinements    = new ArrayList<>();
-        List<String> soundDurationRefinements       = new ArrayList<>();
-        List<String> videoDurationRefinements       = new ArrayList<>();
-        List<String> imageColourSpaceRefinements    = new ArrayList<>();
-        List<String> videoHDRefinements             = new ArrayList<>();
-        List<String> soundHQRefinements             = new ArrayList<>();
-        // NOTE: ColourPalette is a *parameter*; imageColourPaletteRefinements are *facets*
-        List<String> imageColourPaletteRefinements  = new ArrayList<>();
+
+        Set<MimeTypeEncoding>   imageMimeTypeRefinements = new HashSet<>();
+        Set<MimeTypeEncoding>   soundMimeTypeRefinements = new HashSet<>();
+        Set<MimeTypeEncoding>   videoMimeTypeRefinements = new HashSet<>();
+        Set<MimeTypeEncoding>   otherMimeTypeRefinements = new HashSet<>();
+        Set<ImageSize>          imageSizeRefinements = new HashSet<>();
+        Set<ImageAspectRatio>   imageAspectRatioRefinements = new HashSet<>();
+        Set<AudioDuration>      soundDurationRefinements = new HashSet<>();
+        Set<VideoDuration>      videoDurationRefinements = new HashSet<>();
+        Set<ImageColorSpace>    imageColourSpaceRefinements = new HashSet<>();
+        Set<VideoQuality>       videoHDRefinements = new HashSet<>();
+        Set<AudioQuality>       soundHQRefinements = new HashSet<>();
+        Set<ImageColorEncoding> imageColourPaletteRefinements = new HashSet<>();
 
         // retrieves the faceted refinements from the QF part of the request and stores them separately
         // the rest of the refinements is kept in the refinementArray
@@ -417,61 +446,93 @@ public class SearchController {
         if (refinementArray != null) {
             for (String qf : refinementArray) {
                 if (StringUtils.contains(qf, ":")){
-                    String refinementValue = StringUtils.substringAfter(qf, ":").toLowerCase(Locale.GERMAN);
+                    String refinementValue = StringUtils.substringAfter(qf, ":")
+                            .toLowerCase(Locale.GERMAN)
+                            .replaceAll("^\"|\"$", "");
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
-                            if(CommonTagExtractor.isValidMimeType(refinementValue)) {       //will check if mimetype is valid
-                                if (CommonTagExtractor.isImageMimeType(refinementValue)) {
-                                    imageMimeTypeRefinements.add(refinementValue);
+                            if (Objects.nonNull(MimeTypeEncoding.categorizeMimeType(refinementValue))){
+                                if (TagUtils.isImageMimeType(refinementValue)) {
+                                    imageMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     hasImageRefinements = true;
-                                } else if (CommonTagExtractor.isSoundMimeType(refinementValue)) {
-                                    soundMimeTypeRefinements.add(refinementValue);
+                                } else if (TagUtils.isSoundMimeType(refinementValue)) {
+                                    soundMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     hasSoundRefinements = true;
-                                } else if (CommonTagExtractor.isVideoMimeType(refinementValue)) {
-                                    videoMimeTypeRefinements.add(refinementValue);
+                                } else if (TagUtils.isVideoMimeType(refinementValue)) {
+                                    videoMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     hasVideoRefinements = true;
                                 } else
-                                    otherMimeTypeRefinements.add(refinementValue);
+                                    otherMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
                             }
                             break;
                         case "IMAGE_SIZE":
-                            imageSizeRefinements.add(refinementValue);
-                            hasImageRefinements = true;
+                            ImageSize imageSize = TagUtils.getImageSize(refinementValue);
+                            if (Objects.nonNull(imageSize)) {
+                                imageSizeRefinements.add(imageSize);
+                                hasImageRefinements = true;
+                            }
                             break;
                         case "IMAGE_COLOUR":
                         case "IMAGE_COLOR":
-                            if (Boolean.valueOf(refinementValue)) {
-                                imageColourSpaceRefinements.add("rgb");
+                            if (Boolean.parseBoolean(refinementValue)) {
+                                imageColourSpaceRefinements.add(ImageColorSpace.COLOR);
                                 hasImageRefinements = true;
-                            } else if (StringUtils.equalsIgnoreCase(refinementValue, "false")){
-                                imageColourSpaceRefinements.add("grayscale");
+                            } else {
+                                imageColourSpaceRefinements.add(ImageColorSpace.GRAYSCALE);
+                                hasImageRefinements = true;
+                            }
+                            break;
+                        case "IMAGE_GREYSCALE":
+                        case "IMAGE_GRAYSCALE":
+                            if (Boolean.parseBoolean(refinementValue)) {
+                                imageColourSpaceRefinements.add(ImageColorSpace.GRAYSCALE);
+                                hasImageRefinements = true;
+                            } else {
+                                imageColourSpaceRefinements.add(ImageColorSpace.COLOR);
                                 hasImageRefinements = true;
                             }
                             break;
                         case "COLOURPALETTE":
                         case "COLORPALETTE":
-                            imageColourPaletteRefinements.add(refinementValue.toUpperCase(Locale.GERMAN));
-                            hasImageRefinements = true;
+                            ImageColorEncoding imageColorEncoding = ImageColorEncoding.categorizeImageColor(refinementValue);
+                            if (Objects.nonNull(imageColorEncoding)){
+                                imageColourPaletteRefinements.add(imageColorEncoding);
+                                hasImageRefinements = true;
+                            }
                             break;
                         case "IMAGE_ASPECTRATIO":
-                            imageAspectRatioRefinements.add(refinementValue);
+                            if (StringUtils.containsIgnoreCase(refinementValue, "portrait")) {
+                                imageAspectRatioRefinements.add(ImageAspectRatio.PORTRAIT);
+                            } else if (StringUtils.containsIgnoreCase(refinementValue, "landscape")) {
+                                imageAspectRatioRefinements.add(ImageAspectRatio.LANDSCAPE);
+                            }
                             hasImageRefinements = true;
                             break;
                         case "SOUND_HQ":
-                            soundHQRefinements.add(Boolean.valueOf(refinementValue) ? "true" : "false");
-                            hasSoundRefinements = true;
+                            if (Boolean.parseBoolean(refinementValue)){
+                                soundHQRefinements.add(AudioQuality.HIGH);
+                                hasSoundRefinements = true;
+                            }
                             break;
                         case "SOUND_DURATION":
-                            soundDurationRefinements.add(refinementValue);
-                            hasSoundRefinements = true;
+                            AudioDuration audioDuration = TagUtils.getAudioDurationCode(refinementValue);
+                            if (Objects.nonNull(audioDuration)){
+                                soundDurationRefinements.add(audioDuration);
+                                hasSoundRefinements = true;
+                            }
                             break;
                         case "VIDEO_HD":
-                            videoHDRefinements.add(Boolean.valueOf(refinementValue) ? "true" : "false");
-                            hasVideoRefinements = true;
+                            if (Boolean.parseBoolean(refinementValue)){
+                                videoHDRefinements.add(VideoQuality.HIGH);
+                                hasVideoRefinements = true;
+                            }
                             break;
                         case "VIDEO_DURATION":
-                            videoDurationRefinements.add(refinementValue);
-                            hasVideoRefinements = true;
+                            VideoDuration videoDuration = TagUtils.getVideoDurationCode(refinementValue);
+                            if (Objects.nonNull(videoDuration)){
+                                videoDurationRefinements.add(videoDuration);
+                                hasVideoRefinements = true;
+                            }
                             break;
                         case "MEDIA":
                             if (null == media) {
@@ -521,22 +582,30 @@ public class SearchController {
 
         // Encode the faceted refinements ...
         if (hasImageRefinements) {
-            filterTags.addAll(TagUtils.imageFilterTags(imageMimeTypeRefinements, imageSizeRefinements, imageColourSpaceRefinements,
-                                                       imageAspectRatioRefinements, imageColourPaletteRefinements));
+            filterTags.addAll(facetEncoder.getImageFacetSearchCodes(imageMimeTypeRefinements,
+                                                                    imageSizeRefinements,
+                                                                    imageColourSpaceRefinements,
+                                                                    imageAspectRatioRefinements,
+                                                                    imageColourPaletteRefinements));
         }
         if (hasSoundRefinements) {
-            filterTags.addAll(TagUtils.soundFilterTags(soundMimeTypeRefinements, soundHQRefinements, soundDurationRefinements));
+            filterTags.addAll(facetEncoder.getAudioFacetSearchCodes(soundMimeTypeRefinements,
+                                                                    soundHQRefinements,
+                                                                    soundDurationRefinements));
         }
         if (hasVideoRefinements) {
-            filterTags.addAll(TagUtils.videoFilterTags(videoMimeTypeRefinements, videoHDRefinements, videoDurationRefinements));
+            filterTags.addAll(facetEncoder.getVideoFacetSearchCodes(videoMimeTypeRefinements,
+                                                                    videoHDRefinements,
+                                                                    videoDurationRefinements));
         }
         if (!otherMimeTypeRefinements.isEmpty()) {
-            filterTags.addAll(TagUtils.otherFilterTags(otherMimeTypeRefinements));
+            filterTags.addAll(facetEncoder.getTextFacetSearchCodes(otherMimeTypeRefinements));
         }
+
         if (LOG.isDebugEnabled()) {
             for (Integer filterTag : filterTags) {
                 if (filterTag != null) {
-                    LOG.debug("filterTag = " + Integer.toBinaryString(filterTag));
+                    LOG.debug("filterTag = {}", Integer.toBinaryString(filterTag));
                 }
             }
         }
@@ -604,14 +673,17 @@ public class SearchController {
             String apiKey,
             String profile,
             Query query,
-            Class<T> clazz)
+            Class<T> clazz, String requestRoute)
             throws EuropeanaException {
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
+
+        SolrClient solrClient = getSolrClient(requestRoute);
+
         if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
-            resultSet = searchService.search(clazz, query, true);
+            resultSet = searchService.search(solrClient, clazz, query, true);
         } else {
-            resultSet = searchService.search(clazz, query);
+            resultSet = searchService.search(solrClient, clazz, query);
         }
         response.totalResults = resultSet.getResultSize();
         if ( StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) &&
@@ -625,11 +697,11 @@ public class SearchController {
         List<T> beans = new ArrayList<>();
         for (T b : resultSet.getResults()) {
             if (b instanceof RichBean) {
-                beans.add((T) new RichView((RichBean) b, profile, apiKey));
+                beans.add((T) new RichView((RichBean) b, profile, apiKey, requestRoute));
             } else if (b instanceof ApiBean) {
-                beans.add((T) new ApiView((ApiBean) b, profile, apiKey));
+                beans.add((T) new ApiView((ApiBean) b, profile, apiKey, requestRoute));
             } else if (b instanceof BriefBean) {
-                beans.add((T) new BriefView((BriefBean) b, profile, apiKey));
+                beans.add((T) new BriefView((BriefBean) b, profile, apiKey, requestRoute));
             }
         }
 
@@ -681,12 +753,12 @@ public class SearchController {
      * @deprecated 2018-01-09 search with coordinates functionality
      */
     @SwaggerIgnore
-    @GetMapping(value = "/v2/search.kml",
+    @GetMapping(value = "/api/v2/search.kml",
             produces = {"application/vnd.google-earth.kml+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     @Deprecated
     public KmlResponse searchKml(
-            @RequestParam(value = "query") String queryString,
+            @SolrEscape @RequestParam(value = "query") String queryString,
             @RequestParam(value = "qf", required = false) String[] refinementArray,
             @RequestParam(value = "start", required = false, defaultValue = "1") int start,
             @RequestParam(value = "wskey") String apikey,
@@ -694,6 +766,7 @@ public class SearchController {
             HttpServletResponse response) throws EuropeanaException {
 
         apiKeyUtils.validateApiKey(apikey);
+        SolrClient solrClient = getSolrClient(request.getServerName());
 
         String[] _qf = request.getParameterMap().get("qf");
         if (_qf != null && _qf.length != refinementArray.length) {
@@ -704,12 +777,28 @@ public class SearchController {
                 new Query(SearchUtils.rewriteQueryFields(queryString)).setRefinements(refinementArray)
                         .setApiQuery(true).setSpellcheckAllowed(false).setFacetsAllowed(false);
         query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
-        ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
+        ResultSet<BriefBean> resultSet = searchService.search(solrClient, BriefBean.class, query);
         kmlResponse.document.extendedData.totalResults.value =
                 Long.toString(resultSet.getResultSize());
         kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
         kmlResponse.setItems(resultSet.getResults());
         return kmlResponse;
+    }
+
+    /**
+     * Gets Solr client to use for request
+     * @param route request route
+     * @return Solr client
+     * @throws SolrIOException if no SolrClient is configured for route
+     */
+    private SolrClient getSolrClient(String route) throws InvalidConfigurationException {
+        Optional<SolrClient> solrClient = routeService.getSolrClientForRequest(route);
+        if (solrClient.isEmpty()) {
+            LOG.error("No Solr client configured for route {}", route);
+            throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No search engine configured for request route");
+        }
+
+        return solrClient.get();
     }
 
     /**
@@ -725,13 +814,18 @@ public class SearchController {
      * @return rss response of the query
      */
     @ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
-    @GetMapping(value = "/v2/opensearch.rss",
+    @GetMapping(value = {
+            "/api/v2/opensearch.rss",
+            "/record/v2/opensearch.rss",
+            "/record/opensearch.rss"
+    },
             produces = {"application/rss+xml", MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public ModelAndView openSearchRss(
-            @RequestParam(value = "searchTerms") String queryString,
+            @SolrEscape @RequestParam(value = "searchTerms") String queryString,
             @RequestParam(value = "startIndex", required = false, defaultValue = "1") int start,
             @RequestParam(value = "count", required = false, defaultValue = "12") int count,
+            HttpServletRequest request,
             HttpServletResponse response)  throws EuropeanaException {
 
         if (LOG.isDebugEnabled()) {
@@ -746,14 +840,15 @@ public class SearchController {
         channel.query.searchTerms = queryString;
         channel.query.startPage = start;
 
+        SolrClient solrClient = getSolrClient(request.getServerName());
         Query query = new Query(SearchUtils.rewriteQueryFields(queryString)).setApiQuery(true)
                 .setPageSize(count).setStart(start - 1).setFacetsAllowed(false)
                 .setSpellcheckAllowed(false);
-        ResultSet<BriefBean> resultSet = searchService.search(BriefBean.class, query);
+        ResultSet<BriefBean> resultSet = searchService.search(solrClient,BriefBean.class, query);
         channel.totalResults.value = resultSet.getResultSize();
         for (BriefBean bean : resultSet.getResults()) {
             Item item = new Item();
-            item.guid = urlService.getRecordPortalUrl(bean.getId());
+            item.guid = urlService.getRecordPortalUrl(request.getServerName(), bean.getId());
             item.title = getTitle(bean);
             item.description = getDescription(bean);
             item.link = item.guid;
@@ -787,13 +882,14 @@ public class SearchController {
      */
     @SwaggerIgnore
     @ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
-    @GetMapping(value = "/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
+    @GetMapping(value = "/api/v2/search.rss", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.ALL_VALUE})
     public ModelAndView fieldTripRss(
-            @RequestParam(value = "query") String queryTerms,
+            @SolrEscape @RequestParam(value = "query") String queryTerms,
             @RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
             @RequestParam(value = "limit", required = false, defaultValue = "12") int limit,
             @RequestParam(value = "profile", required = false, defaultValue = "FieldTrip") String profile,
             @RequestParam(value = "language", required = false) String reqLanguage,
+            HttpServletRequest request,
             HttpServletResponse response) {
         ControllerUtils.addResponseHeaders(response);
 
@@ -842,13 +938,15 @@ public class SearchController {
             if (StringUtils.equals(profile, "FieldTrip")) {
                 offset++;
             }
+
             try {
                 Query query = new Query(SearchUtils.rewriteQueryFields(queryTerms)).setApiQuery(true).setPageSize(limit)
                         .setStart(offset - 1).setFacetsAllowed(false).setSpellcheckAllowed(false);
-                ResultSet<RichBean> resultSet = searchService.search(RichBean.class, query);
+                SolrClient client = getSolrClient(request.getServerName());
+                ResultSet<RichBean> resultSet = searchService.search(client, RichBean.class, query);
                 for (RichBean bean : resultSet.getResults()) {
                     if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
-                        channel.items.add(fieldTripUtils.createItem(bean));
+                        channel.items.add(fieldTripUtils.createItem(request.getServerName(), bean));
                     }
                 }
             } catch (EuropeanaException|MissingResourceException e) {
@@ -876,21 +974,18 @@ public class SearchController {
      * @return the JSON response
      */
     @SwaggerIgnore
-    @GetMapping(value = "/v2/tagdecoder.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/v2/tagdecoder.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJson(
             @RequestParam(value = "tag") String tag) {
 
-        String decodedTagName;
-        String decodedTagValue;
+        FacetTag facetTag;
         if (tag.matches("[0-9]+") && tag.length() > 7) {
-            decodedTagName = decodeFacetTag(Integer.valueOf(tag), true);
-            decodedTagValue = decodeFacetTag(Integer.valueOf(tag), false);
+            facetTag = decodeFacetTag(Integer.valueOf(tag));
         } else {
-            decodedTagName = "You're not doing it right, dude / diderina";
-            decodedTagValue = "a tag must be numerical and 8 digits long";
+            facetTag =  new FacetTag("You're not doing it right, dude / diderina",
+                                     "a tag must be numerical and 8 digits long");
         }
-
-        return JsonUtils.toJson(decodedTagName + ": " + decodedTagValue);
+        return JsonUtils.toJson(facetTag.getName() + ": " + facetTag.getLabel());
     }
 
     /**
@@ -910,7 +1005,7 @@ public class SearchController {
                 }
             }
         }
-        return bean.getDataProvider()[0] + " " + bean.getId();
+        return (bean.getDataProvider() == null ? "Unknown data provider " : bean.getDataProvider()[0] + " ") + bean.getId();
     }
 
     /**
@@ -961,5 +1056,10 @@ public class SearchController {
     private String getIdFromQueryTerms(String queryTerms) {
         return queryTerms.substring(queryTerms.indexOf(':'), queryTerms.indexOf('*')).replaceAll(
                 "\\D+", "");
+    }
+
+    public static void main(String args[]) {
+        String [] profiles = {"amit", "rahul", "surya"};
+        System.out.println(StringUtils.join(profiles,","));
     }
 }
