@@ -41,11 +41,6 @@
         </dependency>
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-common-storage</artifactId>
-            <version>${corelib.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-search</artifactId>
             <version>${corelib.version}</version>
         </dependency>
@@ -60,12 +55,6 @@
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-indexing</artifactId>
             <version>${metis.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.zoho.crm</groupId>
-                    <artifactId>java-sdk</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- OTHER -->

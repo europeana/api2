@@ -16,7 +16,6 @@ import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
-import eu.europeana.corelib.mongo.server.EdmMongoServer;
 import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
@@ -26,6 +25,7 @@ import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.utils.RequestUtils;
+import eu.europeana.metis.mongo.dao.RecordDao;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
@@ -307,7 +307,8 @@ public class ObjectController {
         BaseUrlWrapper urls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
 
         if (dataSource.isEmpty() || dataSource.get().getRecordServer().isEmpty()) {
-            LOG.error("Error while retrieving record id {}, type= {}. No record server configured for route {}", data.europeanaId, recordType, data.servletRequest.getServerName());
+            LOG.error("Error while retrieving record id {}, type= {}. No record server configured for route {}", 
+                      data.europeanaId, recordType, data.servletRequest.getServerName());
             throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
         }
 
@@ -364,11 +365,11 @@ public class ObjectController {
             return null;
         }
 
-        // cannot be null here, as method has already checked for record server
-        EdmMongoServer recordServer = dataSource.get().getRecordServer().get();
+        // cannot be null here, as method has already checked for record dao
+        RecordDao recordDao = dataSource.get().getRecordDao().get();
 
         // now the FullBean can be processed further (adding webresource meta info, set proper urls)
-        bean = recordService.enrichFullBean(recordServer, bean, urls);
+        bean = recordService.enrichFullBean(recordDao, bean, urls);
 
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);

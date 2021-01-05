@@ -35,11 +35,6 @@
         </dependency>
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
-            <artifactId>corelib-common-storage</artifactId>
-            <version>${corelib.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-schemaorg</artifactId>
             <version>${corelib.version}</version>
         </dependency>
