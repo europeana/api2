@@ -306,7 +306,7 @@ public class ObjectController {
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
         BaseUrlWrapper urls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
 
-        if (dataSource.isEmpty() || dataSource.get().getRecordServer().isEmpty()) {
+        if (dataSource.isEmpty() || dataSource.get().getRecordDao().isEmpty()) {
             LOG.error("Error while retrieving record id {}, type= {}. No record server configured for route {}", 
                       data.europeanaId, recordType, data.servletRequest.getServerName());
             throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
