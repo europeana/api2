@@ -95,7 +95,7 @@ public class RouteDataService {
      * @return Optional containing data source
      */
     public Optional<DataSourceWrapper> getRecordServerForRequest(String requestRoute) {
-        Optional<String> dataSourceId = getEntryForRoute(requestRoute, routeConfig.getRouteDataSourceMap(), "Mongo data source");
+        Optional<String> dataSourceId = getEntryForRoute(requestRoute, routeConfig.getRouteDataSourceMap());
 
         if (dataSourceId.isEmpty()) {
             return Optional.empty();
@@ -111,7 +111,7 @@ public class RouteDataService {
      * @return Optional containing Solr client
      */
     public Optional<SolrClient> getSolrClientForRequest(String requestRoute) {
-        Optional<String> solrId = getEntryForRoute(requestRoute, routeConfig.getRouteSolrMap(), "Solr Client");
+        Optional<String> solrId = getEntryForRoute(requestRoute, routeConfig.getRouteSolrMap());
 
         if (solrId.isEmpty()) {
             return Optional.empty();
@@ -127,10 +127,10 @@ public class RouteDataService {
      * @return Optional containing Base URL wrapper instance
      */
     public BaseUrlWrapper getBaseUrlsForRequest(String requestRoute) {
-        Optional<BaseUrlWrapper> baseUrl = getEntryForRoute(requestRoute, routeConfig.getRouteBaseUrlMap(), "baseUrl");
+        Optional<BaseUrlWrapper> baseUrl = getEntryForRoute(requestRoute, routeConfig.getRouteBaseUrlMap());
         if(baseUrl.isEmpty()) {
             // empty baseUrl values handled by corelib
-            LOG.warn("No baseUrl configured. Using empty strings as baseUrl values");
+            LOG.debug("No baseUrl configured. Using empty strings as baseUrl values");
             return EMPTY_BASE_URL;
         }
         return baseUrl.get();

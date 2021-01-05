@@ -1,9 +1,10 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
-import eu.europeana.api2.utils.TurtleRecordWriter;
+import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.service.RouteDataService;
@@ -22,6 +23,7 @@ import eu.europeana.corelib.record.config.RecordServerConfig;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
+import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import eu.europeana.metis.mongo.dao.RecordDao;
 import io.swagger.annotations.Api;
@@ -72,7 +74,12 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
  */
 @Controller
 @Api(tags = {"Record"})
-@RequestMapping(value = "/v2/record")
+@RequestMapping(value = {
+        "/api/v2/record",
+        "/v2/record",
+        "/record/v2",
+        "/record",
+})
 @SwaggerSelect
 public class ObjectController {
 
@@ -299,11 +306,10 @@ public class ObjectController {
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
         BaseUrlWrapper urls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
 
-        if (dataSource.isEmpty() || dataSource.get().getRecordDao().isEmpty()) {
-            LOG.warn("Error while retrieving record id {}, type= {}. No record dao configured for "
-                + "route {}", data.europeanaId, recordType, data.servletRequest.getServerName());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.wskey, "Server configuration error"));
+        if (dataSource.isEmpty() || dataSource.get().getRecordServer().isEmpty()) {
+            LOG.error("Error while retrieving record id {}, type= {}. No record server configured for route {}", 
+                      data.europeanaId, recordType, data.servletRequest.getServerName());
+            throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
         }
 
         FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true);

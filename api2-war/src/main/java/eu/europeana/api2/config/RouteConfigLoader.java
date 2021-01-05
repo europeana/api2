@@ -54,22 +54,28 @@ public class RouteConfigLoader {
 
         int routeNo = 1;
         while (containsKeyPrefix(properties, "route" + routeNo)) {
-            String basePath = "route" + routeNo + SEPARATOR;
+            String baseProp = "route" + routeNo + SEPARATOR;
 
-            String routePath = properties.getProperty(basePath + "path");
-            String dataSourceId = properties.getProperty(basePath + "data-source");
-            String solrId = properties.getProperty(basePath + "solr");
+            String routePath = properties.getProperty(baseProp + "path");
+            String dataSourceId = properties.getProperty(baseProp + "data-source");
+            String solrId = properties.getProperty(baseProp + "solr");
 
             if (StringUtils.isAnyBlank(routePath, dataSourceId, solrId)) {
                 throw new IllegalStateException(
-                        String.format("Empty route mapping found in config - route:%s, data-source:%s, solr:%s, config prop:%s",
-                                routePath, dataSourceId, solrId, basePath));
+                        String.format("Empty route mapping found in config - route:%s, data-source:%s, solr:%s, configProp:%s",
+                                routePath, dataSourceId, solrId, baseProp));
+            }
+
+            // each route can only be configured once
+            if (routeDataSourceMap.containsKey(routePath)) {
+                throw new IllegalStateException(
+                        String.format("Duplicate route path in config - route: %s, configProp: %s", routePath, baseProp));
             }
 
             // use default baseUrl values if no overrides were configured for this route
-            String routeApiBaseUrl = properties.getProperty(basePath + API_BASEURL_PROP, defaultApiBaseUrl);
-            String routeGatewayBaseUrl = properties.getProperty(basePath + GATEWAY_BASEURL_PROP, defaultGatewayBaseUrl);
-            String routePortalBaseUrl = properties.getProperty(basePath + PORTAL_BASEURL_PROP, defaultPortalBaseUrl);
+            String routeApiBaseUrl = properties.getProperty(baseProp + API_BASEURL_PROP, defaultApiBaseUrl);
+            String routeGatewayBaseUrl = properties.getProperty(baseProp + GATEWAY_BASEURL_PROP, defaultGatewayBaseUrl);
+            String routePortalBaseUrl = properties.getProperty(baseProp + PORTAL_BASEURL_PROP, defaultPortalBaseUrl);
 
             routeDataSourceMap.put(routePath, dataSourceId);
             routeSolrMap.put(routePath, solrId);
