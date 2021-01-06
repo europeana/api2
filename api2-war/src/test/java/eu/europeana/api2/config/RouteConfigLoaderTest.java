@@ -20,22 +20,29 @@ public class RouteConfigLoaderTest {
     public void shouldLoadConfigCorrectly() {
         Properties props = setBaseUrls();
 
-        props.setProperty("route1.path", "test.1.com");
+        props.setProperty("route1.path", "test.1.com,test.2.com");
         props.setProperty("route1.data-source", "dataSource1");
         props.setProperty("route1.solr", "solr-id-1");
 
-        props.setProperty("route2.path", "test.2.com");
+        props.setProperty("route2.path", "test.3.com");
         props.setProperty("route2.data-source", "dataSource2");
         props.setProperty("route2.solr", "solr-id-2");
+
+        props.setProperty("route3.path", "test.4.com,test.5.com");
+        props.setProperty("route3.data-source", "dataSource3");
+        props.setProperty("route3.solr", "solr-id-3");
 
         RouteConfigLoader configLoader = new RouteConfigLoader(props);
         configLoader.loadRouteConfig();
 
         Map<String, String> map = configLoader.getRouteDataSourceMap();
 
-        assertEquals(2, map.size());
+        assertEquals(5, map.size());
         assertEquals("dataSource1", map.get("test.1.com"));
-        assertEquals("dataSource2", map.get("test.2.com"));
+        assertEquals("dataSource1", map.get("test.2.com"));
+        assertEquals("dataSource2", map.get("test.3.com"));
+        assertEquals("dataSource3", map.get("test.4.com"));
+        assertEquals("dataSource3", map.get("test.5.com"));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -61,14 +68,13 @@ public class RouteConfigLoaderTest {
     @Test(expected = IllegalStateException.class)
     public void shouldThrowOnDuplicateRoutePath() {
         Properties props = setBaseUrls();
-        String path = "test.1.com";
 
-        props.setProperty("route1.path", path);
+        props.setProperty("route1.path", "test.1.com,test.2.com");
         props.setProperty("route1.data-source", "dataSource1");
         props.setProperty("route1.solr", "solr-id-1");
 
         // path matches route1.path
-        props.setProperty("route2.path", path);
+        props.setProperty("route2.path", "test.3.com,test.2.com");
         props.setProperty("route2.data-source", "dataSource2");
         props.setProperty("route2.solr", "solr-id-2");
 
