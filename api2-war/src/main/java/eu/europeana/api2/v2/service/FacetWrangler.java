@@ -29,7 +29,7 @@ public class FacetWrangler {
     private Map<String, Map<String, Integer>> technicalFacetMap = new LinkedHashMap<>();
 
     public FacetWrangler() {
-        for (final TechnicalFacetType technicalFacet : TechnicalFacetType.values()) {
+        for (final var technicalFacet : TechnicalFacetType.values()) {
             technicalFacetMap.put(technicalFacet.getRealName(), new LinkedHashMap<>()); // LinkedHashMap to preserve ordering
         }
     }
@@ -73,9 +73,9 @@ public class FacetWrangler {
     }
 
     private void processFacetFields(List<FacetField> facetFields, List<Facet> facetList){
-        for (FacetField facetField : facetFields) {
+        for (var facetField : facetFields) {
             if (!facetField.getValues().isEmpty()) {
-                final Facet facet = new Facet();
+                final var facet = new Facet();
                 facet.name = facetField.getName();
 
                 if (StringUtils.equalsIgnoreCase(SolrFacetType.TEXT_FULLTEXT.toString(), facet.name)) {
@@ -94,7 +94,7 @@ public class FacetWrangler {
                  * - values associated with the technical Facet are stored in the technicalFacetMap
                  * Note that technical metadata names are encoded numerically (See eu.europeana.technicalfacets) */
                 if (facetField.getName().equalsIgnoreCase("facet_tags")) {
-                    for (FacetField.Count encodedTechnicalFacet : facetField.getValues()) {
+                    for (var encodedTechnicalFacet : facetField.getValues()) {
                         if (StringUtils.isNotEmpty(encodedTechnicalFacet.getName())
                             && encodedTechnicalFacet.getCount() > 0) {
                             FacetTag facetTag = null;
@@ -108,7 +108,7 @@ public class FacetWrangler {
 
                                 // retrieve a possibly earlier stored count value for this label. If not available,
                                 // initialise at 0L; then add the count value to the Map for this particular label
-                                Integer technicalFacetFieldCount = technicalFacetMap.get(facetTag.getName()).get(facetTag.getLabel());
+                                var technicalFacetFieldCount = technicalFacetMap.get(facetTag.getName()).get(facetTag.getLabel());
                                 if (null == technicalFacetFieldCount) technicalFacetFieldCount = 0;
                                 technicalFacetMap.get(facetTag.getName()).put(facetTag.getLabel(),
                                                                               technicalFacetFieldCount +
@@ -124,9 +124,9 @@ public class FacetWrangler {
                 // If it is a Solr Facet field (name != facet_tags), loop through its values.
                 // For every value of this Facet field, add a LabelFrequency containing the Facet's name and count
                 } else {
-                    for (FacetField.Count count : facetField.getValues()) {
+                    for (var count : facetField.getValues()) {
                         if (StringUtils.isNotEmpty(count.getName()) && count.getCount() > 0) {
-                            final LabelFrequency facetValue = new LabelFrequency();
+                            final var facetValue = new LabelFrequency();
                             facetValue.count = count.getCount();
                             facetValue.label = count.getName();
                             facet.fields.add(facetValue);
@@ -147,20 +147,20 @@ public class FacetWrangler {
                                         Map<String, Integer> technicalFacetLimits,
                                         Map<String, Integer> technicalFacetOffsets,
                                         List<Facet> facetList){
-        for (String requestedFacetName : requestedTechnicalFacets) {
+        for (var requestedFacetName : requestedTechnicalFacets) {
 
             try {
-                boolean cantMatchFacetName = false;
-                boolean skipIfNoDefault = false;
-                String facetLimit  = "f." + requestedFacetName + ".facet.limit";
-                String facetOffset = "f." + requestedFacetName + ".facet.offset";
+                var    cantMatchFacetName = false;
+                var    skipIfNoDefault = false;
+                var facetLimit  = "f." + requestedFacetName + ".facet.limit";
+                var facetOffset = "f." + requestedFacetName + ".facet.offset";
 
                 if (technicalFacetMap.get(requestedFacetName).isEmpty()) {
                     LOG.debug("couldn't match requested technical facet {}", requestedFacetName);
                     cantMatchFacetName = true;
                 }
 
-                final Facet facet = new Facet();
+                final var facet = new Facet();
                 facet.name = requestedFacetName;
                 if (!requestedTechnicalFacets.contains(facet.name) && !defaultFacetsRequested) {
                     skipIfNoDefault = true; // note that this is not an error
@@ -170,7 +170,7 @@ public class FacetWrangler {
                     continue; // stop & proceed with next one
                 }
 
-                int from = Math.min(((null != technicalFacetOffsets && technicalFacetOffsets.containsKey(facetOffset)) ?
+                var from = Math.min(((null != technicalFacetOffsets && technicalFacetOffsets.containsKey(facetOffset)) ?
                                      technicalFacetOffsets.get(facetOffset) : 0),
                                     technicalFacetMap.get(requestedFacetName).size() - 1);
                 int to   = Math.min(((null != technicalFacetLimits  && technicalFacetLimits.containsKey(facetLimit))   ?
@@ -179,8 +179,8 @@ public class FacetWrangler {
                                     technicalFacetMap.get(requestedFacetName).size());
 
                 List<String> keyList = new ArrayList<>(technicalFacetMap.get(requestedFacetName).keySet());
-                for (int i = from; i < to; i++) {
-                    final LabelFrequency freq = new LabelFrequency();
+                for (var i = from; i < to; i++) {
+                    final var freq = new LabelFrequency();
                     freq.label = keyList.get(i);
                     freq.count = technicalFacetMap.get(requestedFacetName).get(freq.label);
                     facet.fields.add(freq);
@@ -197,12 +197,12 @@ public class FacetWrangler {
     private void processRangeFacets(List<RangeFacet> rangeFacets, List<Facet> facetList){
         for (RangeFacet rangeFacet : rangeFacets) {
             if (!rangeFacet.getCounts().isEmpty()) {
-                final FacetRanger facetRanger = new FacetRanger();
+                final var facetRanger = new FacetRanger();
                 facetRanger.name = rangeFacet.getName();
-                for (Object countObject : rangeFacet.getCounts()) {
-                    Count count = (Count) countObject;
+                for (var countObject : rangeFacet.getCounts()) {
+                    var count = (Count) countObject;
                     if (StringUtils.isNotEmpty(count.getValue()) && count.getCount() > 0) {
-                        final LabelFrequency rangeValue = new LabelFrequency();
+                        final var rangeValue = new LabelFrequency();
                         rangeValue.count = count.getCount();
                         rangeValue.label = formatDateString(count.getValue(), rangeFacet.getGap());
                         facetRanger.ranges.add(rangeValue);
@@ -215,9 +215,9 @@ public class FacetWrangler {
     }
 
     private String formatDateString(String value, Object gap){
-        String gapString = gap.toString();
+        var gapString = gap.toString();
         // this splits eg "1883-01-01T00:00:00Z" in ["1883"],["01"], ["01"], ["00:00:00Z"]
-        String[] dateParts = StringUtils.split(value, "-T");
+        var dateParts = StringUtils.split(value, "-T");
         if (StringUtils.containsIgnoreCase(gapString, "DAY")){
             return dateParts[0] + "-" + dateParts[1] + "-" + dateParts[2];
         } else if (StringUtils.containsIgnoreCase(gapString, "MONTH")){
