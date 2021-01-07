@@ -8,7 +8,6 @@ import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
-import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -28,7 +27,6 @@ import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
-import eu.europeana.corelib.db.service.ApiKeyService;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
@@ -64,7 +62,6 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -103,12 +100,11 @@ public class SearchController {
     private static final String HITS                      = "hits";
     private static final String ERROR_RETRIEVE_ATTRIBUTES = "error retrieving attributes";
     private static final String TITLE                     = "title";
-    private static final String _TITLE                    = "_title";
     private static final String DESCRIPTION               = "description";
-    private static final String _DESCRIPTION              = "_description";
     private static final String LANGUAGE                  = "language";
     private static final String IMAGE                     = "image";
     private static final String LINK                      = "link";
+    private static final String UTF8                      = "UTF-8";
 
     // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
@@ -116,9 +112,6 @@ public class SearchController {
 
     @Resource
     private SearchService searchService;
-
-    @Resource
-    private ApiKeyService apiService;
 
     @Resource
     private Configuration configuration;
@@ -138,11 +131,6 @@ public class SearchController {
     @Value("${api.search.hl.MaxAnalyzedChars}")
     private String hlMaxAnalyzedChars;
 
-    public static void main(String args[]) {
-        String[] profiles = {"amit", "rahul", "surya"};
-        System.out.println(StringUtils.join(profiles, ","));
-    }
-
     /**
      * Returns a list of Europeana datasets based on the search terms.
      * The response is an Array of JSON objects, each one containing the identifier and the name of a dataset.
@@ -150,7 +138,7 @@ public class SearchController {
      * @return the JSON response
      */
     @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
-    @PostMapping(value = {"/api/v2/search.json", "/v2/search.json", "/record/v2/search.json", "/record/search.json"},
+    @PostMapping(value = {"/api/v2/search.json", "/record/v2/search.json", "/record/search.json"},
                  produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE,
                  consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonPost(@RequestParam(value = "wskey") String apikey,
@@ -187,7 +175,7 @@ public class SearchController {
      * @return the JSON response
      */
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
-    @GetMapping(value = {"/api/v2/search.json", "/v2/search.json", "/record/v2/search.json", "/record/search.json"},
+    @GetMapping(value = {"/api/v2/search.json", "/record/v2/search.json", "/record/search.json"},
                 produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGet(@RequestParam(value = "wskey") String apikey,
                                       @SolrEscape @RequestParam(value = "query") String queryString,
@@ -226,22 +214,20 @@ public class SearchController {
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
         if (LOG.isDebugEnabled()) {
-            LOG.debug("QUERY: |" + queryString + "|");
+            LOG.debug("QUERY: |{}|", queryString);
         }
 
-        if (cursorMark != null) {
-            if (start > 1) {
-                throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
-                                             "Parameters 'start' and 'cursorMark' cannot be used together");
-            }
+        if ((cursorMark != null) && (start > 1)) {
+            throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
+                                         "Parameters 'start' and 'cursorMark' cannot be used together");
         }
 
         // TODO check whether this is still necessary? <= about time we did that!
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
-        String[] _qf = request.getParameterMap().get("qf");
-        if (_qf != null && _qf.length != refinementArray.length) {
-            refinementArray = _qf;
+        String[] qfArray = request.getParameterMap().get("qf");
+        if (qfArray != null && qfArray.length != refinementArray.length) {
+            refinementArray = qfArray;
         }
 
         if (StringUtils.isNotBlank(theme)) {
@@ -252,7 +238,7 @@ public class SearchController {
             }
         }
 
-        List<String> colourPalette = new ArrayList();
+        List<String> colourPalette = new ArrayList<String>();
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
             StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         }
@@ -306,29 +292,17 @@ public class SearchController {
         }
 
         Class<? extends IdBean> clazz = selectBean(profile);
-        Query query = new Query(SearchUtils.rewriteQueryFields(SearchUtils.fixBuggySolrIndex(queryString))).setApiQuery(
-                true)
-                                                                                                           .setRefinements(
-                                                                                                                   refinementArray)
-                                                                                                           .setPageSize(
-                                                                                                                   rows)
-                                                                                                           .setStart(
-                                                                                                                   start -
-                                                                                                                   1)
-                                                                                                           .setSort(sort)
-                                                                                                           .setCurrentCursorMark(
-                                                                                                                   cursorMark)
-                                                                                                           .setParameter(
-                                                                                                                   "facet.mincount",
-                                                                                                                   "1")
-                                                                                                           .setParameter(
-                                                                                                                   "fl",
-                                                                                                                   IdBeanImpl
-                                                                                                                           .getFields(
-                                                                                                                                   getBeanImpl(
-                                                                                                                                           clazz)))
-                                                                                                           .setSpellcheckAllowed(
-                                                                                                                   false);
+        Query query = new Query(SearchUtils.rewriteQueryFields(
+                SearchUtils.fixBuggySolrIndex(queryString)))
+                                .setApiQuery(true)
+                                .setRefinements(refinementArray)
+                                .setPageSize(rows)
+                                .setStart(start - 1)
+                                .setSort(sort)
+                                .setCurrentCursorMark(cursorMark)
+                                .setParameter("facet.mincount","1")
+                                .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
+                                .setSpellcheckAllowed(false);
 
         if (facetsRequested) {
             Map<String, String[]> parameterMap = request.getParameterMap();
@@ -413,7 +387,7 @@ public class SearchController {
             result.addParam("rows", rows);
             result.addParam("sort", sort);
         }
-        response.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding(UTF8);
         response.addHeader("Allow", ControllerUtils.ALLOWED_GET_HEAD_POST);
         return JsonUtils.toJson(result, callback);
     }
@@ -456,7 +430,6 @@ public class SearchController {
         boolean      hasAudioRefinements = false;
         boolean      hasVideoRefinements = false;
         boolean      hasTextRefinements  = false;
-        boolean      hasOtherRefinements = false;
         FacetEncoder facetEncoder        = new FacetEncoder();
         List<String> newRefinements      = new ArrayList<>();
 
@@ -464,7 +437,6 @@ public class SearchController {
         Set<MimeTypeEncoding>   audioMimeTypeRefinements      = new HashSet<>();
         Set<MimeTypeEncoding>   videoMimeTypeRefinements      = new HashSet<>();
         Set<MimeTypeEncoding>   textMimeTypeRefinements       = new HashSet<>();
-        Set<MimeTypeEncoding>   otherMimeTypeRefinements      = new HashSet<>();
         Set<ImageSize>          imageSizeRefinements          = new HashSet<>();
         Set<ImageAspectRatio>   imageAspectRatioRefinements   = new HashSet<>();
         Set<AudioDuration>      audioDurationRefinements      = new HashSet<>();
@@ -504,7 +476,7 @@ public class SearchController {
                                     hasTextRefinements = true;
                                     break;
                                 default:
-                                    hasOtherRefinements = true;
+                                    break;
                             }
                             break;
                         case "IMAGE_SIZE":
@@ -786,12 +758,6 @@ public class SearchController {
         if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
             response.debug = resultSet.getSolrQueryString();
         }
-//        if (StringUtils.containsIgnoreCase(profile, "params")) {
-//            response.addParam("sort", resultSet.getSortField());
-//        }
-//        if (StringUtils.containsIgnoreCase(profile, "suggestions") ||
-//            StringUtils.containsIgnoreCase(profile, PORTAL)) {
-//        }
         return response;
     }
 
@@ -814,9 +780,9 @@ public class SearchController {
         apiKeyUtils.validateApiKey(apikey);
         SolrClient solrClient = getSolrClient(request.getServerName());
 
-        String[] _qf = request.getParameterMap().get("qf");
-        if (_qf != null && _qf.length != refinementArray.length) {
-            refinementArray = _qf;
+        String[] qfArray = request.getParameterMap().get("qf");
+        if (qfArray != null && qfArray.length != refinementArray.length) {
+            refinementArray = qfArray;
         }
         KmlResponse kmlResponse = new KmlResponse();
         Query query = new Query(SearchUtils.rewriteQueryFields(queryString)).setRefinements(refinementArray)
@@ -873,7 +839,7 @@ public class SearchController {
                                       HttpServletResponse response) throws EuropeanaException {
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("openSearch query with terms: " + queryString);
+            LOG.debug("openSearch query with terms: {}", queryString);
         }
         ControllerUtils.addResponseHeaders(response);
         RssResponse rss = new RssResponse();
@@ -901,14 +867,14 @@ public class SearchController {
             channel.items.add(item);
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Returning rss result: " + rss);
+            LOG.debug("Returning rss result: {}", rss);
         }
 
         String              xml   = xmlUtils.toString(rss);
         Map<String, Object> model = new HashMap<>();
         model.put("rss", xml);
 
-        response.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding(UTF8);
         response.setContentType("application/xml");
 
         return new ModelAndView("rss", model);
@@ -958,36 +924,39 @@ public class SearchController {
             Map<String, String> gftChannelAttributes = configuration.getGftChannelAttributes(collectionID);
 
             if (gftChannelAttributes.isEmpty() || gftChannelAttributes.size() < 5) {
-                LOG.error(
-                        "error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
+                LOG.error("error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
                 channel.title = ERROR_RETRIEVE_ATTRIBUTES;
                 channel.description = ERROR_RETRIEVE_ATTRIBUTES;
                 channel.language = "--";
                 channel.link = ERROR_RETRIEVE_ATTRIBUTES;
                 channel.image = null;
             } else {
-                channel.title = gftChannelAttributes.get(reqLanguage + "_" + TITLE) == null ||
-                                gftChannelAttributes.get(reqLanguage + "_" + TITLE).equalsIgnoreCase("") ? (
-                                        gftChannelAttributes.get(TITLE) == null || gftChannelAttributes.get(TITLE)
-                                                                                                       .equalsIgnoreCase(
-                                                                                                               "") ? "no title defined" : gftChannelAttributes
-                                                .get(TITLE)) : gftChannelAttributes.get(reqLanguage + "_" + TITLE);
-                channel.description = gftChannelAttributes.get(reqLanguage + "_" + DESCRIPTION) == null ||
-                                      gftChannelAttributes.get(reqLanguage + "_" + DESCRIPTION).equalsIgnoreCase("") ? (
-                                              gftChannelAttributes.get(DESCRIPTION) == null ||
-                                              gftChannelAttributes.get(DESCRIPTION)
-                                                                  .equalsIgnoreCase("") ? "no description defined" : gftChannelAttributes
-                                                      .get(DESCRIPTION)) : gftChannelAttributes.get(
-                        reqLanguage + "_" + DESCRIPTION);
-                channel.language = gftChannelAttributes.get(LANGUAGE) == null ||
-                                   gftChannelAttributes.get(LANGUAGE).equalsIgnoreCase("") ? "--" : gftChannelAttributes
-                                           .get(LANGUAGE);
-                channel.link = gftChannelAttributes.get(LINK) == null || gftChannelAttributes.get(LINK)
-                                                                                             .equalsIgnoreCase("") ? "no link defined" : gftChannelAttributes
-                                       .get(LINK);
-                channel.image = gftChannelAttributes.get(IMAGE) == null ||
-                                gftChannelAttributes.get(IMAGE).equalsIgnoreCase("") ? null : new FieldTripImage(
-                        gftChannelAttributes.get(IMAGE));
+                channel.title = gftChannelAttributes.get(reqLanguage + "_" + TITLE) == null
+                                || gftChannelAttributes.get(reqLanguage + "_" + TITLE).equalsIgnoreCase("")
+                                ? (gftChannelAttributes.get(TITLE) == null
+                                   || gftChannelAttributes.get(TITLE).equalsIgnoreCase("")
+                                   ? "no title defined"
+                                   : gftChannelAttributes.get(TITLE))
+                                : gftChannelAttributes.get(reqLanguage + "_" + TITLE);
+                channel.description = gftChannelAttributes.get(reqLanguage + "_" + DESCRIPTION) == null
+                                      || gftChannelAttributes.get(reqLanguage + "_" + DESCRIPTION).equalsIgnoreCase("")
+                                      ? (gftChannelAttributes.get(DESCRIPTION) == null
+                                         || gftChannelAttributes.get(DESCRIPTION).equalsIgnoreCase("")
+                                         ? "no description defined"
+                                         : gftChannelAttributes.get(DESCRIPTION))
+                                      : gftChannelAttributes.get(reqLanguage + "_" + DESCRIPTION);
+                channel.language = gftChannelAttributes.get(LANGUAGE) == null
+                                   || gftChannelAttributes.get(LANGUAGE).equalsIgnoreCase("")
+                                   ? "--"
+                                   : gftChannelAttributes.get(LANGUAGE);
+                channel.link = gftChannelAttributes.get(LINK) == null
+                               || gftChannelAttributes.get(LINK).equalsIgnoreCase("")
+                               ? "no link defined"
+                               : gftChannelAttributes.get(LINK);
+                channel.image = gftChannelAttributes.get(IMAGE) == null
+                                || gftChannelAttributes.get(IMAGE).equalsIgnoreCase("")
+                                ? null
+                                : new FieldTripImage(gftChannelAttributes.get(IMAGE));
             }
 
             if (StringUtils.equals(profile, "FieldTrip")) {
@@ -1008,7 +977,7 @@ public class SearchController {
                     }
                 }
             } catch (EuropeanaException | MissingResourceException e) {
-                LOG.error("error: " + e.getLocalizedMessage());
+                LOG.error("error: {}", e.getLocalizedMessage());
                 FieldTripItem item = new FieldTripItem();
                 item.title = "Error";
                 item.description = e.getMessage();
@@ -1016,11 +985,9 @@ public class SearchController {
             }
         }
         String xml = fieldTripUtils.cleanRss(xmlUtils.toString(rss));
-
         Map<String, Object> model = new HashMap<>();
         model.put("rss", xml);
-
-        response.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding(UTF8);
         response.setContentType("application/xml");
 
         return new ModelAndView("rss", model);
@@ -1032,11 +999,9 @@ public class SearchController {
      * @return the JSON response
      */
     @SwaggerIgnore
-    @GetMapping(value = {"/v2/decodetags.json", "/v2/tagdecoder.json"},
+    @GetMapping(value = {"/api/v2/decodetags.json", "/api/v2/tagdecoder.json"},
                 produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView decodeTags(@RequestParam(value = "tag") String tag) {
-
-        FacetTag facetTag;
         if (tag.matches("[0-9]+") && tag.length() > 7) {
             return JsonUtils.toJson(findAllFacetsInTag(Integer.valueOf(tag)));
         } else {

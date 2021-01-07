@@ -25,7 +25,6 @@ public class ModelUtils {
     private static final String SOLRFACETS      = "solrfacets";
     private static final String CUSTOMFACETS    = "customfacets";
     private static final String DEFAULT         = "DEFAULT";
-//    private static final String NEWLINE         = System.lineSeparator();
 
     private static final int          FACET_LIMIT        = 150;
     // static goodies: Lists containing the enum Facet type names
