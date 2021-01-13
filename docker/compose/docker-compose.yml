@@ -39,9 +39,7 @@ services:
     # Map ports from tomcat container to the local machine
     ports:
       #Tomcat http port
-      - "8080:8080"
       - "80:8080"
-      - "443:443"
       #Debug port
       - "8000:8000"
       #JMX Port
