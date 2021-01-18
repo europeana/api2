@@ -65,8 +65,6 @@ public class ApiKeyAdminController {
             @RequestBody ApiKeyCreate create,
             Principal principal
     ) {
-
-         System.out.println("here createApiKey");
         ModificationConfirmation response = new ModificationConfirmation(principal.getName());
         try {
             apiKeyService.createApiKey(
