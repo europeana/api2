@@ -105,12 +105,12 @@ public class SecurityConfig {
         @Override
         public void configure(WebSecurity web) throws Exception {
             web.ignoring().antMatchers(
-                    "/image*",
-                    "/v2/**",
-                    "/opensearch.rss",
-                    "/opensearch.json",
-                    "/oauth/uncache_approvals",
-                    "/oauth/cache_approvals"
+                    "/api/image*",
+                    "/api/v2/**",
+                    "/api/opensearch.rss",
+                    "/api/opensearch.json",
+                    "/api/oauth/uncache_approvals",
+                    "/api/oauth/cache_approvals"
             );
 
         }
@@ -121,9 +121,9 @@ public class SecurityConfig {
             http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                     .and()
                     .authorizeRequests()
-                    .antMatchers("/login/**").permitAll()
-                    .antMatchers("/mydata", "/mydata/**").hasAnyRole("CLIENT", "ADMIN_CLIENT")
-                    .antMatchers("/admin", "/admin/**").hasRole("ADMIN_CLIENT")
+                    .antMatchers("/api/login/**").permitAll()
+                    .antMatchers("/api/mydata", "/api/mydata/**").hasAnyRole("CLIENT", "ADMIN_CLIENT")
+                    .antMatchers("/api/admin", "/api/admin/**").hasRole("ADMIN_CLIENT")
                     .and()
                     .httpBasic()
                     .realmName("Europeana API2")
