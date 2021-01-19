@@ -21,7 +21,7 @@ import java.security.Principal;
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
  */
 @RestController
-@RequestMapping("/admin/apikey")
+@RequestMapping("/api/admin/apikey")
 @SwaggerIgnore
 public class ApiKeyAdminController {
 
