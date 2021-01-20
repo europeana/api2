@@ -33,7 +33,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <corelib.version>2.12.1-SNAPSHOT</corelib.version>
+        <corelib.version>2.12.1</corelib.version>
         <metis.version>3.0.1-SNAPSHOT</metis.version>
 
         <httpclient.version>4.5.2</httpclient.version>
