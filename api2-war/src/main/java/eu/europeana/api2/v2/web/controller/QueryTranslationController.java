@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 
 @Controller
-@SwaggerSelect
 @Api(tags = {"Search"})
 public class QueryTranslationController {
 

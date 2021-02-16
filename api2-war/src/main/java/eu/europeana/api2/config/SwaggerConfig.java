@@ -7,16 +7,19 @@ import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
+import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.spring.web.paths.Paths;
 import springfox.documentation.spring.web.paths.AbstractPathProvider;
+import springfox.documentation.spring.web.paths.Paths;
+import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.or;
+import static springfox.documentation.builders.PathSelectors.ant;
 import static springfox.documentation.builders.RequestHandlerSelectors.withClassAnnotation;
 import static springfox.documentation.builders.RequestHandlerSelectors.withMethodAnnotation;
 
@@ -38,7 +41,7 @@ public class SwaggerConfig {
     }
 
     @Bean
-    public Docket customImplementation() {
+    public Docket apiDocumentationConfig() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
                 // Selects controllers annotated with @SwaggerSelect
@@ -46,12 +49,18 @@ public class SwaggerConfig {
                 .apis(not(or(
                         withMethodAnnotation(SwaggerIgnore.class),
                         withClassAnnotation(SwaggerIgnore.class)
-                ))) //Selection by RequestHandler
+                )))
+                //EA-2447: only document paths mentioned on Europeana Pro
+                .paths(or(
+                        ant("/api/v2/search.json"),
+                        ant("/api/v2/record/**")))
                 .build()
+                .ignoredParameterTypes(ModelAndView.class)
                 .host(getApiBaseUrl())
                 .pathProvider(new ApiPathProvider(API_PATH))
                 .apiInfo(apiInfo());
     }
+
 
     private ApiInfo apiInfo() {
         String version = VersionUtils.getVersion(this.getClass());
