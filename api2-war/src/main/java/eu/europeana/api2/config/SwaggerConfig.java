@@ -55,7 +55,6 @@ public class SwaggerConfig {
                         ant("/api/v2/search.json"),
                         ant("/api/v2/record/**")))
                 .build()
-                .ignoredParameterTypes(ModelAndView.class)
                 .host(getApiBaseUrl())
                 .pathProvider(new ApiPathProvider(API_PATH))
                 .apiInfo(apiInfo());
