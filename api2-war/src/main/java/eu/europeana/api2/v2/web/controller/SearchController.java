@@ -137,6 +137,7 @@ public class SearchController {
      *
      * @return the JSON response
      */
+    @SwaggerIgnore
     @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
     @PostMapping(value = {"/api/v2/search.json", "/record/v2/search.json", "/record/search.json"},
                  produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE,
