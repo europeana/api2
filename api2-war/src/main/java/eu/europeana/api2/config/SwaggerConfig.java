@@ -52,9 +52,11 @@ public class SwaggerConfig {
                 )))
                 //EA-2447: only document paths mentioned on Europeana Pro
                 .paths(or(
-                        ant("/api/v2/search.json"),
+                        ant("/record/v2/search.json"),
+                        ant("/record/v2/opensearch.rss"),
                         ant("/api/v2/record/**")))
                 .build()
+
                 .host(getApiBaseUrl())
                 .pathProvider(new ApiPathProvider(API_PATH))
                 .apiInfo(apiInfo());
