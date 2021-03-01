@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static eu.europeana.corelib.utils.ConfigUtils.containsKeyPrefix;
 
@@ -26,7 +23,7 @@ public class RouteConfigLoader {
     private final Map<String, BaseUrlWrapper> routeBaseUrlMap = new HashMap<>();
 
     private static final String SEPARATOR = ".";
-
+    private static final String HOSTNAME_SEPARATOR = ",";
     private static final String PORTAL_BASEURL_PROP = "portal.baseUrl";
     private static final String GATEWAY_BASEURL_PROP = "apiGateway.baseUrl";
     private static final String API_BASEURL_PROP = "api2.baseUrl";
@@ -54,27 +51,37 @@ public class RouteConfigLoader {
 
         int routeNo = 1;
         while (containsKeyPrefix(properties, "route" + routeNo)) {
-            String basePath = "route" + routeNo + SEPARATOR;
+            String baseProp = "route" + routeNo + SEPARATOR;
 
-            String routePath = properties.getProperty(basePath + "path");
-            String dataSourceId = properties.getProperty(basePath + "data-source");
-            String solrId = properties.getProperty(basePath + "solr");
+            String routePath = properties.getProperty(baseProp + "path");
+            String dataSourceId = properties.getProperty(baseProp + "data-source");
+            String solrId = properties.getProperty(baseProp + "solr");
 
             if (StringUtils.isAnyBlank(routePath, dataSourceId, solrId)) {
                 throw new IllegalStateException(
-                        String.format("Empty route mapping found in config - route:%s, data-source:%s, solr:%s, config prop:%s",
-                                routePath, dataSourceId, solrId, basePath));
+                        String.format("Empty route mapping found in config - route:%s, data-source:%s, solr:%s, configProp:%s",
+                                routePath, dataSourceId, solrId, baseProp));
             }
+            List<String> hostnames = getHostNames(routePath);
+
+            // each hostname can only be configured once
+            hostnames.forEach(hostname -> { if (routeDataSourceMap.containsKey(hostname))
+                { throw new IllegalStateException(
+                            String.format("Duplicate host name in route config - hostname: %s, route: %s, configProp: %s", hostname, routePath, baseProp));
+                }
+            });
 
             // use default baseUrl values if no overrides were configured for this route
-            String routeApiBaseUrl = properties.getProperty(basePath + API_BASEURL_PROP, defaultApiBaseUrl);
-            String routeGatewayBaseUrl = properties.getProperty(basePath + GATEWAY_BASEURL_PROP, defaultGatewayBaseUrl);
-            String routePortalBaseUrl = properties.getProperty(basePath + PORTAL_BASEURL_PROP, defaultPortalBaseUrl);
+            String routeApiBaseUrl = properties.getProperty(baseProp + API_BASEURL_PROP, defaultApiBaseUrl);
+            String routeGatewayBaseUrl = properties.getProperty(baseProp + GATEWAY_BASEURL_PROP, defaultGatewayBaseUrl);
+            String routePortalBaseUrl = properties.getProperty(baseProp + PORTAL_BASEURL_PROP, defaultPortalBaseUrl);
 
-            routeDataSourceMap.put(routePath, dataSourceId);
-            routeSolrMap.put(routePath, solrId);
-            routeBaseUrlMap.put(routePath, new BaseUrlWrapper(routeApiBaseUrl, routeGatewayBaseUrl, routePortalBaseUrl));
+            hostnames.forEach(hostname -> {
+                routeDataSourceMap.put(hostname, dataSourceId);
+                routeSolrMap.put(hostname, solrId);
+                routeBaseUrlMap.put(hostname, new BaseUrlWrapper(routeApiBaseUrl, routeGatewayBaseUrl, routePortalBaseUrl));
 
+            });
             routeNo++;
         }
     }
@@ -98,5 +105,15 @@ public class RouteConfigLoader {
      */
     public Map<String, BaseUrlWrapper> getRouteBaseUrlMap() {
         return Collections.unmodifiableMap(routeBaseUrlMap);
+    }
+
+    /**
+     * Returns the hostnames configured in route path
+     */
+    private List<String> getHostNames(String routePath) {
+        if (routePath.contains(HOSTNAME_SEPARATOR)) {
+            return Arrays.asList(routePath.split("\\s*,\\s*"));
+        }
+        return Arrays.asList(routePath);
     }
 }
