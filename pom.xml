@@ -43,7 +43,7 @@
         <mockito.version>1.10.19</mockito.version>
         <servletJstl.version>1.2</servletJstl.version>
         <swagger.version>2.9.2</swagger.version>
-        <apicommons.version>0.2.13</apicommons.version>
+        <apicommons.version>0.3.2</apicommons.version>
 
         <!-- Note that SpringBoot, SpringCore and SpringSecurity are also dependencies in Corelib
              so versions have to match -->
