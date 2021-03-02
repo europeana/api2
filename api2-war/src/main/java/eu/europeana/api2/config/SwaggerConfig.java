@@ -7,10 +7,9 @@ import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
-import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Tag;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.paths.AbstractPathProvider;
 import springfox.documentation.spring.web.paths.Paths;
@@ -31,6 +30,9 @@ import static springfox.documentation.builders.RequestHandlerSelectors.withMetho
 
 public class SwaggerConfig {
 
+    public static final String SEARCH_TAG = "Search";
+    public static final String RECORD_TAG = "Record";
+
     private static final String API_PATH     = "/api";
 
     private String getApiBaseUrl(){
@@ -50,16 +52,17 @@ public class SwaggerConfig {
                         withMethodAnnotation(SwaggerIgnore.class),
                         withClassAnnotation(SwaggerIgnore.class)
                 )))
-                //EA-2447: only document paths mentioned on Europeana Pro
-                .paths(or(
-                        ant("/record/v2/search.json"),
-                        ant("/record/v2/opensearch.rss"),
-                        ant("/api/v2/record/**")))
+                //EA-2447: only document /record/v2 pattern
+                .paths(ant("/record/v2/**"))
                 .build()
 
                 .host(getApiBaseUrl())
                 .pathProvider(new ApiPathProvider(API_PATH))
-                .apiInfo(apiInfo());
+                .apiInfo(apiInfo())
+                // override default descriptions
+                // see: https://github.com/swagger-api/swagger-core/issues/1476#issuecomment-555017788
+                .tags(new Tag(SEARCH_TAG, ""))
+                .tags(new Tag(RECORD_TAG, ""));
     }
 
 

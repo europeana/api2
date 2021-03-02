@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.model.json.QueryTranslationResult;
@@ -26,7 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 
 @Controller
-@Api(tags = {"Search"})
+@SwaggerSelect
+@Api(tags = {SwaggerConfig.SEARCH_TAG})
 public class QueryTranslationController {
 
     @Resource
@@ -36,7 +38,7 @@ public class QueryTranslationController {
     private static final String ERROR_LANGUAGE = "Invalid parameter: languageCodes can not be empty";
 
     @ApiOperation(value = "translate a term to different languages")
-    @GetMapping(value = "/api/v2/translateQuery.json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value ={"/api/v2/translateQuery.json", "/record/v2/translateQuery.json"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView translateQuery(
             @RequestParam(value = "term") String term,
             @RequestParam(value = "languageCodes") String[] languageCodes,
