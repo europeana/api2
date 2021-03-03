@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
+import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
@@ -73,7 +74,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@Api(tags = {"Record"})
+@Api(tags = {SwaggerConfig.RECORD_TAG})
 @RequestMapping(value = {
         "/api/v2/record",
         "/v2/record",

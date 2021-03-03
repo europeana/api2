@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
@@ -51,6 +52,7 @@ import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import eu.europeana.indexing.solr.facet.FacetEncoder;
 import eu.europeana.indexing.solr.facet.value.*;
+import eu.europeana.metis.schema.model.MediaType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections.MapUtils;
@@ -73,9 +75,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import eu.europeana.metis.schema.model.MediaType;
-
-import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 /**
@@ -87,7 +86,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
  */
 @Controller
 @SwaggerSelect
-@Api(tags = {"Search"})
+@Api(tags = {SwaggerConfig.SEARCH_TAG})
 public class SearchController {
 
     private static final Logger LOG                       = LogManager.getLogger(SearchController.class);
@@ -137,6 +136,7 @@ public class SearchController {
      *
      * @return the JSON response
      */
+    @SwaggerIgnore
     @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
     @PostMapping(value = {"/api/v2/search.json", "/record/v2/search.json", "/record/search.json"},
                  produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE,

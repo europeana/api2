@@ -9,14 +9,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.util.UriComponentsBuilder;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Tag;
 import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.spring.web.paths.Paths;
 import springfox.documentation.spring.web.paths.AbstractPathProvider;
+import springfox.documentation.spring.web.paths.Paths;
+import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.or;
+import static springfox.documentation.builders.PathSelectors.ant;
 import static springfox.documentation.builders.RequestHandlerSelectors.withClassAnnotation;
 import static springfox.documentation.builders.RequestHandlerSelectors.withMethodAnnotation;
 
@@ -28,6 +30,9 @@ import static springfox.documentation.builders.RequestHandlerSelectors.withMetho
 
 public class SwaggerConfig {
 
+    public static final String SEARCH_TAG = "Search";
+    public static final String RECORD_TAG = "Record";
+
     private static final String API_PATH     = "/api";
 
     private String getApiBaseUrl(){
@@ -38,7 +43,7 @@ public class SwaggerConfig {
     }
 
     @Bean
-    public Docket customImplementation() {
+    public Docket apiDocumentationConfig() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
                 // Selects controllers annotated with @SwaggerSelect
@@ -46,12 +51,20 @@ public class SwaggerConfig {
                 .apis(not(or(
                         withMethodAnnotation(SwaggerIgnore.class),
                         withClassAnnotation(SwaggerIgnore.class)
-                ))) //Selection by RequestHandler
+                )))
+                //EA-2447: only document /record/v2 pattern
+                .paths(ant("/record/v2/**"))
                 .build()
+
                 .host(getApiBaseUrl())
                 .pathProvider(new ApiPathProvider(API_PATH))
-                .apiInfo(apiInfo());
+                .apiInfo(apiInfo())
+                // override default descriptions
+                // see: https://github.com/swagger-api/swagger-core/issues/1476#issuecomment-555017788
+                .tags(new Tag(SEARCH_TAG, ""))
+                .tags(new Tag(RECORD_TAG, ""));
     }
+
 
     private ApiInfo apiInfo() {
         String version = VersionUtils.getVersion(this.getClass());
