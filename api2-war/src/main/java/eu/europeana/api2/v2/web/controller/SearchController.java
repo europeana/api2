@@ -55,6 +55,7 @@ import eu.europeana.indexing.solr.facet.value.*;
 import eu.europeana.metis.schema.model.MediaType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +76,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import eu.europeana.metis.schema.model.MediaType;
+
+import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 /**
@@ -86,7 +90,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
  */
 @Controller
 @SwaggerSelect
-@Api(tags = {SwaggerConfig.SEARCH_TAG})
+@Api(tags = {"Search"})
 public class SearchController {
 
     private static final Logger LOG                       = LogManager.getLogger(SearchController.class);
@@ -136,7 +140,6 @@ public class SearchController {
      *
      * @return the JSON response
      */
-    @SwaggerIgnore
     @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
     @PostMapping(value = {"/api/v2/search.json", "/record/v2/search.json", "/record/search.json"},
                  produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE,
@@ -258,9 +261,16 @@ public class SearchController {
 
         // add the CF filter facets to the query string like this:
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
-        if (!filterTags.isEmpty()) {
-            queryString = filterQueryBuilder(filterTags.iterator(), queryString, " OR ", true);
+        // if filter facets is empty (ie; the qf has invalid values),
+        // one filter_tag = 0 will be added to the query string like this:
+        // [existing-query] AND (filter_tags:0)
+        if(filterTags.isEmpty()) {
+            filterTags.add(0);
         }
+        queryString = filterQueryBuilder(filterTags.iterator(),
+                                          queryString,
+                                          " OR ",
+                                          true);
 
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets   = StringArrayUtils.splitWebParameter(mixedFacetArray);
@@ -420,7 +430,7 @@ public class SearchController {
      * Processes all qf parameters. Note that besides returning a new array of refinements we may add new filterTags to
      * the provided filterTags list (if there are image, audio, video or mimetype refinements)
      */
-    private String[] processQfParameters(String[] refinementArray,
+    protected String[] processQfParameters(String[] refinementArray,
                                          Boolean media,
                                          Boolean thumbnail,
                                          Boolean fullText,
@@ -460,20 +470,18 @@ public class SearchController {
                         case "MIME_TYPE":
                             switch (MediaType.getMediaType(refinementValue)) {
                                 case IMAGE:
-                                    imageMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    hasImageRefinements = true;
+                                    CollectionUtils.addIgnoreNull(imageMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     break;
                                 case AUDIO:
-                                    audioMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    hasAudioRefinements = true;
+                                    CollectionUtils.addIgnoreNull(audioMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     break;
                                 case VIDEO:
-                                    videoMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    hasVideoRefinements = true;
+                                    CollectionUtils.addIgnoreNull(videoMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     break;
                                 case TEXT:
-                                    textMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    hasTextRefinements = true;
+                                    CollectionUtils.addIgnoreNull(textMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
+                                    break;
+                                case OTHER: // <-- note that this is a valid Mediatype, but mimetypes of this type are not stored in Solr by Metis
                                     break;
                                 default:
                                     break;
@@ -596,24 +604,24 @@ public class SearchController {
         }
 
         // Encode the faceted refinements ...
-        if (hasImageRefinements) {
+        if (hasImageRefinements || CollectionUtils.isNotEmpty(imageMimeTypeRefinements)) {
             filterTags.addAll(facetEncoder.getImageFacetSearchCodes(imageMimeTypeRefinements,
                                                                     imageSizeRefinements,
                                                                     imageColourSpaceRefinements,
                                                                     imageAspectRatioRefinements,
                                                                     imageColourPaletteRefinements));
         }
-        if (hasAudioRefinements) {
+        if (hasAudioRefinements || CollectionUtils.isNotEmpty(audioMimeTypeRefinements)) {
             filterTags.addAll(facetEncoder.getAudioFacetSearchCodes(audioMimeTypeRefinements,
                                                                     audioHQRefinements,
                                                                     audioDurationRefinements));
         }
-        if (hasVideoRefinements) {
+        if (hasVideoRefinements || CollectionUtils.isNotEmpty(videoMimeTypeRefinements)) {
             filterTags.addAll(facetEncoder.getVideoFacetSearchCodes(videoMimeTypeRefinements,
                                                                     videoHDRefinements,
                                                                     videoDurationRefinements));
         }
-        if (hasTextRefinements) {
+        if (CollectionUtils.isNotEmpty(textMimeTypeRefinements)) {
             filterTags.addAll(facetEncoder.getTextFacetSearchCodes(textMimeTypeRefinements));
         }
 
