@@ -55,6 +55,7 @@ import eu.europeana.indexing.solr.facet.value.*;
 import eu.europeana.metis.schema.model.MediaType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -469,20 +470,18 @@ public class SearchController {
                         case "MIME_TYPE":
                             switch (MediaType.getMediaType(refinementValue)) {
                                 case IMAGE:
-                                    imageMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    hasImageRefinements = true;
+                                    CollectionUtils.addIgnoreNull(imageMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     break;
                                 case AUDIO:
-                                    audioMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    hasAudioRefinements = true;
+                                    CollectionUtils.addIgnoreNull(audioMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     break;
                                 case VIDEO:
-                                    videoMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    hasVideoRefinements = true;
+                                    CollectionUtils.addIgnoreNull(videoMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
                                     break;
                                 case TEXT:
-                                    textMimeTypeRefinements.add(MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    hasTextRefinements = true;
+                                    CollectionUtils.addIgnoreNull(textMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
+                                    break;
+                                case OTHER: // <-- note that this is a valid Mediatype, but mimetypes of this type are not stored in Solr by Metis
                                     break;
                                 default:
                                     break;
@@ -605,24 +604,24 @@ public class SearchController {
         }
 
         // Encode the faceted refinements ...
-        if (hasImageRefinements) {
+        if (hasImageRefinements || CollectionUtils.isNotEmpty(imageMimeTypeRefinements)) {
             filterTags.addAll(facetEncoder.getImageFacetSearchCodes(imageMimeTypeRefinements,
                                                                     imageSizeRefinements,
                                                                     imageColourSpaceRefinements,
                                                                     imageAspectRatioRefinements,
                                                                     imageColourPaletteRefinements));
         }
-        if (hasAudioRefinements) {
+        if (hasAudioRefinements || CollectionUtils.isNotEmpty(audioMimeTypeRefinements)) {
             filterTags.addAll(facetEncoder.getAudioFacetSearchCodes(audioMimeTypeRefinements,
                                                                     audioHQRefinements,
                                                                     audioDurationRefinements));
         }
-        if (hasVideoRefinements) {
+        if (hasVideoRefinements || CollectionUtils.isNotEmpty(videoMimeTypeRefinements)) {
             filterTags.addAll(facetEncoder.getVideoFacetSearchCodes(videoMimeTypeRefinements,
                                                                     videoHDRefinements,
                                                                     videoDurationRefinements));
         }
-        if (hasTextRefinements) {
+        if (CollectionUtils.isNotEmpty(textMimeTypeRefinements)) {
             filterTags.addAll(facetEncoder.getTextFacetSearchCodes(textMimeTypeRefinements));
         }
 
