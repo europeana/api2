@@ -90,6 +90,7 @@ public class ObjectController {
     private static final String MEDIA_TYPE_TURTLE_TEXT  = "text/turtle";
     private static final String MEDIA_TYPE_TURTLE       = "application/turtle";
     private static final String MEDIA_TYPE_TURTLE_X     = "application/x-turtle";
+    public static final String PROFILE_SCHEMAORG     = "schemaOrg";
 
     private static Object       jsonldContext           = new Object();
 
@@ -405,7 +406,14 @@ public class ObjectController {
 
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
         ObjectResult objectResult = new ObjectResult(data.wskey);
-
+        // add schemaOrg in the response if profile = schemaOrg
+        if (StringUtils.containsIgnoreCase(data.profile, PROFILE_SCHEMAORG)) {
+            try {
+                objectResult.schemaOrg = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
+            } catch (IOException e) {
+                LOG.error("Error generating schema.org data", e);
+            }
+        }
         if (StringUtils.containsIgnoreCase(data.profile, "params")) {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
