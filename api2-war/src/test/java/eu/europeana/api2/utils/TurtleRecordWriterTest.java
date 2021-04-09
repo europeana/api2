@@ -14,10 +14,11 @@ public class TurtleRecordWriterTest {
     private static final String RDF_INPUT_TEST = "photography_ProvidedCHO_TopFoto_co_uk_EU017407.rdf";
     private static final String TTL_INPUT_TEST = "photography_ProvidedCHO_TopFoto_co_uk_EU017407.txt";
     private static final String WRONG_TTL_INPUT_TEST = "WrongTurtleInput.txt";
+    private static final String BADSPACE_TTL_INPUT_TEST = "0081AD17F6F32DFDCAC1FEBF02BB683ACA0FFB95.rdf";
 
     // test if generated turtle format by TurtleRecordWriter is valid
     @Test
-    public void turtleWriterTest() throws IOException {
+    public void turtleWriterTest() throws IOException, NoSuchFieldException, IllegalAccessException {
         InputStream rdfInput = TurtleRecordWriterTest.class.getClassLoader().getResourceAsStream(RDF_INPUT_TEST);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         TurtleRecordWriter writer = new TurtleRecordWriter(outputStream);
@@ -34,6 +35,23 @@ public class TurtleRecordWriterTest {
         //close the stream
         outputStream.close();
         inStream.close();
+    }
+
+
+    // test if badURIspace links generate the proper ttl
+     @Test
+    public void turtleBadSpaceWriterTest() throws IOException, NoSuchFieldException, IllegalAccessException {
+        InputStream rdfInput = TurtleRecordWriterTest.class.getClassLoader().getResourceAsStream(BADSPACE_TTL_INPUT_TEST);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        TurtleRecordWriter writer = new TurtleRecordWriter(outputStream);
+        Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
+        writer.write(modelResult);
+        rdfInput.close();
+        writer.close();
+        //check if null
+        Assert.assertNotNull(outputStream);
+        //close the stream
+        outputStream.close();
     }
 
     // to test valid turtle format
