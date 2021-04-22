@@ -266,11 +266,12 @@ public class SearchController {
         // [existing-query] AND (filter_tags:0)
         if(filterTags.isEmpty()) {
             filterTags.add(0);
+        } else {
+            queryString = filterQueryBuilder(filterTags.iterator(),
+                                             queryString,
+                                             " OR ",
+                                             true);
         }
-        queryString = filterQueryBuilder(filterTags.iterator(),
-                                          queryString,
-                                          " OR ",
-                                          true);
 
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets   = StringArrayUtils.splitWebParameter(mixedFacetArray);
