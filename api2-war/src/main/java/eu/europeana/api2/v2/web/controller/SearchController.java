@@ -229,6 +229,7 @@ public class SearchController {
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
         String[] qfArray = request.getParameterMap().get("qf");
+        boolean refinementPresent = (qfArray != null && refinementArray != null) ? true : false;
         if (qfArray != null && qfArray.length != refinementArray.length) {
             refinementArray = qfArray;
         }
@@ -261,16 +262,18 @@ public class SearchController {
 
         // add the CF filter facets to the query string like this:
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
-        // if filter facets is empty (ie; the qf has invalid values),
-        // one filter_tag = 0 will be added to the query string like this:
+        // if filter facets is empty and qf is passed in the request (ie; the qf has invalid values),
+        // one filter_tag = 0 (Default Filter Tag) will be added to the query string like this:
         // [existing-query] AND (filter_tags:0)
-        if(filterTags.isEmpty()) {
+        if(filterTags.isEmpty() && refinementPresent) {
             filterTags.add(0);
-        } else {
+        }
+
+        if (!filterTags.isEmpty()) {
             queryString = filterQueryBuilder(filterTags.iterator(),
-                                             queryString,
-                                             " OR ",
-                                             true);
+                    queryString,
+                    " OR ",
+                    true);
         }
 
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
