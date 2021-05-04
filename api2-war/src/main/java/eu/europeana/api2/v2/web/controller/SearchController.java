@@ -229,7 +229,6 @@ public class SearchController {
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
         String[] qfArray = request.getParameterMap().get("qf");
-        boolean refinementPresent = (qfArray != null && refinementArray != null) ? true : false;
         if (qfArray != null && qfArray.length != refinementArray.length) {
             refinementArray = qfArray;
         }
@@ -258,17 +257,12 @@ public class SearchController {
         }
 
         final List<Integer> filterTags = new ArrayList<>();
+
+        // NOTE the zero tag is now added in processQfParameters
         refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags);
 
         // add the CF filter facets to the query string like this:
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
-        // if filter facets is empty and qf is passed in the request (ie; the qf has invalid values),
-        // one filter_tag = 0 (Default Filter Tag) will be added to the query string like this:
-        // [existing-query] AND (filter_tags:0)
-        if(filterTags.isEmpty() && refinementPresent) {
-            filterTags.add(0);
-        }
-
         if (!filterTags.isEmpty()) {
             queryString = filterQueryBuilder(filterTags.iterator(),
                     queryString,
@@ -444,6 +438,8 @@ public class SearchController {
         boolean      hasAudioRefinements = false;
         boolean      hasVideoRefinements = false;
         boolean      hasTextRefinements  = false;
+        boolean      hasBrokenTechFacet  = false;
+        Boolean whatYouWant;
         FacetEncoder facetEncoder        = new FacetEncoder();
         List<String> newRefinements      = new ArrayList<>();
 
@@ -460,6 +456,8 @@ public class SearchController {
         Set<AudioQuality>       audioHQRefinements            = new HashSet<>();
         Set<ImageColorEncoding> imageColourPaletteRefinements = new HashSet<>();
 
+        MimeTypeEncoding mte;
+
         // retrieves the faceted refinements from the QF part of the request and stores them separately
         // the rest of the refinements is kept in the refinementArray
         // NOTE prefixes are case sensitive, only uppercase cf:params are recognised
@@ -472,23 +470,28 @@ public class SearchController {
                                                         .replaceAll("^\"|\"$", "");
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
-                            switch (MediaType.getMediaType(refinementValue)) {
-                                case IMAGE:
-                                    CollectionUtils.addIgnoreNull(imageMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    break;
-                                case AUDIO:
-                                    CollectionUtils.addIgnoreNull(audioMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    break;
-                                case VIDEO:
-                                    CollectionUtils.addIgnoreNull(videoMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    break;
-                                case TEXT:
-                                    CollectionUtils.addIgnoreNull(textMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    break;
-                                case OTHER: // <-- note that this is a valid Mediatype, but mimetypes of this type are not stored in Solr by Metis
-                                    break;
-                                default:
-                                    break;
+                            mte =  MimeTypeEncoding.categorizeMimeType(refinementValue);
+                            if (null == mte){
+                                hasBrokenTechFacet = true;
+                            } else {
+                                switch (MediaType.getMediaType(refinementValue)) {
+                                    case IMAGE:
+                                        CollectionUtils.addIgnoreNull(imageMimeTypeRefinements, mte);
+                                        break;
+                                    case AUDIO:
+                                        CollectionUtils.addIgnoreNull(audioMimeTypeRefinements, mte);
+                                        break;
+                                    case VIDEO:
+                                        CollectionUtils.addIgnoreNull(videoMimeTypeRefinements, mte);
+                                        break;
+                                    case TEXT:
+                                        CollectionUtils.addIgnoreNull(textMimeTypeRefinements, mte);
+                                        break;
+                                    case OTHER: // <-- note that this is a valid Mediatype, but mimetypes of this type are not stored in Solr by Metis
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }
                             break;
                         case "IMAGE_SIZE":
@@ -496,11 +499,16 @@ public class SearchController {
                             if (Objects.nonNull(imageSize)) {
                                 imageSizeRefinements.add(imageSize);
                                 hasImageRefinements = true;
+                            } else {
+                                hasBrokenTechFacet = true;
                             }
                             break;
                         case "IMAGE_COLOUR":
                         case "IMAGE_COLOR":
-                            if (Boolean.parseBoolean(refinementValue)) {
+                            whatYouWant = parseValidBoolean(refinementValue);
+                            if (null == whatYouWant){
+                                hasBrokenTechFacet = true;
+                            } else if (whatYouWant) {
                                 imageColourSpaceRefinements.add(ImageColorSpace.COLOR);
                                 hasImageRefinements = true;
                             } else {
@@ -510,7 +518,10 @@ public class SearchController {
                             break;
                         case "IMAGE_GREYSCALE":
                         case "IMAGE_GRAYSCALE":
-                            if (Boolean.parseBoolean(refinementValue)) {
+                            whatYouWant = parseValidBoolean(refinementValue);
+                            if (null == whatYouWant){
+                                hasBrokenTechFacet = true;
+                            } else if (whatYouWant) {
                                 imageColourSpaceRefinements.add(ImageColorSpace.GRAYSCALE);
                                 hasImageRefinements = true;
                             } else {
@@ -525,40 +536,63 @@ public class SearchController {
                             if (Objects.nonNull(imageColorEncoding)) {
                                 imageColourPaletteRefinements.add(imageColorEncoding);
                                 hasImageRefinements = true;
+                            } else {
+                                hasBrokenTechFacet = true;
                             }
                             break;
                         case "IMAGE_ASPECTRATIO":
                             if (StringUtils.containsIgnoreCase(refinementValue, "portrait")) {
                                 imageAspectRatioRefinements.add(ImageAspectRatio.PORTRAIT);
+                                hasImageRefinements = true;
                             } else if (StringUtils.containsIgnoreCase(refinementValue, "landscape")) {
                                 imageAspectRatioRefinements.add(ImageAspectRatio.LANDSCAPE);
+                                hasImageRefinements = true;
+                            } else {
+                                hasBrokenTechFacet = true;
                             }
-                            hasImageRefinements = true;
                             break;
                         case "SOUND_HQ":
-                            if (Boolean.parseBoolean(refinementValue)) {
+                            whatYouWant = parseValidBoolean(refinementValue);
+                            if (null == whatYouWant){
+                                hasBrokenTechFacet = true;
+                            } else if (whatYouWant) {
                                 audioHQRefinements.add(AudioQuality.HIGH);
                                 hasAudioRefinements = true;
                             }
+                            // uncomment this to treat FALSE as invalid
+//                            else {
+//                                hasBrokenTechFacet = true;
+//                            }
                             break;
                         case "SOUND_DURATION":
                             AudioDuration audioDuration = TagUtils.getAudioDurationCode(refinementValue);
                             if (Objects.nonNull(audioDuration)) {
                                 audioDurationRefinements.add(audioDuration);
                                 hasAudioRefinements = true;
+                            } else {
+                                hasBrokenTechFacet = true;
                             }
                             break;
                         case "VIDEO_HD":
-                            if (Boolean.parseBoolean(refinementValue)) {
+                            whatYouWant = parseValidBoolean(refinementValue);
+                            if (null == whatYouWant){
+                                hasBrokenTechFacet = true;
+                            } else if (whatYouWant) {
                                 videoHDRefinements.add(VideoQuality.HIGH);
                                 hasVideoRefinements = true;
                             }
+                            // uncomment this to treat FALSE as invalid
+//                            else {
+//                                hasBrokenTechFacet = true;
+//                            }
                             break;
                         case "VIDEO_DURATION":
                             VideoDuration videoDuration = TagUtils.getVideoDurationCode(refinementValue);
                             if (Objects.nonNull(videoDuration)) {
                                 videoDurationRefinements.add(videoDuration);
                                 hasVideoRefinements = true;
+                            } else {
+                                hasBrokenTechFacet = true;
                             }
                             break;
                         case "MEDIA":
@@ -629,6 +663,10 @@ public class SearchController {
             filterTags.addAll(facetEncoder.getTextFacetSearchCodes(textMimeTypeRefinements));
         }
 
+        if (hasBrokenTechFacet && filterTags.isEmpty()){
+            filterTags.add(0);
+        }
+
         if (LOG.isDebugEnabled()) {
             for (Integer filterTag : filterTags) {
                 if (filterTag != null) {
@@ -680,6 +718,14 @@ public class SearchController {
             }
         }
         return result;
+    }
+
+    private Boolean parseValidBoolean(String value){
+        if (StringUtils.equalsAnyIgnoreCase(value, "true", "false")){
+            return Boolean.parseBoolean(value);
+        } else {
+            return null;
+        }
     }
 
     private Class<? extends IdBean> selectBean(String profile) {
