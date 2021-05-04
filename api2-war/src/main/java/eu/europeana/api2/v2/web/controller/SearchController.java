@@ -439,6 +439,7 @@ public class SearchController {
         boolean      hasVideoRefinements = false;
         boolean      hasTextRefinements  = false;
         boolean      hasBrokenTechFacet  = false;
+        Boolean whatYouWant;
         FacetEncoder facetEncoder        = new FacetEncoder();
         List<String> newRefinements      = new ArrayList<>();
 
@@ -504,7 +505,10 @@ public class SearchController {
                             break;
                         case "IMAGE_COLOUR":
                         case "IMAGE_COLOR":
-                            if (Boolean.parseBoolean(refinementValue)) {
+                            whatYouWant = parseValidBoolean(refinementValue);
+                            if (null == whatYouWant){
+                                hasBrokenTechFacet = true;
+                            } else if (whatYouWant) {
                                 imageColourSpaceRefinements.add(ImageColorSpace.COLOR);
                                 hasImageRefinements = true;
                             } else {
@@ -514,7 +518,10 @@ public class SearchController {
                             break;
                         case "IMAGE_GREYSCALE":
                         case "IMAGE_GRAYSCALE":
-                            if (Boolean.parseBoolean(refinementValue)) {
+                            whatYouWant = parseValidBoolean(refinementValue);
+                            if (null == whatYouWant){
+                                hasBrokenTechFacet = true;
+                            } else if (whatYouWant) {
                                 imageColourSpaceRefinements.add(ImageColorSpace.GRAYSCALE);
                                 hasImageRefinements = true;
                             } else {
@@ -536,16 +543,26 @@ public class SearchController {
                         case "IMAGE_ASPECTRATIO":
                             if (StringUtils.containsIgnoreCase(refinementValue, "portrait")) {
                                 imageAspectRatioRefinements.add(ImageAspectRatio.PORTRAIT);
+                                hasImageRefinements = true;
                             } else if (StringUtils.containsIgnoreCase(refinementValue, "landscape")) {
                                 imageAspectRatioRefinements.add(ImageAspectRatio.LANDSCAPE);
+                                hasImageRefinements = true;
+                            } else {
+                                hasBrokenTechFacet = true;
                             }
-                            hasImageRefinements = true;
                             break;
                         case "SOUND_HQ":
-                            if (Boolean.parseBoolean(refinementValue)) {
+                            whatYouWant = parseValidBoolean(refinementValue);
+                            if (null == whatYouWant){
+                                hasBrokenTechFacet = true;
+                            } else if (whatYouWant) {
                                 audioHQRefinements.add(AudioQuality.HIGH);
                                 hasAudioRefinements = true;
                             }
+                            // uncomment this to treat FALSE as invalid
+//                            else {
+//                                hasBrokenTechFacet = true;
+//                            }
                             break;
                         case "SOUND_DURATION":
                             AudioDuration audioDuration = TagUtils.getAudioDurationCode(refinementValue);
@@ -557,10 +574,17 @@ public class SearchController {
                             }
                             break;
                         case "VIDEO_HD":
-                            if (Boolean.parseBoolean(refinementValue)) {
+                            whatYouWant = parseValidBoolean(refinementValue);
+                            if (null == whatYouWant){
+                                hasBrokenTechFacet = true;
+                            } else if (whatYouWant) {
                                 videoHDRefinements.add(VideoQuality.HIGH);
                                 hasVideoRefinements = true;
                             }
+                            // uncomment this to treat FALSE as invalid
+//                            else {
+//                                hasBrokenTechFacet = true;
+//                            }
                             break;
                         case "VIDEO_DURATION":
                             VideoDuration videoDuration = TagUtils.getVideoDurationCode(refinementValue);
@@ -697,6 +721,14 @@ public class SearchController {
             }
         }
         return result;
+    }
+
+    private Boolean parseValidBoolean(String value){
+        if (StringUtils.equalsAnyIgnoreCase(value, "true", "false")){
+            return Boolean.parseBoolean(value);
+        } else {
+            return null;
+        }
     }
 
     private Class<? extends IdBean> selectBean(String profile) {
