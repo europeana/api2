@@ -258,17 +258,12 @@ public class SearchController {
         }
 
         final List<Integer> filterTags = new ArrayList<>();
+
+        // NOTE the zero tag is now added in processQfParameters
         refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags);
 
         // add the CF filter facets to the query string like this:
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
-        // if filter facets is empty and qf is passed in the request (ie; the qf has invalid values),
-        // one filter_tag = 0 (Default Filter Tag) will be added to the query string like this:
-        // [existing-query] AND (filter_tags:0)
-        if(filterTags.isEmpty() && refinementPresent) {
-            filterTags.add(0);
-        }
-
         if (!filterTags.isEmpty()) {
             queryString = filterQueryBuilder(filterTags.iterator(),
                     queryString,
@@ -444,6 +439,7 @@ public class SearchController {
         boolean      hasAudioRefinements = false;
         boolean      hasVideoRefinements = false;
         boolean      hasTextRefinements  = false;
+        boolean      hasBrokenTechFacet  = false;
         FacetEncoder facetEncoder        = new FacetEncoder();
         List<String> newRefinements      = new ArrayList<>();
 
@@ -460,6 +456,8 @@ public class SearchController {
         Set<AudioQuality>       audioHQRefinements            = new HashSet<>();
         Set<ImageColorEncoding> imageColourPaletteRefinements = new HashSet<>();
 
+        MimeTypeEncoding mte;
+
         // retrieves the faceted refinements from the QF part of the request and stores them separately
         // the rest of the refinements is kept in the refinementArray
         // NOTE prefixes are case sensitive, only uppercase cf:params are recognised
@@ -472,23 +470,28 @@ public class SearchController {
                                                         .replaceAll("^\"|\"$", "");
                     switch (StringUtils.substringBefore(qf, ":")) {
                         case "MIME_TYPE":
-                            switch (MediaType.getMediaType(refinementValue)) {
-                                case IMAGE:
-                                    CollectionUtils.addIgnoreNull(imageMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    break;
-                                case AUDIO:
-                                    CollectionUtils.addIgnoreNull(audioMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    break;
-                                case VIDEO:
-                                    CollectionUtils.addIgnoreNull(videoMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    break;
-                                case TEXT:
-                                    CollectionUtils.addIgnoreNull(textMimeTypeRefinements, MimeTypeEncoding.categorizeMimeType(refinementValue));
-                                    break;
-                                case OTHER: // <-- note that this is a valid Mediatype, but mimetypes of this type are not stored in Solr by Metis
-                                    break;
-                                default:
-                                    break;
+                            mte =  MimeTypeEncoding.categorizeMimeType(refinementValue);
+                            if (null == mte){
+                                hasBrokenTechFacet = true;
+                            } else {
+                                switch (MediaType.getMediaType(refinementValue)) {
+                                    case IMAGE:
+                                        CollectionUtils.addIgnoreNull(imageMimeTypeRefinements, mte);
+                                        break;
+                                    case AUDIO:
+                                        CollectionUtils.addIgnoreNull(audioMimeTypeRefinements, mte);
+                                        break;
+                                    case VIDEO:
+                                        CollectionUtils.addIgnoreNull(videoMimeTypeRefinements, mte);
+                                        break;
+                                    case TEXT:
+                                        CollectionUtils.addIgnoreNull(textMimeTypeRefinements, mte);
+                                        break;
+                                    case OTHER: // <-- note that this is a valid Mediatype, but mimetypes of this type are not stored in Solr by Metis
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }
                             break;
                         case "IMAGE_SIZE":
@@ -496,6 +499,8 @@ public class SearchController {
                             if (Objects.nonNull(imageSize)) {
                                 imageSizeRefinements.add(imageSize);
                                 hasImageRefinements = true;
+                            } else {
+                                hasBrokenTechFacet = true;
                             }
                             break;
                         case "IMAGE_COLOUR":
@@ -525,6 +530,8 @@ public class SearchController {
                             if (Objects.nonNull(imageColorEncoding)) {
                                 imageColourPaletteRefinements.add(imageColorEncoding);
                                 hasImageRefinements = true;
+                            } else {
+                                hasBrokenTechFacet = true;
                             }
                             break;
                         case "IMAGE_ASPECTRATIO":
@@ -546,6 +553,8 @@ public class SearchController {
                             if (Objects.nonNull(audioDuration)) {
                                 audioDurationRefinements.add(audioDuration);
                                 hasAudioRefinements = true;
+                            } else {
+                                hasBrokenTechFacet = true;
                             }
                             break;
                         case "VIDEO_HD":
@@ -559,6 +568,8 @@ public class SearchController {
                             if (Objects.nonNull(videoDuration)) {
                                 videoDurationRefinements.add(videoDuration);
                                 hasVideoRefinements = true;
+                            } else {
+                                hasBrokenTechFacet = true;
                             }
                             break;
                         case "MEDIA":
@@ -627,6 +638,10 @@ public class SearchController {
         }
         if (CollectionUtils.isNotEmpty(textMimeTypeRefinements)) {
             filterTags.addAll(facetEncoder.getTextFacetSearchCodes(textMimeTypeRefinements));
+        }
+
+        if (hasBrokenTechFacet && filterTags.isEmpty()){
+            filterTags.add(0);
         }
 
         if (LOG.isDebugEnabled()) {
