@@ -663,9 +663,6 @@ public class SearchController {
             filterTags.addAll(facetEncoder.getTextFacetSearchCodes(textMimeTypeRefinements));
         }
 
-        System.out.println(hasBrokenTechFacet);
-        System.out.println(filterTags);
-
         if (hasBrokenTechFacet && filterTags.isEmpty()){
             filterTags.add(0);
         }

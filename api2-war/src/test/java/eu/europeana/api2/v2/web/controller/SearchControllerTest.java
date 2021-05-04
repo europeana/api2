@@ -204,7 +204,6 @@ public class SearchControllerTest {
         refinementArray = new String[]{"contentTier:(1 OR 2 OR 3 OR 4)", "SOUND_HQ:test"};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
-        System.out.println(filterTags);
         assertTrue(filterTags.size() == 1);
         assertTrue(filterTags.contains(0));
         assertTrue(refinementArray.length == 5);
@@ -231,13 +230,35 @@ public class SearchControllerTest {
         assertTrue(filterTags.contains(0));
         assertTrue(refinementArray.length == 4);
 
+
+        filterTags.clear();
+        // valid boolean tech facet with false value ( SOUND_HQ, VIDEO_HD - don't not have a false scenario)
+        // hence should be ignored and there should not any filter tag added
+        refinementArray = new String[]{"SOUND_HQ:false", "VIDEO_HD:false"};
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        assertTrue(filterTags.size() == 0);
+        // should NOT have filter tag 0
+        assertFalse(filterTags.contains(0));
+        assertTrue(refinementArray.length == 4);
+
+        filterTags.clear();
+        // valid boolean tech facet with false value ( SOUND_HQ, VIDEO_HD - don't not have a false scenario) and valid non-tech facet and valid tech facet
+        refinementArray = new String[]{"SOUND_HQ:false", "VIDEO_HD:false", "contentTier:(1 OR 2 OR 3 OR 4)", "MIME_TYPE:video/mpeg" };
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        assertTrue(filterTags.size() == 1);
+        // should NOT have filter tag 0 as it has a valid tech facet
+        assertFalse(filterTags.contains(0));
+        assertTrue(refinementArray.length == 5);
+
+
         filterTags.clear();
         // empty refinement
         refinementArray = new String[]{};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
         assertTrue(filterTags.size() == 0);
-        System.out.println(Arrays.toString(refinementArray));
         assertTrue(refinementArray.length == 4);
 
     }
