@@ -11,6 +11,7 @@ import org.junit.Test;
 import eu.europeana.corelib.utils.StringArrayUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -177,7 +178,67 @@ public class SearchControllerTest {
         refinementArray = new String[]{"SOUND_HQ:test", "MIME_TYPE:application/dash+ltxml"};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
-        assertTrue(filterTags.size() == 0);
+        assertTrue(filterTags.size() == 1);
+        assertTrue(filterTags.contains(0));
         assertTrue(refinementArray.length == 4);
+
+        filterTags.clear();
+        // add theme:art and invalid tech facet
+        refinementArray = new String[]{"MIME_TYPE:application/dash+ltxml", "collection:art"};
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        assertTrue(filterTags.size() == 1);
+        assertTrue(filterTags.contains(0));
+        assertTrue(refinementArray.length == 5);
+
+        filterTags.clear();
+        // valid non-tech facet
+        refinementArray = new String[]{"contentTier:(1 OR 2 OR 3 OR 4)"};
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        assertTrue(filterTags.size() == 0);
+        assertTrue(refinementArray.length == 5);
+
+        filterTags.clear();
+        // valid non-tech facet and invalid tech facet
+        refinementArray = new String[]{"contentTier:(1 OR 2 OR 3 OR 4)", "SOUND_HQ:test"};
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        System.out.println(filterTags);
+        assertTrue(filterTags.size() == 1);
+        assertTrue(filterTags.contains(0));
+        assertTrue(refinementArray.length == 5);
+
+        filterTags.clear();
+        // valid non-tech facet and valid tech facet
+        refinementArray = new String[]{"contentTier:(1 OR 2 OR 3 OR 4)", "MIME_TYPE:video/mpeg"};
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        assertTrue(filterTags.size() == 1);
+        // should NOT have filter tag 0
+        assertFalse(filterTags.contains(0));
+        assertTrue(refinementArray.length == 5);
+
+        filterTags.clear();
+        // check with all tech facets with invalid values
+        refinementArray = new String[]{"MIME_TYPE:testing", "IMAGE_SIZE:test", "IMAGE_COLOUR:test", "IMAGE_COLOR:test", "IMAGE_GREYSCALE:test",
+                "IMAGE_GRAYSCALE:test", "COLOURPALETTE:test", "COLORPALETTE:test", "IMAGE_ASPECTRATIO:test", "SOUND_HQ:test", "SOUND_DURATION:test",
+        "VIDEO_HD:test", "VIDEO_DURATION:test", "MEDIA:test", "THUMBNAIL:test", "TEXT_FULLTEXT:test", "LANDINGPAGE:test"};
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        assertTrue(filterTags.size() == 1);
+        // should have filter tag 0
+        assertTrue(filterTags.contains(0));
+        assertTrue(refinementArray.length == 4);
+
+        filterTags.clear();
+        // empty refinement
+        refinementArray = new String[]{};
+
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false,filterTags);
+        assertTrue(filterTags.size() == 0);
+        System.out.println(Arrays.toString(refinementArray));
+        assertTrue(refinementArray.length == 4);
+
     }
 }

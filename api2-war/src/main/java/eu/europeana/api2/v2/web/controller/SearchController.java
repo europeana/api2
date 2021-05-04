@@ -229,7 +229,6 @@ public class SearchController {
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
         String[] qfArray = request.getParameterMap().get("qf");
-        boolean refinementPresent = (qfArray != null && refinementArray != null) ? true : false;
         if (qfArray != null && qfArray.length != refinementArray.length) {
             refinementArray = qfArray;
         }
@@ -639,6 +638,9 @@ public class SearchController {
         if (CollectionUtils.isNotEmpty(textMimeTypeRefinements)) {
             filterTags.addAll(facetEncoder.getTextFacetSearchCodes(textMimeTypeRefinements));
         }
+
+        System.out.println(hasBrokenTechFacet);
+        System.out.println(filterTags);
 
         if (hasBrokenTechFacet && filterTags.isEmpty()){
             filterTags.add(0);
