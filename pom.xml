@@ -34,7 +34,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <corelib.version>2.12.2-SNAPSHOT</corelib.version>
-        <metis.version>3.0.1-SNAPSHOT</metis.version>
+        <metis.version>4</metis.version>
 
         <httpclient.version>4.5.2</httpclient.version>
         <jackson.version>2.9.9</jackson.version>
