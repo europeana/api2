@@ -1,6 +1,5 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
@@ -14,6 +13,7 @@ import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.RichView;
+import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.Item;
@@ -76,9 +76,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import eu.europeana.metis.schema.model.MediaType;
-
-import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 /**
@@ -128,6 +125,9 @@ public class SearchController {
     @Autowired
     private RouteDataService routeService;
 
+    @Autowired
+    private MultilingualQueryGenerator queryGenerator;
+
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
 
@@ -167,6 +167,8 @@ public class SearchController {
                              searchRequest.getCallback(),
                              searchRequest.getHit().getFl(),
                              searchRequest.getHit().getSelectors(),
+                             null, // TODO for now we set sourceLang and targetLang to null for POSTS until we decide how this will work officially
+                             null,
                              request,
                              response);
     }
@@ -201,6 +203,8 @@ public class SearchController {
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @SolrEscape @RequestParam(value = "hit.fl", required = false) String hlFl,
                                       @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
+                                      @RequestParam(value = "sourcelang", required = false, defaultValue = "en") String sourceLang,
+                                      @RequestParam(value = "targetlang", required = false, defaultValue = "es") String targetLang,
                                       HttpServletRequest request,
                                       HttpServletResponse response) throws EuropeanaException {
 
@@ -211,14 +215,18 @@ public class SearchController {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
 
+        // TODO validate sourceLang and taretLang as 2? letter abbreviation?
+
         queryString = queryString.trim();
         queryString = fixCountryCapitalization(queryString);
 
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("QUERY: |{}|", queryString);
-        }
+        LOG.info("ORIGINAL QUERY: |{}|", queryString);
+
+        // TODO May 2021 This is temporary code to test a different query translation technique
+        queryString = queryGenerator.getMultilingualQuery(queryString, targetLang, sourceLang);
+        LOG.info("TRANSLATED QUERY: |{}|", queryString);
 
         if ((cursorMark != null) && (start > 1)) {
             throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,

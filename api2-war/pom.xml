@@ -17,6 +17,18 @@
     <url>http://www.europeana.eu</url>
     <organization><name>Europeana Foundation</name></organization>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>libraries-bom</artifactId>
+                <version>4.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>eu.europeana.api2</groupId>
@@ -55,6 +67,12 @@
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-indexing</artifactId>
             <version>${metis.version}</version>
+        </dependency>
+
+        <!-- Query translation -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-translate</artifactId>
         </dependency>
 
         <!-- OTHER -->
