@@ -203,8 +203,8 @@ public class SearchController {
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @SolrEscape @RequestParam(value = "hit.fl", required = false) String hlFl,
                                       @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
-                                      @RequestParam(value = "sourcelang", required = false, defaultValue = "en") String sourceLang,
-                                      @RequestParam(value = "targetlang", required = false, defaultValue = "es") String targetLang,
+                                      @RequestParam(value = "q.source") String querySourceLang,
+                                      @RequestParam(value = "q.target") String queryTargetLang,
                                       HttpServletRequest request,
                                       HttpServletResponse response) throws EuropeanaException {
 
@@ -213,6 +213,12 @@ public class SearchController {
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
+        }
+        if (StringUtils.isBlank(querySourceLang)) {
+            throw new SolrQueryException(ProblemType.SEARCH_MISSING_QSOURCE);
+        }
+        if (StringUtils.isBlank(queryTargetLang)) {
+            throw new SolrQueryException(ProblemType.SEARCH_MISSING_QTARGET);
         }
 
         // TODO validate sourceLang and taretLang as 2? letter abbreviation?
@@ -225,7 +231,7 @@ public class SearchController {
         LOG.info("ORIGINAL QUERY: |{}|", queryString);
 
         // TODO May 2021 This is temporary code to test a different query translation technique
-        queryString = queryGenerator.getMultilingualQuery(queryString, targetLang, sourceLang);
+        queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
         LOG.info("TRANSLATED QUERY: |{}|", queryString);
 
         if ((cursorMark != null) && (start > 1)) {

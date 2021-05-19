@@ -67,6 +67,7 @@ public class AppConfig {
                 System.getenv("CF_INSTANCE_INDEX"), System.getenv("CF_INSTANCE_GUID"), System.getenv("CF_INSTANCE_IP"));
         LOG.info("Active Spring profiles: {}", Arrays.toString(env.getActiveProfiles()));
         LOG.info("Default Spring profiles: {}", Arrays.toString(env.getDefaultProfiles()));
+        LOG.info("Google credential file location: {}", System.getenv("GOOGLE_APPLICATION_CREDENTIALS"));
     }
 //        // log to which db we are connected
 //        try (Connection con = postgres.getConnection()) {

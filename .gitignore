@@ -12,6 +12,7 @@
 
 # Local user-specific configuration
 **/europeana.user.properties
+**/translate*.json
 
 # docker stuff
 docker/docker-compose.yml

@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 
@@ -25,7 +26,11 @@ public class GoogleTranslationService implements TranslationService {
 
     public GoogleTranslationService() throws IOException {
         this.client = TranslationServiceClient.create();
-        LOG.info("GoogleTranslationService initialised");
+    }
+
+    @PostConstruct
+    public void init() {
+        LOG.info("GoogleTranslationService initialised, projectId = {}", projectId);
     }
 
     @PreDestroy
