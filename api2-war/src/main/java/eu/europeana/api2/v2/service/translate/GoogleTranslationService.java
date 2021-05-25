@@ -1,5 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
+import com.google.api.gax.rpc.TransportChannelProvider;
+import com.google.cloud.tasks.v2.stub.CloudTasksStubSettings;
 import com.google.cloud.translate.v3.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,7 +27,15 @@ public class GoogleTranslationService implements TranslationService {
     private TranslationServiceClient client;
 
     public GoogleTranslationService() throws IOException {
-        this.client = TranslationServiceClient.create();
+        // gRPC doesn't like communication via the socks proxy (throws an error) and also doesn't support the
+        // socksNonProxyHosts settings, so this is to tell it to by-pass the configured proxy
+        TransportChannelProvider transportChannelProvider = CloudTasksStubSettings
+                .defaultGrpcTransportProviderBuilder()
+                .setChannelConfigurator(managedChannelBuilder -> managedChannelBuilder.proxyDetector(socketAddress -> null))
+                .build();
+        TranslationServiceSettings tss = TranslationServiceSettings.newBuilder()
+                .setTransportChannelProvider(transportChannelProvider).build();
+        this.client = TranslationServiceClient.create(tss);
     }
 
     @PostConstruct
