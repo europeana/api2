@@ -53,7 +53,6 @@ public class GoogleTranslationService implements TranslationService {
 
     @Override
     public String[] getSupportedLanguages() {
-        //return client.getSupportedLanguages(request);
         return null;
     }
 
@@ -62,6 +61,8 @@ public class GoogleTranslationService implements TranslationService {
         DetectLanguageRequest request = this.createDetectRequest(text);
         DetectLanguageResponse response = this.client.detectLanguage(request);
         if (response.getLanguagesCount() > 0) { //Google returns a list of languages ordered by confidence
+            LOG.debug("String {} is in language {}, confidence {}", text, response.getLanguages(0).getLanguageCode(),
+                    response.getLanguages(0).getConfidence());
             return response.getLanguages(0).getLanguageCode();
         }
         return null;
@@ -71,6 +72,7 @@ public class GoogleTranslationService implements TranslationService {
     public String translate(String text, String targetLanguage) {
         TranslateTextRequest request = this.createTranslateRequest(text, targetLanguage);
         TranslateTextResponse response = this.client.translateText(request);
+        LOG.debug("String {} -> language detected is {}", text, response.getTranslationsList().get(0).getDetectedLanguageCode());
         return response.getTranslationsList().get(0).getTranslatedText();
     }
 

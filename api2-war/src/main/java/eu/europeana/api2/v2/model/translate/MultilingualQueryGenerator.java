@@ -28,15 +28,23 @@ public class MultilingualQueryGenerator {
         LOG.info("MultilingualQueryGenerator initialised with {} service", translationService);
     }
 
+    /**
+     *
+     * @param queryString
+     * @param targetLanguage required
+     * @param sourceLanguage optional, if null we will first detect the language
+     * @return
+     */
     public String getMultilingualQuery(String queryString, String targetLanguage, String sourceLanguage) {
         return getMultilingualQuery(new eu.europeana.api2.v2.model.translate.Query(queryString), targetLanguage, sourceLanguage);
     }
 
-    public String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage) throws IndexOutOfBoundsException {
+    private String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage) throws IndexOutOfBoundsException {
+        LOG.debug("target language {}, source language {}", targetLanguage, sourceLanguage);
         String mQuery = null;
         QueryParser qParser = new QueryParser();
         query = qParser.parse(query);
-        // TODO creating a new QueryTranslator object seem rather expensive to do for each request
+        // TODO creating a new QueryTranslator and QueryParse object seems rather expensive to do for each request
         QueryTranslator queryTranslator = new QueryTranslator(this.translationService);
         String translation = queryTranslator.translate(query,targetLanguage, sourceLanguage);
         mQuery = "(" +  query.getText() + ")" + " OR " + "(" + translation + ")"; //TODO: basic multilingual query

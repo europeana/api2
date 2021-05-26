@@ -36,6 +36,7 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.edm.utils.CountryUtils;
+import eu.europeana.corelib.edm.utils.ValidateUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.search.utils.SearchUtils;
@@ -203,8 +204,8 @@ public class SearchController {
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @SolrEscape @RequestParam(value = "hit.fl", required = false) String hlFl,
                                       @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
-                                      @RequestParam(value = "q.source") String querySourceLang,
-                                      @RequestParam(value = "q.target") String queryTargetLang,
+                                      @RequestParam(value = "q.source", required = false) String querySourceLang,
+                                      @RequestParam(value = "q.target", required = false) String queryTargetLang,
                                       HttpServletRequest request,
                                       HttpServletResponse response) throws EuropeanaException {
 
@@ -214,29 +215,36 @@ public class SearchController {
         if (StringUtils.isBlank(queryString)) {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
-        if (StringUtils.isBlank(querySourceLang)) {
-            throw new SolrQueryException(ProblemType.SEARCH_MISSING_QSOURCE);
+        // validate target language (if present)
+        if (queryTargetLang != null && !ValidateUtils.validateLanguageAbbrevation(queryTargetLang)) {
+            throw new SolrQueryException(ProblemType.SEARCH_INVALID_QTARGET);
         }
-        if (StringUtils.isBlank(queryTargetLang)) {
-            throw new SolrQueryException(ProblemType.SEARCH_MISSING_QTARGET);
+        if (querySourceLang != null) {
+            // validate source language
+            if (!ValidateUtils.validateLanguageAbbrevation(querySourceLang)) {
+                throw new SolrQueryException(ProblemType.SEARCH_INVALID_QSOURCE);
+            }
+            // if a source language is provided, then we must also have a target language
+            if (queryTargetLang == null) {
+                throw new SolrQueryException(ProblemType.SEARCH_MISSING_QTARGET);
+            }
         }
-
-        // TODO validate sourceLang and taretLang as 2? letter abbreviation?
 
         queryString = queryString.trim();
         queryString = fixCountryCapitalization(queryString);
 
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
-        LOG.info("ORIGINAL QUERY: |{}|", queryString);
+        LOG.debug("ORIGINAL QUERY: |{}|", queryString);
 
-        // TODO May 2021 This is temporary code to test a different query translation technique
-        queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
-        LOG.info("TRANSLATED QUERY: |{}|", queryString);
+        // TODO May 2021 This is temporary code to test a query translation technique with Google Translate
+        if (queryTargetLang != null) {
+            queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
+            LOG.debug("TRANSLATED QUERY: |{}|", queryString);
+        }
 
         if ((cursorMark != null) && (start > 1)) {
-            throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
-                                         "Parameters 'start' and 'cursorMark' cannot be used together");
+            throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR, "Parameters 'start' and 'cursorMark' cannot be used together");
         }
 
         // TODO check whether this is still necessary? <= about time we did that!
@@ -255,7 +263,7 @@ public class SearchController {
             }
         }
 
-        List<String> colourPalette = new ArrayList<String>();
+        List<String> colourPalette = new ArrayList<>();
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
             StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         }
@@ -755,8 +763,12 @@ public class SearchController {
     }
 
     private Class<? extends IdBeanImpl> getBeanImpl(Class clazz) {
-        if (BriefBean.class.equals(clazz)) return BriefBeanImpl.class;
-        if (RichBean.class.equals(clazz)) return RichBeanImpl.class;
+        if (BriefBean.class.equals(clazz)) {
+            return BriefBeanImpl.class;
+        }
+        if (RichBean.class.equals(clazz)) {
+            return RichBeanImpl.class;
+        }
         return ApiBeanImpl.class;
     }
 
@@ -839,7 +851,8 @@ public class SearchController {
      */
     @SwaggerIgnore
     @GetMapping(value = "/api/v2/search.kml",
-                produces = {"application/vnd.google-earth.kml+xml", org.springframework.http.MediaType.APPLICATION_XML_VALUE, org.springframework.http.MediaType.APPLICATION_XHTML_XML_VALUE})
+                produces = {"application/vnd.google-earth.kml+xml", org.springframework.http.MediaType.APPLICATION_XML_VALUE,
+                                                                    org.springframework.http.MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     @Deprecated
     public KmlResponse searchKml(@SolrEscape @RequestParam(value = "query") String queryString,
@@ -901,7 +914,8 @@ public class SearchController {
      */
     @ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
     @GetMapping(value = {"/api/v2/opensearch.rss", "/record/v2/opensearch.rss", "/record/opensearch.rss"},
-                produces = {"application/rss+xml", org.springframework.http.MediaType.APPLICATION_XML_VALUE, org.springframework.http.MediaType.APPLICATION_XHTML_XML_VALUE})
+                produces = {"application/rss+xml", org.springframework.http.MediaType.APPLICATION_XML_VALUE,
+                                                   org.springframework.http.MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public ModelAndView openSearchRss(@SolrEscape @RequestParam(value = "searchTerms") String queryString,
                                       @RequestParam(value = "startIndex", required = false, defaultValue = "1")

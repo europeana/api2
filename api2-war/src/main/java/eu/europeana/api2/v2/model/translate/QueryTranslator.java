@@ -4,7 +4,6 @@ import eu.europeana.api2.v2.service.translate.TranslationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,13 +76,6 @@ public class QueryTranslator {
             previous = type;
         }
     return outputQuery.toString();
-    }
-
-    public List<String> getLanguages(Query query){
-        QueryParser qParser = new QueryParser();
-        query = qParser.parse(query);
-        QueryLanguageDetector queryLanguageDetector = new QueryLanguageDetector(this.translationService);
-        return queryLanguageDetector.detectLanguages(query);
     }
 
 }
