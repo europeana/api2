@@ -3,10 +3,14 @@ package eu.europeana.api2.v2.model.translate;
 import eu.europeana.api2.v2.service.translate.TranslationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Component
 public class QueryTranslator {
 
     private static final Logger LOG = LoggerFactory.getLogger(QueryTranslator.class);
@@ -15,8 +19,10 @@ public class QueryTranslator {
 
     private TranslationService translationService;
 
+    @Autowired
     public QueryTranslator(TranslationService translationService){
         this.translationService = translationService;
+        LOG.info("QueryTranslator initialised with {} service", translationService);
     }
 
     private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose){
@@ -31,7 +37,7 @@ public class QueryTranslator {
                 translation = this.translationService.translate(toTranslate, targetLanguage, sourceLanguage);
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug("<TRANSLATION> text: {} time: {}", text.replaceAll("\t", " "), (System.nanoTime() - start) / 1000000);
+                LOG.debug("<TRANSLATION> text: {} time: {}", text.replaceAll("\t", " "), (System.nanoTime() - start) / 1_000_000);
             }
             if (text.startsWith(" ")) {
                 sb.append(" ");
@@ -75,7 +81,14 @@ public class QueryTranslator {
             }
             previous = type;
         }
-    return outputQuery.toString();
+        return outputQuery.toString();
+    }
+
+    @PreDestroy
+    public void close(){
+        if (this.translationService != null) {
+            this.translationService.close();
+        }
     }
 
 }

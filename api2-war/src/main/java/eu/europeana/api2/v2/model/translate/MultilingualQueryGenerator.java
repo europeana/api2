@@ -4,7 +4,6 @@ package eu.europeana.api2.v2.model.translate;
  * Google translate + autodetect language
  */
 
-import eu.europeana.api2.v2.service.translate.TranslationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,21 +17,20 @@ import javax.annotation.PreDestroy;
 @Service
 public class MultilingualQueryGenerator {
 
-    private static final Logger LOG = LoggerFactory.getLogger(QueryTranslator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MultilingualQueryGenerator.class);
 
-    private TranslationService translationService;
+    private QueryTranslator queryTranslator;
 
     @Autowired
-    public MultilingualQueryGenerator(TranslationService translationService) {
-        this.translationService = translationService;
-        LOG.info("MultilingualQueryGenerator initialised with {} service", translationService);
+    public MultilingualQueryGenerator(QueryTranslator queryTranslator) {
+        this.queryTranslator = queryTranslator;
     }
 
     /**
      *
      * @param queryString
      * @param targetLanguage required
-     * @param sourceLanguage optional, if null we will first detect the language
+     * @param sourceLanguage optional, if null Google Translate will try and detect the language
      * @return
      */
     public String getMultilingualQuery(String queryString, String targetLanguage, String sourceLanguage) {
@@ -41,20 +39,16 @@ public class MultilingualQueryGenerator {
 
     private String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage) throws IndexOutOfBoundsException {
         LOG.debug("target language {}, source language {}", targetLanguage, sourceLanguage);
-        String mQuery = null;
         QueryParser qParser = new QueryParser();
         query = qParser.parse(query);
-        // TODO creating a new QueryTranslator and QueryParse object seems rather expensive to do for each request
-        QueryTranslator queryTranslator = new QueryTranslator(this.translationService);
-        String translation = queryTranslator.translate(query,targetLanguage, sourceLanguage);
-        mQuery = "(" +  query.getText() + ")" + " OR " + "(" + translation + ")"; //TODO: basic multilingual query
-        return  mQuery;
+        String translation = queryTranslator.translate(query, targetLanguage, sourceLanguage);
+        return "(" +  query.getText() + ")" + " OR " + "(" + translation + ")"; //TODO: basic multilingual query
     }
 
     @PreDestroy
     public void close(){
-        if (this.translationService != null) {
-            this.translationService.close();
+        if (this.queryTranslator != null) {
+            this.queryTranslator.close();
         }
     }
 

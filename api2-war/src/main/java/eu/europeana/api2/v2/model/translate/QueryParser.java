@@ -26,7 +26,7 @@ public class QueryParser {
 
     public Query parse(Query query){
         List<QueryPart> annotatedParts = annotate(query);
-        return new Query(query.getText(),annotatedParts);
+        return new Query(query.getText(), annotatedParts);
     }
 
     private List<QueryPart> annotate(Query query){
