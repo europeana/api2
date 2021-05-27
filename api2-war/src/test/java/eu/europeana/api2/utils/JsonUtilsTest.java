@@ -1,13 +1,12 @@
 package eu.europeana.api2.utils;
 
-import eu.europeana.api2.v2.model.json.UserResults;
-import eu.europeana.api2.v2.model.json.user.Search;
+import eu.europeana.api2.v2.model.json.SearchResults;
+import eu.europeana.api2.v2.model.json.common.LabelFrequency;
+import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import org.junit.Test;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -18,17 +17,21 @@ import static org.junit.Assert.fail;
 public class JsonUtilsTest {
 
     @Test
-    public void testToJson() throws Exception {
-        UserResults<Search> response = new UserResults<>("api2demo");
+    public void testToJson() {
+        SearchResults response = new SearchResults<>("api2demo");
         response.items = new ArrayList<>();
-        response.username = "test";
-        response.itemsCount = (long) 1;
-        Search search = new Search();
-        search.id = 1l;
-        search.query = "*:*";
-        search.queryString = "http://localhost:8080*:0&start=1";
-        search.dateSaved = Date.from(Instant.now());
-        response.items.add(search);
+        response.itemsCount = 1;
+
+        LabelFrequency lf = new LabelFrequency();
+        lf.label = "someLabel";
+        lf.count = 3;
+        Facet facet = new Facet();
+        facet.name = "test";
+        facet.fields = new ArrayList();
+        facet.fields.add(lf);
+        response.facets = new ArrayList();
+        response.facets.add(facet);
+
         try {
             ModelAndView modelAndView = JsonUtils.toJson(response, null);
             assertNotNull(modelAndView);

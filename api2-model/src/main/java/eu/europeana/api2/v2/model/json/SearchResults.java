@@ -17,12 +17,14 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @JsonInclude(NON_EMPTY)
 public class SearchResults<T> extends AbstractSearchResults<T> {
 
+    @Deprecated(since = "May 2021") // not used
     public List<BreadCrumb> breadCrumbs;
 
     public List<Facet> facets;
 
     public List<HighlightHit> hits;
 
+    @Deprecated(since = "May 2021") // not used
     public SpellCheck spellcheck;
 
     public SearchResults(String apikey) {

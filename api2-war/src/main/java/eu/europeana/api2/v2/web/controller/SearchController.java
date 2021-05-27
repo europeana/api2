@@ -97,8 +97,8 @@ public class SearchController {
     private static final String PORTAL                    = "portal";
     private static final String FACETS                    = "facets";
     private static final String DEBUG                     = "debug";
-    private static final String SPELLING                  = "spelling";
-    private static final String BREADCRUMB                = "breadcrumb";
+    private static final String SPELLING                  = "spelling"; // @Deprecated(since = "May 2021")
+    private static final String BREADCRUMB                = "breadcrumb"; // @Deprecated(since = "May 2021")
     private static final String FACET_RANGE               = "facet.range";
     private static final String HITS                      = "hits";
     private static final String ERROR_RETRIEVE_ATTRIBUTES = "error retrieving attributes";

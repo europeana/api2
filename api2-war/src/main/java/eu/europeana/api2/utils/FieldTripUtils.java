@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Deprecated(since = "May 2021") // unused
 public class FieldTripUtils {
 
     private Api2UrlService urlService;

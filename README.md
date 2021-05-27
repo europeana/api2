@@ -34,8 +34,8 @@ $ mvn clean install
 ```
 
 ## Deploy
-To deploy your instance you can use the Docker files in `docker/compose` folder. This image contains Tomcat and Postgresql
-database server. However at the moment we do not have a Mongo database, Solr engine, mail server and object storage
+To deploy your instance you can use the Docker files in `docker/compose` folder. This image contains Tomcat only.
+However at the moment we do not have a Mongo database, Solr engine, mail server and object storage
 provider in Docker yet (last 2 are optional).
 
 The addresses and login credentials of all these services are specified in the europeana.properties file located in the

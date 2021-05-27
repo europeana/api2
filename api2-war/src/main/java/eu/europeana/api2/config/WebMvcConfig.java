@@ -2,17 +2,17 @@ package eu.europeana.api2.config;
 
 import eu.europeana.api2.utils.SolrEscapeAnnotationFormatterFactory;
 import eu.europeana.api2.utils.XmlUtils;
-import org.springframework.context.annotation.Import;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
+import eu.europeana.api2.v2.web.controller.ObjectController;
 import eu.europeana.api2.v2.web.controller.SearchController;
-import eu.europeana.api2.web.controller.ExceptionController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
+import org.springframework.context.annotation.Import;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.http.HttpHeaders;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.ViewResolver;
@@ -27,7 +27,7 @@ import java.util.Collections;
  */
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackageClasses = {SearchController.class, ExceptionController.class})
+@ComponentScan(basePackageClasses = {ObjectController.class, SearchController.class})
 @Import(SwaggerConfig.class) // make sure WebMVC is started before swagger initiates
 @EnableAsync
 public class WebMvcConfig extends WebMvcConfigurerAdapter {

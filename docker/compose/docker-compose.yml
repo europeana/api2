@@ -1,19 +1,6 @@
 version: "2"
 
 services:
-#Mongo and ObjectStorage are not Dockerized yet
-  relational-database:
-    build:
-      context: ./postgresql
-    image: api-postgresql-database
-    ports:
-    - "5432:5432"
-    environment:
-        POSTGRES_PASSWORD: culture
-        POSTGRES_USER: europeana
-    #
-    restart: always
-
   appserver:
     image: library/tomcat:9.0-jdk11
     environment:
@@ -34,8 +21,6 @@ services:
     volumes:
       # deploy app to root context
       - ../../api2-war/target/api.war:/usr/local/tomcat/webapps/ROOT.war
-    links:
-      - relational-database:api-postgresql-database
     # Map ports from tomcat container to the local machine
     ports:
       #Tomcat http port
