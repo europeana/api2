@@ -2,7 +2,6 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.json.ApiError;
-import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
@@ -10,11 +9,8 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
-import eu.europeana.corelib.web.exception.EmailServiceException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
-import eu.europeana.corelib.web.service.EmailService;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.TypeMismatchException;
@@ -32,8 +28,6 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -56,9 +50,6 @@ public class GlobalExceptionHandler {
             "(:[a-zA-Z0-9-_/.]*)?"); // port and database name
     private static final String API_KEY_PARAM = "wskey";
 
-    @Resource(name = "corelib_web_emailService")
-    private EmailService emailService;
-
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
 
@@ -66,7 +57,7 @@ public class GlobalExceptionHandler {
     public ModelAndView europeanaExceptionHandler(HttpServletRequest request, HttpServletResponse response, EuropeanaException ee) {
         try {
             String wskey = request.getParameter(API_KEY_PARAM);
-            mailLogOrIgnoreError(request.getServerName(), wskey, ee);
+            logOrIgnoreError(request.getServerName(), wskey, ee);
             response.setStatus(getHttpStatus(response, ee));
             return generateErrorResponse(request, response, ee.getMessage(), ee.getErrorDetails(), ee.getErrorCode());
         } catch (Exception ex) {
@@ -75,31 +66,15 @@ public class GlobalExceptionHandler {
         }
     }
 
-    private void mailLogOrIgnoreError(String route, String apiKey, EuropeanaException ee) {
+    private void logOrIgnoreError(String route, String apiKey, EuropeanaException ee) {
         switch (ee.getAction()) {
             case IGNORE: break;
             case LOG_WARN:
                 // log apikey plus problem so we can track users who need help
                 LOG.warn("[{}] {}", apiKey, ee.getErrorMsgAndDetails());
                 break;
-            case MAIL:
-                LOG.error(ee.getErrorMsgAndDetails(), ee);
-                sendErrorEmail(route, ee);
-                break;
             default: LOG.error(ee.getErrorMsgAndDetails(), ee);
         }
-    }
-
-    private void sendErrorEmail(String route, EuropeanaException ee) {
-//        try {
-            String subject = "Exception in Search API " + Api2UrlService.getBeanInstance().getApi2BaseUrl(route);;
-            String body = ee.getErrorMsgAndDetails() + "/n" + ExceptionUtils.getStackTrace(ee);
-            // TODO temporarily disabled sending email until we implement EA-1782 (limit number of emails sent)
-            //emailService.sendException(subject, body);
-            LOG.info("Exception email was not sent (temporary disabled)");
-//        } catch (EmailServiceException es) {
-//            LOG.error("Error sending exception email", es);
-//        }
     }
 
     private int getHttpStatus(HttpServletResponse response, EuropeanaException ee) {

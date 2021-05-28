@@ -4,10 +4,8 @@ import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -17,15 +15,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
@@ -33,8 +24,9 @@ import java.util.Arrays;
  */
 @Configuration
 @ImportResource({
-        "classpath:corelib-db-context.xml",
-        "classpath:corelib-utils-context.xml",
+        "classpath:corelib-definitions-context.xml",
+        "classpath:corelib-mongo-context.xml",
+        "classpath:corelib-solr-context.xml",
         "classpath:corelib-web-context.xml",
 })
 @PropertySource("classpath:europeana.properties")

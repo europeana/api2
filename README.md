@@ -35,8 +35,7 @@ $ mvn clean install
 
 ## Deploy
 To deploy your instance you can use the Docker files in `docker/compose` folder. This image contains Tomcat only.
-However at the moment we do not have a Mongo database, Solr engine, mail server and object storage
-provider in Docker yet (last 2 are optional).
+However at the moment we do not have a Mongo database or Solr engine in Docker yet.
 
 The addresses and login credentials of all these services are specified in the europeana.properties file located in the
 /api2/api2-war/src/main/resources/ folder. For the moment you still need to fill in all the 'REMOVED' values (login

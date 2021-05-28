@@ -22,7 +22,7 @@ public class XmlUtils {
     private Jaxb2Marshaller marshaller;
 
     /**
-     * Serializes rss (for fieldtrip)
+     * Serializes rss (for opensearch)
      * @param rss
      * @return
      */

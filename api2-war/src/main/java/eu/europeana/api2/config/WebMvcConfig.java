@@ -4,7 +4,6 @@ import eu.europeana.api2.utils.SolrEscapeAnnotationFormatterFactory;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
-import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.web.controller.ObjectController;
 import eu.europeana.api2.v2.web.controller.SearchController;
 import org.springframework.context.annotation.Bean;
@@ -48,7 +47,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "api2_mvc_views_jaxbmarshaller")
     public Jaxb2Marshaller jaxb2Marshaller() {
         Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-        marshaller.setClassesToBeBound(RssResponse.class, FieldTripResponse.class, KmlResponse.class);
+        marshaller.setClassesToBeBound(RssResponse.class, KmlResponse.class);
         marshaller.setMarshallerProperties(Collections.singletonMap("jaxb.formatted.output", Boolean.TRUE));
         return marshaller;
     }

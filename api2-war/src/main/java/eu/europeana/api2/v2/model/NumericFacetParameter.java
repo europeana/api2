@@ -2,10 +2,9 @@ package eu.europeana.api2.v2.model;
 
 /**
  * Data object for a name - integer value pair. It is used for storing Solr parameters
+ *
  * @author Peter.Kiraly@kb.nl
  */
-
-// TODO THIS IS A DUPLICATE CLASS (also in api-model)
 
 public class NumericFacetParameter {
 
@@ -21,10 +20,9 @@ public class NumericFacetParameter {
 
 	/**
 	 * Construct with name and integer value
-	 * @param name
-	 *   The parameter name
-	 * @param value
-	 *   The parameter value as integer
+	 *
+	 * @param name  The parameter name
+	 * @param value The parameter value as integer
 	 */
 	public NumericFacetParameter(String name, Integer value) {
 		this.name = name;
@@ -33,17 +31,16 @@ public class NumericFacetParameter {
 
 	/**
 	 * Construct with name and alphanumeric value
-	 * @param name
-	 *   The parameter name
-	 * @param value
-	 *   The parameter value as string
+	 *
+	 * @param name  The parameter name
+	 * @param value The parameter value as string
 	 */
 	public NumericFacetParameter(String name, String value) {
 		Integer intValue = 0;
 		try {
 			intValue = Integer.parseInt(value);
 		} catch (NumberFormatException e) {
-			// 
+			//
 		}
 		this.name = name;
 		this.value = intValue;
@@ -51,8 +48,8 @@ public class NumericFacetParameter {
 
 	/**
 	 * Gets the parameter name
-	 * @return
-	 *   The parameter name
+	 *
+	 * @return The parameter name
 	 */
 	public String getName() {
 		return name;
@@ -60,8 +57,8 @@ public class NumericFacetParameter {
 
 	/**
 	 * Gets the parameter value
-	 * @return
-	 *   The parameter value
+	 *
+	 * @return The parameter value
 	 */
 	public Integer getValue() {
 		return value;
