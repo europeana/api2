@@ -6,6 +6,7 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
+import eu.europeana.api2.v2.model.RecordType;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.service.RouteDataService;
@@ -13,7 +14,6 @@ import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
-import eu.europeana.corelib.db.entity.enums.RecordType;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
@@ -157,7 +157,7 @@ public class ObjectController {
                                @ApiIgnore HttpServletRequest request,
                                @ApiIgnore HttpServletResponse response) throws EuropeanaException {
         RequestData data = new RequestData(collectionId, recordId, apikey, profile, callback, request);
-        return (ModelAndView) handleRecordRequest(RecordType.OBJECT, data, response);
+        return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSON, data, response);
     }
 
     /**
@@ -379,7 +379,7 @@ public class ObjectController {
         // generate output depending on type of record
         Object output;
         switch (recordType) {
-            case OBJECT:
+            case OBJECT_JSON:
                 output = generateJson(bean, data, startTime);
                 break;
             case OBJECT_JSONLD:

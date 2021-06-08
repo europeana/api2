@@ -1,10 +1,9 @@
 package eu.europeana.api2.model.utils;
 
 /**
- * @deprecated 2018-01-09 Seems like we don't use campaigncodes anymore, even though they are still present in some
- * links (e.g. search results item.guid)
+ * @deprecated We'll stop using Google Analytics soon
  */
-@Deprecated
+@Deprecated(since = "May 2021")
 public class LinkUtils {
 
 	public static String addCampaignCodes(String url, String wskey) {

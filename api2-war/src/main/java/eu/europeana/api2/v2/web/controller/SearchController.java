@@ -1,8 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.utils.Api2UrlService;
-import eu.europeana.api2.utils.FieldTripUtils;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
@@ -18,10 +16,6 @@ import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.Item;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
-import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripChannel;
-import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripImage;
-import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripItem;
-import eu.europeana.api2.v2.model.xml.rss.fieldtrip.FieldTripResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
@@ -47,7 +41,6 @@ import eu.europeana.corelib.utils.StringArrayUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
-import eu.europeana.corelib.web.support.Configuration;
 import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import eu.europeana.indexing.solr.facet.FacetEncoder;
@@ -76,9 +69,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import eu.europeana.metis.schema.model.MediaType;
-
-import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 /**
@@ -94,19 +84,14 @@ import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 public class SearchController {
 
     private static final Logger LOG                       = LogManager.getLogger(SearchController.class);
+
     private static final String PORTAL                    = "portal";
     private static final String FACETS                    = "facets";
     private static final String DEBUG                     = "debug";
-    private static final String SPELLING                  = "spelling";
-    private static final String BREADCRUMB                = "breadcrumb";
+    private static final String SPELLING                  = "spelling"; // @Deprecated(since = "May 2021")
+    private static final String BREADCRUMB                = "breadcrumb"; // @Deprecated(since = "May 2021")
     private static final String FACET_RANGE               = "facet.range";
     private static final String HITS                      = "hits";
-    private static final String ERROR_RETRIEVE_ATTRIBUTES = "error retrieving attributes";
-    private static final String TITLE                     = "title";
-    private static final String DESCRIPTION               = "description";
-    private static final String LANGUAGE                  = "language";
-    private static final String IMAGE                     = "image";
-    private static final String LINK                      = "link";
     private static final String UTF8                      = "UTF-8";
 
     // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
@@ -117,22 +102,26 @@ public class SearchController {
     private SearchService searchService;
 
     @Resource
-    private Configuration configuration;
-
-    @Resource
     private Api2UrlService urlService;
 
     @Resource
     private ApiKeyUtils apiKeyUtils;
 
-    @Autowired
-    private RouteDataService routeService;
-
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
 
+    @Value("${api.search.rowLimit}")
+    private Integer apiRowLimit;
+
     @Value("${api.search.hl.MaxAnalyzedChars}")
     private String hlMaxAnalyzedChars;
+
+    private RouteDataService routeService;
+
+    @Autowired
+    public SearchController(RouteDataService routeService){
+        this.routeService = routeService;
+    }
 
     /**
      * Returns a list of Europeana datasets based on the search terms.
@@ -241,7 +230,7 @@ public class SearchController {
             }
         }
 
-        List<String> colourPalette = new ArrayList<String>();
+        List<String> colourPalette = new ArrayList<>();
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
             StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         }
@@ -289,7 +278,7 @@ public class SearchController {
         String[] solrFacets = ArrayUtils.addAll(separatedFacets.get("solrfacets"), separatedFacets.get("customfacets"));
         String[] technicalFacets = separatedFacets.get("technicalfacets");
 
-        rows = Math.min(rows, configuration.getApiRowLimit());
+        rows = Math.min(rows, apiRowLimit);
 
         Map<String, String> valueReplacements = null;
         if (ArrayUtils.isNotEmpty(reusabilities)) {
@@ -741,8 +730,12 @@ public class SearchController {
     }
 
     private Class<? extends IdBeanImpl> getBeanImpl(Class clazz) {
-        if (BriefBean.class.equals(clazz)) return BriefBeanImpl.class;
-        if (RichBean.class.equals(clazz)) return RichBeanImpl.class;
+        if (BriefBean.class.equals(clazz)) {
+            return BriefBeanImpl.class;
+        }
+        if (RichBean.class.equals(clazz)) {
+            return RichBeanImpl.class;
+        }
         return ApiBeanImpl.class;
     }
 
@@ -792,7 +785,7 @@ public class SearchController {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("results: " + beans.size());
+            LOG.debug("results: {}", beans.size());
         }
 
         response.items = beans;
@@ -825,7 +818,9 @@ public class SearchController {
      */
     @SwaggerIgnore
     @GetMapping(value = "/api/v2/search.kml",
-                produces = {"application/vnd.google-earth.kml+xml", org.springframework.http.MediaType.APPLICATION_XML_VALUE, org.springframework.http.MediaType.APPLICATION_XHTML_XML_VALUE})
+                produces = {"application/vnd.google-earth.kml+xml",
+                        org.springframework.http.MediaType.APPLICATION_XML_VALUE,
+                        org.springframework.http.MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     @Deprecated
     public KmlResponse searchKml(@SolrEscape @RequestParam(value = "query") String queryString,
@@ -887,7 +882,9 @@ public class SearchController {
      */
     @ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
     @GetMapping(value = {"/api/v2/opensearch.rss", "/record/v2/opensearch.rss", "/record/opensearch.rss"},
-                produces = {"application/rss+xml", org.springframework.http.MediaType.APPLICATION_XML_VALUE, org.springframework.http.MediaType.APPLICATION_XHTML_XML_VALUE})
+                produces = {"application/rss+xml",
+                        org.springframework.http.MediaType.APPLICATION_XML_VALUE,
+                        org.springframework.http.MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
     public ModelAndView openSearchRss(@SolrEscape @RequestParam(value = "searchTerms") String queryString,
                                       @RequestParam(value = "startIndex", required = false, defaultValue = "1")
@@ -932,119 +929,6 @@ public class SearchController {
         Map<String, Object> model = new HashMap<>();
         model.put("rss", xml);
 
-        response.setCharacterEncoding(UTF8);
-        response.setContentType("application/xml");
-
-        return new ModelAndView("rss", model);
-    }
-
-    /**
-     * returns ModelAndView containing RSS data to populate the Google Field
-     * Trip app for some selected collections
-     *
-     * @param queryTerms  the collection ID, e.g. "europeana_collectionName:91697*"
-     * @param offset      list items from this index on
-     * @param limit       max number of items to list
-     * @param profile     should be "FieldTrip"
-     * @param reqLanguage if supplied, the API returns only those items having a dc:language that match this language
-     * @param response    servlet response object
-     * @return ModelAndView instance
-     */
-    @SwaggerIgnore
-    @ApiOperation(value = "Google Fieldtrip formatted RSS of selected collections", nickname = "fieldTrip")
-    @GetMapping(value = "/api/v2/search.rss",
-                produces = {org.springframework.http.MediaType.APPLICATION_XML_VALUE, org.springframework.http.MediaType.ALL_VALUE})
-    public ModelAndView fieldTripRss(@SolrEscape @RequestParam(value = "query") String queryTerms,
-                                     @RequestParam(value = "offset", required = false, defaultValue = "1") int offset,
-                                     @RequestParam(value = "limit", required = false, defaultValue = "12") int limit,
-                                     @RequestParam(value = "profile", required = false, defaultValue = "FieldTrip")
-                                             String profile,
-                                     @RequestParam(value = "language", required = false) String reqLanguage,
-                                     HttpServletRequest request,
-                                     HttpServletResponse response) {
-        ControllerUtils.addResponseHeaders(response);
-
-        FieldTripResponse rss            = new FieldTripResponse();
-        FieldTripChannel  channel        = rss.channel;
-        FieldTripUtils    fieldTripUtils = new FieldTripUtils(urlService);
-
-        if (queryTerms == null || "".equalsIgnoreCase(queryTerms) || "".equals(getIdFromQueryTerms(queryTerms))) {
-            response.setStatus(400);
-            String errorMsg = "error: Query ('" + queryTerms + "') is malformed, can't retrieve collection ID";
-            LOG.error(errorMsg);
-            FieldTripItem item = new FieldTripItem();
-            item.title = "Error";
-            item.description = errorMsg;
-            channel.items.add(item);
-        } else {
-
-            String              collectionID         = getIdFromQueryTerms(queryTerms);
-            Map<String, String> gftChannelAttributes = configuration.getGftChannelAttributes(collectionID);
-
-            if (gftChannelAttributes.isEmpty() || gftChannelAttributes.size() < 5) {
-                LOG.error("error: one or more attributes are not defined in europeana.properties for [INSERT COLLECTION ID HERE]");
-                channel.title = ERROR_RETRIEVE_ATTRIBUTES;
-                channel.description = ERROR_RETRIEVE_ATTRIBUTES;
-                channel.language = "--";
-                channel.link = ERROR_RETRIEVE_ATTRIBUTES;
-                channel.image = null;
-            } else {
-                channel.title = gftChannelAttributes.get(reqLanguage + "_" + TITLE) == null
-                                || gftChannelAttributes.get(reqLanguage + "_" + TITLE).equalsIgnoreCase("")
-                                ? (gftChannelAttributes.get(TITLE) == null
-                                   || gftChannelAttributes.get(TITLE).equalsIgnoreCase("")
-                                   ? "no title defined"
-                                   : gftChannelAttributes.get(TITLE))
-                                : gftChannelAttributes.get(reqLanguage + "_" + TITLE);
-                channel.description = gftChannelAttributes.get(reqLanguage + "_" + DESCRIPTION) == null
-                                      || gftChannelAttributes.get(reqLanguage + "_" + DESCRIPTION).equalsIgnoreCase("")
-                                      ? (gftChannelAttributes.get(DESCRIPTION) == null
-                                         || gftChannelAttributes.get(DESCRIPTION).equalsIgnoreCase("")
-                                         ? "no description defined"
-                                         : gftChannelAttributes.get(DESCRIPTION))
-                                      : gftChannelAttributes.get(reqLanguage + "_" + DESCRIPTION);
-                channel.language = gftChannelAttributes.get(LANGUAGE) == null
-                                   || gftChannelAttributes.get(LANGUAGE).equalsIgnoreCase("")
-                                   ? "--"
-                                   : gftChannelAttributes.get(LANGUAGE);
-                channel.link = gftChannelAttributes.get(LINK) == null
-                               || gftChannelAttributes.get(LINK).equalsIgnoreCase("")
-                               ? "no link defined"
-                               : gftChannelAttributes.get(LINK);
-                channel.image = gftChannelAttributes.get(IMAGE) == null
-                                || gftChannelAttributes.get(IMAGE).equalsIgnoreCase("")
-                                ? null
-                                : new FieldTripImage(gftChannelAttributes.get(IMAGE));
-            }
-
-            if (StringUtils.equals(profile, "FieldTrip")) {
-                offset++;
-            }
-
-            try {
-                Query query = new Query(SearchUtils.rewriteQueryFields(queryTerms)).setApiQuery(true)
-                                                                                   .setPageSize(limit)
-                                                                                   .setStart(offset - 1)
-                                                                                   .setFacetsAllowed(false)
-                                                                                   .setSpellcheckAllowed(false);
-                SolrClient          client    = getSolrClient(request.getServerName());
-                ResultSet<RichBean> resultSet = searchService.search(client, RichBean.class, query);
-                for (RichBean bean : resultSet.getResults()) {
-                    if (reqLanguage == null || getDcLanguage(bean).equalsIgnoreCase(reqLanguage)) {
-                        channel.items.add(fieldTripUtils.createItem(request.getServerName(), bean));
-                    }
-                }
-            } catch (EuropeanaException | MissingResourceException e) {
-                LOG.error("error: {}", e.getLocalizedMessage());
-                FieldTripItem item = new FieldTripItem();
-                item.title = "Error";
-                item.description = e.getMessage();
-                channel.items.add(item);
-            }
-        }
-        String xml = fieldTripUtils.cleanRss(xmlUtils.toString(rss));
-        Map<String, Object> model = new HashMap<>();
-        model.put("rss", xml);
         response.setCharacterEncoding(UTF8);
         response.setContentType("application/xml");
 
@@ -1116,24 +1000,4 @@ public class SearchController {
         return sb.toString();
     }
 
-    private String getDcLanguage(BriefBean bean) {
-        if (bean.getDcLanguage() != null && bean.getDcLanguage().length > 0 &&
-            StringUtils.isNotBlank(bean.getDcLanguage()[0])) {
-            return bean.getDcLanguage()[0];
-        } else {
-            return "";
-        }
-    }
-
-    /**
-     * retrieves the numerical part of the substring between the ':' and '*'
-     * characters.
-     * <p>e.g. "europeana_collectionName:91697*" will result in "91697"
-     *
-     * @param queryTerms provided String
-     * @return String containing the Europeana collection ID only
-     */
-    private String getIdFromQueryTerms(String queryTerms) {
-        return queryTerms.substring(queryTerms.indexOf(':'), queryTerms.indexOf('*')).replaceAll("\\D+", "");
-    }
 }

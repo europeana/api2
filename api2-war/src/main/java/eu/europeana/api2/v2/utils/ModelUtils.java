@@ -169,6 +169,7 @@ public class ModelUtils {
         return result;
     }
 
+    @Deprecated(since = "May 2021")
     public static SpellCheck convertSpellCheck(SpellCheckResponse response) {
         if (response != null) {
             var spellCheck = new SpellCheck();

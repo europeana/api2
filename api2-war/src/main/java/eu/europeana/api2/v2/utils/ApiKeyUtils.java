@@ -2,9 +2,6 @@ package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.utils.Api2UrlService;
-import eu.europeana.corelib.db.exception.DatabaseException;
-import eu.europeana.corelib.db.service.ApiKeyService;
-import eu.europeana.corelib.definitions.db.entity.relational.ApiKey;
 import eu.europeana.corelib.web.exception.ProblemType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -15,10 +12,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.exception.JDBCConnectionException;
-import org.springframework.transaction.CannotCreateTransactionException;
 
-import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.IOException;
 
@@ -31,31 +26,16 @@ public class ApiKeyUtils{
 
     private static final Logger LOG                = LogManager.getLogger(ApiKeyUtils.class);
     private static final String AUTHORIZATION      = "Authorization";
-    private static final String APIKEYDBERROR      = "Problem connecting to the apikey database";
     private static final String APIKEYSERVICEERROR = "Problem connecting to the apikey service";
     private static final int    MAXCONNTOTAL       = 200;
     private static final int    MAXCONNPERROUTE    = 100;
-
-    @Resource
-    private ApiKeyService apiService;
 
     @Resource
     private Api2UrlService urlService;
 
     private CloseableHttpClient httpClient;
 
-    private boolean useApiKeyService = true;
-
-    @PostConstruct
-    public void init() {
-        // check ernly wernce at initialisation if we need to use the fallback 'old school' Apikey Postgres check
-        if (StringUtils.isBlank(urlService.getApikeyValidateUrl())) {
-            useApiKeyService = false;
-        }
-    }
-
     public ApiKeyUtils(){
-
         // configure http client
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(MAXCONNTOTAL);
@@ -65,53 +45,10 @@ public class ApiKeyUtils{
         httpClient = HttpClients.custom().setConnectionManager(cm).build();
     }
 
-    /**
-     * EA-1826 Validates the supplied apikey using the apikey service if configured; if not it falls back to the
-     * old apikey validation method.
-     * NOTE: for the time being, this method mimics the user response of the old checkLimit() method with regards to
-     * the JSON format of the output, the returned requestnumber and messages and format of possible error conditions,
-     * including providing a temporary validated apikey if the apikey service cannot be reached
-     *
-     * @param apikey The user's public apikey
-     * @throws ApiKeyException {@link ApiKeyException} if an unregistered or unauthorised apikey is provided
-     */
-    public void validateApiKey(String apikey) throws ApiKeyException {
-        if (useApiKeyService) {
-            validate(apikey);
-        } else {
-            validateOldStyle(apikey);
-        }
-    }
-
-    /**
-     * This method validates the supplied API key string agaist the Postgres Apikey table. It responds like this:
-     *
-     * @param apikey The user's API web service apikey
-     * @throws ApiKeyException {@link ApiKeyException} if an unregistered or unauthorised apikey is provided, or if the
-     *                         daily limit has been reached
-     * @Deprecated Only checking if a apikey exists is used at the moment (not the limit)
-     * All functionality will be moved to the new apikey project
-     */
-    private void validateOldStyle(String apikey) throws ApiKeyException {
-        if (StringUtils.isBlank(apikey)) {
-            throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
-        }
-        ApiKey apiKey;
-        long   t;
-        try {
-            t      = System.currentTimeMillis();
-            apiKey = apiService.findByID(apikey);
-            if (apiKey == null) {
-                throw new ApiKeyException(ProblemType.APIKEY_DOES_NOT_EXIST,
-                                          apikey,
-                                          HttpStatus.SC_UNAUTHORIZED);
-            }
-            LOG.debug("Get apiKey took {} ms", (System.currentTimeMillis() - t));
-
-            // EA-1537 we sometimes have connection problems with the database, so we simply log and do not validate
-            // keys when that happens
-        } catch (DatabaseException | JDBCConnectionException | CannotCreateTransactionException e) {
-            LOG.error(APIKEYDBERROR, e);
+    @PreDestroy
+    public void close() throws IOException {
+        if (httpClient != null) {
+            httpClient.close();
         }
     }
 
@@ -130,7 +67,7 @@ public class ApiKeyUtils{
      * @throws ApiKeyException
      *
      */
-    private void validate(String apikey) throws ApiKeyException {
+    public void validateApiKey(String apikey) throws ApiKeyException {
         if (StringUtils.isBlank(apikey)) {
             throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
         }
