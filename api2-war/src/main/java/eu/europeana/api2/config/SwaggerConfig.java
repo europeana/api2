@@ -33,7 +33,7 @@ public class SwaggerConfig {
     public static final String SEARCH_TAG = "Search";
     public static final String RECORD_TAG = "Record";
 
-    private static final String API_PATH     = "/api";
+    private static final String API_PATH     = "/";
 
     private String getApiBaseUrl(){
         return StringUtils.substringAfter(
