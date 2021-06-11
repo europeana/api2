@@ -91,6 +91,7 @@ public class ObjectController {
     private static final String MEDIA_TYPE_TURTLE       = "application/turtle";
     private static final String MEDIA_TYPE_TURTLE_X     = "application/x-turtle";
     public static final String PROFILE_SCHEMAORG     = "schemaOrg";
+    public static final String PROFILE_DEFAULT       = "default";
 
     private static Object       jsonldContext           = new Object();
 
@@ -314,7 +315,8 @@ public class ObjectController {
             throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
         }
 
-        FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true);
+        boolean isDefaultProfile = StringUtils.equalsIgnoreCase(data.profile, PROFILE_DEFAULT) ? true : false;
+        FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true, isDefaultProfile);
 
         // 3) Check if record exists, HTTP 404 if not
         if (Objects.isNull(bean)) {
