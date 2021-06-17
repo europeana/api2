@@ -12,6 +12,7 @@ import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.RichView;
+import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.Item;
@@ -30,6 +31,7 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.edm.utils.CountryUtils;
+import eu.europeana.corelib.edm.utils.ValidateUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.search.utils.SearchUtils;
@@ -117,10 +119,12 @@ public class SearchController {
     private String hlMaxAnalyzedChars;
 
     private RouteDataService routeService;
+    private MultilingualQueryGenerator queryGenerator;
 
     @Autowired
-    public SearchController(RouteDataService routeService){
+    public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator){
         this.routeService = routeService;
+        this.queryGenerator = queryGenerator;
     }
 
     /**
@@ -156,6 +160,8 @@ public class SearchController {
                              searchRequest.getCallback(),
                              searchRequest.getHit().getFl(),
                              searchRequest.getHit().getSelectors(),
+                             null, // TODO for now we set sourceLang and targetLang to null for POSTS until we decide how this will work officially
+                             null,
                              request,
                              response);
     }
@@ -190,6 +196,8 @@ public class SearchController {
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @SolrEscape @RequestParam(value = "hit.fl", required = false) String hlFl,
                                       @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
+                                      @RequestParam(value = "q.source", required = false) String querySourceLang,
+                                      @RequestParam(value = "q.target", required = false) String queryTargetLang,
                                       HttpServletRequest request,
                                       HttpServletResponse response) throws EuropeanaException {
 
@@ -199,14 +207,32 @@ public class SearchController {
         if (StringUtils.isBlank(queryString)) {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
+        // validate target language (if present)
+        if (queryTargetLang != null && !ValidateUtils.validateLanguageAbbrevation(queryTargetLang)) {
+            throw new SolrQueryException(ProblemType.SEARCH_INVALID_QTARGET);
+        }
+        if (querySourceLang != null) {
+            // validate source language
+            if (!ValidateUtils.validateLanguageAbbrevation(querySourceLang)) {
+                throw new SolrQueryException(ProblemType.SEARCH_INVALID_QSOURCE);
+            }
+            // if a source language is provided, then we must also have a target language
+            if (queryTargetLang == null) {
+                throw new SolrQueryException(ProblemType.SEARCH_MISSING_QTARGET);
+            }
+        }
 
         queryString = queryString.trim();
         queryString = fixCountryCapitalization(queryString);
 
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("QUERY: |{}|", queryString);
+        LOG.debug("ORIGINAL QUERY: |{}|", queryString);
+
+        // TODO May 2021 This is temporary code to test a query translation technique with Google Translate
+        if (queryTargetLang != null) {
+            queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
+            LOG.debug("TRANSLATED QUERY: |{}|", queryString);
         }
 
         if ((cursorMark != null) && (start > 1)) {
