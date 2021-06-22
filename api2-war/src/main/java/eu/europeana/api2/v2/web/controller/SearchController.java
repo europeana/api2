@@ -13,6 +13,7 @@ import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.RichView;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
+import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.Item;
@@ -20,6 +21,7 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
+import eu.europeana.api2.v2.service.translate.GoogleTranslationService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
@@ -60,6 +62,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -83,6 +86,8 @@ import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 @Controller
 @SwaggerSelect
 @Api(tags = {"Search"})
+// imports to enable Multi-lingual search
+@Import({GoogleTranslationService.class, QueryTranslator.class, MultilingualQueryGenerator.class})
 public class SearchController {
 
     private static final Logger LOG                       = LogManager.getLogger(SearchController.class);
@@ -848,7 +853,7 @@ public class SearchController {
                         org.springframework.http.MediaType.APPLICATION_XML_VALUE,
                         org.springframework.http.MediaType.APPLICATION_XHTML_XML_VALUE})
     @ResponseBody
-    @Deprecated
+    @Deprecated(since = "jan 2018")
     public KmlResponse searchKml(@SolrEscape @RequestParam(value = "query") String queryString,
                                  @RequestParam(value = "qf", required = false) String[] refinementArray,
                                  @RequestParam(value = "start", required = false, defaultValue = "1") int start,

@@ -1,17 +1,17 @@
 package eu.europeana.api2.config;
 
 import eu.europeana.api2.model.utils.Api2UrlService;
-import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
-import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.GoogleTranslationService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
@@ -30,8 +30,6 @@ import java.util.Arrays;
         "classpath:corelib-web-context.xml",
 })
 @PropertySource("classpath:europeana.properties")
-// imports to enable Multi-lingual search
-@Import({GoogleTranslationService.class, QueryTranslator.class, MultilingualQueryGenerator.class})
 public class AppConfig {
 
     private static final Logger LOG = LogManager.getLogger(AppConfig.class);
@@ -53,10 +51,12 @@ public class AppConfig {
 
     @PostConstruct
     public void logConfiguration() {
-        LOG.info("CF_INSTANCE_INDEX  = {}, CF_INSTANCE_GUID = {}, CF_INSTANCE_IP  = {}",
-                System.getenv("CF_INSTANCE_INDEX"), System.getenv("CF_INSTANCE_GUID"), System.getenv("CF_INSTANCE_IP"));
-        LOG.info("Active Spring profiles: {}", Arrays.toString(env.getActiveProfiles()));
-        LOG.info("Default Spring profiles: {}", Arrays.toString(env.getDefaultProfiles()));
+        if (LOG.isInfoEnabled()) {
+            LOG.info("CF_INSTANCE_INDEX  = {}, CF_INSTANCE_GUID = {}, CF_INSTANCE_IP  = {}",
+                    System.getenv("CF_INSTANCE_INDEX"), System.getenv("CF_INSTANCE_GUID"), System.getenv("CF_INSTANCE_IP"));
+            LOG.info("Active Spring profiles: {}", Arrays.toString(env.getActiveProfiles()));
+            LOG.info("Default Spring profiles: {}", Arrays.toString(env.getDefaultProfiles()));
+        }
     }
 
     /**
@@ -100,7 +100,8 @@ public class AppConfig {
      */
     @Bean
     public Api2UrlService api2UrlService() {
-        Api2UrlService urlService = new Api2UrlService(routeConfigLoader().getRouteBaseUrlMap(), portalBaseUrl, api2BaseUrl, apikeyValidateUrl, apiGatewayBaseUrl);
+        Api2UrlService urlService = new Api2UrlService(routeConfigLoader().getRouteBaseUrlMap(), portalBaseUrl,
+                api2BaseUrl, apikeyValidateUrl, apiGatewayBaseUrl);
         // log default baseUrls used for requests without a matching route in the config
         LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl(""));
         LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl(""));

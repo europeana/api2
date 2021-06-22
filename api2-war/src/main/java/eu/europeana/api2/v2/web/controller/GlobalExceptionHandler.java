@@ -4,6 +4,8 @@ import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
+import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
+import eu.europeana.api2.v2.exceptions.MissingParamException;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.utils.ControllerUtils;
@@ -71,9 +73,9 @@ public class GlobalExceptionHandler {
             case IGNORE: break;
             case LOG_WARN:
                 // log apikey plus problem so we can track users who need help
-                LOG.warn("[{}] {}", apiKey, ee.getErrorMsgAndDetails());
+                LOG.warn("[{} - {}] {}", route, apiKey, ee.getErrorMsgAndDetails());
                 break;
-            default: LOG.error(ee.getErrorMsgAndDetails(), ee);
+            default: LOG.error("[{} - {}] {}", route, apiKey, ee.getErrorMsgAndDetails());
         }
     }
 
@@ -91,7 +93,7 @@ public class GlobalExceptionHandler {
             } else {
                 result = HttpServletResponse.SC_UNAUTHORIZED;
             }
-        } else if (ee instanceof SolrQueryException) {
+        } else if (ee instanceof SolrQueryException || ee instanceof InvalidParamValueException || ee instanceof MissingParamException) {
             result = HttpServletResponse.SC_BAD_REQUEST;
         } else if (ee instanceof SolrIOException) {
             result = HttpServletResponse.SC_SERVICE_UNAVAILABLE;

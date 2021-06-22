@@ -20,5 +20,6 @@
         <Logger name="eu.europeana.api2.v2.web.controller" level="INFO"/>
         <Logger name="org.mongodb.driver" level="INFO"/>
         <Logger name="org.apache.jena.riot" level="ERROR" />
+        <Logger name="eu.europeana.api2.v2.service.translate.TranslateFilterService" level="DEBUG" />
     </Loggers>
 </Configuration>

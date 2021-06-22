@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Note that this requires the GOOGLE_APPLICATION_CREDENTIALS environment variable to be available as well as a projectId
@@ -20,12 +22,19 @@ import java.io.IOException;
 public class GoogleTranslationService implements TranslationService {
 
     private static final Logger LOG = LogManager.getLogger(GoogleTranslationService.class);
+    private static final String MIME_TYPE_TEXT = "text/plain";
 
     @Value("${google.translate.projectId}")
     private String projectId;
 
     private TranslationServiceClient client;
+    private LocationName locationName;
 
+    /**
+     * Creates a new client that can send translation requests to Google Cloud Translate. Note that the client needs
+     * to be closed when it's not used anymore
+     * @throws IOException when there is a problem creating the client
+     */
     public GoogleTranslationService() throws IOException {
         // gRPC doesn't like communication via the socks proxy (throws an error) and also doesn't support the
         // socksNonProxyHosts settings, so this is to tell it to by-pass the configured proxy
@@ -36,10 +45,12 @@ public class GoogleTranslationService implements TranslationService {
         TranslationServiceSettings tss = TranslationServiceSettings.newBuilder()
                 .setTransportChannelProvider(transportChannelProvider).build();
         this.client = TranslationServiceClient.create(tss);
+
     }
 
     @PostConstruct
-    public void init() {
+    private void init() {
+        this.locationName = LocationName.of(this.projectId, "global");
         LOG.info("GoogleTranslationService initialised, projectId = {}", projectId);
     }
 
@@ -53,7 +64,7 @@ public class GoogleTranslationService implements TranslationService {
 
     @Override
     public String[] getSupportedLanguages() {
-        return null;
+        return new String[0];
     }
 
     @Override
@@ -70,45 +81,68 @@ public class GoogleTranslationService implements TranslationService {
 
     @Override
     public String translate(String text, String targetLanguage) {
-        TranslateTextRequest request = this.createTranslateRequest(text, targetLanguage);
+        // create request for synchronous translation
+        TranslateTextRequest request = TranslateTextRequest.newBuilder()
+                .setParent(locationName.toString())
+                .setMimeType(MIME_TYPE_TEXT)
+                .setTargetLanguageCode(targetLanguage)
+                .addContents(text)
+                .build();
         TranslateTextResponse response = this.client.translateText(request);
         LOG.debug("String {} -> language detected is {}", text, response.getTranslationsList().get(0).getDetectedLanguageCode());
         return response.getTranslationsList().get(0).getTranslatedText();
     }
 
     @Override
-    public String translate(String text, String targetLanguage, String sourceLanguage) {
-        TranslateTextRequest request = this.createTranslateRequest(text, targetLanguage, sourceLanguage);
+    public List<String> translate(List<String> texts, String targetLanguage) {
+        TranslateTextRequest request = TranslateTextRequest.newBuilder()
+                .setParent(locationName.toString())
+                .setMimeType(MIME_TYPE_TEXT)
+                .setTargetLanguageCode(targetLanguage)
+                .addAllContents(texts)
+                .build();
         TranslateTextResponse response = this.client.translateText(request);
-        return response.getTranslationsList().get(0).getTranslatedText();
+        List<String> result = new ArrayList<>();
+        for (Translation t : response.getTranslationsList()) {
+            result.add(t.getTranslatedText());
+        }
+        return result;
     }
 
-    private TranslateTextRequest createTranslateRequest(String text, String targetLanguage){
-        LocationName parent = LocationName.of(this.projectId, "global");
-        return TranslateTextRequest.newBuilder()
-                        .setParent(parent.toString())
-                        .setMimeType("text/plain")
-                        .setTargetLanguageCode(targetLanguage)
-                        .addContents(text)
-                        .build();
-    }
-
-    private TranslateTextRequest createTranslateRequest(String text, String targetLanguage, String sourceLanguage){
-        LocationName parent = LocationName.of(this.projectId, "global");
-        return TranslateTextRequest.newBuilder()
-                .setParent(parent.toString())
-                .setMimeType("text/plain")
+    @Override
+    public String translate(String text, String targetLanguage, String sourceLanguage) {
+        TranslateTextRequest request = TranslateTextRequest.newBuilder()
+                .setParent(locationName.toString())
+                .setMimeType(MIME_TYPE_TEXT)
                 .setTargetLanguageCode(targetLanguage)
                 .setSourceLanguageCode(sourceLanguage)
                 .addContents(text)
                 .build();
+        TranslateTextResponse response = this.client.translateText(request);
+        return response.getTranslationsList().get(0).getTranslatedText();
+    }
+
+    @Override
+    public List<String> translate(List<String> text, String targetLanguage, String sourceLanguage) {
+        TranslateTextRequest request = TranslateTextRequest.newBuilder()
+                .setParent(locationName.toString())
+                .setMimeType(MIME_TYPE_TEXT)
+                .setTargetLanguageCode(targetLanguage)
+                .setSourceLanguageCode(sourceLanguage)
+                .addAllContents(text)
+                .build();
+        TranslateTextResponse response = this.client.translateText(request);
+        List<String> result = new ArrayList<>();
+        for (Translation t : response.getTranslationsList()) {
+            result.add(t.getTranslatedText());
+        }
+        return result;
     }
 
     private DetectLanguageRequest createDetectRequest(String text){
-        LocationName parent = LocationName.of(this.projectId, "global");
         return DetectLanguageRequest.newBuilder()
-                .setParent(parent.toString())
-                .setMimeType("text/plain")
+                .setParent(locationName.toString())
+                .setMimeType(MIME_TYPE_TEXT)
                 .setContent(text)
                 .build();
     }
