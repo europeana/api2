@@ -51,10 +51,12 @@ public class AppConfig {
 
     @PostConstruct
     public void logConfiguration() {
-        LOG.info("CF_INSTANCE_INDEX  = {}, CF_INSTANCE_GUID = {}, CF_INSTANCE_IP  = {}",
-                System.getenv("CF_INSTANCE_INDEX"), System.getenv("CF_INSTANCE_GUID"), System.getenv("CF_INSTANCE_IP"));
-        LOG.info("Active Spring profiles: {}", Arrays.toString(env.getActiveProfiles()));
-        LOG.info("Default Spring profiles: {}", Arrays.toString(env.getDefaultProfiles()));
+        if (LOG.isInfoEnabled()) {
+            LOG.info("CF_INSTANCE_INDEX  = {}, CF_INSTANCE_GUID = {}, CF_INSTANCE_IP  = {}",
+                    System.getenv("CF_INSTANCE_INDEX"), System.getenv("CF_INSTANCE_GUID"), System.getenv("CF_INSTANCE_IP"));
+            LOG.info("Active Spring profiles: {}", Arrays.toString(env.getActiveProfiles()));
+            LOG.info("Default Spring profiles: {}", Arrays.toString(env.getDefaultProfiles()));
+        }
     }
 
     /**
@@ -98,7 +100,8 @@ public class AppConfig {
      */
     @Bean
     public Api2UrlService api2UrlService() {
-        Api2UrlService urlService = new Api2UrlService(routeConfigLoader().getRouteBaseUrlMap(), portalBaseUrl, api2BaseUrl, apikeyValidateUrl, apiGatewayBaseUrl);
+        Api2UrlService urlService = new Api2UrlService(routeConfigLoader().getRouteBaseUrlMap(), portalBaseUrl,
+                api2BaseUrl, apikeyValidateUrl, apiGatewayBaseUrl);
         // log default baseUrls used for requests without a matching route in the config
         LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl(""));
         LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl(""));
