@@ -69,6 +69,11 @@ public class FullView implements FullBean {
         return null;
     }
 
+    @Override
+    public List<? extends Organization> getOrganizations() {
+        return bean.getOrganizations();
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public List<? extends Timespan> getTimespans() {
@@ -329,6 +334,11 @@ public class FullView implements FullBean {
 
     @Override
     public void setAgents(List<? extends Agent> agents) {
+        // left empty intentionally
+    }
+
+    @Override
+    public void setOrganizations(List<? extends Organization> organizations) {
         // left empty intentionally
     }
 
