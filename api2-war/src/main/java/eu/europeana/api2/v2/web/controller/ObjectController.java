@@ -5,11 +5,11 @@ import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
-import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
 import eu.europeana.api2.v2.exceptions.MissingParamException;
 import eu.europeana.api2.v2.model.RecordType;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
+import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.TranslateFilterService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
@@ -19,7 +19,6 @@ import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
-import eu.europeana.corelib.edm.utils.ValidateUtils;
 import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
@@ -62,10 +61,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
@@ -313,18 +309,16 @@ public class ObjectController {
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
             throws EuropeanaException {
+        long startTime = System.currentTimeMillis();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Retrieving record with id {}, type = {}", data.europeanaId, recordType);
+        }
 
         // 1) Check if HTTP method is supported, HTTP 405 if not
         if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) &&
                 !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
             response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-            return null; // figure out what to return exactly in these cases
-        }
-        validateLangParam(data.profile, data.lang);
-
-        long startTime = System.currentTimeMillis();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Retrieving record with id {}, type = {}", data.europeanaId, recordType);
+            return null;
         }
 
         // 2) check API key & routing
@@ -336,10 +330,13 @@ public class ObjectController {
             throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
         }
 
-        // 3) get the fullbean
+        // 3) validate other common params
+        data.setLanguages(validateLangParam(data.profile, data.lang));
+
+        // 4) get the fullbean
         FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true);
 
-        // 4) Check if record exists, return 404 if not
+        // 5) Check if record exists, return 404 if not
         ModelAndView result;
         if (Objects.isNull(bean)) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -364,7 +361,7 @@ public class ObjectController {
         *        }
         */
 
-
+        // 6) Handle caching
         // ETag is created from timestamp + api version.
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
         String eTag      = httpCacheUtils.generateETag(data.europeanaId +tsUpdated, true, true);
@@ -379,7 +376,7 @@ public class ObjectController {
             }
             // If If-Match is present: check if it contains a matching eTag OR == '*"
             // Yes: proceed. No: return HTTP 412, no cache headers
-        } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))){
+        } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))) {
             if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
                 response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
                 return null;
@@ -391,16 +388,20 @@ public class ObjectController {
             return null;
         }
 
+        // 7) process bean further (adding webresource meta info, set proper urls, translating)
         // cannot be null here, as method has already checked for record dao
         RecordDao recordDao = dataSource.get().getRecordDao().get();
 
-        // now the FullBean can be processed further (adding webresource meta info, set proper urls)
         BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
         bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
         if (RecordProfile.TRANSLATE.isActive(data.profile)) {
-            bean = translateFilterService.translateTitleDescription(bean, data.lang);
+            bean = translateFilterService.translateTitleDescription(bean, data.languages);
+        }
+        if (!data.languages.isEmpty()) {
+            bean = translateFilterService.filter(bean, data.languages);
         }
 
+        // 8) generate output
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
 
@@ -427,20 +428,16 @@ public class ObjectController {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Done generating record output in {} ms ",(System.currentTimeMillis() - startTime));
+            LOG.debug("Done generating record output in {} ms ", (System.currentTimeMillis() - startTime));
         }
         return output;
     }
 
-    private void validateLangParam(String profile, String lang) throws EuropeanaException {
-        if (RecordProfile.TRANSLATE.isActive(profile)) {
-            if (StringUtils.isBlank(lang)) {
-                throw new MissingParamException("Parameter lang is required for translation profile");
-            }
-            if (!ValidateUtils.validateLanguageAbbrevation(lang)) {
-                throw new InvalidParamValueException("Value '" + lang + "' is not valid");
-            }
+    private List<Language> validateLangParam(String profile, String langs) throws EuropeanaException {
+        if (RecordProfile.TRANSLATE.isActive(profile) && StringUtils.isBlank(langs)) {
+            throw new MissingParamException("Parameter lang is required for translation profile");
         }
+        return Language.validateMultiple(langs);
     }
 
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
@@ -566,17 +563,22 @@ public class ObjectController {
         String             wskey;
         String             profile;
         String             lang;
+        List<Language>     languages;
         String             callback;
         HttpServletRequest servletRequest;
 
         RequestData(String collectionId, String recordId, String wskey, String profile, String lang, String callback,
                     HttpServletRequest servletRequest) {
-            this.europeanaId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
-            this.wskey             = wskey;
-            this.profile           = profile;
-            this.lang              = lang;
-            this.callback          = callback;
-            this.servletRequest    = servletRequest;
+            this.europeanaId    = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
+            this.wskey          = wskey;
+            this.profile        = profile;
+            this.lang           = lang;
+            this.callback       = callback;
+            this.servletRequest = servletRequest;
+        }
+
+        void setLanguages(List<Language> languages) {
+            this.languages = languages;
         }
     }
 }

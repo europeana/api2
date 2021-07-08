@@ -7,11 +7,13 @@ import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
+import eu.europeana.api2.v2.exceptions.MissingParamException;
 import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.RichView;
+import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
@@ -213,17 +215,14 @@ public class SearchController {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
         // validate target language (if present)
-        if (queryTargetLang != null && !ValidateUtils.validateLanguageAbbrevation(queryTargetLang)) {
-            throw new SolrQueryException(ProblemType.SEARCH_INVALID_QTARGET);
+        if (queryTargetLang != null) {
+            Language.validateSingle(queryTargetLang);
         }
         if (querySourceLang != null) {
-            // validate source language
-            if (!ValidateUtils.validateLanguageAbbrevation(querySourceLang)) {
-                throw new SolrQueryException(ProblemType.SEARCH_INVALID_QSOURCE);
-            }
+            Language.validateSingle(querySourceLang);
             // if a source language is provided, then we must also have a target language
             if (queryTargetLang == null) {
-                throw new SolrQueryException(ProblemType.SEARCH_MISSING_QTARGET);
+                throw new MissingParamException("Parameter q.target is required when q.source is specified");
             }
         }
 

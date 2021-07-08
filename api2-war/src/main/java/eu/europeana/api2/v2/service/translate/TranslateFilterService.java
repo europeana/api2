@@ -1,15 +1,17 @@
 package eu.europeana.api2.v2.service.translate;
 
+import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.definitions.edm.entity.EuropeanaAggregation;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
+import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  *  Service that provides a translation of the title and description fields if the requested language is not already
@@ -27,7 +29,8 @@ public class TranslateFilterService {
     private TranslationService translationService;
 
     /**
-     * Create a new service for translating title and description ina particular language and filtering out other
+     * Create a new service for translating title and description in a particular language and filtering out other
+     *
      * @param translationService underlying translation service to use for translations
      */
     public TranslateFilterService(TranslationService translationService) {
@@ -37,14 +40,109 @@ public class TranslateFilterService {
     /**
      * Add a translation of the dcTitle and dcDescription to a record, if it does not already have this in the
      * requested language
-     * @param bean the record to be used
-     * @param targetLang the requested language (2 letter language abbreviation)
+     *
+     * @param bean        the record to be used
+     * @param targetLangs the requested languages
      * @return modified record
      */
-    public FullBean translateTitleDescription(FullBean bean, String targetLang) {
-        translateTitle(bean, targetLang);
-        translateDescription(bean, targetLang);
+    public FullBean translateTitleDescription(FullBean bean, List<Language> targetLangs) {
+        // TODO for now we only translate into the first language in the list, the rest is only used for filtering
+        translateTitle(bean, targetLangs.get(0).name());
+        translateDescription(bean, targetLangs.get(0).name());
         return bean;
+    }
+
+    /**
+     * Filter all the language maps in the provided fullbean. Note that if a languagemap only has 1 value nothing is
+     * filtered, nor are any "def" values in the map removed.
+     * @param bean the fullbean to filter
+     * @param targetLangs the languages that need to remain in the fullbean
+     * @return filtered fullbean
+     */
+    public FullBean filter(FullBean bean, List<Language> targetLangs) {
+        try {
+            iterativeFilter(bean, targetLangs);
+        } catch (IllegalAccessException e) {
+            LOG.error("Error filtering fields of record {}", bean, e);
+        }
+        return bean;
+    }
+
+    /**
+     * We can iterate over all the getDeclaredFields() in an object or use the getMethods(), but both methods have pros and
+     * cons.
+     *
+     * For the getDeclaredFields() approach the downsides are:
+     * 1) since all/most fields in FullBean are protected we need to use setAccessible(true) to access them and this may
+     * not be allowed in JDKs newer than version 11 (see also sonarqube warning java:S3011)
+     * 2) we need to also check fields in an object's superclass. This works fine if there is only 1 superclass (in our
+     * case), but may stop working if we introduce multiple superclasses.
+     *
+     * For getMethods() the main downside is:
+     * 1) only works if the getters return the real objects and not if they return a copy
+     * We may also need to check methods in superclasses (not sure yet).
+     */
+    @SuppressWarnings("java:S3011") // suppress the setAccessibility(true) warning
+    private void iterativeFilter(Object o, List<Language> targetLangs) throws IllegalAccessException {
+        List<Field> fields = new ArrayList<>();
+        Class<?> superClass = o.getClass().getSuperclass();
+        if (superClass != null) {
+            List<Field> superFields = Arrays.asList(superClass.getDeclaredFields());
+            fields.addAll(superFields);
+        }
+        // add last so we have the same ordering of fields as in record json serialization
+        fields.addAll(Arrays.asList(o.getClass().getDeclaredFields()));
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Filtering - object {} has {} fields", o.getClass().getName(), fields.size());
+        }
+        for (Field field : fields) {
+                field.setAccessible(true); // this is needed to access protected fields, may not be allowed in JDKs newer than 11!
+                Object next = field.get(o);
+                if (next instanceof EuropeanaAggregation) {
+                    iterativeFilter(next, targetLangs);
+                } else if (next instanceof List) {
+                    List<?> list = (List<?>) next;
+                    for (Object item : list) {
+                        iterativeFilter(item, targetLangs);
+                    }
+                } else if (next instanceof Map<?,?>) {
+                    filterLanguageMap(field.getName(), (Map<?,?>) next, targetLangs);
+                }
+        }
+    }
+
+    private void filterLanguageMap(String fieldName, Map<?,?> map, List<Language> targetLangs) {
+        LOG.debug("  Field {} is a map with {} keys and {} values", fieldName, map.keySet().size(), map.values().size());
+        // if there's only 1 key in the map we do not filter
+        if (map.keySet().size() > 1) {
+            Set<? extends Map.Entry<?,?>> set = map.entrySet();
+            List<String> keysToRemove = new ArrayList<>();
+            for (Map.Entry<?,?> keyValue : set) {
+                // keep all def keys and keep all uri values
+                if ("def".equals(keyValue.getKey()) || EuropeanaUriUtils.isUri(keyValue.getValue().toString())) {
+                    LOG.debug("    Keeping key def, value {}", keyValue.getValue());
+                    continue;
+                }
+                // remove all unsupported languages and languages not requested
+                String keyLang = keyValue.getKey().toString();
+                if (!Language.isSupported(keyLang) || !targetLangs.contains(Language.valueOf(keyLang.toUpperCase(Locale.ROOT)))) {
+                    LOG.debug("    Removing key {}, value {}", keyLang, keyValue.getValue());
+                    keysToRemove.add(keyLang);
+                } else {
+                    LOG.debug("    Keeping key {}, value {}", keyLang, keyValue.getValue());
+                }
+            }
+            // do actual removal
+            if (map.keySet().size() == keysToRemove.size()) {
+                // we should not remove all keys in a map, so if we are about to do that we keep only the first
+                String keyToKeep = keysToRemove.remove(0);
+                LOG.debug("    All keys are about to be filtered, keeping only the first key {}", keyToKeep);
+            }
+            for (String keyToRemove : keysToRemove) {
+                map.remove(keyToRemove);
+            }
+        }
     }
 
     /**
@@ -58,8 +156,6 @@ public class TranslateFilterService {
      * 2.4.    if there is an English title, get translation and add to record
      * 3.    if there's a title for the requested language, do nothing
      * </pre>
-     * @param bean
-     * @param targetLang
      */
     private void translateTitle(FullBean bean, String targetLang) {
         List<String> title = getTitleForLang(bean, targetLang);
