@@ -47,8 +47,8 @@ public class TranslateFilterService {
      */
     public FullBean translateTitleDescription(FullBean bean, List<Language> targetLangs) {
         // TODO for now we only translate into the first language in the list, the rest is only used for filtering
-        translateTitle(bean, targetLangs.get(0).name());
-        translateDescription(bean, targetLangs.get(0).name());
+        translateTitle(bean, targetLangs.get(0).name().toLowerCase(Locale.ROOT));
+        translateDescription(bean, targetLangs.get(0).name().toUpperCase(Locale.ROOT));
         return bean;
     }
 
@@ -69,7 +69,8 @@ public class TranslateFilterService {
             iterativeFilterFields(bean, targetLangs);
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Filtering record language data took {} ms", (System.currentTimeMillis() - startTime));
+            LOG.debug("Filtering record language data using {} took {} ms", (useReflectiveMethods ? "methods" : "fields"),
+                    (System.currentTimeMillis() - startTime));
         }
         return bean;
     }
