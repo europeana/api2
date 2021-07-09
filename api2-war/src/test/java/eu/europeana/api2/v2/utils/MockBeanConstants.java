@@ -22,6 +22,7 @@ public class MockBeanConstants {
     public static final String FR                       = "fr";
     public static final String DE                       = "de";
     public static final String NO                       = "no";
+    public static final String NL                       = "nl";
 
     public static final String  URL_PREFIX               = "http://data.europeana.eu";
     public static final String  ABOUT                    = "/item/" + COMMON_ABOUT ;
@@ -62,9 +63,15 @@ public class MockBeanConstants {
     public static final String  AGGREGATION_ABOUT        = "/aggregation/provider/" + COMMON_ABOUT ;
     public static final String  DC_DATE                  = "1821 - 1869";
     public static final String  DC_IDENTIFIER            = "TvB G 3674";
-    public static final String  PROXY_ABOUT_1            = "/proxy/provider/" + COMMON_ABOUT ;
     public static final String  EUROPEANA_AGG_ABOUT      = "/aggregation/europeana/" + COMMON_ABOUT ;
-    public static final String  PROXY_ABOUT_2            = "/proxy/europeana/" +COMMON_ABOUT ;
+
+    // proxy
+    public static final String PROXY1_ABOUT             = "/proxy/provider/" + COMMON_ABOUT;
+    public static final String PROXY2_ABOUT             = "/proxy/europeana/" + COMMON_ABOUT;
+    public static final String PROXY1_DC_FORMAT1_DEF    = "paper: height: 675 mm";
+    public static final String PROXY1_DC_FORMAT2_DEF    = "paper: width: 522 mm";
+    public static final String PROXY1_DC_FORMAT1_NL     = "papier: hoogte: 675 mm";
+    public static final String PROXY1_DC_FORMAT2_NL     = "papier: breedte: 522 mm";
 
     //agent Person
     public static final String AGENT1_PREF_LABEL_EN      = "Science and inventions of Leonardo da Vinci";

@@ -71,12 +71,11 @@ public final class MockFullBean {
 
         proxy.setDcFormat(new HashMap<>());
         proxy.getDcFormat().put(MockBeanConstants.DEF, new ArrayList<>());
-        proxy.getDcFormat().get(MockBeanConstants.DEF).add("papier: hoogte: 675 mm");
-        proxy.getDcFormat().get(MockBeanConstants.DEF).add("papier: breedte: 522 mm");
-        proxy.getDcFormat().get(MockBeanConstants.DEF).add("plaat: hoogte: 565 mm");
-        proxy.getDcFormat().get(MockBeanConstants.DEF).add("plaat: breedte: 435 mm");
-        proxy.getDcFormat().get(MockBeanConstants.DEF).add("beeld: hoogte: 376 mm");
-        proxy.getDcFormat().get(MockBeanConstants.DEF).add("beeld: breedte: 275 mm");
+        proxy.getDcFormat().get(MockBeanConstants.DEF).add(MockBeanConstants.PROXY1_DC_FORMAT1_DEF);
+        proxy.getDcFormat().get(MockBeanConstants.DEF).add(MockBeanConstants.PROXY1_DC_FORMAT2_DEF);
+        proxy.getDcFormat().put(MockBeanConstants.NL, new ArrayList<>());
+        proxy.getDcFormat().get(MockBeanConstants.NL).add(MockBeanConstants.PROXY1_DC_FORMAT1_NL);
+        proxy.getDcFormat().get(MockBeanConstants.NL).add(MockBeanConstants.PROXY1_DC_FORMAT2_NL);
 
         proxy.setDcIdentifier(new HashMap<>());
         proxy.getDcIdentifier().put(MockBeanConstants.DEF, new ArrayList<>());
@@ -95,7 +94,7 @@ public final class MockFullBean {
         proxy.getDctermsAlternative().put(MockBeanConstants.DEF, new ArrayList<>());
         proxy.getDctermsAlternative().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_ALTERNATIVE);
 
-        proxy.setAbout(MockBeanConstants.PROXY_ABOUT_1);
+        proxy.setAbout(MockBeanConstants.PROXY1_ABOUT);
 
         proxy = new ProxyImpl();
         proxies.add(proxy);
@@ -133,7 +132,7 @@ public final class MockFullBean {
         proxy.getDcDescription().put(MockBeanConstants.DEF, new ArrayList<>());
         proxy.getDcDescription().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_DESCRIPTION);
 
-        proxy.setAbout(MockBeanConstants.PROXY_ABOUT_2);
+        proxy.setAbout(MockBeanConstants.PROXY2_ABOUT);
 
         bean.setProxies(proxies);
     }

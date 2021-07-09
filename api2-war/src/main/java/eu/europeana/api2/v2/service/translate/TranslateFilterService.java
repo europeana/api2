@@ -9,8 +9,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -57,63 +57,109 @@ public class TranslateFilterService {
      * filtered, nor are any "def" values in the map removed.
      * @param bean the fullbean to filter
      * @param targetLangs the languages that need to remain in the fullbean
+     * @param useReflectiveMethods whether to use the faster but less safe reflection on fields, or slower but safer
+     *                            reflection on methods
      * @return filtered fullbean
      */
-    public FullBean filter(FullBean bean, List<Language> targetLangs) {
-        try {
-            iterativeFilter(bean, targetLangs);
-        } catch (IllegalAccessException e) {
-            LOG.error("Error filtering fields of record {}", bean, e);
+    public FullBean filter(FullBean bean, List<Language> targetLangs, boolean useReflectiveMethods) {
+        long startTime = System.currentTimeMillis();
+        if (useReflectiveMethods) {
+            iterativeFilterMethods(bean, targetLangs);
+        } else {
+            iterativeFilterFields(bean, targetLangs);
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Filtering record language data took {} ms", (System.currentTimeMillis() - startTime));
         }
         return bean;
     }
 
     /**
      * We can iterate over all the getDeclaredFields() in an object or use the getMethods(), but both methods have pros and
-     * cons.
+     * cons. For testing and making a decision in the future, we support both for the time being-
      *
-     * For the getDeclaredFields() approach the downsides are:
-     * 1) since all/most fields in FullBean are protected we need to use setAccessible(true) to access them and this may
+     * For the getDeclaredFields() approach the main downside is:
+     * 1) since all/most fields in FullBean are protected we need to use makeAccessible() to access them and this may
      * not be allowed in JDKs newer than version 11 (see also sonarqube warning java:S3011)
-     * 2) we need to also check fields in an object's superclass. This works fine if there is only 1 superclass (in our
-     * case), but may stop working if we introduce multiple superclasses.
      *
-     * For getMethods() the main downside is:
-     * 1) only works if the getters return the real objects and not if they return a copy
-     * We may also need to check methods in superclasses (not sure yet).
+     * For getMethods() the downsides are:
+     * 1) only works if the getters return the real objects and not if they return a copy (or else we need to
+     * also invoke the getters)
+     * 2) it is much slower than the getDeclaredFields approach
      */
-    @SuppressWarnings("java:S3011") // suppress the setAccessibility(true) warning
-    private void iterativeFilter(Object o, List<Language> targetLangs) throws IllegalAccessException {
-        List<Field> fields = new ArrayList<>();
-        Class<?> superClass = o.getClass().getSuperclass();
-        if (superClass != null) {
-            List<Field> superFields = Arrays.asList(superClass.getDeclaredFields());
-            fields.addAll(superFields);
-        }
-        // add last so we have the same ordering of fields as in record json serialization
-        fields.addAll(Arrays.asList(o.getClass().getDeclaredFields()));
-
+    @SuppressWarnings("java:S3011") // suppress the setAccessibility(true) or ReflectionUtils.makeAccessible warning
+    private void iterativeFilterFields(Object o, List<Language> targetLangs) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Filtering - object {} has {} fields", o.getClass().getName(), fields.size());
+            LOG.debug("Filtering - object {}", o.getClass().getName());
         }
-        for (Field field : fields) {
-                field.setAccessible(true); // this is needed to access protected fields, may not be allowed in JDKs newer than 11!
-                Object next = field.get(o);
-                if (next instanceof EuropeanaAggregation) {
-                    iterativeFilter(next, targetLangs);
-                } else if (next instanceof List) {
-                    List<?> list = (List<?>) next;
-                    for (Object item : list) {
-                        iterativeFilter(item, targetLangs);
-                    }
-                } else if (next instanceof Map<?,?>) {
-                    filterLanguageMap(field.getName(), (Map<?,?>) next, targetLangs);
+        // we only want to look at fields that are language maps or can contain them
+        ReflectionUtils.FieldFilter fieldFilter = field ->
+                        field.getType().isAssignableFrom(Map.class) ||
+                        field.getType().isAssignableFrom(List.class) ||
+                        field.getType().isAssignableFrom(EuropeanaAggregation.class);
+
+        ReflectionUtils.doWithFields(o.getClass(), field -> {
+            ReflectionUtils.makeAccessible(field); // this is needed to access protected fields, may not be allowed in JDKs newer than 11!
+            Object fieldValue = field.get(o);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("  Field {} has class {}", field.getName(), fieldValue == null ? null : fieldValue.getClass());
+            }
+            if (fieldValue instanceof Map<?, ?>) {
+                filterLanguageMap(field.getName(), (Map<?, ?>) fieldValue, targetLangs);
+            } else if (fieldValue instanceof List) {
+                List<?> list = (List<?>) fieldValue;
+                for (Object item : list) {
+                    iterativeFilterFields(item, targetLangs);
                 }
+            } else if (fieldValue instanceof EuropeanaAggregation) {
+                iterativeFilterFields(fieldValue, targetLangs);
+            } else {
+                assert fieldValue == null : "Unknown field class " + fieldValue.getClass() + ". Checks do not match field filter";
+            }
+        }, fieldFilter);
+    }
+
+    /**
+     * Search for methods that return a map
+     */
+    private void iterativeFilterMethods(Object obj, List<Language> targetLangs)  {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Filtering - object {}", obj.getClass().getName());
         }
+        // we only want to look at fields that are language maps or can contain them
+        ReflectionUtils.MethodFilter methodFilter = method -> method.getName().startsWith("get") && (
+                    method.getReturnType().isAssignableFrom(Map.class) ||
+                    method.getReturnType().isAssignableFrom(List.class) ||
+                    method.getReturnType().isAssignableFrom(EuropeanaAggregation.class)
+                );
+
+        ReflectionUtils.doWithMethods(obj.getClass(), method -> {
+            LOG.debug("  Method {} has returnType {}", method.getName(), method.getReturnType());
+
+            Object methodValue = ReflectionUtils.invokeMethod(method, obj);
+            if (methodValue instanceof Map<?, ?>) {
+                filterLanguageMap(method.getName(), (Map<?, ?>) methodValue, targetLangs);
+            } else if (methodValue instanceof List<?>) {
+                List<?> list = (List<?>) ReflectionUtils.invokeMethod(method, obj);
+                if (list != null) {
+                    for (Object item : list) {
+                        iterativeFilterMethods(item, targetLangs);
+                    }
+                }
+            } else if (methodValue instanceof EuropeanaAggregation) {
+                iterativeFilterMethods(ReflectionUtils.invokeMethod(method, obj), targetLangs);
+            } else {
+                assert methodValue == null : "Unknown field class " + methodValue.getClass() + ". Checks do not match method filter";
+            }
+        }, methodFilter);
+
     }
 
     private void filterLanguageMap(String fieldName, Map<?,?> map, List<Language> targetLangs) {
-        LOG.debug("  Field {} is a map with {} keys and {} values", fieldName, map.keySet().size(), map.values().size());
+        if (map == null) {
+            return;
+        }
+        LOG.debug("    Map {} has {} keys and {} values", fieldName, map.keySet().size(), map.values().size());
         // if there's only 1 key in the map we do not filter
         if (map.keySet().size() > 1) {
             Set<? extends Map.Entry<?,?>> set = map.entrySet();
@@ -121,23 +167,23 @@ public class TranslateFilterService {
             for (Map.Entry<?,?> keyValue : set) {
                 // keep all def keys and keep all uri values
                 if ("def".equals(keyValue.getKey()) || EuropeanaUriUtils.isUri(keyValue.getValue().toString())) {
-                    LOG.debug("    Keeping key def, value {}", keyValue.getValue());
+                    LOG.debug("      Keeping key def, value {}", keyValue.getValue());
                     continue;
                 }
                 // remove all unsupported languages and languages not requested
                 String keyLang = keyValue.getKey().toString();
                 if (!Language.isSupported(keyLang) || !targetLangs.contains(Language.valueOf(keyLang.toUpperCase(Locale.ROOT)))) {
-                    LOG.debug("    Removing key {}, value {}", keyLang, keyValue.getValue());
+                    LOG.debug("      Removing key {}, value {}", keyLang, keyValue.getValue());
                     keysToRemove.add(keyLang);
                 } else {
-                    LOG.debug("    Keeping key {}, value {}", keyLang, keyValue.getValue());
+                    LOG.debug("      Keeping key {}, value {}", keyLang, keyValue.getValue());
                 }
             }
             // do actual removal
             if (map.keySet().size() == keysToRemove.size()) {
                 // we should not remove all keys in a map, so if we are about to do that we keep only the first
                 String keyToKeep = keysToRemove.remove(0);
-                LOG.debug("    All keys are about to be filtered, keeping only the first key {}", keyToKeep);
+                LOG.debug("      All keys are about to be filtered, keeping only the first key {}", keyToKeep);
             }
             for (String keyToRemove : keysToRemove) {
                 map.remove(keyToRemove);
