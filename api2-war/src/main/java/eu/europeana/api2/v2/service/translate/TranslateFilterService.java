@@ -48,7 +48,7 @@ public class TranslateFilterService {
     public FullBean translateTitleDescription(FullBean bean, List<Language> targetLangs) {
         // TODO for now we only translate into the first language in the list, the rest is only used for filtering
         translateTitle(bean, targetLangs.get(0).name().toLowerCase(Locale.ROOT));
-        translateDescription(bean, targetLangs.get(0).name().toUpperCase(Locale.ROOT));
+        translateDescription(bean, targetLangs.get(0).name().toLowerCase(Locale.ROOT));
         return bean;
     }
 
