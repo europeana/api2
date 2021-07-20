@@ -153,7 +153,11 @@ public class FullView implements FullBean {
         return bean.getEuropeanaAggregation();
     }
 
+    /**
+     * @deprecated unused, there are no records that have this field
+     */
     @Override
+    @Deprecated(since = "June 2021", forRemoval = false)
     public String[] getTitle() {
         return bean.getTitle();
     }
