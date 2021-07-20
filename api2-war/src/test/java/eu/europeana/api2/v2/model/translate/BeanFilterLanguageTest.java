@@ -2,7 +2,7 @@ package eu.europeana.api2.v2.model.translate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europeana.api2.v2.service.translate.TranslateFilterService;
+import eu.europeana.api2.v2.service.translate.BeanFilterLanguage;
 import eu.europeana.api2.v2.utils.MockBeanConstants;
 import eu.europeana.api2.v2.utils.MockFullBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -20,9 +20,7 @@ import static org.junit.Assert.*;
  * @author P. Ehlert
  * Created 8 July 2021
  */
-public class TranslateFilterServiceTest {
-
-    private static final TranslateFilterService FILTER_SERVICE = new TranslateFilterService(null);
+public class BeanFilterLanguageTest {
 
     @Test
     public void testSingleFilterFields() throws JsonProcessingException {
@@ -37,12 +35,12 @@ public class TranslateFilterServiceTest {
     public void testSingleFilter(boolean useReflectiveMethods) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         FullBean bean = MockFullBean.mock();
-        LogManager.getLogger(TranslateFilterServiceTest.class).info("Unfiltered fullbean = {}",
+        LogManager.getLogger(BeanFilterLanguageTest.class).info("Unfiltered fullbean = {}",
                 mapper.writeValueAsString(bean));
 
         List<Language> languages = new ArrayList<>(Arrays.asList(Language.EN));
-        FILTER_SERVICE.filter(bean, languages, useReflectiveMethods);
-        LogManager.getLogger(TranslateFilterServiceTest.class).info("Filtered fullbean = {}",
+        BeanFilterLanguage.filter(bean, languages, useReflectiveMethods);
+        LogManager.getLogger(BeanFilterLanguageTest.class).info("Filtered fullbean = {}",
                 mapper.writeValueAsString(bean));
 
         // first agents.preflabel should now have only 1 translation (English, Polish should be filtered out)
@@ -61,10 +59,9 @@ public class TranslateFilterServiceTest {
         assertEquals(1, bean.getPlaces().get(0).getAltLabel().size());
         assertEquals(MockBeanConstants.PLACE_ALT_LABEL, bean.getPlaces().get(0).getAltLabel().get(MockBeanConstants.IT).get(0));
 
-        // concepts should have still the first preflabel (no) and not the second anymore (de)
-        assertEquals(1, bean.getConcepts().get(0).getPrefLabel().size());
-        assertEquals(MockBeanConstants.CONCEPT_PREF_LABEL_NO, bean.getConcepts().get(0).getPrefLabel().get(MockBeanConstants.NO).get(0));
-        assertNull(bean.getConcepts().get(0).getPrefLabel().get(MockBeanConstants.DE));
+        // concepts preflabels and notes should all be gone
+        assertNull(bean.getConcepts().get(0).getPrefLabel());
+        assertNull(bean.getConcepts().get(0).getNote());
 
         // dcFormat is a field in the superClass of the superClass of a proxy, so we check if we can find and filter those okay
         assertEquals(1, bean.getProxies().get(0).getDcFormat().size());
@@ -86,7 +83,7 @@ public class TranslateFilterServiceTest {
     public void testMultipleFilter(boolean useReflectiveFields) {
         FullBean bean = MockFullBean.mock();
         List<Language> languages = new ArrayList<>(Arrays.asList(Language.PL, Language.IT, Language.BG));
-        FILTER_SERVICE.filter(bean, languages, useReflectiveFields);
+        BeanFilterLanguage.filter(bean, languages, useReflectiveFields);
 
         // first agents.preflabel should now have only 1 translation (English, Polish one should be filtered out)
         assertEquals(1, bean.getAgents().get(0).getPrefLabel().size());

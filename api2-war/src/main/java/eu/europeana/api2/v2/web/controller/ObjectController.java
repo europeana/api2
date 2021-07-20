@@ -11,7 +11,8 @@ import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.TranslateFilterService;
+import eu.europeana.api2.v2.service.translate.BeanFilterLanguage;
+import eu.europeana.api2.v2.service.translate.BeanTranslateService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
@@ -80,7 +81,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
         "/record",
 })
 @SwaggerSelect
-@Import(TranslateFilterService.class) // to enable title and description translation
+@Import(BeanTranslateService.class) // to enable title and description translation
 public class ObjectController {
 
     private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
@@ -94,7 +95,7 @@ public class ObjectController {
 
     private RouteDataService        routeService;
     private RecordService           recordService;
-    private TranslateFilterService  translateFilterService;
+    private BeanTranslateService translateFilterService;
     private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
 
@@ -122,7 +123,7 @@ public class ObjectController {
      * @param httpCacheUtils for request caching
      */
     @Autowired
-    public ObjectController(RouteDataService routeService, RecordService recordService, TranslateFilterService tfService,
+    public ObjectController(RouteDataService routeService, RecordService recordService, BeanTranslateService tfService,
                             ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
         this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;
@@ -406,7 +407,7 @@ public class ObjectController {
             bean = translateFilterService.translateTitleDescription(bean, data.languages);
         }
         if (data.languages != null && !data.languages.isEmpty()) {
-            bean = translateFilterService.filter(bean, data.languages, data.useRefMethods);
+            bean = BeanFilterLanguage.filter(bean, data.languages, data.useRefMethods);
         }
 
         // 8) generate output
