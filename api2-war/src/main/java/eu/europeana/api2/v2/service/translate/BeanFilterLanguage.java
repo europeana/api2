@@ -142,34 +142,33 @@ public final class BeanFilterLanguage {
         if (map == null) {
             return null;
         }
+
         LOG.debug("    Map {} has {} keys and {} values", fieldName, map.keySet().size(), map.values().size());
-        // if there's only 1 key in the map we do not filter
-        if (map.keySet().size() > 1) {
-            Set<? extends Map.Entry<?,?>> set = map.entrySet();
-            List<String> keysToRemove = new ArrayList<>();
-            for (Map.Entry<?,?> keyValue : set) {
-                // keep all def keys and keep all uri values
-                if ("def".equals(keyValue.getKey()) || EuropeanaUriUtils.isUri(keyValue.getValue().toString())) {
-                    LOG.debug("      Keeping key def, value {}", keyValue.getValue());
-                    continue;
-                }
-                // remove all unsupported languages and languages not requested
-                String keyLang = keyValue.getKey().toString();
-                if (!Language.isSupported(keyLang) || !targetLangs.contains(Language.valueOf(keyLang.toUpperCase(Locale.ROOT)))) {
-                    LOG.debug("      Removing key {}, value {}", keyLang, keyValue.getValue());
-                    keysToRemove.add(keyLang);
-                } else {
-                    LOG.debug("      Keeping key {}, value {}", keyLang, keyValue.getValue());
-                }
+        Set<? extends Map.Entry<?,?>> set = map.entrySet();
+        List<String> keysToRemove = new ArrayList<>();
+        for (Map.Entry<?,?> keyValue : set) {
+            // keep all def keys and keep all uri values
+            if ("def".equals(keyValue.getKey()) || EuropeanaUriUtils.isUri(keyValue.getValue().toString())) {
+                LOG.debug("      Keeping key def, value {}", keyValue.getValue());
+                continue;
             }
-            // do actual removal
-            if (map.keySet().size() == keysToRemove.size()) {
-                return null; // note that the map still has to be deleted!
-            }
-            for (String keyToRemove : keysToRemove) {
-                map.remove(keyToRemove);
+            // remove all unsupported languages and languages not requested
+            String keyLang = keyValue.getKey().toString();
+            if (!Language.isSupported(keyLang) || !targetLangs.contains(Language.valueOf(keyLang.toUpperCase(Locale.ROOT)))) {
+                LOG.debug("      Removing key {}, value {}", keyLang, keyValue.getValue());
+                keysToRemove.add(keyLang);
+            } else {
+                LOG.debug("      Keeping key {}, value {}", keyLang, keyValue.getValue());
             }
         }
+        // do actual removal
+        if (map.keySet().size() == keysToRemove.size()) {
+            return null; // note that the map still has to be deleted!
+        }
+        for (String keyToRemove : keysToRemove) {
+            map.remove(keyToRemove);
+        }
+
         return map;
     }
 

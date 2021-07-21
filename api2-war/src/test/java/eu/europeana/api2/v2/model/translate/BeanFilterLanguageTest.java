@@ -43,21 +43,20 @@ public class BeanFilterLanguageTest {
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Filtered fullbean = {}",
                 mapper.writeValueAsString(bean));
 
-        // first agents.preflabel should now have only 1 translation (English, Polish should be filtered out)
+        // first agents.preflabel should now have only 1 language (English, Polish should be filtered out)
         assertEquals(1, bean.getAgents().get(0).getPrefLabel().size());
         assertEquals(MockBeanConstants.AGENT1_PREF_LABEL_EN, bean.getAgents().get(0).getPrefLabel().get(MockBeanConstants.EN).get(0));
         assertNull(bean.getAgents().get(0).getPrefLabel().get(MockBeanConstants.PL));
 
-        // first agent.rdaGr2PlaceOfBirth should have 1 def value and 1 english value
+        // first agent.rdaGr2PlaceOfBirth should have 1 def value and 1 English value
         assertEquals(2, bean.getAgents().get(0).getRdaGr2PlaceOfBirth().size());
         assertEquals(2, bean.getAgents().get(0).getRdaGr2PlaceOfBirth().get(MockBeanConstants.DEF).size());
         assertEquals(1, bean.getAgents().get(0).getRdaGr2PlaceOfBirth().get(MockBeanConstants.EN).size());
         assertEquals(MockBeanConstants.AGENT1_BIRTH_PLACE_EN,
                 bean.getAgents().get(0).getRdaGr2PlaceOfBirth().get(MockBeanConstants.EN).get(0));
 
-        // places.altlabel should still have 1 translation (Italian)
-        assertEquals(1, bean.getPlaces().get(0).getAltLabel().size());
-        assertEquals(MockBeanConstants.PLACE_ALT_LABEL, bean.getPlaces().get(0).getAltLabel().get(MockBeanConstants.IT).get(0));
+        // places.altlabel shouldn't have any languages so be removed entirely
+        assertNull(bean.getPlaces().get(0).getAltLabel());
 
         // concepts preflabels and notes should all be gone
         assertNull(bean.getConcepts().get(0).getPrefLabel());
