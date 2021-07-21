@@ -8,12 +8,17 @@ import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
+/**
+ *  @deprecated will be replaced by new translation services
+ */
 @JsonInclude(NON_EMPTY)
+@Deprecated(since = "July 2021")
 public class QueryTranslationResult extends ApiResponse {
 
     public List<LanguageVersion> translations;
 
     public String translatedQuery;
+
 
     public QueryTranslationResult(String apikey) {
         super(apikey);
