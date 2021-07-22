@@ -338,8 +338,11 @@ public class ObjectController {
         }
 
         // 3) validate other common params
-        if (data.lang != null) { // if it's null then the parameter was not present
-            data.setLanguages(validateLangParam(data.profile, data.lang));
+        if (data.lang == null && RecordProfile.TRANSLATE.isActive(data.profile)) {
+            throw new MissingParamException("Parameter lang is required for translation profile");
+        }
+        if (data.lang != null) {
+            data.setLanguages(Language.validateMultiple(data.lang));
         }
 
         // 4) get the fullbean
@@ -440,13 +443,6 @@ public class ObjectController {
             LOG.debug("Done generating record output in {} ms ", (System.currentTimeMillis() - startTime));
         }
         return output;
-    }
-
-    private List<Language> validateLangParam(String profile, String langs) throws EuropeanaException {
-        if (RecordProfile.TRANSLATE.isActive(profile) && StringUtils.isBlank(langs)) {
-            throw new MissingParamException("Parameter lang is required for translation profile");
-        }
-        return Language.validateMultiple(langs);
     }
 
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
