@@ -46,44 +46,29 @@ public class BeanTranslateService {
      * @return modified record
      */
     public FullBean translateTitleDescription(FullBean bean, List<Language> targetLangs) {
-        // TODO for now we only translate into the first language in the list, the rest is only used for filtering
+        // TODO for now we only translate into the first language in the list, the rest is used for filtering only
         String targetLang = targetLangs.get(0).name().toLowerCase(Locale.ROOT);
-        Map<String, List<String>> toTranslate = TranslationUtils.initNewTranslationMap();
 
-        ToTranslate title = getTitleToTranslate(bean, targetLang);
-        ToTranslate description = getDescriptionToTranslate(bean, targetLang);
+        // gather all translations
+        TranslationsMap toTranslate = new TranslationsMap();
+        toTranslate.add(getTitleToTranslate(bean, targetLang));
+        toTranslate.add(getDescriptionToTranslate(bean, targetLang));
 
-        String sourceLang = selectSourceLanguage(title, description);
-        if (sourceLang == null || sourceLang.equals(targetLang)) {
-            LOG.debug("No sources found that need translation");
-        } else {
-            if (title != null) {
-                toTranslate.put(KEY_TITLE, title.textToTranslate);
+        // send a requests for each of the languages and merge all results into 1 map
+        TranslationMap translated = new TranslationMap(targetLang);
+        for (TranslationMap mapToTranslate : toTranslate.values()) {
+            translated.merge(TranslationUtils.translate(translationService, mapToTranslate, targetLang));
+        }
+
+        // add translations to Europeana proxy
+        for (Map.Entry<String, List<String>> entry : translated.entrySet()) {
+            if (KEY_TITLE.equals(entry.getKey())) {
+                addTranslatedTitle(bean, entry.getValue(), targetLang);
+            } else if (KEY_DESCRIPTION.equals(entry.getKey())) {
+                addTranslatedDescription(bean, entry.getValue(), targetLang);
             }
-            if (description != null) {
-                toTranslate.put(KEY_DESCRIPTION, description.textToTranslate);
-            }
-
-            Map<String, List<String>> translations = TranslationUtils.translate(translationService, toTranslate,
-                    targetLang, Language.DEF.equals(sourceLang) ? null : sourceLang);
-
-            addTranslatedTitle(bean, translations.get(KEY_TITLE), targetLang);
-            addTranslatedDescription(bean, translations.get(KEY_DESCRIPTION), targetLang);
         }
         return bean;
-    }
-
-    //TODO for now we simply select the first sourceLange we find and assume the rest has the same language
-    private String selectSourceLanguage(ToTranslate... toTranslates) {
-        String result = null;
-        for (ToTranslate toTranslate : toTranslates) {
-            if (toTranslate != null) {
-                result = toTranslate.sourceLang;
-                LOG.debug("Selected sourceLanguage is {}", toTranslate.sourceLang);
-                break;
-            }
-        }
-        return result;
     }
 
     /**
@@ -98,8 +83,8 @@ public class BeanTranslateService {
      * 3.    if there's a title for the requested language, do nothing
      * </pre>
      */
-    private ToTranslate getTitleToTranslate(FullBean bean, String targetLang) {
-        ToTranslate result = getTitleForLang(bean, targetLang);
+    private TranslationMap getTitleToTranslate(FullBean bean, String targetLang) {
+        TranslationMap result = getTitleForLang(bean, targetLang);
         if (result == null) {
             if (!Language.DEFAULT.equals(targetLang.toLowerCase(Locale.ROOT))) {
                 LOG.trace("No title found for record {} in lang {}, searching for English...", bean.getAbout(), targetLang);
@@ -109,42 +94,45 @@ public class BeanTranslateService {
                 LOG.trace("No English title found for record {}, searching for any title...", bean.getAbout());
                 result = getDefOrFirstTitle(bean);
             }
+            if (LOG.isDebugEnabled()) {
+                if (result == null) {
+                    LOG.debug("No title found record {} in lang {}", bean.getAbout(), targetLang);
+                } else {
+                    LOG.debug("Found title in lang {} for record {}", result.getLanguage(), bean.getAbout());
+                }
+            }
+        } else {
+            LOG.debug("Title found in lang {} for record {}, no translation required", targetLang, bean.getAbout());
+            result = null;
         }
 
-        if (LOG.isDebugEnabled()) {
-            if (result == null) {
-                LOG.debug("No title found record {} in lang {}", bean.getAbout(), targetLang);
-            } else {
-                LOG.debug("Found title in lang {} for record {}", result.sourceLang, bean.getAbout());
-            }
-        }
         return result;
     }
 
-    private ToTranslate getTitleForLang(FullBean bean, String lang) {
-        ToTranslate result = null;
+    private TranslationMap getTitleForLang(FullBean bean, String lang) {
+        TranslationMap result = null;
         for (Proxy p : bean.getProxies()) {
             if (p.getDcTitle() != null && p.getDcTitle().containsKey(lang)) {
-                result = new ToTranslate(lang, p.getDcTitle().get(lang));
+                result = new TranslationMap(lang, KEY_TITLE, p.getDcTitle().get(lang));
                 break;
             }
         }
         return result;
     }
 
-    private ToTranslate getDefOrFirstTitle(FullBean bean) {
-        ToTranslate result = null;
-        ToTranslate firstValue = null;
+    private TranslationMap getDefOrFirstTitle(FullBean bean) {
+        TranslationMap result = null;
+        TranslationMap firstValue = null;
         for (Proxy p : bean.getProxies()) {
             if (p.getDcTitle() != null) {
                 List<String> defValue = p.getDcTitle().get(Language.DEF);
                 if (defValue != null) {
-                    result = new ToTranslate(Language.DEF, defValue);
+                    result = new TranslationMap(Language.DEF, KEY_TITLE, defValue);
                     break;
                 } else if (firstValue == null && !p.getDcTitle().isEmpty()) {
                     // set any found value, in case we find nothing in other proxies
                     String sourceLang = p.getDcTitle().keySet().iterator().next();
-                    firstValue = new ToTranslate(sourceLang, p.getDcTitle().get(sourceLang));
+                    firstValue = new TranslationMap(sourceLang, KEY_TITLE, p.getDcTitle().get(sourceLang));
                 }
             }
         }
@@ -167,8 +155,8 @@ public class BeanTranslateService {
         }
     }
 
-    private ToTranslate getDescriptionToTranslate(FullBean bean, String targetLang) {
-        ToTranslate result = getDescriptionForLang(bean, targetLang);
+    private TranslationMap getDescriptionToTranslate(FullBean bean, String targetLang) {
+        TranslationMap result = getDescriptionForLang(bean, targetLang);
         if (result == null) {
             if (!Language.DEFAULT.equals(targetLang.toLowerCase(Locale.ROOT))) {
                 LOG.trace("No description found for record {} in lang {}, searching for English...", bean.getAbout(), targetLang);
@@ -178,42 +166,45 @@ public class BeanTranslateService {
                 LOG.trace("No English description found for record {}, searching for any result...", bean.getAbout());
                 result = getDefOrFirstDescription(bean);
             }
+            if (LOG.isDebugEnabled()) {
+                if (result == null) {
+                    LOG.debug("No description found record {} in lang {}", bean.getAbout(), targetLang);
+                } else {
+                    LOG.debug("Found description in lang {} for record {}", result.getLanguage(), bean.getAbout());
+                }
+            }
+        }  else {
+            LOG.debug("Description found in lang {} for record {}, no translation required", targetLang, bean.getAbout());
+            result = null;
         }
 
-        if (LOG.isDebugEnabled()) {
-            if (result == null) {
-                LOG.debug("No description found record {} in lang {}", bean.getAbout(), targetLang);
-            } else {
-                LOG.debug("Found description in lang {} for record {}", result.sourceLang, bean.getAbout());
-            }
-        }
         return result;
     }
 
-    private ToTranslate getDescriptionForLang(FullBean bean, String lang) {
-        ToTranslate result = null;
+    private TranslationMap getDescriptionForLang(FullBean bean, String lang) {
+        TranslationMap result = null;
         for (Proxy p : bean.getProxies()) {
             if (p.getDcDescription() != null && p.getDcDescription().containsKey(lang)) {
-                result = new ToTranslate(lang, p.getDcTitle().get(lang));
+                result = new TranslationMap(lang, KEY_DESCRIPTION, p.getDcDescription().get(lang));
                 break;
             }
         }
         return result;
     }
 
-    private ToTranslate getDefOrFirstDescription(FullBean bean) {
-        ToTranslate result = null;
-        ToTranslate firstValue = null;
+    private TranslationMap getDefOrFirstDescription(FullBean bean) {
+        TranslationMap result = null;
+        TranslationMap firstValue = null;
         for (Proxy p : bean.getProxies()) {
             if (p.getDcDescription() != null) {
                 List<String> defValue = p.getDcDescription().get(Language.DEF);
                 if (defValue != null) {
-                    result = new ToTranslate(Language.DEF, defValue);
+                    result = new TranslationMap(Language.DEF, KEY_DESCRIPTION, defValue);
                     break;
                 } else if (firstValue == null && !p.getDcDescription().isEmpty()) {
                     // set any found value, in case we find nothing in other proxies
                     String sourceLang = p.getDcDescription().keySet().iterator().next();
-                    firstValue = new ToTranslate(sourceLang, p.getDcDescription().get(sourceLang));
+                    firstValue = new TranslationMap(sourceLang, KEY_DESCRIPTION, p.getDcDescription().get(sourceLang));
                 }
             }
         }
@@ -236,18 +227,5 @@ public class BeanTranslateService {
         }
     }
 
-    /**
-     * Stores source language and the text to translate
-     */
-    private static class ToTranslate {
 
-        private final String sourceLang;
-        private final List<String> textToTranslate;
-
-        public ToTranslate(String sourceLang, List<String>textToTranslate) {
-            this.sourceLang = sourceLang;
-            this.textToTranslate = textToTranslate;
-        }
-
-    }
 }

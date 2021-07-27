@@ -70,12 +70,12 @@ public class BeanFilterLanguageTest {
     }
 
     @Test
-    public void testMultipleFilterFields() throws JsonProcessingException {
+    public void testMultipleFilterFields() {
         testMultipleFilter(false);
     }
 
     @Test
-    public void testMultipleFilterMethods() throws JsonProcessingException {
+    public void testMultipleFilterMethods() {
         testMultipleFilter(true);
     }
 
