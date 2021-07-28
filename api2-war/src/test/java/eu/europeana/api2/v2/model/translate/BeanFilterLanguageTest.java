@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -23,23 +24,14 @@ import static org.junit.Assert.*;
 public class BeanFilterLanguageTest {
 
     @Test
-    public void testSingleFilterFields() throws JsonProcessingException {
-        testSingleFilter(false);
-    }
-
-    @Test
-    public void testSingleFilterMethods() throws JsonProcessingException {
-        testSingleFilter(true);
-    }
-
-    public void testSingleFilter(boolean useReflectiveMethods) throws JsonProcessingException {
+    public void testSingleFilter() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         FullBean bean = MockFullBean.mock();
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Unfiltered fullbean = {}",
                 mapper.writeValueAsString(bean));
 
-        List<Language> languages = new ArrayList<>(Arrays.asList(Language.EN));
-        BeanFilterLanguage.filter(bean, languages, useReflectiveMethods);
+        List<Language> languages = Collections.singletonList(Language.EN);
+        BeanFilterLanguage.filter(bean, languages);
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Filtered fullbean = {}",
                 mapper.writeValueAsString(bean));
 
@@ -70,19 +62,10 @@ public class BeanFilterLanguageTest {
     }
 
     @Test
-    public void testMultipleFilterFields() {
-        testMultipleFilter(false);
-    }
-
-    @Test
-    public void testMultipleFilterMethods() {
-        testMultipleFilter(true);
-    }
-
-    public void testMultipleFilter(boolean useReflectiveFields) {
+    public void testMultipleFilter() {
         FullBean bean = MockFullBean.mock();
         List<Language> languages = new ArrayList<>(Arrays.asList(Language.PL, Language.IT, Language.BG));
-        BeanFilterLanguage.filter(bean, languages, useReflectiveFields);
+        BeanFilterLanguage.filter(bean, languages);
 
         // first agents.preflabel should now have only 1 translation (English, Polish one should be filtered out)
         assertEquals(1, bean.getAgents().get(0).getPrefLabel().size());

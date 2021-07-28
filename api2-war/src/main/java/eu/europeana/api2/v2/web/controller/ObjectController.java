@@ -153,11 +153,10 @@ public class ObjectController {
                                @RequestParam(value = "wskey") String apikey,
                                @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                @RequestParam(value = "lang", required = false) String lang,
-                               @RequestParam(value = "refMethods", required = false) String refMethods, // tmp option for testing
                                @RequestParam(value = "callback", required = false) String callback,
                                @ApiIgnore HttpServletRequest request,
                                @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, refMethods, callback, request);
+        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSON, data, response);
     }
 
@@ -193,11 +192,10 @@ public class ObjectController {
                                       @RequestParam(value = "wskey") String apikey,
                                       @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                       @RequestParam(value = "lang", required = false) String lang,
-                                      @RequestParam(value = "refMethods", required = false) String refMethods, // tmp option for testing
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @ApiIgnore HttpServletRequest request,
                                       @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        return recordJSONLD(collectionId, recordId, apikey, profile, lang, refMethods, callback, request, response);
+        return recordJSONLD(collectionId, recordId, apikey, profile, lang, callback, request, response);
     }
 
     /***
@@ -220,11 +218,10 @@ public class ObjectController {
                                      @RequestParam(value = "wskey") String apikey,
                                      @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                      @RequestParam(value = "lang", required = false) String lang,
-                                     @RequestParam(value = "refMethods", required = false) String refMethods, // tmp option for testing
                                      @RequestParam(value = "callback", required = false) String callback,
                                      @ApiIgnore HttpServletRequest request,
                                      @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, refMethods, callback, request);
+        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
     }
 
@@ -248,11 +245,10 @@ public class ObjectController {
                                         @RequestParam(value = "wskey", required = true) String apikey,
                                         @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                         @RequestParam(value = "lang", required = false) String lang,
-                                        @RequestParam(value = "refMethods", required = false) String refMethods, // tmp option for testing
                                         @RequestParam(value = "callback", required = false) String callback,
                                         @ApiIgnore HttpServletRequest request,
                                         @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, refMethods, callback, request);
+        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
     }
 
@@ -276,10 +272,9 @@ public class ObjectController {
                                   @RequestParam(value = "wskey") String apikey,
                                   @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                   @RequestParam(value = "lang", required = false) String lang,
-                                  @RequestParam(value = "refMethods", required = false) String refMethods, // tmp option for testing
                                   @ApiIgnore HttpServletRequest request,
                                   @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, refMethods,null, request);
+        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
     }
 
@@ -303,10 +298,9 @@ public class ObjectController {
                              @RequestParam(value = "wskey") String wskey,
                              @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                              @RequestParam(value = "lang", required = false) String lang,
-                             @RequestParam(value = "refMethods", required = false) String refMethods, // tmp option for testing
                              @ApiIgnore HttpServletRequest request,
                              @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, profile, lang, refMethods,null, request);
+        RequestData data = new RequestData(collectionId, recordId, wskey, profile, lang, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
     }
 
@@ -410,7 +404,7 @@ public class ObjectController {
             bean = translateFilterService.translateTitleDescription(bean, data.languages);
         }
         if (data.languages != null && !data.languages.isEmpty()) {
-            bean = BeanFilterLanguage.filter(bean, data.languages, data.useRefMethods);
+            bean = BeanFilterLanguage.filter(bean, data.languages);
         }
 
         // 8) generate output
@@ -569,17 +563,15 @@ public class ObjectController {
         String             profile;
         String             lang;
         List<Language>     languages;
-        boolean            useRefMethods; // tmp option for testing filtering using reflection on fields (default) or methods
         String             callback;
         HttpServletRequest servletRequest;
 
-        RequestData(String collectionId, String recordId, String wskey, String profile, String lang, String refMethods,
-                    String callback, HttpServletRequest servletRequest) {
+        RequestData(String collectionId, String recordId, String wskey, String profile, String lang, String callback,
+                    HttpServletRequest servletRequest) {
             this.europeanaId    = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
             this.wskey          = wskey;
             this.profile        = profile;
             this.lang           = lang;
-            this.useRefMethods   = (refMethods != null);
             this.callback       = callback;
             this.servletRequest = servletRequest;
         }

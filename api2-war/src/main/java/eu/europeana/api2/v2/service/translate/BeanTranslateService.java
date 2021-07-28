@@ -46,6 +46,7 @@ public class BeanTranslateService {
      * @return modified record
      */
     public FullBean translateTitleDescription(FullBean bean, List<Language> targetLangs) {
+        long startTime = System.currentTimeMillis();
         // TODO for now we only translate into the first language in the list, the rest is used for filtering only
         String targetLang = targetLangs.get(0).name().toLowerCase(Locale.ROOT);
 
@@ -53,20 +54,35 @@ public class BeanTranslateService {
         TranslationsMap toTranslate = new TranslationsMap();
         toTranslate.add(getTitleToTranslate(bean, targetLang));
         toTranslate.add(getDescriptionToTranslate(bean, targetLang));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate - Gathering data took {} ms", (System.currentTimeMillis() - startTime));
+        }
 
         // send a requests for each of the languages and merge all results into 1 map
+        long startTimeTranslate = System.currentTimeMillis();
         TranslationMap translated = new TranslationMap(targetLang);
         for (TranslationMap mapToTranslate : toTranslate.values()) {
             translated.merge(TranslationUtils.translate(translationService, mapToTranslate, targetLang));
         }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate - Sending and receiving requests took {} ms", (System.currentTimeMillis() - startTimeTranslate));
+        }
 
         // add translations to Europeana proxy
+        long startTimeOutput = System.currentTimeMillis();
         for (Map.Entry<String, List<String>> entry : translated.entrySet()) {
             if (KEY_TITLE.equals(entry.getKey())) {
                 addTranslatedTitle(bean, entry.getValue(), targetLang);
             } else if (KEY_DESCRIPTION.equals(entry.getKey())) {
                 addTranslatedDescription(bean, entry.getValue(), targetLang);
             }
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate - Generating output took {} ms", (System.currentTimeMillis() - startTimeOutput));
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translating - Total time {} ms", (System.currentTimeMillis() - startTime));
         }
         return bean;
     }
