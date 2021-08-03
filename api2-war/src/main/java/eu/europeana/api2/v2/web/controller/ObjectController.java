@@ -5,7 +5,6 @@ import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
-import eu.europeana.api2.v2.exceptions.MissingParamException;
 import eu.europeana.api2.v2.model.RecordType;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
@@ -338,9 +337,6 @@ public class ObjectController {
         }
 
         // 3) validate other common params
-        if (data.lang == null && RecordProfile.TRANSLATE.isActive(data.profile)) {
-            throw new MissingParamException("Parameter lang is required for translation profile");
-        }
         if (data.lang != null) {
             data.setLanguages(Language.validateMultiple(data.lang));
         }
@@ -406,14 +402,21 @@ public class ObjectController {
 
         BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
         bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
-        if (RecordProfile.TRANSLATE.isActive(data.profile)) {
-            bean = translateFilterService.translateTitleDescription(bean, data.languages);
+
+        // 8) Get the edm:language for default translation and filtering (if lang parameter was empty)
+        if(data.languages == null || data.languages.isEmpty()) {
+            data.setLanguages(translateFilterService.getDefaultTranslationLanguage(bean));
         }
+
+        // 9 Translate and filter the output
         if (data.languages != null && !data.languages.isEmpty()) {
+            if (RecordProfile.TRANSLATE.isActive(data.profile)) {
+                bean = translateFilterService.translateTitleDescription(bean, data.languages);
+            }
             bean = BeanFilterLanguage.filter(bean, data.languages, data.useRefMethods);
         }
 
-        // 8) generate output
+        // 10) generate output
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
 

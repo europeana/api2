@@ -38,6 +38,34 @@ public class BeanTranslateService {
     }
 
     /**
+     * Returns the default language list of the edm:languages
+     * Only returns the supported official languages,See: {@link Language}
+     * Default translation and filtering for non-official language
+     * is not supported
+     *
+     * @param bean
+     * @return
+     */
+    public List<Language> getDefaultTranslationLanguage(FullBean bean) {
+        List<Language> lang = new ArrayList<>();
+        Map<String,List<String>> edmLanguage = bean.getEuropeanaAggregation().getEdmLanguage();
+        for (Map.Entry<String, List<String>> entry : edmLanguage.entrySet()) {
+            for (String languageAbbreviation : entry.getValue()) {
+                if (Language.isSupported(languageAbbreviation)) {
+                   lang.add(Language.valueOf(languageAbbreviation.trim().toUpperCase(Locale.ROOT)));
+                } else {
+                    LOG.warn("edm:language '{}' is not supported for default translation and filtering ", languageAbbreviation);
+                }
+            }
+        }
+        if (!lang.isEmpty()) {
+            LOG.debug("Default translation and filtering applied for language : {} ", lang);
+        }
+        return lang;
+
+    }
+
+    /**
      * Add a translation of the dcTitle and dcDescription to a record, if it does not already have this in the
      * requested language
      *
