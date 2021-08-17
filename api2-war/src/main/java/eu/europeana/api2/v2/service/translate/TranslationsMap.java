@@ -1,17 +1,17 @@
 package eu.europeana.api2.v2.service.translate;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Keeps track of all the data from a single record that we want to translate. The keys are the different languages,
- * the values are TranslationMaps (maps of fieldnames and texts to translate)
+ * the values are maps consisting of fieldnames and texts to translate.
  *
  * @author P. Ehlert
  * Created 22 jul 2021
  */
-public class TranslationsMap extends HashMap<String, TranslationMap> {
+public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMap> {
 
     private static final long serialVersionUID = 3953283538425288592L;
 
@@ -19,29 +19,28 @@ public class TranslationsMap extends HashMap<String, TranslationMap> {
      * Adds a map of a particular translation
      * @param map the translationmap to store, if null nothing is added
      */
-    public void add(TranslationMap map) {
+    public void add(FieldValuesLanguageMap map) {
         if (map != null) {
-            if (this.containsKey(map.getLanguage())) {
+            if (this.containsKey(map.getSourceLanguage())) {
                 // copy everything to existing TranslationMap value
                 for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-                    get(map.getLanguage()).put(entry.getKey(), entry.getValue());
+                    get(map.getSourceLanguage()).put(entry.getKey(), entry.getValue());
                 }
             } else {
-                this.put(map.getLanguage(), map);
+                this.put(map.getSourceLanguage(), map);
             }
         }
     }
+
     /**
-     * Add a new entry to the map
-     * @param language the language to which the text should be translated
-     * @param fieldName the field name containing the text that should be translated
-     * @param textToTranslate the texts that should be translated
+     * Add multiple translation maps
+     * @param maps the maps to add
      */
-    public void put(String language, String fieldName, List<String> textToTranslate) {
-        if (this.containsKey(language)) {
-            get(language).put(fieldName, textToTranslate);
-        } else {
-            put(language, new TranslationMap(language, fieldName, textToTranslate));
+    public void addAll(List<FieldValuesLanguageMap> maps) {
+        for (FieldValuesLanguageMap map : maps) {
+            this.add(map);
         }
     }
+
+
 }

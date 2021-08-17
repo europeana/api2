@@ -24,7 +24,7 @@ public enum Language {
     private static final String SEPARATOR = ",";
 
     public static final String DEF = "def";
-    public static final String DEFAULT = Language.EN.name().toLowerCase(Locale.ROOT);
+    public static final String ENGLISH = Language.EN.name().toLowerCase(Locale.ROOT);
 
     /**
      * Validate if the provided string is a single 2-letter ISO-code language abbreviation

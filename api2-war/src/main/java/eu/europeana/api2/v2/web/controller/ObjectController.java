@@ -401,7 +401,7 @@ public class ObjectController {
         BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
         bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
         if (RecordProfile.TRANSLATE.isActive(data.profile)) {
-            bean = translateFilterService.translateTitleDescription(bean, data.languages);
+            bean = translateFilterService.translateProxyFields(bean, data.languages);
         }
         if (data.languages != null && !data.languages.isEmpty()) {
             bean = BeanFilterLanguage.filter(bean, data.languages);

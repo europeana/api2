@@ -8,11 +8,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.util.ReflectionUtils;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * Utility class to filter the language dependent data in a FullBean
+ * Utility class to filter the language-dependent data in a FullBean
  *
  * @author P. Ehlert
  * Created 20 July 2021
@@ -117,31 +116,13 @@ public final class BeanFilterLanguage {
         }
         // do actual removal
         if (map.keySet().size() == keysToRemove.size()) {
-            return null; // note that the map still has to be deleted!
+            return null; // everything removed
         }
         for (String keyToRemove : keysToRemove) {
             map.remove(keyToRemove);
         }
 
         return map;
-    }
-
-
-    private static void deleteMap(Object obj, Method method) {
-        String setterMethodName = method.getName().replace("get", "set");
-        Method setter = ReflectionUtils.findMethod(method.getDeclaringClass(), setterMethodName, Map.class);
-        if (setter == null) {
-            LOG.error("Unable to delete map. Setter method {} not found in class {}", setterMethodName,
-                    method.getDeclaringClass());
-        } else {
-            LOG.debug("    Deleting map {} entirely", method.getName());
-            try {
-                Object arg = null; // if we set null directly in the invokeMethod() below, an error is thrown!
-                ReflectionUtils.invokeMethod(setter, obj, arg);
-            } catch (IllegalArgumentException e) {
-                LOG.error("Unable to delete map. Unexpected number of arguments for method {}", setter, e);
-            }
-        }
     }
 
 }

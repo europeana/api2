@@ -1,8 +1,8 @@
-package eu.europeana.api2.v2.model.translate;
+package eu.europeana.api2.v2.service.translate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europeana.api2.v2.service.translate.BeanFilterLanguage;
+import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.utils.MockBeanConstants;
 import eu.europeana.api2.v2.utils.MockFullBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -55,10 +55,10 @@ public class BeanFilterLanguageTest {
         assertNull(bean.getConcepts().get(0).getNote());
 
         // dcFormat is a field in the superClass of the superClass of a proxy, so we check if we can find and filter those okay
-        assertEquals(1, bean.getProxies().get(0).getDcFormat().size());
-        assertEquals(MockBeanConstants.PROXY1_DC_FORMAT1_DEF, bean.getProxies().get(0).getDcFormat().get(MockBeanConstants.DEF).get(0));
-        assertEquals(MockBeanConstants.PROXY1_DC_FORMAT2_DEF, bean.getProxies().get(0).getDcFormat().get(MockBeanConstants.DEF).get(1));
-        assertNull(bean.getProxies().get(0).getDcFormat().get(MockBeanConstants.NL));
+        assertEquals(1, bean.getProxies().get(1).getDcFormat().size());
+        assertEquals(MockBeanConstants.PROXY1_DC_FORMAT1_DEF, bean.getProxies().get(1).getDcFormat().get(MockBeanConstants.DEF).get(0));
+        assertEquals(MockBeanConstants.PROXY1_DC_FORMAT2_DEF, bean.getProxies().get(1).getDcFormat().get(MockBeanConstants.DEF).get(1));
+        assertNull(bean.getProxies().get(1).getDcFormat().get(MockBeanConstants.NL));
     }
 
     @Test
