@@ -34,13 +34,8 @@ public final class TranslationUtils {
         // Instead we use line counts to determine start and end of a field.
         Map<String, Integer> linesPerField = new LinkedHashMap<>();
         List<String> linesToTranslate = new ArrayList<>();
-        long nrCharacters = 0;
         for (Map.Entry<String, List<String>> entry : toTranslate.entrySet()) {
             List<String> lines = entry.getValue();
-            for (String line : lines) {
-                // we trim lines to reduce the number of characters we sent
-                nrCharacters = nrCharacters + line.length();
-            }
             linesPerField.put(entry.getKey(), lines.size());
             linesToTranslate.addAll(lines);
             if (LOG.isTraceEnabled()) {
@@ -48,10 +43,7 @@ public final class TranslationUtils {
             }
         }
 
-
         // Actual translation
-        // We temporarily log the number of characters for ticket EA-2633 / 2661
-        LOG.info("{}", nrCharacters);
         List<String> translations;
         if (Language.DEF.equals(toTranslate.getSourceLanguage())) {
             LOG.debug("Sending translate query with language detect...");

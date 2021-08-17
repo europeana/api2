@@ -60,31 +60,16 @@ public class BeanTranslateService {
         String targetLang = targetLangs.get(0).name().toLowerCase(Locale.ROOT);
 
         // gather all translations
-        TranslationsMap toTranslate = new TranslationsMap();
-        toTranslate.addAll(getProxyFieldsToTranslate(bean, targetLang));
+        TranslationsMap textsToTranslate = new TranslationsMap(getProxyFieldsToTranslate(bean, targetLang));
         if (LOG.isDebugEnabled()) {
             LOG.debug("Translate - Gathering data took {} ms", (System.currentTimeMillis() - startTime));
         }
 
-        // send a request for each of the languages and merge all results into 1 map
-        long startTimeTranslate = System.currentTimeMillis();
-        List<FieldValuesLanguageMap> translations = new ArrayList<>();
-        for (FieldValuesLanguageMap mapToTranslate : toTranslate.values()) {
-            translations.add(TranslationUtils.translate(translationService, mapToTranslate, targetLang));
-        }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Translate - Sending and receiving requests took {} ms", (System.currentTimeMillis() - startTimeTranslate));
-        }
-
-        // merge values from different languages (we do this separately to avoid ConcurrentModificationExceptions)
-        long startTimeOutput = System.currentTimeMillis();
-        FieldValuesLanguageMap translated = new FieldValuesLanguageMap(targetLang);
-        for (FieldValuesLanguageMap translation : translations) {
-            translated.merge(translation);
-        }
+        FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang);
 
         // add translations to Europeana proxy
-        for (Map.Entry<String, List<String>> entry : translated.entrySet()) {
+        long startTimeOutput = System.currentTimeMillis();
+        for (Map.Entry<String, List<String>> entry : translations.entrySet()) {
             generateTranslatedField(bean, entry.getKey(), entry.getValue(), targetLang);
         }
         if (LOG.isDebugEnabled()) {
@@ -227,7 +212,10 @@ public class BeanTranslateService {
      */
     private List<FieldValuesLanguageMap> checkValuesForUris(FullBean bean, FieldValuesLanguageMap map, boolean hasStaticTranslation,
                                                             String targetLang) {
-        // map only has 1 field
+        // map should have only 1 field at this point
+        if (map.keySet().size() != 1) {
+            throw new IllegalArgumentException("Resolving uri's is only supported for maps with 1 key");
+        }
         String field = map.keySet().iterator().next();
         List<String> valuesToCheck = map.get(field);
 
@@ -263,9 +251,7 @@ public class BeanTranslateService {
         }
 
         // delete all uris in original map
-        for (String uriToRemove : urisToRemove) {
-            valuesToCheck.remove(uriToRemove);
-        }
+        map.remove(field, urisToRemove);
 
         // gather final results
         List<FieldValuesLanguageMap> result = new ArrayList<>();

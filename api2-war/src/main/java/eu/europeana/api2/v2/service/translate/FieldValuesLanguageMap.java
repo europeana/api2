@@ -35,27 +35,60 @@ public class FieldValuesLanguageMap extends LinkedHashMap<String, List<String>> 
      * Create a new map and populate with a field and values to translate
      * @param sourceLanguage the source language of all all added objects
      * @param fieldName String containing the field name of the texts that should be translated
-     * @param textToTranslate List of String containing the actual texts that should be translated
+     * @param textsToTranslate List of String containing the actual texts that should be translated
      */
-    public FieldValuesLanguageMap(String sourceLanguage, String fieldName, List<String> textToTranslate) {
-        super.put(fieldName, textToTranslate);
+    public FieldValuesLanguageMap(String sourceLanguage, String fieldName, List<String> textsToTranslate) {
+        super.put(fieldName, textsToTranslate);
         this.sourceLanguage = sourceLanguage;
     }
 
     /**
      * Adds a new field and values to this map. Note that if the map already contains this field, an error is thrown
      * @param fieldName field to add
-     * @param textToTranslate list of values to translate
+     * @param textsToTranslate list of values to translate
      * @return any previous values for this key (will always be null)
      */
     @Override
-    public List<String> put(String fieldName, List<String> textToTranslate) {
+    public List<String> put(String fieldName, List<String> textsToTranslate) {
         // Sanity check - we expect only 1 put operation per field in a particular language
         if (containsKey(fieldName)) {
             throw new IllegalArgumentException("Key " + fieldName + " already exists for language " + sourceLanguage +
-                    " with value " + textToTranslate + ". Use merge function instead!");
+                    " with value " + this.get(fieldName) + ". Use merge function instead!");
         }
-        return super.put(fieldName, textToTranslate);
+        return super.put(fieldName, textsToTranslate);
+    }
+
+    /**
+     * Remove a key and it's values from this map
+     * @param fieldName the field that should be removed
+     * @return the values that are removed
+     */
+    public List<String> remove(String fieldName) {
+        return super.remove(fieldName);
+    }
+
+    public boolean remove(String fieldName, List<String> valuesToRemove) {
+        List<String> values = this.get(fieldName);
+        for (String valueToRemove : valuesToRemove) {
+            if (!values.remove(valueToRemove)) {
+                throw new IllegalArgumentException("Could not find and remove value " + valueToRemove);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Temporarily functionality for ticket EA-2633 / EA-2661
+     * @return the number of characters of all values in this map
+     */
+    public long getNrCharacters() {
+        long result = 0;
+        for (List<String> values : this.values()) {
+            for (String value : values) {
+                result = result + value.length();
+            }
+        }
+        return result;
     }
 
     /**
