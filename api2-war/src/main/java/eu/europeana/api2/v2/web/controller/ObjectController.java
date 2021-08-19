@@ -6,6 +6,7 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.exceptions.MissingParamException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
 import eu.europeana.api2.v2.model.RecordType;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
@@ -46,6 +47,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -98,6 +100,9 @@ public class ObjectController {
     private BeanTranslateService translateFilterService;
     private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
+
+    @Value("${translation.enabled:false}")
+    private boolean isTranslationEnabled;
 
     /**
      * Create a static Object for JSONLD Context. This will read the file once during initialization
@@ -401,7 +406,11 @@ public class ObjectController {
         BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
         bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
         if (RecordProfile.TRANSLATE.isActive(data.profile)) {
-            bean = translateFilterService.translateProxyFields(bean, data.languages);
+            if (isTranslationEnabled) {
+                bean = translateFilterService.translateProxyFields(bean, data.languages);
+            } else {
+                throw new TranslationServiceDisabledException();
+            }
         }
         if (data.languages != null && !data.languages.isEmpty()) {
             bean = BeanFilterLanguage.filter(bean, data.languages);

@@ -132,11 +132,11 @@ public class BeanTranslateLanguageTest {
         List<String> dcCreatorExpected = new ArrayList<>(DC_CREATOR);
         dcCreatorExpected.addAll(DC_CREATOR_ENTITY_PREFLABEL);
         assertEquals(dcCreatorExpected, euProxy.getDcCreator().get(TARGET_LANG));
-        // Moreover in the europeanaProxy dcCreator alreayd has values in "def" language, so these should still exists
+        // Moreover in the europeanaProxy dcCreator already has values in "def" language, so these should still exists
         assertNotNull(euProxy.getDcCreator().get(SOURCE_LANG_DEF));
 
-        // dcRelation also has an uri, with the entity's preflabel in the same language (def)
-        //TODO
+        // dcRelation also has an uri, with the entity's preflabel in the same language as the uri (def)
+        assertEquals(DC_RELATION, euProxy.getDcRelation().get(TARGET_LANG));
 
         // Extra check to see if dcCreator doesn't contain uri anymore
          for (String value : euProxy.getDcCreator().get(TARGET_LANG)) {
