@@ -29,18 +29,13 @@ public final class TranslationUtils {
      * @param targetLanguage the language to translate to
      * @return map with the same field names, but now mapped to translated values
      */
-    public static TranslationMap translate(TranslationService translationService, TranslationMap toTranslate, String targetLanguage) {
+    public static FieldValuesLanguageMap translate(TranslationService translationService, FieldValuesLanguageMap toTranslate, String targetLanguage) {
         // We don't use delimiters because we want to keep the number of characters we sent low.
         // Instead we use line counts to determine start and end of a field.
         Map<String, Integer> linesPerField = new LinkedHashMap<>();
         List<String> linesToTranslate = new ArrayList<>();
-        long nrCharacters = 0;
         for (Map.Entry<String, List<String>> entry : toTranslate.entrySet()) {
             List<String> lines = entry.getValue();
-            for (String line : lines) {
-                // we trim lines to reduce the number of characters we sent
-                nrCharacters = nrCharacters + line.length();
-            }
             linesPerField.put(entry.getKey(), lines.size());
             linesToTranslate.addAll(lines);
             if (LOG.isTraceEnabled()) {
@@ -48,25 +43,22 @@ public final class TranslationUtils {
             }
         }
 
-
         // Actual translation
-        // We temporarily log the number of characters for ticket EA-2633 / 2661
-        LOG.info("{}", nrCharacters);
         List<String> translations;
-        if (Language.DEF.equals(toTranslate.getLanguage())) {
+        if (Language.DEF.equals(toTranslate.getSourceLanguage())) {
             LOG.debug("Sending translate query with language detect...");
             translations = translationService.translate(linesToTranslate, targetLanguage);
         } else {
-            LOG.debug("Sending translate query with source language {} and target language {}...", toTranslate.getLanguage(), targetLanguage);
-            translations = translationService.translate(linesToTranslate, targetLanguage, toTranslate.getLanguage());
+            LOG.debug("Sending translate query with source language {} and target language {}...", toTranslate.getSourceLanguage(), targetLanguage);
+            translations = translationService.translate(linesToTranslate, targetLanguage, toTranslate.getSourceLanguage());
         }
         // Sanity check
         if (translations.size() != linesToTranslate.size()) {
-            throw new IllegalStateException("Expected " + linesToTranslate.size() + " of translated text, but received " + translations.size());
+            throw new IllegalStateException("Expected " + linesToTranslate.size() + " lines of translated text, but received " + translations.size());
         }
 
         // Put received data under appropriate key in new map
-        TranslationMap result = new TranslationMap(targetLanguage);
+        FieldValuesLanguageMap result = new FieldValuesLanguageMap(targetLanguage);
         int counter = 0;
         for (String key : toTranslate.keySet()) {
             int nrLines = linesPerField.get(key);

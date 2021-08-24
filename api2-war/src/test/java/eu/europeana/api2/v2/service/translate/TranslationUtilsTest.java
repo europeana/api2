@@ -1,8 +1,5 @@
-package eu.europeana.api2.v2.model.translate;
+package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api2.v2.service.translate.TranslationMap;
-import eu.europeana.api2.v2.service.translate.TranslationService;
-import eu.europeana.api2.v2.service.translate.TranslationUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -28,7 +25,7 @@ public class TranslationUtilsTest {
     private static final String KEY1 = "key1";
     private static final String KEY2 = "key2";
 
-    private static final TranslationMap MAP_TO_TRANSLATE = new TranslationMap(SOURCE_LANG) {{
+    private static final FieldValuesLanguageMap MAP_TO_TRANSLATE = new FieldValuesLanguageMap(SOURCE_LANG) {{
         put(KEY1, List.of("There is a theory which states that if ever anyone discovers exactly what the Universe is for and why it is here, it will instantly disappear and be replaced by something even more bizarre and inexplicable. There is another theory which states that this has already happened."));
         put(KEY2, List.of(
                 "",
@@ -44,7 +41,7 @@ public class TranslationUtilsTest {
             "",
             "  En hier is een tweede regel ");
 
-    private static final TranslationMap EXPECTED_MAP_WITH_TRANSLATION = new TranslationMap(TARGET_LANG) {{
+    private static final FieldValuesLanguageMap EXPECTED_MAP_WITH_TRANSLATION = new FieldValuesLanguageMap(TARGET_LANG) {{
         put(KEY1, TRANSLATION1);
         put(KEY2, TRANSLATION2);
     }};
@@ -59,7 +56,7 @@ public class TranslationUtilsTest {
             addAll(TRANSLATION2);
         }});
 
-        TranslationMap translation = TranslationUtils.translate(translationService, MAP_TO_TRANSLATE, TARGET_LANG);
+        FieldValuesLanguageMap translation = TranslationUtils.translate(translationService, MAP_TO_TRANSLATE, TARGET_LANG);
 
         assertEqual(EXPECTED_MAP_WITH_TRANSLATION, translation);
     }
@@ -67,8 +64,8 @@ public class TranslationUtilsTest {
     /**
      * To pinpoint problems faster we rely on our own check here instead of simply doing an equals
      */
-    private void assertEqual(TranslationMap expected, TranslationMap actual) {
-        assertEquals(expected.getLanguage(), actual.getLanguage());
+    private void assertEqual(FieldValuesLanguageMap expected, FieldValuesLanguageMap actual) {
+        assertEquals(expected.getSourceLanguage(), actual.getSourceLanguage());
         assertEquals(expected.size(), actual.size());
         for (String key : expected.keySet()) {
             assertEquals(expected.get(key), actual.get(key));

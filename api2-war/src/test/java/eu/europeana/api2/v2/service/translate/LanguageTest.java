@@ -1,6 +1,7 @@
-package eu.europeana.api2.v2.model.translate;
+package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
+import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.junit.Test;
 

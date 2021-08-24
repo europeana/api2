@@ -2,6 +2,9 @@ package eu.europeana.api2.v2.service.translate;
 
 import java.util.List;
 
+/**
+ * Generic translation service interface
+ */
 public interface TranslationService {
 
     String[] getSupportedLanguages();

@@ -20,7 +20,6 @@ import java.util.List;
  * create a test fullbean by hand.
  *
  * @author Patrick Ehlert
- * <p>
  * Created on 10-09-2018
  */
 public final class MockFullBean {
@@ -54,51 +53,8 @@ public final class MockFullBean {
         ProxyImpl proxy = new ProxyImpl();
         proxies.add(proxy);
 
-        proxy.setEdmType(DocType.IMAGE.getEnumNameValue());
-        proxy.setProxyIn(new String[]{MockBeanConstants.AGGREGATION_ABOUT});
-        proxy.setProxyFor(MockBeanConstants.ABOUT);
-
-        proxy.setDcCreator(new HashMap<>());
-        proxy.getDcCreator().put(MockBeanConstants.DEF, new ArrayList<>());
-        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_1);
-        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_2);
-        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_3);
-        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_4);
-
-        proxy.setDcDate(new HashMap<>());
-        proxy.getDcDate().put(MockBeanConstants.DEF, new ArrayList<>());
-        proxy.getDcDate().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_DATE);
-
-        proxy.setDcFormat(new HashMap<>());
-        proxy.getDcFormat().put(MockBeanConstants.DEF, new ArrayList<>());
-        proxy.getDcFormat().get(MockBeanConstants.DEF).add(MockBeanConstants.PROXY1_DC_FORMAT1_DEF);
-        proxy.getDcFormat().get(MockBeanConstants.DEF).add(MockBeanConstants.PROXY1_DC_FORMAT2_DEF);
-        proxy.getDcFormat().put(MockBeanConstants.NL, new ArrayList<>());
-        proxy.getDcFormat().get(MockBeanConstants.NL).add(MockBeanConstants.PROXY1_DC_FORMAT1_NL);
-        proxy.getDcFormat().get(MockBeanConstants.NL).add(MockBeanConstants.PROXY1_DC_FORMAT2_NL);
-
-        proxy.setDcIdentifier(new HashMap<>());
-        proxy.getDcIdentifier().put(MockBeanConstants.DEF, new ArrayList<>());
-        proxy.getDcIdentifier().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_IDENTIFIER);
-
-        proxy.setDcTitle(new HashMap<>());
-        proxy.getDcTitle().put(MockBeanConstants.DEF, new ArrayList<>());
-        proxy.getDcTitle().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_TITLE);
-
-        proxy.setDcType(new HashMap<>());
-        proxy.getDcType().put(MockBeanConstants.DEF, new ArrayList<>());
-        proxy.getDcType().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_TYPE_1);
-        proxy.getDcType().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_TYPE_2);
-
-        proxy.setDctermsAlternative(new HashMap<>());
-        proxy.getDctermsAlternative().put(MockBeanConstants.DEF, new ArrayList<>());
-        proxy.getDctermsAlternative().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_ALTERNATIVE);
-
-        proxy.setAbout(MockBeanConstants.PROXY1_ABOUT);
-
-        proxy = new ProxyImpl();
-        proxies.add(proxy);
-
+        proxy.setAbout(MockBeanConstants.EUROPEANA_PROXY);
+        proxy.setEuropeanaProxy(true);
         proxy.setEdmType(DocType.IMAGE.getEnumNameValue());
         proxy.setProxyIn(new String[]{MockBeanConstants.EUROPEANA_AGG_ABOUT});
         proxy.setProxyFor(MockBeanConstants.ABOUT);
@@ -132,7 +88,55 @@ public final class MockFullBean {
         proxy.getDcDescription().put(MockBeanConstants.DEF, new ArrayList<>());
         proxy.getDcDescription().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_DESCRIPTION);
 
-        proxy.setAbout(MockBeanConstants.PROXY2_ABOUT);
+        // provider proxy
+        proxy = new ProxyImpl();
+        proxies.add(proxy);
+
+        proxy.setAbout(MockBeanConstants.PROVIDER_PROXY);
+        proxy.setEdmType(DocType.IMAGE.getEnumNameValue());
+        proxy.setProxyIn(new String[]{MockBeanConstants.AGGREGATION_ABOUT});
+        proxy.setProxyFor(MockBeanConstants.ABOUT);
+
+        proxy.setDcCreator(new HashMap<>());
+        proxy.getDcCreator().put(MockBeanConstants.DEF, new ArrayList<>());
+        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_1);
+        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_2);
+        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_3);
+        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_4);
+
+        proxy.setDcDate(new HashMap<>());
+        proxy.getDcDate().put(MockBeanConstants.DEF, new ArrayList<>());
+        proxy.getDcDate().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_DATE);
+
+        proxy.setDcFormat(new HashMap<>());
+        proxy.getDcFormat().put(MockBeanConstants.DEF, new ArrayList<>());
+        proxy.getDcFormat().get(MockBeanConstants.DEF).add(MockBeanConstants.PROXY1_DC_FORMAT1_DEF);
+        proxy.getDcFormat().get(MockBeanConstants.DEF).add(MockBeanConstants.PROXY1_DC_FORMAT2_DEF);
+        proxy.getDcFormat().put(MockBeanConstants.NL, new ArrayList<>());
+        proxy.getDcFormat().get(MockBeanConstants.NL).add(MockBeanConstants.PROXY1_DC_FORMAT1_NL);
+        proxy.getDcFormat().get(MockBeanConstants.NL).add(MockBeanConstants.PROXY1_DC_FORMAT2_NL);
+
+        proxy.setDcIdentifier(new HashMap<>());
+        proxy.getDcIdentifier().put(MockBeanConstants.DEF, new ArrayList<>());
+        proxy.getDcIdentifier().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_IDENTIFIER);
+
+        proxy.setDcTitle(new HashMap<>());
+        proxy.getDcTitle().put(MockBeanConstants.DEF, new ArrayList<>());
+        proxy.getDcTitle().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_TITLE);
+
+        proxy.setDcType(new HashMap<>());
+        proxy.getDcType().put(MockBeanConstants.EN, new ArrayList<>());
+        proxy.getDcType().get(MockBeanConstants.EN).add(MockBeanConstants.DC_TYPE_1);
+        proxy.getDcType().get(MockBeanConstants.EN).add(MockBeanConstants.DC_TYPE_2);
+
+        proxy.setDctermsAlternative(new HashMap<>());
+        proxy.getDctermsAlternative().put(MockBeanConstants.DE, new ArrayList<>());
+        proxy.getDctermsAlternative().get(MockBeanConstants.DE).add(MockBeanConstants.DC_ALTERNATIVE);
+
+        proxy.setDcRelation(new HashMap<>());
+        proxy.getDcRelation().put(MockBeanConstants.EN, new ArrayList<>());
+        proxy.getDcRelation().get(MockBeanConstants.EN).add(MockBeanConstants.DC_RELATION1);
+        proxy.getDcRelation().get(MockBeanConstants.EN).add(MockBeanConstants.DC_RELATION2);
 
         bean.setProxies(proxies);
     }

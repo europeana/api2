@@ -4,10 +4,7 @@ import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
-import eu.europeana.api2.v2.exceptions.DateMathParseException;
-import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
-import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
-import eu.europeana.api2.v2.exceptions.MissingParamException;
+import eu.europeana.api2.v2.exceptions.*;
 import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -125,6 +122,9 @@ public class SearchController {
     @Value("${api.search.hl.MaxAnalyzedChars}")
     private String hlMaxAnalyzedChars;
 
+    @Value("${translation.enabled:false}")
+    private boolean isTranslationEnabled;
+
     private RouteDataService routeService;
     private MultilingualQueryGenerator queryGenerator;
 
@@ -235,8 +235,12 @@ public class SearchController {
 
         // TODO May 2021 This is temporary code to test a query translation technique with Google Translate
         if (queryTargetLang != null) {
-            queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
-            LOG.debug("TRANSLATED QUERY: |{}|", queryString);
+            if (isTranslationEnabled) {
+                queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
+                LOG.debug("TRANSLATED QUERY: |{}|", queryString);
+            }  else {
+                throw new TranslationServiceDisabledException();
+            }
         }
 
         if ((cursorMark != null) && (start > 1)) {

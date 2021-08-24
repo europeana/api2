@@ -8,11 +8,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.util.ReflectionUtils;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * Utility class to filter the language dependent data in a FullBean
+ * Utility class to filter the language-dependent data in a FullBean
  *
  * @author P. Ehlert
  * Created 20 July 2021
@@ -30,27 +29,20 @@ public final class BeanFilterLanguage {
      * filtered, nor are any "def" values in the map removed.
      * @param bean the fullbean to filter
      * @param targetLangs the languages that need to remain in the fullbean
-     * @param useReflectiveMethods whether to use the faster but less safe reflection on fields, or slower but safer
-     *                            reflection on methods
      * @return filtered fullbean
      */
-    public static FullBean filter(FullBean bean, List<Language> targetLangs, boolean useReflectiveMethods) {
+    public static FullBean filter(FullBean bean, List<Language> targetLangs) {
         long startTime = System.currentTimeMillis();
-        if (useReflectiveMethods) {
-            iterativeFilterMethods(bean, targetLangs);
-        } else {
-            iterativeFilterFields(bean, targetLangs);
-        }
+        iterativeFilterFields(bean, targetLangs);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Filtering record language data using {} took {} ms", (useReflectiveMethods ? "methods" : "fields"),
-                    (System.currentTimeMillis() - startTime));
+            LOG.debug("Filtering record language data took {} ms", (System.currentTimeMillis() - startTime));
         }
         return bean;
     }
 
     /**
-     * We can iterate over all the getDeclaredFields() in an object or use the getMethods(), but both methods have pros
-     * and cons. For testing and making a decision in the future, we support both for the time being.
+     * We can iterate over all the getDeclaredFields() in an object or use the getMethods(), but both approaches have
+     * pros and cons. We implemented both, but kept only the getDeclaredFields() approach because that's faster.
      *
      * For the getDeclaredFields() approach the main downside is:
      * 1) since all/most fields in FullBean are protected we first used Field.setAccessible() to access them. This
@@ -61,7 +53,7 @@ public final class BeanFilterLanguage {
      * For getMethods() the downsides are:
      * 1) only works if the getters return the real objects and not if they return a copy (or else we need to
      * also invoke the getters)
-     * 2) it is much slower than the getDeclaredFields approach
+     * 2) it is a bit slower than the getDeclaredFields approach
      */
     @SuppressWarnings("java:S3011") // suppress the setAccessibility(true) or ReflectionUtils.makeAccessible warning
     private static void iterativeFilterFields(Object o, List<Language> targetLangs) {
@@ -99,45 +91,6 @@ public final class BeanFilterLanguage {
         }, fieldFilter);
     }
 
-    /**
-     * Search for methods that return a map
-     */
-    private static void iterativeFilterMethods(Object obj, List<Language> targetLangs)  {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Filtering - object {}", obj.getClass().getName());
-        }
-        // we only want to look at fields that are language maps or can contain them
-        ReflectionUtils.MethodFilter methodFilter = method -> method.getName().startsWith("get") && (
-                method.getReturnType().isAssignableFrom(Map.class) ||
-                        method.getReturnType().isAssignableFrom(List.class) ||
-                        method.getReturnType().isAssignableFrom(EuropeanaAggregation.class)
-        );
-
-        ReflectionUtils.doWithMethods(obj.getClass(), method -> {
-            LOG.debug("  Method {} has returnType {}", method.getName(), method.getReturnType());
-
-            Object methodValue = ReflectionUtils.invokeMethod(method, obj);
-            if (methodValue instanceof Map<?, ?>) {
-                methodValue = filterLanguageMap(method.getName(), (Map<?, ?>) methodValue, targetLangs);
-                if (methodValue == null) {
-                    deleteMap(obj, method);
-                }
-            } else if (methodValue instanceof List<?>) {
-                List<?> list = (List<?>) ReflectionUtils.invokeMethod(method, obj);
-                if (list != null) {
-                    for (Object item : list) {
-                        iterativeFilterMethods(item, targetLangs);
-                    }
-                }
-            } else if (methodValue instanceof EuropeanaAggregation) {
-                iterativeFilterMethods(ReflectionUtils.invokeMethod(method, obj), targetLangs);
-            } else {
-                assert methodValue == null : "Unknown field class " + methodValue.getClass() + ". Checks do not match method filter";
-            }
-        }, methodFilter);
-
-    }
-
     private static Map filterLanguageMap(String fieldName, Map<?,?> map, List<Language> targetLangs) {
         if (map == null) {
             return null;
@@ -163,31 +116,13 @@ public final class BeanFilterLanguage {
         }
         // do actual removal
         if (map.keySet().size() == keysToRemove.size()) {
-            return null; // note that the map still has to be deleted!
+            return null; // everything removed
         }
         for (String keyToRemove : keysToRemove) {
             map.remove(keyToRemove);
         }
 
         return map;
-    }
-
-
-    private static void deleteMap(Object obj, Method method) {
-        String setterMethodName = method.getName().replace("get", "set");
-        Method setter = ReflectionUtils.findMethod(method.getDeclaringClass(), setterMethodName, Map.class);
-        if (setter == null) {
-            LOG.error("Unable to delete map. Setter method {} not found in class {}", setterMethodName,
-                    method.getDeclaringClass());
-        } else {
-            LOG.debug("    Deleting map {} entirely", method.getName());
-            try {
-                Object arg = null; // if we set null directly in the invokeMethod() below, an error is thrown!
-                ReflectionUtils.invokeMethod(setter, obj, arg);
-            } catch (IllegalArgumentException e) {
-                LOG.error("Unable to delete map. Unexpected number of arguments for method {}", setter, e);
-            }
-        }
     }
 
 }
