@@ -337,9 +337,6 @@ public class ObjectController {
         }
 
         // 3) validate other common params
-        if (data.lang == null && RecordProfile.TRANSLATE.isActive(data.profile)) {
-            throw new MissingParamException("Parameter lang is required for translation profile");
-        }
         if (data.lang != null) {
             data.setLanguages(Language.validateMultiple(data.lang));
         }
@@ -405,18 +402,25 @@ public class ObjectController {
 
         BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
         bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
+
+        // 8) Check translation and filtering params
         if (RecordProfile.TRANSLATE.isActive(data.profile)) {
+            // Get the edm:language for default translation and filtering (if lang parameter was empty)
+            if(data.languages == null || data.languages.isEmpty()) {
+                data.setLanguages(translateFilterService.getDefaultTranslationLanguage(bean));
+            }
             if (isTranslationEnabled) {
-                bean = translateFilterService.translateProxyFields(bean, data.languages);
+                if (data.languages != null && !data.languages.isEmpty()) {
+                    bean = translateFilterService.translateProxyFields(bean, data.languages);
+                }
             } else {
                 throw new TranslationServiceDisabledException();
             }
-        }
-        if (data.languages != null && !data.languages.isEmpty()) {
+            // always do filtering
             bean = BeanFilterLanguage.filter(bean, data.languages);
         }
 
-        // 8) generate output
+        // 9) generate output
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
 
