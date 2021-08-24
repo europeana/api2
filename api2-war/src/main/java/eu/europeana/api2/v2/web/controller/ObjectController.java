@@ -337,6 +337,9 @@ public class ObjectController {
         }
 
         // 3) validate other common params
+        if (!isTranslationEnabled && RecordProfile.TRANSLATE.isActive(data.profile)) {
+            throw new TranslationServiceDisabledException();
+        }
         if (data.lang != null) {
             data.setLanguages(Language.validateMultiple(data.lang));
         }
@@ -396,35 +399,30 @@ public class ObjectController {
             return null;
         }
 
-        // 7) process bean further (adding webresource meta info, set proper urls, translating)
+        // 7) Process bean further (adding webresource meta info, set proper urls)
         // cannot be null here, as method has already checked for record dao
         RecordDao recordDao = dataSource.get().getRecordDao().get();
 
         BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
         bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
 
-        // 8) Check translation and filtering params
+        // 8) Do translation and filtering
         if (RecordProfile.TRANSLATE.isActive(data.profile)) {
             // Get the edm:language for default translation and filtering (if lang parameter was empty)
-            if(data.languages == null || data.languages.isEmpty()) {
+            if (data.languages == null || data.languages.isEmpty()) {
                 data.setLanguages(translateFilterService.getDefaultTranslationLanguage(bean));
             }
-            if (isTranslationEnabled) {
-                if (data.languages != null && !data.languages.isEmpty()) {
-                    bean = translateFilterService.translateProxyFields(bean, data.languages);
-                }
-            } else {
-                throw new TranslationServiceDisabledException();
+            if (data.languages != null && !data.languages.isEmpty()) {
+                bean = translateFilterService.translateProxyFields(bean, data.languages);
             }
             // always do filtering
             bean = BeanFilterLanguage.filter(bean, data.languages);
         }
 
-        // 9) generate output
+        // 9) Generate output
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
 
-        // generate output depending on type of record
         Object output;
         switch (recordType) {
             case OBJECT_JSON:
