@@ -5,7 +5,6 @@ import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
-import eu.europeana.api2.v2.exceptions.MissingParamException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
 import eu.europeana.api2.v2.model.RecordType;
 import eu.europeana.api2.v2.model.json.ObjectResult;
@@ -406,20 +405,23 @@ public class ObjectController {
         BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
         bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
 
-        // 8) Do translation and filtering
+        // 8) When translation profile is active, do translation
         if (RecordProfile.TRANSLATE.isActive(data.profile)) {
-            // Get the edm:language for default translation and filtering (if lang parameter was empty)
             if (data.languages == null || data.languages.isEmpty()) {
+                // Get the edm:language for default translation and filtering (if we find a default language)
                 data.setLanguages(translateFilterService.getDefaultTranslationLanguage(bean));
             }
             if (data.languages != null && !data.languages.isEmpty()) {
                 bean = translateFilterService.translateProxyFields(bean, data.languages);
             }
-            // always do filtering
+        }
+
+        // 9) When lang profile is provided, do filtering
+        if (data.languages != null && !data.languages.isEmpty()) {
             bean = BeanFilterLanguage.filter(bean, data.languages);
         }
 
-        // 9) Generate output
+        // 10) Generate output
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
 
