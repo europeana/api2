@@ -48,17 +48,17 @@ public final class TranslationUtils {
 
         // Actual translation
         List<String> translations;
-        if (Language.DEF.equals(toTranslate.getSourceLanguage())) {
-            LOG.debug("Sending translate query with language detect...");
-            translations = translationService.translate(linesToTranslate, targetLanguage);
-        } else {
-            LOG.debug("Sending translate query with source language {} and target language {}...", toTranslate.getSourceLanguage(), targetLanguage);
-            try {
+        try {
+            if (Language.DEF.equals(toTranslate.getSourceLanguage())) {
+                LOG.debug("Sending translate query with language detect...");
+                translations = translationService.translate(linesToTranslate, targetLanguage);
+            } else {
+                LOG.debug("Sending translate query with source language {} and target language {}...", toTranslate.getSourceLanguage(), targetLanguage);
                 translations = translationService.translate(linesToTranslate, targetLanguage, toTranslate.getSourceLanguage());
-            } catch (RuntimeException e) {
-                // wrap in our own exception
-                throw new TranslationException(e);
             }
+        } catch (RuntimeException e) {
+            // Catch Google Translate issues and wrap in our own exception
+            throw new TranslationException(e);
         }
         // Sanity check
         if (translations.size() != linesToTranslate.size()) {
