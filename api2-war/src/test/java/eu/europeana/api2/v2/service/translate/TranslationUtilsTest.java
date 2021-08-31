@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.service.translate;
 
+import eu.europeana.api2.v2.exceptions.TranslationException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -50,7 +51,7 @@ public class TranslationUtilsTest {
      * Test if sending a translationmap and putting pack all results under the appropriate keys is working
      */
     @Test
-    public void testTranslateMap() {
+    public void testTranslateMap() throws TranslationException {
         when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG))).thenReturn(new ArrayList<>(){{
             addAll(TRANSLATION1);
             addAll(TRANSLATION2);

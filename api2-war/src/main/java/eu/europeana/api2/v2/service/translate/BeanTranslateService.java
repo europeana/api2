@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.service.translate;
 
+import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
@@ -80,8 +81,9 @@ public class BeanTranslateService {
      * @param bean        the record to be modified
      * @param targetLangs the requested languages (only first language provided is used)
      * @return modified record
+     * @throws TranslationException when there is a problem sending/retrieving data from the translation service
      */
-    public FullBean translateProxyFields(FullBean bean, List<Language> targetLangs) {
+    public FullBean translateProxyFields(FullBean bean, List<Language> targetLangs) throws TranslationException {
         long startTime = System.currentTimeMillis();
         // For the time being we only translate into the first language in the list. Any other provided language in the
         // list is used for filtering only
@@ -224,9 +226,14 @@ public class BeanTranslateService {
 
     private FieldValuesLanguageMap getValueFromLanguageMap(Map<String, List<String>> map, String fieldName, String lang) {
         if (lang == null && !map.keySet().isEmpty()) {
-            // return any value if available
-            String key = map.keySet().iterator().next();
-            return new FieldValuesLanguageMap(key, fieldName, map.get(key));
+            // return any value if available, but only if it's a supported language
+            for (String key : map.keySet()) {
+                if (Language.isSupported(key)) {
+                    return new FieldValuesLanguageMap(key, fieldName, map.get(key));
+                } else {
+                    LOG.debug("  Found value for field {} in unsupported language {}", fieldName, key);
+                }
+            }
         } else if (lang != null && map.containsKey(lang)) {
             // return value for 1 particular language
             return new FieldValuesLanguageMap(lang, fieldName, map.get(lang));

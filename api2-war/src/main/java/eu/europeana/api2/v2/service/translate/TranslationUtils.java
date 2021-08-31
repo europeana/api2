@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.service.translate;
 
+import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.model.translate.Language;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,8 +29,10 @@ public final class TranslationUtils {
      * @param toTranslate map consisting of field names and texts to translate
      * @param targetLanguage the language to translate to
      * @return map with the same field names, but now mapped to translated values
+     * @throws TranslationException when there is a problem sending/retrieving translation data
      */
-    public static FieldValuesLanguageMap translate(TranslationService translationService, FieldValuesLanguageMap toTranslate, String targetLanguage) {
+    public static FieldValuesLanguageMap translate(TranslationService translationService, FieldValuesLanguageMap toTranslate,
+                                                   String targetLanguage) throws TranslationException {
         // We don't use delimiters because we want to keep the number of characters we sent low.
         // Instead we use line counts to determine start and end of a field.
         Map<String, Integer> linesPerField = new LinkedHashMap<>();
@@ -50,7 +53,12 @@ public final class TranslationUtils {
             translations = translationService.translate(linesToTranslate, targetLanguage);
         } else {
             LOG.debug("Sending translate query with source language {} and target language {}...", toTranslate.getSourceLanguage(), targetLanguage);
-            translations = translationService.translate(linesToTranslate, targetLanguage, toTranslate.getSourceLanguage());
+            try {
+                translations = translationService.translate(linesToTranslate, targetLanguage, toTranslate.getSourceLanguage());
+            } catch (RuntimeException e) {
+                // wrap in our own exception
+                throw new TranslationException(e);
+            }
         }
         // Sanity check
         if (translations.size() != linesToTranslate.size()) {
