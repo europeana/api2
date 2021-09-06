@@ -155,6 +155,7 @@ public class BeanTranslateService {
      * can assume there's already a translation present.
      */
     boolean hasStaticTranslations(Proxy aggregatorProxy, Field field) {
+        ReflectionUtils.makeAccessible(field);
         Object o = ReflectionUtils.getField(field, aggregatorProxy);
         if (o instanceof Map) {
             Map map = (Map) o;
@@ -385,6 +386,7 @@ public class BeanTranslateService {
         if (field == null) {
             LOG.error("Cannot find field with name {}", key);
         } else {
+            ReflectionUtils.makeAccessible(field);
             Object o = ReflectionUtils.getField(field, proxy);
             if (o instanceof Map) {
                 Map<String, List<String>> map = (Map<String, List<String>>) o;
