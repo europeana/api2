@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     gettext-base && \
 
     # Clean-up
-    apt-get remove -y -q --purge curl && \
     apt-get autoremove -y -q && \
     rm -rf /var/lib/apt/lists/* && \
     rm -r webapps/examples && \
