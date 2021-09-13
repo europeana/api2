@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api.commons.utils.*;
+import eu.europeana.api.commons.utils.RiotRdfUtils;
+import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.model.utils.Api2UrlService;
@@ -16,11 +17,11 @@ import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
-import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
 import eu.europeana.corelib.record.config.RecordServerConfig;
+import eu.europeana.corelib.record.schemaorg.utils.SchemaOrgUtils;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
