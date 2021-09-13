@@ -60,11 +60,6 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     }
 
     @Override
-    public String[] getOrganizations() {
-        return bean.getOrganizations();
-    }
-
-    @Override
     public String[] getEdmIsShownBy() {
         return bean.getEdmIsShownBy();
     }
