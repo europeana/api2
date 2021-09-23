@@ -134,9 +134,9 @@ public final class MockFullBean {
         proxy.getDctermsAlternative().get(MockBeanConstants.DE).add(MockBeanConstants.DC_ALTERNATIVE);
 
         proxy.setDcRelation(new HashMap<>());
-        proxy.getDcRelation().put(MockBeanConstants.EN, new ArrayList<>());
-        proxy.getDcRelation().get(MockBeanConstants.EN).add(MockBeanConstants.DC_RELATION1);
-        proxy.getDcRelation().get(MockBeanConstants.EN).add(MockBeanConstants.DC_RELATION2);
+        proxy.getDcRelation().put(MockBeanConstants.DEF, new ArrayList<>());
+        proxy.getDcRelation().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_RELATION1);
+        proxy.getDcRelation().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_RELATION2);
 
         bean.setProxies(proxies);
     }

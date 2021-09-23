@@ -28,18 +28,26 @@ public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMa
     }
 
     /**
-     * Adds a map of a particular translation
-     * @param map the translationmap to store, if null nothing is added
+     * Adds a map of a particular translation. Note that maps in the same language are merged
+     * @param mapToAdd the translationmap to store, if null nothing is added
      */
-    private void add(FieldValuesLanguageMap map) {
-        if (map != null) {
-            if (this.containsKey(map.getSourceLanguage())) {
-                // copy everything to existing TranslationMap value
-                for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-                    get(map.getSourceLanguage()).put(entry.getKey(), entry.getValue());
+    private void add(FieldValuesLanguageMap mapToAdd) {
+        if (mapToAdd != null) {
+            if (this.containsKey(mapToAdd.getSourceLanguage())) {
+                // map with same language exists, so we need to check what we already have (see if we need to merge values)
+                FieldValuesLanguageMap existingMap = get(mapToAdd.getSourceLanguage());
+                for (Map.Entry<String, List<String>> entry : mapToAdd.entrySet()) {
+                    if (existingMap.containsKey(entry.getKey())) {
+                        // existing field, so merge values
+                        existingMap.merge(new FieldValuesLanguageMap(mapToAdd.getSourceLanguage(), entry.getKey(), entry.getValue()));
+                    } else {
+                        // new field, so we can simply add new key
+                        existingMap.put(entry.getKey(), entry.getValue());
+                    }
                 }
             } else {
-                this.put(map.getSourceLanguage(), map);
+                // create new language key
+                this.put(mapToAdd.getSourceLanguage(), mapToAdd);
             }
         }
     }

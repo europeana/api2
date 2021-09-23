@@ -49,7 +49,7 @@ public class BeanTranslateLanguageTest {
     private static final List<String> DC_TITLE = List.of("Mona Lisa");
     private static final List<String> DC_TYPE = List.of("grafiek");
     private static final List<String> DC_TERMS_ALTERNATIVE = List.of("Mona Lisa schilderij");
-    private static final List<String> DC_RELATION = List.of("Musea", "Europese musea");
+    private static final List<String> DC_RELATION = List.of("Europese musea", "Parijs");
     private static final List<String> DC_CREATOR_ENTITY_PREFLABEL = List.of("Landbouw");
     private static final List<String> DC_PUBLISHER = List.of("De dagelijkse bugel");
 
