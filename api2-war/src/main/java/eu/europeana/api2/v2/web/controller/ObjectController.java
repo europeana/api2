@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api.commons.utils.RiotRdfUtils;
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
@@ -19,10 +20,11 @@ import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
-import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
+import eu.europeana.corelib.record.config.RecordServerConfig;
+import eu.europeana.corelib.record.schemaorg.utils.SchemaOrgUtils;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
@@ -486,6 +488,7 @@ public class ObjectController {
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (InputStream rdfInput = IOUtils.toInputStream(rdf);
               OutputStream outputStream = new ByteArrayOutputStream()) {
+                 RiotRdfUtils.disableErrorForSpaceURI();
                  Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
                  DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
                  PrefixMap pm = RiotLib.prefixMap(graph);
@@ -494,7 +497,7 @@ public class ObjectController {
                  WriterDatasetRIOT writer = RDFDataMgr.createDatasetWriter(RDFFormat.JSONLD_FLAT);
                  writer.write(outputStream, graph, pm, null, ctx);
                  return JsonUtils.toJsonLd(outputStream.toString(), data.callback);
-        } catch (IOException e) {
+        } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
