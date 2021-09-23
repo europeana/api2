@@ -26,9 +26,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 
+/**
+ * Controller for translating query terms using Wikipedia Translate
+ * @deprecated will be replaced by new translation services
+ */
 @Controller
 @SwaggerSelect
 @Api(tags = {SwaggerConfig.SEARCH_TAG})
+@Deprecated(since = "July 2021")
 public class QueryTranslationController {
 
     @Resource
