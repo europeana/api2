@@ -256,7 +256,7 @@ public class BeanTranslateService {
         List<String> valuesToCheck = map.get(field);
 
         List<String> urisToRemove = new ArrayList<>();
-        List<FieldValuesLanguageMap> valuesToTranslate = new ArrayList<>();
+        List<FieldValuesLanguageMap> prefLabelsToTranslate = new ArrayList<>();
         for (String value : valuesToCheck) {
             if (EuropeanaUriUtils.isUri(value)) {
                 urisToRemove.add(value);
@@ -281,7 +281,7 @@ public class BeanTranslateService {
                     LOG.debug("  Entity found, but no preflabel to translate");
                 } else {
                     LOG.debug("  Entity found, adding prefLabel with {} language to translate", prefLabel.getSourceLanguage());
-                    valuesToTranslate.add(prefLabel);
+                    prefLabelsToTranslate.add(prefLabel);
                 }
             }
         }
@@ -291,8 +291,8 @@ public class BeanTranslateService {
 
         // gather final results
         List<FieldValuesLanguageMap> result = new ArrayList<>();
-        // if any of the prefLabel maps have the same source language as the original we merge it into the original map
-        for (FieldValuesLanguageMap prefLabelMap : valuesToTranslate) {
+        for (FieldValuesLanguageMap prefLabelMap : prefLabelsToTranslate) {
+            // if any of the prefLabel maps have the same source language as the original we merge it into the original map
             if (prefLabelMap.getSourceLanguage().equals(map.getSourceLanguage())) {
                 map.merge(prefLabelMap);
             } else {
@@ -301,7 +301,7 @@ public class BeanTranslateService {
         }
         List<String> originalValues = map.get(field);
         if (!originalValues.isEmpty()) {
-            result.add(0, map); // return also original map if it still has values we need to translate
+            result.add(0, map); // return also original map if it's not empty
         }
         return result;
     }

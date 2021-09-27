@@ -52,8 +52,8 @@ public class MockBeanConstants {
     public static final String  EDM_PROVIDER_2           = "Digitale Collectie";
     public static final String  DC_TITLE                 = "Mona Lisa";
     public static final String  DC_DESCRIPTION           = "https://data.europeana.eu/test";
-    public static final String  DC_RELATION1             = "Museums";
-    public static final String  DC_RELATION2             = "http://data.europeana.eu/agent/base/146741";
+    public static final String  DC_RELATION1             = "http://data.europeana.eu/agent/base/146741";
+    public static final String  DC_RELATION2             = "#place_Paris";
     public static final String  DC_ALTERNATIVE           = "Mona Lisa Gemälde";
     public static final long    TIMESTAMP_CREATED        = 1395759054479L;
     public static final long    TIMESTAMP_UPDATED        = 1395759054479L;
