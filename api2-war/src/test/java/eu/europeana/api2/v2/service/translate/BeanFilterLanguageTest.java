@@ -9,10 +9,7 @@ import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -71,5 +68,27 @@ public class BeanFilterLanguageTest {
         assertEquals(1, bean.getAgents().get(0).getPrefLabel().size());
         assertEquals(MockBeanConstants.AGENT1_PREF_LABEL_PL, bean.getAgents().get(0).getPrefLabel().get(MockBeanConstants.PL).get(0));
         assertNull(bean.getAgents().get(0).getPrefLabel().get(MockBeanConstants.EN));
+    }
+
+    @Test
+    public void testEmptyMapValues() {
+        FullBean bean = MockFullBean.mock();
+        // add a empty map {def=[]} for DcIdentifier
+        bean.getProxies().get(1).getDcIdentifier().get(MockBeanConstants.DEF).clear();
+        //add a empty map {pl=[]} for RdaGr2BiographicalInformation
+        bean.getAgents().get(0).getRdaGr2BiographicalInformation().get(MockBeanConstants.PL).clear();
+
+        // check the empty map exist before filtering
+        assertNotNull(bean.getProxies().get(1).getDcIdentifier());
+        assertNotNull(bean.getAgents().get(0).getRdaGr2BiographicalInformation().get(MockBeanConstants.PL));
+
+        List<Language> languages = new ArrayList<>(Arrays.asList(Language.PL, Language.EN));
+        BeanFilterLanguage.filter(bean, languages);
+
+        assertNull(bean.getProxies().get(1).getDcIdentifier());
+        // should only contain EN - translation. As PL is empty so it must be removed.
+        assertNull(bean.getAgents().get(0).getRdaGr2BiographicalInformation().get(MockBeanConstants.PL));
+        assertNotNull(bean.getAgents().get(0).getRdaGr2BiographicalInformation());
+        assertNotNull(bean.getAgents().get(0).getRdaGr2BiographicalInformation().get(MockBeanConstants.EN));
     }
 }
