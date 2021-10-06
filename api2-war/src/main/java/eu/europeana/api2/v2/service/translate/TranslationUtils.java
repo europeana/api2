@@ -1,6 +1,8 @@
 package eu.europeana.api2.v2.service.translate;
 
+import com.google.api.gax.rpc.ResourceExhaustedException;
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,7 +34,7 @@ public final class TranslationUtils {
      * @throws TranslationException when there is a problem sending/retrieving translation data
      */
     public static FieldValuesLanguageMap translate(TranslationService translationService, FieldValuesLanguageMap toTranslate,
-                                                   String targetLanguage) throws TranslationException {
+                                                   String targetLanguage) throws TranslationException, TranslationServiceLimitException {
         // We don't use delimiters because we want to keep the number of characters we sent low.
         // Instead we use line counts to determine start and end of a field.
         Map<String, Integer> linesPerField = new LinkedHashMap<>();
@@ -56,6 +58,10 @@ public final class TranslationUtils {
                 LOG.debug("Sending translate query with source language {} and target language {}...", toTranslate.getSourceLanguage(), targetLanguage);
                 translations = translationService.translate(linesToTranslate, targetLanguage, toTranslate.getSourceLanguage());
             }
+        } catch (ResourceExhaustedException e) {
+            // catch Google StatusRuntimeException: RESOURCE_EXHAUSTED exception
+            // this will be thrown if the limit for the day is exceeded
+            throw new TranslationServiceLimitException(e);
         } catch (RuntimeException e) {
             // Catch Google Translate issues and wrap in our own exception
             throw new TranslationException(e);

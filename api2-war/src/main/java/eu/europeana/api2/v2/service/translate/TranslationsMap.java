@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -61,7 +62,7 @@ public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMa
      * @return a FieldValuesLanguageMap containing the fields and translated values
      * @throws TranslationException when there is an error sending/retrieving data from the translation service
      */
-    public FieldValuesLanguageMap translate(TranslationService translationService, String targetLanguage) throws TranslationException {
+    public FieldValuesLanguageMap translate(TranslationService translationService, String targetLanguage) throws TranslationException, TranslationServiceLimitException {
         // send a request for each of the languages
         long startTimeTranslate = System.currentTimeMillis();
         List<FieldValuesLanguageMap> translations = new ArrayList<>();
