@@ -14,7 +14,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -32,7 +31,8 @@ public class HttpCacheUtils {
     private static final String ANY               = "\"*\"";
     private static final String GZIPSUFFIX        = "-gzip\"";
     private static final String ALLOWED           = "GET, HEAD, POST";
-    private static final String NOCACHE           = "no-cache";
+    private static final String CACHE_CONTROL     = "public, max-age=";
+    private static final String DEFAULT_MAX_AGE   = "86400"; // 1 day
     private static String apiVersion;
 
     static{
@@ -148,17 +148,30 @@ public class HttpCacheUtils {
      * The 'Cache-Control' and 'Allow' headers are always set to the same value
      * @param response      required, HttpServletResponse to add the headers to
      * @param eTag          optional, if not null then an ETag header is added
-     * @param tsUpdated     optional, if not null then a Last-Modified header is added
+     * @param lastModified     optional, if not null then a Last-Modified header is added
      * @return HttpServletResponse
      */
-    public HttpServletResponse addDefaultHeaders(HttpServletResponse response, String eTag, String tsUpdated){
+    public HttpServletResponse addDefaultHeaders(HttpServletResponse response, String eTag, String lastModified){
+        return addDefaultHeaders(response, eTag, lastModified, DEFAULT_MAX_AGE);
+    }
+
+    /**
+     * Generate the default headers for sending a response with caching
+     * The 'Cache-Control' and 'Allow' headers are always set to the same value
+     * @param response      required, HttpServletResponse to add the headers to
+     * @param eTag          optional, if not null then an ETag header is added
+     * @param lastModified  optional, if not null then a Last-Modified header is added
+     * @param  cacheMaxAge  optional, if null default value is used
+     * @return HttpServletResponse
+     */
+    public HttpServletResponse addDefaultHeaders(HttpServletResponse response, String eTag, String lastModified, String cacheMaxAge) {
         if (StringUtils.isNotBlank(eTag)) {
             response.addHeader("ETag", eTag);
         }
-        if (StringUtils.isNotBlank(tsUpdated)) {
-            response.addHeader("Last-Modified", tsUpdated);
+        if (StringUtils.isNotBlank(lastModified)) {
+            response.addHeader("Last-Modified", lastModified);
         }
-        response.addHeader("Cache-Control", NOCACHE);
+        response.addHeader("Cache-Control", CACHE_CONTROL + (cacheMaxAge == null ? DEFAULT_MAX_AGE : cacheMaxAge));
         response.addHeader("Allow", ALLOWED);
         return response;
     }
