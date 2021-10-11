@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.utils.MockFullBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -101,7 +102,8 @@ public class BeanTranslateLanguageTest {
      * value should be removed)
      */
     @Test
-    public void testNoStaticTranslation() throws TranslationException, InvalidParamValueException, JsonProcessingException {
+    public void testNoStaticTranslation() throws TranslationException, InvalidParamValueException,
+            JsonProcessingException, TranslationServiceLimitException {
         FullBean bean = MockFullBean.mock();
         ObjectMapper mapper = new ObjectMapper();
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Original fullbean = {}",
@@ -155,7 +157,8 @@ public class BeanTranslateLanguageTest {
     }
 
     @Test
-    public void testStaticTranslation() throws TranslationException, InvalidParamValueException, JsonProcessingException {
+    public void testStaticTranslation() throws TranslationException, InvalidParamValueException,
+            JsonProcessingException, TranslationServiceLimitException {
         FullBean bean = MockFullBean.mock();
         BeanTranslateService translateService = new BeanTranslateService(translationService);
 

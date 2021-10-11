@@ -7,6 +7,7 @@ import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
 import eu.europeana.api2.v2.exceptions.MissingParamException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.utils.ControllerUtils;
@@ -101,6 +102,8 @@ public class GlobalExceptionHandler {
             result = HttpServletResponse.SC_BAD_REQUEST;
         } else if (ee instanceof SolrIOException) {
             result = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+        } else if (ee instanceof TranslationServiceLimitException) {
+            result = HttpServletResponse.SC_BAD_GATEWAY;
         }
         return result;
     }

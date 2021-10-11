@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
@@ -83,7 +84,7 @@ public class BeanTranslateService {
      * @return modified record
      * @throws TranslationException when there is a problem sending/retrieving data from the translation service
      */
-    public FullBean translateProxyFields(FullBean bean, List<Language> targetLangs) throws TranslationException {
+    public FullBean translateProxyFields(FullBean bean, List<Language> targetLangs) throws TranslationException, TranslationServiceLimitException {
         long startTime = System.currentTimeMillis();
         // For the time being we only translate into the first language in the list. Any other provided language in the
         // list is used for filtering only
