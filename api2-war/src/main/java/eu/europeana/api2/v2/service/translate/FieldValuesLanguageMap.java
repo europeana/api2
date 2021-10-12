@@ -25,9 +25,19 @@ public class FieldValuesLanguageMap extends LinkedHashMap<String, List<String>> 
 
     /**
      * Create a new map for a particular language
-     * @param sourceLanguage the source language of all all added objects
+     * @param sourceLanguage the source language of all added objects
      */
     public FieldValuesLanguageMap(String sourceLanguage) {
+        this.sourceLanguage = sourceLanguage;
+    }
+
+    /**
+     * Create a new map for a particular language and provided map
+     * @param sourceLanguage the source language of all added objects
+     * @param map the map to be added
+     */
+    public FieldValuesLanguageMap(String sourceLanguage, Map<String, List<String>> map) {
+        super.putAll(map);
         this.sourceLanguage = sourceLanguage;
     }
 

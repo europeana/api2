@@ -7,6 +7,7 @@ import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
 import eu.europeana.corelib.solr.entity.ProxyImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -212,7 +213,7 @@ public class BeanTranslateService {
             ReflectionUtils.makeAccessible(field);
             Object value = ReflectionUtils.getField(field, proxy);
             if (value instanceof Map) {
-                Map<String, List<String>> map = new HashMap((Map<String, List<String>>) value);
+                Map<String, List<String>> map = (Map<String, List<String>>) value;
                 result = getValueFromLanguageMap(map, field.getName(), lang);
             } else if (value != null) {
                 LOG.warn("Unexpected data - field {} did not return a map", field.getName());
@@ -230,16 +231,14 @@ public class BeanTranslateService {
             // return any value if available, but only if it's a supported language
             for (String key : map.keySet()) {
                 if (Language.isSupported(key)) {
-                    List<String> values = new ArrayList<>(map.get(key)); // make a copy of all values
-                    return new FieldValuesLanguageMap(key, fieldName, values);
+                    return new FieldValuesLanguageMap(key, fieldName, map.get(key));
                 } else {
                     LOG.debug("  Found value for field {} in unsupported language {}", fieldName, key);
                 }
             }
         } else if (lang != null && map.containsKey(lang)) {
             // return value for 1 particular language
-            List<String> values = new ArrayList<>(map.get(lang)); // make a copy
-            return new FieldValuesLanguageMap(lang, fieldName, values);
+            return new FieldValuesLanguageMap(lang, fieldName, map.get(lang));
         }
         return null;
     }
@@ -254,8 +253,13 @@ public class BeanTranslateService {
         if (map.keySet().size() != 1) {
             throw new IllegalArgumentException("Resolving uri's is only supported for maps with 1 key");
         }
-        String field = map.keySet().iterator().next();
-        List<String> valuesToCheck = map.get(field);
+
+        // Make a deep copy of translate map
+        HashMap<String, List<String>> cloneMap = SerializationUtils.clone(map);
+        FieldValuesLanguageMap deepCopyMap = new FieldValuesLanguageMap(map.getSourceLanguage(), cloneMap);
+
+        String field = deepCopyMap.keySet().iterator().next();
+        List<String> valuesToCheck = deepCopyMap.get(field);
 
         List<String> urisToRemove = new ArrayList<>();
         List<FieldValuesLanguageMap> prefLabelsToTranslate = new ArrayList<>();
@@ -287,23 +291,22 @@ public class BeanTranslateService {
                 }
             }
         }
-
-        // delete all uris in original map
-        map.remove(field, urisToRemove);
+        // delete all uris from copied map
+        deepCopyMap.remove(field, urisToRemove);
 
         // gather final results
         List<FieldValuesLanguageMap> result = new ArrayList<>();
         for (FieldValuesLanguageMap prefLabelMap : prefLabelsToTranslate) {
             // if any of the prefLabel maps have the same source language as the original we merge it into the original map
-            if (prefLabelMap.getSourceLanguage().equals(map.getSourceLanguage())) {
-                map.merge(prefLabelMap);
+            if (prefLabelMap.getSourceLanguage().equals(deepCopyMap.getSourceLanguage())) {
+                deepCopyMap.merge(prefLabelMap);
             } else {
                 result.add(prefLabelMap);
             }
         }
-        List<String> originalValues = map.get(field);
+        List<String> originalValues = deepCopyMap.get(field);
         if (!originalValues.isEmpty()) {
-            result.add(0, map); // return also original map if it's not empty
+            result.add(0, deepCopyMap); // return also original remaining values in map if it's not empty
         }
         return result;
     }
