@@ -212,7 +212,7 @@ public class BeanTranslateService {
             ReflectionUtils.makeAccessible(field);
             Object value = ReflectionUtils.getField(field, proxy);
             if (value instanceof Map) {
-                Map<String, List<String>> map = (Map<String, List<String>>) value;
+                Map<String, List<String>> map = new HashMap((Map<String, List<String>>) value);
                 result = getValueFromLanguageMap(map, field.getName(), lang);
             } else if (value != null) {
                 LOG.warn("Unexpected data - field {} did not return a map", field.getName());
@@ -230,14 +230,16 @@ public class BeanTranslateService {
             // return any value if available, but only if it's a supported language
             for (String key : map.keySet()) {
                 if (Language.isSupported(key)) {
-                    return new FieldValuesLanguageMap(key, fieldName, map.get(key));
+                    List<String> values = new ArrayList<>(map.get(key)); // make a copy of all values
+                    return new FieldValuesLanguageMap(key, fieldName, values);
                 } else {
                     LOG.debug("  Found value for field {} in unsupported language {}", fieldName, key);
                 }
             }
         } else if (lang != null && map.containsKey(lang)) {
             // return value for 1 particular language
-            return new FieldValuesLanguageMap(lang, fieldName, map.get(lang));
+            List<String> values = new ArrayList<>(map.get(lang)); // make a copy
+            return new FieldValuesLanguageMap(lang, fieldName, values);
         }
         return null;
     }
