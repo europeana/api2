@@ -213,8 +213,9 @@ public class BeanTranslateService {
             ReflectionUtils.makeAccessible(field);
             Object value = ReflectionUtils.getField(field, proxy);
             if (value instanceof Map) {
-                Map<String, List<String>> map = (Map<String, List<String>>) value;
-                result = getValueFromLanguageMap(map, field.getName(), lang);
+                HashMap<String, List<String>> origFieldData = (HashMap<String, List<String>>) value;
+                // make sure we make a deep copy of the map so we can modify data later without affecting original record data
+                result = getValueFromLanguageMap(SerializationUtils.clone(origFieldData), field.getName(), lang);
             } else if (value != null) {
                 LOG.warn("Unexpected data - field {} did not return a map", field.getName());
             }
@@ -253,13 +254,8 @@ public class BeanTranslateService {
         if (map.keySet().size() != 1) {
             throw new IllegalArgumentException("Resolving uri's is only supported for maps with 1 key");
         }
-
-        // Make a deep copy of translate map
-        HashMap<String, List<String>> cloneMap = SerializationUtils.clone(map);
-        FieldValuesLanguageMap deepCopyMap = new FieldValuesLanguageMap(map.getSourceLanguage(), cloneMap);
-
-        String field = deepCopyMap.keySet().iterator().next();
-        List<String> valuesToCheck = deepCopyMap.get(field);
+        String field = map.keySet().iterator().next();
+        List<String> valuesToCheck = map.get(field);
 
         List<String> urisToRemove = new ArrayList<>();
         List<FieldValuesLanguageMap> prefLabelsToTranslate = new ArrayList<>();
@@ -291,22 +287,23 @@ public class BeanTranslateService {
                 }
             }
         }
-        // delete all uris from copied map
-        deepCopyMap.remove(field, urisToRemove);
+
+        // delete all uris
+        map.remove(field, urisToRemove);
 
         // gather final results
         List<FieldValuesLanguageMap> result = new ArrayList<>();
         for (FieldValuesLanguageMap prefLabelMap : prefLabelsToTranslate) {
             // if any of the prefLabel maps have the same source language as the original we merge it into the original map
-            if (prefLabelMap.getSourceLanguage().equals(deepCopyMap.getSourceLanguage())) {
-                deepCopyMap.merge(prefLabelMap);
+            if (prefLabelMap.getSourceLanguage().equals(map.getSourceLanguage())) {
+                map.merge(prefLabelMap);
             } else {
                 result.add(prefLabelMap);
             }
         }
-        List<String> originalValues = deepCopyMap.get(field);
+        List<String> originalValues = map.get(field);
         if (!originalValues.isEmpty()) {
-            result.add(0, deepCopyMap); // return also original remaining values in map if it's not empty
+            result.add(0, map); // return also original remaining values in map if it's not empty
         }
         return result;
     }
