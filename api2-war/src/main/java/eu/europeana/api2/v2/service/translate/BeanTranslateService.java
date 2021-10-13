@@ -8,6 +8,7 @@ import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
 import eu.europeana.corelib.solr.entity.ProxyImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -213,8 +214,9 @@ public class BeanTranslateService {
             ReflectionUtils.makeAccessible(field);
             Object value = ReflectionUtils.getField(field, proxy);
             if (value instanceof Map) {
-                Map<String, List<String>> map = (Map<String, List<String>>) value;
-                result = getValueFromLanguageMap(map, field.getName(), lang);
+                HashMap<String, List<String>> origFieldData = (HashMap<String, List<String>>) value;
+                // make sure we make a deep copy of the map so we can modify data later without affecting original record data
+                result = getValueFromLanguageMap(SerializationUtils.clone(origFieldData), field.getName(), lang);
             } else if (value != null) {
                 LOG.warn("Unexpected data - field {} did not return a map", field.getName());
             }
@@ -287,7 +289,7 @@ public class BeanTranslateService {
             }
         }
 
-        // delete all uris in original map
+        // delete all uris
         map.remove(field, urisToRemove);
 
         // gather final results
@@ -302,7 +304,7 @@ public class BeanTranslateService {
         }
         List<String> originalValues = map.get(field);
         if (!originalValues.isEmpty()) {
-            result.add(0, map); // return also original map if it's not empty
+            result.add(0, map); // return also original remaining values in map if it's not empty
         }
         return result;
     }
