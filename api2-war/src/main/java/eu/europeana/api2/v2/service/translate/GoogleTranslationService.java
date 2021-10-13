@@ -26,6 +26,8 @@ public class GoogleTranslationService implements TranslationService {
 
     @Value("${google.translate.projectId}")
     private String projectId;
+    @Value("${translation.enabled}")
+    private Boolean translationEnabled;
 
     private TranslationServiceClient client;
     private LocationName locationName;
@@ -35,29 +37,30 @@ public class GoogleTranslationService implements TranslationService {
      * to be closed when it's not used anymore
      * @throws IOException when there is a problem creating the client
      */
-    public GoogleTranslationService() throws IOException {
-        // gRPC doesn't like communication via the socks proxy (throws an error) and also doesn't support the
-        // socksNonProxyHosts settings, so this is to tell it to by-pass the configured proxy
-        TransportChannelProvider transportChannelProvider = CloudTasksStubSettings
-                .defaultGrpcTransportProviderBuilder()
-                .setChannelConfigurator(managedChannelBuilder -> managedChannelBuilder.proxyDetector(socketAddress -> null))
-                .build();
-        TranslationServiceSettings tss = TranslationServiceSettings.newBuilder()
-                .setTransportChannelProvider(transportChannelProvider).build();
-        this.client = TranslationServiceClient.create(tss);
-
-    }
-
     @PostConstruct
-    private void init() {
-        this.locationName = LocationName.of(this.projectId, "global");
-        LOG.info("GoogleTranslationService initialised, projectId = {}", projectId);
+    private void init() throws IOException {
+        if (translationEnabled) {
+            // gRPC doesn't like communication via the socks proxy (throws an error) and also doesn't support the
+            // socksNonProxyHosts settings, so this is to tell it to by-pass the configured proxy
+            TransportChannelProvider transportChannelProvider = CloudTasksStubSettings
+                    .defaultGrpcTransportProviderBuilder()
+                    .setChannelConfigurator(managedChannelBuilder -> managedChannelBuilder.proxyDetector(socketAddress -> null))
+                    .build();
+            TranslationServiceSettings tss = TranslationServiceSettings.newBuilder()
+                    .setTransportChannelProvider(transportChannelProvider).build();
+            this.client = TranslationServiceClient.create(tss);
+            this.locationName = LocationName.of(this.projectId, "global");
+            LOG.info("GoogleTranslationService initialised, projectId = {}", projectId);
+        } else{
+            LOG.info("GoogleTranslationService is disabled");
+        }
     }
 
     @PreDestroy
     @Override
     public void close() {
         if (this.client != null) {
+            LOG.info("Shutting down GoogleTranslationService client...");
             this.client.close();
         }
     }
