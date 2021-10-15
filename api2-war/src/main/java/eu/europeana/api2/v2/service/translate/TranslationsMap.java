@@ -2,6 +2,7 @@ package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
+import eu.europeana.api2.v2.model.translate.Language;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -77,7 +78,17 @@ public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMa
         long nrCharacters = 0;
         for (FieldValuesLanguageMap mapToTranslate : this.values()) {
             nrCharacters = nrCharacters + mapToTranslate.getNrCharacters();
-            translations.add(TranslationUtils.translate(translationService, mapToTranslate, targetLanguage));
+            // For non-language tagged language 'DEF', if original values are same as the translated values,
+            // do not add those translations. As the original value is already in the desired target language.
+            if (mapToTranslate.getSourceLanguage().equals(Language.DEF)) {
+                FieldValuesLanguageMap translatedDefMap = TranslationUtils.removeIfOriginalIsSameAsTranslated(
+                                             TranslationUtils.translate(translationService, mapToTranslate, targetLanguage), mapToTranslate);
+                if (translatedDefMap != null) {
+                    translations.add(translatedDefMap);
+                }
+            } else { // for other source languages, no checks
+                translations.add(TranslationUtils.translate(translationService, mapToTranslate, targetLanguage));
+            }
         }
         // Temp functionality (to remove later), for EA-2633 / 2661 we need to log the amount of characters that are sent for 1 record
         LOG.info("{}", nrCharacters);

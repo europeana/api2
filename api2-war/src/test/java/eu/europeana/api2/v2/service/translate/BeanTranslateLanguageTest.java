@@ -123,17 +123,18 @@ public class BeanTranslateLanguageTest {
         // dcType should be translated from English (test2 in getProxyFieldToTranslate())
         assertEquals(DC_TYPE, euProxy.getDcType().get(TARGET_LANG));
 
-        // dcDate, dcIdentifier and dcTitle should be translated from "def" language (test 3 in getProxyFieldToTranslate())
-        assertEquals(DC_DATE, euProxy.getDcDate().get(TARGET_LANG));
-        assertEquals(DC_IDENTIFIER, euProxy.getDcIdentifier().get(TARGET_LANG));
-        assertEquals(DC_TITLE, euProxy.getDcTitle().get(TARGET_LANG));
+        // dcIdentifier , dcDate and dcTitle should not be added in the euProxy, as the translated and original value of 'def' are same
+        assertNull(euProxy.getDcDate());
+        assertNull(euProxy.getDcIdentifier());
+        assertNull(euProxy.getDcTitle());
 
         // dcTerms should be translated from German (test4 in getProxyFieldToTranslate())
         assertEquals(DC_TERMS_ALTERNATIVE, euProxy.getDctermsAlternative().get(TARGET_LANG));
 
         // dcCreator has an uri that should be resolved by finding and translating the concept's preflabels (from norwegian)
-        List<String> dcCreatorExpected = new ArrayList<>(DC_CREATOR);
-        dcCreatorExpected.addAll(DC_CREATOR_ENTITY_PREFLABEL);
+        // other DC_CREATOR for def = ("Calamatta, Luigi (1801-1869)", "Leonardo da Vinci (1452-1519)", "graveur")
+        // will not be present, as the translated value and original values are same
+        List<String> dcCreatorExpected = new ArrayList<>(DC_CREATOR_ENTITY_PREFLABEL);
         assertEquals(dcCreatorExpected, euProxy.getDcCreator().get(TARGET_LANG));
         // Moreover in the europeanaProxy dcCreator already has values in "def" language, so these should still exists
         assertNotNull(euProxy.getDcCreator().get(SOURCE_LANG_DEF));
