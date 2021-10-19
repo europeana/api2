@@ -42,6 +42,8 @@ public class BeanTranslateLanguageTest {
     private static final String SOURCE_LANG_DE = "de";
     private static final String SOURCE_LANG_EN = "en";
     private static final String SOURCE_LANG_NO = "no"; // for 1 entity preflabel translation
+    private static final String SOURCE_LANG_IT = "it"; // for 1 concept preflabel translation
+
     private static final String TARGET_LANG = "nl";
 
     private static final List<String> DC_CREATOR = List.of("Calamatta, Luigi (1801-1869)", "Leonardo da Vinci (1452-1519)", "graveur");
@@ -50,25 +52,30 @@ public class BeanTranslateLanguageTest {
     private static final List<String> DC_TITLE = List.of("Mona Lisa");
     private static final List<String> DC_TYPE = List.of("grafiek");
     private static final List<String> DC_TERMS_ALTERNATIVE = List.of("Mona Lisa schilderij");
+    private static final List<String> DC_CREATOR_ENTITY_PREFLABEL_IT = List.of("kaart");
     private static final List<String> DC_RELATION = List.of("Europese musea", "Parijs");
     private static final List<String> DC_CREATOR_ENTITY_PREFLABEL = List.of("Landbouw");
     private static final List<String> DC_PUBLISHER = List.of("De dagelijkse bugel");
 
     // manually created using Google Translate
     private static final List<String> MOCK_TRANSLATION_FROM_DEF = new ArrayList<>() {{
-        addAll(DC_CREATOR);
         addAll(DC_DATE);
         addAll(DC_IDENTIFIER);
         addAll(DC_TITLE);
+    }};
+    private static final List<String> MOCK_TRANSLATION_FROM_IT = new ArrayList<>() {{
+        addAll(DC_CREATOR_ENTITY_PREFLABEL_IT);
     }};
     private static final List<String> MOCK_TRANSLATION_FROM_DE = new ArrayList<>() {{
         addAll(DC_TERMS_ALTERNATIVE);
     }};
     private static final List<String> MOCK_TRANSLATION_FROM_EN_NON_STATIC = new ArrayList<>() {{
+        addAll(DC_CREATOR);
         addAll(DC_RELATION);
         addAll(DC_TYPE);
     }};
     private static final List<String> MOCK_TRANSLATION_FROM_EN_STATIC = new ArrayList<>() {{
+        addAll(DC_CREATOR);
         addAll(DC_PUBLISHER);
         addAll(DC_RELATION);
         addAll(DC_TYPE);
@@ -86,6 +93,7 @@ public class BeanTranslateLanguageTest {
         // dcType is only available in English
         when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG_EN))).thenReturn(MOCK_TRANSLATION_FROM_EN_NON_STATIC);
         when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG_NO))).thenReturn(MOCK_TRANSLATION_FROM_NO);
+        when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG_IT))).thenReturn(MOCK_TRANSLATION_FROM_IT);
     }
 
     /**
@@ -131,9 +139,10 @@ public class BeanTranslateLanguageTest {
         // dcTerms should be translated from German (test4 in getProxyFieldToTranslate())
         assertEquals(DC_TERMS_ALTERNATIVE, euProxy.getDctermsAlternative().get(TARGET_LANG));
 
-        // dcCreator has an uri that should be resolved by finding and translating the concept's preflabels (from norwegian)
+        // dcCreator has two uri that should be resolved by finding and translating the concept's preflabels (from norwegian and italian)
         List<String> dcCreatorExpected = new ArrayList<>(DC_CREATOR);
         dcCreatorExpected.addAll(DC_CREATOR_ENTITY_PREFLABEL);
+        dcCreatorExpected.addAll(DC_CREATOR_ENTITY_PREFLABEL_IT);
         assertEquals(dcCreatorExpected, euProxy.getDcCreator().get(TARGET_LANG));
         // Moreover in the europeanaProxy dcCreator already has values in "def" language, so these should still exists
         assertNotNull(euProxy.getDcCreator().get(SOURCE_LANG_DEF));

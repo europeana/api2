@@ -98,11 +98,15 @@ public final class MockFullBean {
         proxy.setProxyFor(MockBeanConstants.ABOUT);
 
         proxy.setDcCreator(new HashMap<>());
+        proxy.getDcCreator().put(MockBeanConstants.EN, new ArrayList<>());
+        proxy.getDcCreator().get(MockBeanConstants.EN).add(MockBeanConstants.DC_CREATOR_1);
+        proxy.getDcCreator().get(MockBeanConstants.EN).add(MockBeanConstants.DC_CREATOR_2);
+        proxy.getDcCreator().get(MockBeanConstants.EN).add(MockBeanConstants.DC_CREATOR_3);
+
+        // keep uri's in def tag
         proxy.getDcCreator().put(MockBeanConstants.DEF, new ArrayList<>());
-        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_1);
-        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_2);
-        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_3);
         proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_4);
+        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_10);
 
         proxy.setDcDate(new HashMap<>());
         proxy.getDcDate().put(MockBeanConstants.DEF, new ArrayList<>());
@@ -381,6 +385,15 @@ public final class MockFullBean {
         concept.getNote().put(MockBeanConstants.DE, new ArrayList<>());
         concept.getNote().get(MockBeanConstants.DE).add(MockBeanConstants.CONCEPT_NOTE_2);
         concept.setAbout(MockBeanConstants.DC_CREATOR_4);
+
+        // another concept with about url matching dc_Creator in def tag for provider proxy
+        concept = new ConceptImpl();
+        concepts.add(concept);
+
+        concept.setPrefLabel(new HashMap<>());
+        concept.getPrefLabel().put(MockBeanConstants.IT, new ArrayList<>());
+        concept.getPrefLabel().get(MockBeanConstants.IT).add(MockBeanConstants.CONCEPT_PREF_LABEL_IT);
+        concept.setAbout(MockBeanConstants.DC_CREATOR_10);
 
         bean.setConcepts(concepts);
     }
