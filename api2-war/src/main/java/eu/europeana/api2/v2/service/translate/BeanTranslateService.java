@@ -8,6 +8,7 @@ import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
 import eu.europeana.corelib.solr.entity.ProxyImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
+import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -83,9 +84,9 @@ public class BeanTranslateService {
      * @param bean        the record to be modified
      * @param targetLangs the requested languages (only first language provided is used)
      * @return modified record
-     * @throws TranslationException when there is a problem sending/retrieving data from the translation service
+     * @throws EuropeanaException when there is a problem sending/retrieving data from the translation service
      */
-    public FullBean translateProxyFields(FullBean bean, List<Language> targetLangs) throws TranslationException, TranslationServiceLimitException {
+    public FullBean translateProxyFields(FullBean bean, List<Language> targetLangs) throws EuropeanaException {
         long startTime = System.currentTimeMillis();
         // For the time being we only translate into the first language in the list. Any other provided language in the
         // list is used for filtering only

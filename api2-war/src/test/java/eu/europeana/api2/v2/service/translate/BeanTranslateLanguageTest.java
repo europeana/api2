@@ -12,6 +12,7 @@ import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
 import eu.europeana.corelib.solr.entity.ProxyImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
+import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.Test;
@@ -102,8 +103,7 @@ public class BeanTranslateLanguageTest {
      * value should be removed)
      */
     @Test
-    public void testNoStaticTranslation() throws TranslationException, InvalidParamValueException,
-            JsonProcessingException, TranslationServiceLimitException {
+    public void testNoStaticTranslation() throws JsonProcessingException, EuropeanaException {
         FullBean bean = MockFullBean.mock();
         ObjectMapper mapper = new ObjectMapper();
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Original fullbean = {}",
@@ -123,7 +123,8 @@ public class BeanTranslateLanguageTest {
         // dcType should be translated from English (test2 in getProxyFieldToTranslate())
         assertEquals(DC_TYPE, euProxy.getDcType().get(TARGET_LANG));
 
-        // dcIdentifier , dcDate and dcTitle should not be added in the euProxy, as the translated and original value of 'def' are same
+        // dcIdentifier, dcDate and dcTitle should translated from "def" language (test 3 in getProxyFieldToTranslate())
+        // However those fields should not be added to the Europeana Proxy because the original and translated value are the same.
         assertNull(euProxy.getDcDate());
         assertNull(euProxy.getDcIdentifier());
         assertNull(euProxy.getDcTitle());
@@ -158,8 +159,7 @@ public class BeanTranslateLanguageTest {
     }
 
     @Test
-    public void testStaticTranslation() throws TranslationException, InvalidParamValueException,
-            JsonProcessingException, TranslationServiceLimitException {
+    public void testStaticTranslation() throws JsonProcessingException, EuropeanaException {
         FullBean bean = MockFullBean.mock();
         BeanTranslateService translateService = new BeanTranslateService(translationService);
 

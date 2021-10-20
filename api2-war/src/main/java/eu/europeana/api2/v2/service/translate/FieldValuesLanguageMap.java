@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.service.translate;
 
-import org.apache.commons.lang3.StringUtils;
+import eu.europeana.corelib.utils.ComparatorUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -132,7 +132,7 @@ public class FieldValuesLanguageMap extends LinkedHashMap<String, List<String>> 
         for (String value2 : values2) {
             boolean valuePresent = false;
             for (String value1 : values1) {
-                if (sameValue(value1, value2)) {
+                if (ComparatorUtils.sameValueWithoutSpace(value1, value2)) {
                     valuePresent = true;
                     break;
                 }
@@ -145,11 +145,6 @@ public class FieldValuesLanguageMap extends LinkedHashMap<String, List<String>> 
             }
         }
         return mergedValues;
-    }
-
-    private boolean sameValue(String value1, String value2) {
-        // TODO in the future we probably want a more fuzzy comparison, one that also takes into account very small variations
-        return StringUtils.equalsIgnoreCase(value1, value2);
     }
 
     @Nonnull
