@@ -144,7 +144,7 @@ public class BeanTranslateService {
             LOG.trace("Processing field {}, hasStaticTranslation {}...", field.getName(), hasStaticTranslation);
             List<FieldValuesLanguageMap> toTranslate = getProxyFieldToTranslate(proxies, field, hasStaticTranslation, targetLang);
 
-            if (toTranslate != null) {
+            if (!toTranslate.isEmpty()) {
                 for (FieldValuesLanguageMap map : toTranslate) {
                     result.addAll(checkValuesForUris(bean, map, hasStaticTranslation, targetLang));
                 }
@@ -179,14 +179,14 @@ public class BeanTranslateService {
     private List<FieldValuesLanguageMap> getProxyFieldToTranslate(List<Proxy> proxies, Field field, boolean hasStaticTranslations, String targetLang) {
         // 1. Check if we have targetLang value
         List<FieldValuesLanguageMap> result = getProxyValueForLang(proxies, field, targetLang, true);
-        if (result != null) {
+        if (!result.isEmpty()) {
             // check if def tag is found (uri values) and send that for translations alone.
             if (result.size() > 1 && result.get(1).getSourceLanguage().equals(Language.DEF)) {
                 LOG.debug("  Found uri value in def for {},translation needed", field.getName());
                 return Collections.singletonList(result.get(1));
             } else {
                 LOG.debug("  Found value with target language for {}, no translation needed", field.getName());
-                return null;
+                return Collections.emptyList();
             }
         }
 
@@ -194,17 +194,17 @@ public class BeanTranslateService {
         if (!Language.ENGLISH.equals(targetLang)) {
             result = getProxyValueForLang(proxies, field, Language.ENGLISH, true);
         }
-        if (result == null && !hasStaticTranslations) {
+        if (result.isEmpty() && !hasStaticTranslations) {
             // 3. Check if there is a default value
             result = getProxyValueForLang(proxies, field, Language.DEF, false);
-            if (result == null) {
+            if (result.isEmpty()) {
                 // 4. Pick any language
                 // TODO we could optimize later to use a language we already have for translation
                 result = getProxyValueForLang(proxies, field, null, false);
             }
         }
 
-        if (result == null) {
+        if (result.isEmpty()) {
             LOG.trace("  Found no values for field {}", field.getName());
         } else {
             LOG.debug("  Found value for field {} with {} language", field.getName(), result.get(0).getSourceLanguage());
@@ -218,7 +218,7 @@ public class BeanTranslateService {
      * Note that the returned translationMap contains data for only 1 field
      */
     private List<FieldValuesLanguageMap> getProxyValueForLang(List<Proxy> proxies, Field field, String lang, boolean checkForUriInDef) {
-        List<FieldValuesLanguageMap> result = null;
+        List<FieldValuesLanguageMap> result = new ArrayList<>();
         for (Proxy proxy : proxies) {
             ReflectionUtils.makeAccessible(field);
             Object value = ReflectionUtils.getField(field, proxy);
@@ -230,7 +230,7 @@ public class BeanTranslateService {
                 LOG.warn("Unexpected data - field {} did not return a map", field.getName());
             }
 
-            if (result != null) {
+            if (!result.isEmpty()) {
                 break;
             }
         }
@@ -248,21 +248,44 @@ public class BeanTranslateService {
                 }
             }
         } else if (lang != null && map.containsKey(lang)) {
-            FieldValuesLanguageMap valueMap = new FieldValuesLanguageMap(lang, fieldName, map.get(lang));
-            // if checkForUriInDef is true and map contains def tag, add all the uri's present in def
-            if (checkForUriInDef && map.containsKey(Language.DEF)) {
-                FieldValuesLanguageMap defMapWithUriValues = getUriValuesFromDef(map.get(Language.DEF), fieldName);
-                if (defMapWithUriValues != null) {
-                    LOG.debug("  Found uri for field {} in def tag for language {}", fieldName, lang);
-                    return Arrays.asList(valueMap, defMapWithUriValues);
-                }
-            }
-            // otherwise, return value for 1 particular language
-            return Collections.singletonList(valueMap);
+            return getValuesFromLanguageMap(map, fieldName, lang, checkForUriInDef);
         }
-        return null;
+        return Collections.emptyList();
     }
 
+    /**
+     * Returns the values for the language. Also checks if checkForUriInDef is true,
+     * adds the def values for translations (only if they are uri's).
+     * hence, the list of two FieldValuesLanguageMap are returned :
+     * one for language and one for def (if checkForUriInDef is true)
+     *
+     * Note: that the returned translationMap contains data for only 1 field
+     * @param map
+     * @param fieldName
+     * @param lang language for which value is fetched
+     * @param checkForUriInDef true, if we want to check the def values too
+     * @return
+     */
+    private List<FieldValuesLanguageMap> getValuesFromLanguageMap(Map<String, List<String>> map, String fieldName, String lang, boolean checkForUriInDef) {
+        FieldValuesLanguageMap valueMap = new FieldValuesLanguageMap(lang, fieldName, map.get(lang));
+        // if checkForUriInDef is true and map contains def tag, add all the uri's present in def
+        if (checkForUriInDef && map.containsKey(Language.DEF)) {
+            FieldValuesLanguageMap defMapWithUriValues = getUriValuesFromDef(map.get(Language.DEF), fieldName);
+            if (defMapWithUriValues != null) {
+                LOG.debug("  Found uri for field {} in def tag for language {}", fieldName, lang);
+                return Arrays.asList(valueMap, defMapWithUriValues);
+            }
+        }
+        // otherwise, return value for 1 particular language
+        return Collections.singletonList(valueMap);
+    }
+
+    /**
+     * Returns the uri values from def
+     * @param valuesToCheck list of values for def
+     * @param fieldName
+     * @return
+     */
     private FieldValuesLanguageMap getUriValuesFromDef(List<String> valuesToCheck, String fieldName) {
         List<String> valuesToTranslate = new ArrayList<>();
         for (String value : valuesToCheck) {
@@ -379,7 +402,7 @@ public class BeanTranslateService {
 
         // 1. Check if we have targetLang value
         List<FieldValuesLanguageMap> result = getValueFromLanguageMap(prefLabels, entity.getAbout(), targetLang, false);
-        if (result != null) {
+        if (!result.isEmpty()) {
             LOG.debug("  Found prefLabel with target language for {}, no translation needed", entity.getAbout());
             return null;
         }
@@ -388,10 +411,10 @@ public class BeanTranslateService {
         if (!Language.ENGLISH.equals(targetLang)) {
             result = getValueFromLanguageMap(prefLabels, entity.getAbout(), Language.ENGLISH, false);
         }
-        if (result == null) {
+        if (result.isEmpty()) {
             // 3. Check if there is a default value
             result = getValueFromLanguageMap(prefLabels, entity.getAbout(), Language.DEF, false);
-            if (result == null) {
+            if (result.isEmpty()) {
                 // 4. Pick any language
                 // TODO we could optimize later to use a language we already have for translation
                 result = getValueFromLanguageMap(prefLabels, entity.getAbout(), null, false);
@@ -400,7 +423,7 @@ public class BeanTranslateService {
 
         // TODO should we check if preflabel values are uri!? If we do that we could get into an infinite loop!
 
-        if (result == null) {
+        if (result.isEmpty()) {
             LOG.debug("  Found no preflabels for {}", entity.getAbout());
         } else {
             // as checkForUriInDef is false, result will only contain one value.
