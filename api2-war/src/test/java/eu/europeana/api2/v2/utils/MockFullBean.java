@@ -99,12 +99,12 @@ public final class MockFullBean {
 
         proxy.setDcCreator(new HashMap<>());
         proxy.getDcCreator().put(MockBeanConstants.EN, new ArrayList<>());
-        proxy.getDcCreator().get(MockBeanConstants.EN).add(MockBeanConstants.DC_CREATOR_1);
         proxy.getDcCreator().get(MockBeanConstants.EN).add(MockBeanConstants.DC_CREATOR_2);
         proxy.getDcCreator().get(MockBeanConstants.EN).add(MockBeanConstants.DC_CREATOR_3);
 
-        // keep uri's in def tag
+        // keep uri's in def tag and one non-uri value (whose translation remains same)
         proxy.getDcCreator().put(MockBeanConstants.DEF, new ArrayList<>());
+        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_1);
         proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_4);
         proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_10);
 

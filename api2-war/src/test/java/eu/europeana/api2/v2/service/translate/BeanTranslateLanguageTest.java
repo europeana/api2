@@ -47,7 +47,7 @@ public class BeanTranslateLanguageTest {
 
     private static final String TARGET_LANG = "nl";
 
-    private static final List<String> DC_CREATOR = List.of("Calamatta, Luigi (1801-1869)", "Leonardo da Vinci (1452-1519)", "graveur");
+    private static final List<String> DC_CREATOR = List.of("Leonardo da Vinci (1452-1519)", "graveur");
     private static final List<String> DC_DATE = List.of("1821-1869");
     private static final List<String> DC_IDENTIFIER = List.of("TvB G 3674");
     private static final List<String> DC_TITLE = List.of("Mona Lisa");
@@ -140,7 +140,8 @@ public class BeanTranslateLanguageTest {
         // dcTerms should be translated from German (test4 in getProxyFieldToTranslate())
         assertEquals(DC_TERMS_ALTERNATIVE, euProxy.getDctermsAlternative().get(TARGET_LANG));
 
-        // dcCreator has two uri that should be resolved by finding and translating the concept's preflabels (from norwegian and italian)
+        // dcCreator in def has two uri that should be resolved by finding and translating the concept's preflabels (from norwegian and italian)
+        // also has a non-uri value 'Calamatta, Luigi (1801-1869)' ,but  it's same after translations so will not be present
         List<String> dcCreatorExpected = new ArrayList<>(DC_CREATOR);
         dcCreatorExpected.addAll(DC_CREATOR_ENTITY_PREFLABEL);
         dcCreatorExpected.addAll(DC_CREATOR_ENTITY_PREFLABEL_IT);
