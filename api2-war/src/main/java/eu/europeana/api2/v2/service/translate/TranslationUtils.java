@@ -4,6 +4,7 @@ import com.google.api.gax.rpc.ResourceExhaustedException;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
+import eu.europeana.corelib.utils.ComparatorUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -86,4 +87,33 @@ public final class TranslationUtils {
         return result;
     }
 
+    /**
+     * Removes the values from the translated Map,
+     * If values in original map are equal to the values in translated map
+     * NOTE : Comparison is made for each value ignoring spaces and case.
+     *        Values which actually are changed or translated are finally added in the map.
+     *
+     * @param translatedMap map containing the fields and translated values
+     * @param mapToTranslate map containing the fields and original values to be translated
+     * @Returns map containing fields and actual-translated values
+     */
+    public static FieldValuesLanguageMap removeIfOriginalIsSameAsTranslated(FieldValuesLanguageMap translatedMap, FieldValuesLanguageMap mapToTranslate) {
+        Map<String , List<String>> actualTranslationMap = new HashMap<>();
+        for (Map.Entry<String, List<String>> translated : translatedMap.entrySet()) {
+            List<String> actualTranslatedValues = new ArrayList<>();
+            // we have already performed the sanity check in translate() method. So the list size will be equal here
+            for(int i = 0; i < translated.getValue().size(); i++) {
+               if (!ComparatorUtils.sameValueWithoutSpace(mapToTranslate.get(translated.getKey()).get(i), translated.getValue().get(i))) {
+                   actualTranslatedValues.add(translated.getValue().get(i));
+               }
+            }
+            if (!actualTranslatedValues.isEmpty()) {
+                actualTranslationMap.put(translated.getKey(), actualTranslatedValues);
+            }
+        }
+        if (!actualTranslationMap.isEmpty()) {
+            return new FieldValuesLanguageMap(translatedMap.getSourceLanguage(), actualTranslationMap);
+        }
+        return null;
+    }
 }
