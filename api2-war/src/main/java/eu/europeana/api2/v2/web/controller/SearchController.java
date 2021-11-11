@@ -214,15 +214,18 @@ public class SearchController {
         if (StringUtils.isBlank(queryString)) {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
-        // validate target language (if present)
-        if (queryTargetLang != null) {
-            Language.validateSingle(queryTargetLang);
-        }
-        if (querySourceLang != null) {
-            Language.validateSingle(querySourceLang);
-            // if a source language is provided, then we must also have a target language
-            if (queryTargetLang == null) {
-                throw new MissingParamException("Parameter q.target is required when q.source is specified");
+
+        if (isTranslationEnabled) {
+            // validate target language (if present)
+            if (queryTargetLang != null) {
+                Language.validateSingle(queryTargetLang);
+            }
+            if (querySourceLang != null) {
+                Language.validateSingle(querySourceLang);
+                // if a source language is provided, then we must also have a target language
+                if (queryTargetLang == null) {
+                    throw new MissingParamException("Parameter q.target is required when q.source is specified");
+                }
             }
         }
 
@@ -233,14 +236,12 @@ public class SearchController {
         queryString = queryString.replace(":https://", ":http://");
         LOG.debug("ORIGINAL QUERY: |{}|", queryString);
 
-        // TODO May 2021 This is temporary code to test a query translation technique with Google Translate
-        if (queryTargetLang != null) {
-            if (isTranslationEnabled) {
-                queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
-                LOG.debug("TRANSLATED QUERY: |{}|", queryString);
-            }  else {
-                throw new TranslationServiceDisabledException();
-            }
+        // Note that unlike record translation we do not throw an error when Google Translate is disabled
+        // This is because Europeana website will always send q.target and q.source parameters for people that selected
+        // a language other than English
+        if (isTranslationEnabled && queryTargetLang != null) {
+            queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
+            LOG.debug("TRANSLATED QUERY: |{}|", queryString);
         }
 
         if ((cursorMark != null) && (start > 1)) {
