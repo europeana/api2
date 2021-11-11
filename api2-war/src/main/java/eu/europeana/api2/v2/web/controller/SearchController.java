@@ -123,7 +123,10 @@ public class SearchController {
     private String hlMaxAnalyzedChars;
 
     @Value("${translation.enabled:false}")
-    private boolean isTranslationEnabled;
+    private boolean isTranslationEnabled; // global flag that enables/disabled Google Translate
+    @Value("${translation.query.enabled:false}")
+    private boolean isQueryTranslationEnabled; // feature flag to enable/disable query translate
+
 
     private RouteDataService routeService;
     private MultilingualQueryGenerator queryGenerator;
@@ -215,7 +218,7 @@ public class SearchController {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
 
-        if (isTranslationEnabled) {
+        if (isQueryTranslationEnabled) {
             // validate target language (if present)
             if (queryTargetLang != null) {
                 Language.validateSingle(queryTargetLang);
@@ -236,12 +239,13 @@ public class SearchController {
         queryString = queryString.replace(":https://", ":http://");
         LOG.debug("ORIGINAL QUERY: |{}|", queryString);
 
-        // Note that unlike record translation we do not throw an error when Google Translate is disabled
-        // This is because Europeana website will always send q.target and q.source parameters for people that selected
-        // a language other than English
-        if (isTranslationEnabled && queryTargetLang != null) {
-            queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
-            LOG.debug("TRANSLATED QUERY: |{}|", queryString);
+        if (isQueryTranslationEnabled && queryTargetLang != null) {
+            if (isTranslationEnabled) {
+                queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
+                LOG.debug("TRANSLATED QUERY: |{}|", queryString);
+            }  else {
+                throw new TranslationServiceDisabledException();
+            }
         }
 
         if ((cursorMark != null) && (start > 1)) {
