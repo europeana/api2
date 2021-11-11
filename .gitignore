@@ -12,7 +12,7 @@
 
 # Local user-specific configuration
 **/europeana.user.properties
-**/google_cloud_credentials.json
+**/google_cloud_credentials*.json
 
 # docker stuff
 docker/docker-compose.yml
