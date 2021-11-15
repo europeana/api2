@@ -123,7 +123,10 @@ public class SearchController {
     private String hlMaxAnalyzedChars;
 
     @Value("${translation.enabled:false}")
-    private boolean isTranslationEnabled;
+    private boolean isTranslationEnabled; // global flag that enables/disabled Google Translate
+    @Value("${translation.query.enabled:false}")
+    private boolean isQueryTranslationEnabled; // feature flag to enable/disable query translate
+
 
     private RouteDataService routeService;
     private MultilingualQueryGenerator queryGenerator;
@@ -214,15 +217,18 @@ public class SearchController {
         if (StringUtils.isBlank(queryString)) {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
-        // validate target language (if present)
-        if (queryTargetLang != null) {
-            Language.validateSingle(queryTargetLang);
-        }
-        if (querySourceLang != null) {
-            Language.validateSingle(querySourceLang);
-            // if a source language is provided, then we must also have a target language
-            if (queryTargetLang == null) {
-                throw new MissingParamException("Parameter q.target is required when q.source is specified");
+
+        if (isQueryTranslationEnabled) {
+            // validate target language (if present)
+            if (queryTargetLang != null) {
+                Language.validateSingle(queryTargetLang);
+            }
+            if (querySourceLang != null) {
+                Language.validateSingle(querySourceLang);
+                // if a source language is provided, then we must also have a target language
+                if (queryTargetLang == null) {
+                    throw new MissingParamException("Parameter q.target is required when q.source is specified");
+                }
             }
         }
 
@@ -233,8 +239,7 @@ public class SearchController {
         queryString = queryString.replace(":https://", ":http://");
         LOG.debug("ORIGINAL QUERY: |{}|", queryString);
 
-        // TODO May 2021 This is temporary code to test a query translation technique with Google Translate
-        if (queryTargetLang != null) {
+        if (isQueryTranslationEnabled && queryTargetLang != null) {
             if (isTranslationEnabled) {
                 queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
                 LOG.debug("TRANSLATED QUERY: |{}|", queryString);
