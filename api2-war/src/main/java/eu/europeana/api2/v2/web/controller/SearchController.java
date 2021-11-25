@@ -222,34 +222,37 @@ public class SearchController {
         // only handle q.source and q.target params if translate profile is active
         boolean isTranslateProfileActive = StringUtils.containsIgnoreCase(profile, TRANSLATE);
 
-        if (isQueryTranslationEnabled && isTranslateProfileActive) {
-            // validate target language (if present)
-            if (queryTargetLang != null) {
-                Language.validateSingle(queryTargetLang);
-            }
-            if (querySourceLang != null) {
-                Language.validateSingle(querySourceLang);
-                // if a source language is provided, then we must also have a target language
-                if (queryTargetLang == null) {
-                    throw new MissingParamException("Parameter q.target is required when q.source is specified");
-                }
-            }
+        // fail fast if user is requesting a translation when not enabled on service
+        if(isTranslateProfileActive && (!isTranslationEnabled || !isQueryTranslationEnabled)){
+            throw new TranslationServiceDisabledException();
         }
 
         queryString = queryString.trim();
         queryString = fixCountryCapitalization(queryString);
 
+
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
         LOG.debug("ORIGINAL QUERY: |{}|", queryString);
 
-        if (isQueryTranslationEnabled && isTranslateProfileActive && queryTargetLang != null) {
-            if (isTranslationEnabled) {
-                queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
-                LOG.debug("TRANSLATED QUERY: |{}|", queryString);
-            }  else {
-                throw new TranslationServiceDisabledException();
+        if (isTranslateProfileActive) {
+            // validate target language (if present)
+            if (queryTargetLang != null) {
+                Language.validateSingle(queryTargetLang);
             }
+
+            if (querySourceLang != null) {
+                Language.validateSingle(querySourceLang);
+                // if a source language is provided, then we must also have a target language
+                if (queryTargetLang == null) {
+                    throw new MissingParamException(
+                        "Parameter q.target is required when q.source is specified");
+                }
+            }
+
+            queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
+                querySourceLang);
+            LOG.debug("TRANSLATED QUERY: |{}|", queryString);
         }
 
         if ((cursorMark != null) && (start > 1)) {
