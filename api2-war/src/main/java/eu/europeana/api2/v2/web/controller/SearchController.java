@@ -93,6 +93,7 @@ public class SearchController {
 
     private static final String PORTAL                    = "portal";
     private static final String FACETS                    = "facets";
+    private static final String TRANSLATE                 = "translate";
     private static final String DEBUG                     = "debug";
     private static final String SPELLING                  = "spelling"; // @Deprecated(since = "May 2021")
     private static final String BREADCRUMB                = "breadcrumb"; // @Deprecated(since = "May 2021")
@@ -218,7 +219,10 @@ public class SearchController {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
 
-        if (isQueryTranslationEnabled) {
+        // only handle q.source and q.target params if translate profile is active
+        boolean isTranslateProfileActive = StringUtils.containsIgnoreCase(profile, TRANSLATE);
+
+        if (isQueryTranslationEnabled && isTranslateProfileActive) {
             // validate target language (if present)
             if (queryTargetLang != null) {
                 Language.validateSingle(queryTargetLang);
@@ -239,7 +243,7 @@ public class SearchController {
         queryString = queryString.replace(":https://", ":http://");
         LOG.debug("ORIGINAL QUERY: |{}|", queryString);
 
-        if (isQueryTranslationEnabled && queryTargetLang != null) {
+        if (isQueryTranslationEnabled && isTranslateProfileActive && queryTargetLang != null) {
             if (isTranslationEnabled) {
                 queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
                 LOG.debug("TRANSLATED QUERY: |{}|", queryString);
