@@ -93,6 +93,7 @@ public class SearchController {
 
     private static final String PORTAL                    = "portal";
     private static final String FACETS                    = "facets";
+    private static final String TRANSLATE                 = "translate";
     private static final String DEBUG                     = "debug";
     private static final String SPELLING                  = "spelling"; // @Deprecated(since = "May 2021")
     private static final String BREADCRUMB                = "breadcrumb"; // @Deprecated(since = "May 2021")
@@ -218,34 +219,40 @@ public class SearchController {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
 
-        if (isQueryTranslationEnabled) {
-            // validate target language (if present)
-            if (queryTargetLang != null) {
-                Language.validateSingle(queryTargetLang);
-            }
-            if (querySourceLang != null) {
-                Language.validateSingle(querySourceLang);
-                // if a source language is provided, then we must also have a target language
-                if (queryTargetLang == null) {
-                    throw new MissingParamException("Parameter q.target is required when q.source is specified");
-                }
-            }
+        // only handle q.source and q.target params if translate profile is active
+        boolean isTranslateProfileActive = StringUtils.containsIgnoreCase(profile, TRANSLATE);
+
+        // fail fast if user is requesting a translation when not enabled on service
+        if(isTranslateProfileActive && (!isTranslationEnabled || !isQueryTranslationEnabled)){
+            throw new TranslationServiceDisabledException();
         }
 
         queryString = queryString.trim();
         queryString = fixCountryCapitalization(queryString);
 
+
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
         LOG.debug("ORIGINAL QUERY: |{}|", queryString);
 
-        if (isQueryTranslationEnabled && queryTargetLang != null) {
-            if (isTranslationEnabled) {
-                queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang, querySourceLang);
-                LOG.debug("TRANSLATED QUERY: |{}|", queryString);
-            }  else {
-                throw new TranslationServiceDisabledException();
+        if (isTranslateProfileActive) {
+            // validate target language (if present)
+            if (queryTargetLang != null) {
+                Language.validateSingle(queryTargetLang);
             }
+
+            if (querySourceLang != null) {
+                Language.validateSingle(querySourceLang);
+                // if a source language is provided, then we must also have a target language
+                if (queryTargetLang == null) {
+                    throw new MissingParamException(
+                        "Parameter q.target is required when q.source is specified");
+                }
+            }
+
+            queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
+                querySourceLang);
+            LOG.debug("TRANSLATED QUERY: |{}|", queryString);
         }
 
         if ((cursorMark != null) && (start > 1)) {
