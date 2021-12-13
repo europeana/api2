@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -33,7 +34,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <corelib.version>2.15.1</corelib.version>
+        <corelib.version>2.15.3-SNAPSHOT</corelib.version>
         <metis.version>5</metis.version>
 
         <httpclient.version>4.5.2</httpclient.version>
@@ -44,6 +45,7 @@
         <servletJstl.version>1.2</servletJstl.version>
         <swagger.version>2.9.2</swagger.version>
         <apicommons.version>0.3.9</apicommons.version>
+        <log4j.version>2.15.0</log4j.version>
 
         <!-- Note that SpringBoot and SpringCore are also dependencies in Corelib
              so versions have to match -->
