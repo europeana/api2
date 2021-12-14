@@ -45,7 +45,7 @@
         <servletJstl.version>1.2</servletJstl.version>
         <swagger.version>2.9.2</swagger.version>
         <apicommons.version>0.3.9</apicommons.version>
-        <log4j.version>2.15.0</log4j.version>
+        <log4j2.version>2.16.0</log4j2.version>
 
         <!-- Note that SpringBoot and SpringCore are also dependencies in Corelib
              so versions have to match -->
