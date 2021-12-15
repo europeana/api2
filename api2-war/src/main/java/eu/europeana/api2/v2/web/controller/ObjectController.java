@@ -23,7 +23,6 @@ import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
-import eu.europeana.corelib.record.config.RecordServerConfig;
 import eu.europeana.corelib.record.schemaorg.utils.SchemaOrgUtils;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
@@ -39,11 +38,8 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.JsonLDWriteContext;
-import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
-import org.apache.jena.riot.WriterDatasetRIOT;
-import org.apache.jena.riot.system.PrefixMap;
-import org.apache.jena.riot.system.RiotLib;
+import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,6 +61,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
@@ -486,16 +483,15 @@ public class ObjectController {
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
-        try (InputStream rdfInput = IOUtils.toInputStream(rdf);
-              OutputStream outputStream = new ByteArrayOutputStream()) {
+        try (InputStream rdfInput = IOUtils.toInputStream(rdf, StandardCharsets.UTF_8);
+             OutputStream outputStream = new ByteArrayOutputStream()) {
                  RiotRdfUtils.disableErrorForSpaceURI();
                  Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
                  DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
-                 PrefixMap pm = RiotLib.prefixMap(graph);
                  JsonLDWriteContext ctx = new JsonLDWriteContext();
                  ctx.setJsonLDContext(ObjectController.jsonldContext);
-                 WriterDatasetRIOT writer = RDFDataMgr.createDatasetWriter(RDFFormat.JSONLD_FLAT);
-                 writer.write(outputStream, graph, pm, null, ctx);
+                 RDFWriter writer = RDFWriter.create().source(graph).format(RDFFormat.JSONLD_FLAT).context(ctx).build();
+                 writer.output(outputStream);
                  return JsonUtils.toJsonLd(outputStream.toString(), data.callback);
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);

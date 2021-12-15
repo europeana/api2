@@ -65,6 +65,11 @@
             <artifactId>log4j-core</artifactId>
             <version>${log4j2.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
 
         <!-- facet library from Metis -->
         <dependency>
@@ -95,45 +100,6 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${httpclient.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.ws</groupId>
-            <artifactId>spring-ws-core</artifactId>
-            <version>${springWebService.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-beans</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context-support</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-oxm</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-web</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.ws</groupId>
-                    <artifactId>spring-xml</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -209,11 +175,24 @@
             </exclusions>
         </dependency>
 
+        <!-- To import RiotRdfUtils.class -->
         <dependency>
             <groupId>eu.europeana.api.commons</groupId>
             <artifactId>commons-web</artifactId>
             <version>${apicommons.version}</version>
             <exclusions>
+                <exclusion>
+                    <artifactId>commons-oauth</artifactId>
+                    <groupId>eu.europeana.api.commons</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-net</artifactId>
+                    <groupId>eu.europeana.api.commons</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-definitions</artifactId>
+                    <groupId>eu.europeana.api.commons</groupId>
+                </exclusion>
                 <!-- mongo dependency clashes with Corelib's-->
                 <exclusion>
                     <groupId>org.mongodb</groupId>

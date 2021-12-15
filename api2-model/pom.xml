@@ -34,6 +34,18 @@
             <artifactId>corelib-storage</artifactId>
             <version>${corelib.version}</version>
         </dependency>
+        <!-- Tmp to override the version set in Corelib storage -->
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-solrj</artifactId>
+            <version>8.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>8.11.0</version>
+        </dependency>
+
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
             <artifactId>corelib-schemaorg</artifactId>
