@@ -42,7 +42,7 @@
         <jodatime.version>2.9.2</jodatime.version>
         <servletJstl.version>1.2</servletJstl.version>
         <swagger.version>2.9.2</swagger.version>
-        <log4j2.version>2.17.0</log4j2.version>
+        <log4j2.version>2.17.1</log4j2.version>
         <junit.version>4.12</junit.version>
         <mockito.version>1.10.19</mockito.version>
 
