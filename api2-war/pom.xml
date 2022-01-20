@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.europeana</groupId>
         <artifactId>api2</artifactId>
-        <version>2.13.3-SNAPSHOT</version>
+        <version>2.15.3-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -17,12 +17,26 @@
     <url>http://www.europeana.eu</url>
     <organization><name>Europeana Foundation</name></organization>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>libraries-bom</artifactId>
+                <version>20.4.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>eu.europeana.api2</groupId>
             <artifactId>api2-model</artifactId>
-            <version>2.13.3-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
+
+
         <!-- CORELIB -->
         <dependency>
             <groupId>eu.europeana.corelib</groupId>
@@ -45,11 +59,39 @@
             <version>${corelib.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
+
         <!-- facet library from Metis -->
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-indexing</artifactId>
             <version>${metis.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Query translation -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-translate</artifactId>
+        </dependency>
+        <!-- Configure gRPC to by-pass socks proxy -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-tasks</artifactId>
         </dependency>
 
         <!-- OTHER -->
@@ -57,45 +99,6 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${httpclient.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.ws</groupId>
-            <artifactId>spring-ws-core</artifactId>
-            <version>${springWebService.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-beans</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context-support</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-oxm</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-web</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.ws</groupId>
-                    <artifactId>spring-xml</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -171,11 +174,24 @@
             </exclusions>
         </dependency>
 
+        <!-- To import RiotRdfUtils.class -->
         <dependency>
             <groupId>eu.europeana.api.commons</groupId>
             <artifactId>commons-web</artifactId>
             <version>${apicommons.version}</version>
             <exclusions>
+                <exclusion>
+                    <artifactId>commons-oauth</artifactId>
+                    <groupId>eu.europeana.api.commons</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-net</artifactId>
+                    <groupId>eu.europeana.api.commons</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>commons-definitions</artifactId>
+                    <groupId>eu.europeana.api.commons</groupId>
+                </exclusion>
                 <!-- mongo dependency clashes with Corelib's-->
                 <exclusion>
                     <groupId>org.mongodb</groupId>

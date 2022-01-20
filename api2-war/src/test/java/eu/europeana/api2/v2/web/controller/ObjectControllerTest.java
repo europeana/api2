@@ -1,9 +1,10 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api2.v2.service.RouteDataService;
+import eu.europeana.api2.v2.service.translate.BeanTranslateService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.corelib.record.RecordService;
-import eu.europeana.corelib.record.config.RecordServerConfig;
 import org.junit.Before;
 
 import static org.mockito.Mockito.*;
@@ -20,22 +21,25 @@ public class ObjectControllerTest {
     private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
 
     private static ObjectController objectController;
+    private static RouteDataService routeDataService;
     private static RecordService recordService;
+    private static BeanTranslateService tfService;
     private static ApiKeyUtils apiKeyUtils;
     private static HttpCacheUtils httpCacheUtils;
 
     private static MockMvc objectControllerMock;
-    private RecordServerConfig recordServerConfig;
+
 
     @Before
-    public void setup() throws Exception {
-
+    public void setup() {
+        routeDataService = mock(RouteDataService.class);
         recordService = mock(RecordService.class);
         apiKeyUtils = mock(ApiKeyUtils.class);
+        tfService = mock(BeanTranslateService.class);
         httpCacheUtils = mock(HttpCacheUtils.class);
-        recordServerConfig = mock(RecordServerConfig.class);
 
-        objectController = spy(new ObjectController(recordService, apiKeyUtils, httpCacheUtils,recordServerConfig));
+
+        objectController = spy(new ObjectController(routeDataService, recordService, tfService, apiKeyUtils, httpCacheUtils));
 
         objectControllerMock = MockMvcBuilders
                 .standaloneSetup(objectController)

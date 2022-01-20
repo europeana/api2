@@ -20,6 +20,7 @@ public class RichView extends ApiView implements RichBean {
     private String[] edmLandingPage;
     private Map<String, List<String>> dcSubjectLangAware;
     private Map<String, List<String>> dcTypeLangAware;
+    private String[] organizations;
 
     // temporary added for debugging purposes (see EA-1395)
     private List<Map<String, String>> fulltext;
@@ -30,6 +31,7 @@ public class RichView extends ApiView implements RichBean {
         super(bean, profile, wskey, requestRoute);
         isShownBy = bean.getEdmIsShownBy();
         edmLandingPage = bean.getEdmLandingPage();
+        organizations = bean.getOrganizations();
         dcTypeLangAware = bean.getDcTypeLangAware();
         dcSubjectLangAware = bean.getDcSubjectLangAware();
 
@@ -70,6 +72,11 @@ public class RichView extends ApiView implements RichBean {
     }
 
     @Override
+    public String[] getOrganizations() {
+        return organizations;
+    }
+
+    @Override
     // temporary added for debugging purposes (see EA-1395)
     public List<Map<String, String>> getFulltext() {
         return fulltext;
@@ -80,4 +87,5 @@ public class RichView extends ApiView implements RichBean {
     public Map<String, List<String>> getFulltextLangAware() {
         return fulltextLangAware;
     }
+
 }

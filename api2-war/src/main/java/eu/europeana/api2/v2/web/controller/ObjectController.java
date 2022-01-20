@@ -1,26 +1,29 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api.commons.utils.RiotRdfUtils;
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
-import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
 import eu.europeana.api2.v2.model.RecordType;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
+import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.service.RouteDataService;
+import eu.europeana.api2.v2.service.translate.BeanFilterLanguage;
+import eu.europeana.api2.v2.service.translate.BeanTranslateService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
-import eu.europeana.corelib.edm.utils.SchemaOrgUtils;
 import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.RecordService;
-import eu.europeana.corelib.record.config.RecordServerConfig;
+import eu.europeana.corelib.record.schemaorg.utils.SchemaOrgUtils;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
@@ -35,15 +38,14 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.JsonLDWriteContext;
-import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
-import org.apache.jena.riot.WriterDatasetRIOT;
-import org.apache.jena.riot.system.PrefixMap;
-import org.apache.jena.riot.system.RiotLib;
+import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,17 +55,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
@@ -82,6 +81,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
         "/record",
 })
 @SwaggerSelect
+@Import(BeanTranslateService.class) // to enable title and description translation
 public class ObjectController {
 
     private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
@@ -90,19 +90,17 @@ public class ObjectController {
     private static final String MEDIA_TYPE_TURTLE_TEXT  = "text/turtle";
     private static final String MEDIA_TYPE_TURTLE       = "application/turtle";
     private static final String MEDIA_TYPE_TURTLE_X     = "application/x-turtle";
-    public static final String PROFILE_SCHEMAORG     = "schemaOrg";
 
     private static Object       jsonldContext           = new Object();
 
-    private RecordService  recordService;
-    private ApiKeyUtils    apiKeyUtils;
-    private HttpCacheUtils httpCacheUtils;
+    private RouteDataService        routeService;
+    private RecordService           recordService;
+    private BeanTranslateService translateFilterService;
+    private ApiKeyUtils             apiKeyUtils;
+    private HttpCacheUtils          httpCacheUtils;
 
-    @Resource
-    private Api2UrlService urlService;
-
-    @Autowired
-    private RouteDataService routeService;
+    @Value("${translation.enabled:false}")
+    private boolean isTranslationEnabled;
 
     /**
      * Create a static Object for JSONLD Context. This will read the file once during initialization
@@ -110,7 +108,6 @@ public class ObjectController {
      * @param jsonldContext
      * @throws IOException
      */
-
     static {
         try {
             InputStream in = ObjectController.class.getResourceAsStream("/jsonld/context.jsonld");
@@ -122,16 +119,20 @@ public class ObjectController {
 
     /**
      * Create a new ObjectController
-     *  @param recordService
-     * @param apiKeyUtils
-     * @param httpCacheUtils
-     * @param recordServerConfig
+     * @param routeService for
+     * @param recordService for retrieving data from Mongo
+     * @param tfService for translating data
+     * @param apiKeyUtils for api key validation
+     * @param httpCacheUtils for request caching
      */
     @Autowired
-    public ObjectController(RecordService recordService, ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils, RecordServerConfig recordServerConfig) {
+    public ObjectController(RouteDataService routeService, RecordService recordService, BeanTranslateService tfService,
+                            ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
         this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;
         this.httpCacheUtils = httpCacheUtils;
+        this.routeService = routeService;
+        this.translateFilterService = tfService;
     }
 
     /**
@@ -140,7 +141,8 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param apikey         formerly known as 'wskey'
-     * @param profile        supported types are 'params' and 'similar'
+     * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
+     * @param lang           language in which record data should be displayed
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
@@ -151,12 +153,13 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ModelAndView record(@PathVariable String collectionId,
                                @PathVariable String recordId,
-                               @RequestParam(value = "profile", required = false, defaultValue = "full") String profile,
                                @RequestParam(value = "wskey") String apikey,
+                               @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
+                               @RequestParam(value = "lang", required = false) String lang,
                                @RequestParam(value = "callback", required = false) String callback,
                                @ApiIgnore HttpServletRequest request,
                                @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, profile, callback, request);
+        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSON, data, response);
     }
 
@@ -177,6 +180,8 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param apikey         formerly known as 'wskey'
+     * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
+     * @param lang           language in which record data should be displayed
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
@@ -185,13 +190,15 @@ public class ObjectController {
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @SwaggerIgnore
     @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = { MEDIA_TYPE_JSONLD_UTF8, MediaType.APPLICATION_JSON_UTF8_VALUE })
-    public ModelAndView recordJSON_LD(@PathVariable String collectionId,
+    public ModelAndView recordJSONLD2(@PathVariable String collectionId,
                                       @PathVariable String recordId,
                                       @RequestParam(value = "wskey") String apikey,
+                                      @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
+                                      @RequestParam(value = "lang", required = false) String lang,
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @ApiIgnore HttpServletRequest request,
                                       @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        return recordJSONLD(collectionId, recordId, apikey, callback, request, response);
+        return recordJSONLD(collectionId, recordId, apikey, profile, lang, callback, request, response);
     }
 
     /***
@@ -199,6 +206,8 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param apikey         formerly known as 'wskey'
+     * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
+     * @param lang           language in which record data should be displayed
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
@@ -210,10 +219,12 @@ public class ObjectController {
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "wskey") String apikey,
+                                     @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
+                                     @RequestParam(value = "lang", required = false) String lang,
                                      @RequestParam(value = "callback", required = false) String callback,
                                      @ApiIgnore HttpServletRequest request,
                                      @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, null, callback, request);
+        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
     }
 
@@ -222,6 +233,8 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param apikey         formerly known as 'wskey'
+     * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
+     * @param lang           language in which record data should be displayed
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
@@ -233,10 +246,12 @@ public class ObjectController {
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "wskey", required = true) String apikey,
+                                        @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
+                                        @RequestParam(value = "lang", required = false) String lang,
                                         @RequestParam(value = "callback", required = false) String callback,
                                         @ApiIgnore HttpServletRequest request,
                                         @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, null, callback, request);
+        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
     }
 
@@ -246,6 +261,8 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param apikey         formerly known as 'wskey'
+     * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
+     * @param lang           language in which record data should be displayed
      * @param request        incoming request
      * @param response       generated response
      * @return
@@ -256,9 +273,11 @@ public class ObjectController {
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "wskey") String apikey,
+                                  @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
+                                  @RequestParam(value = "lang", required = false) String lang,
                                   @ApiIgnore HttpServletRequest request,
                                   @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, null, null, request);
+        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
     }
 
@@ -268,6 +287,8 @@ public class ObjectController {
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
      * @param wskey          pre-api term for 'apikey'
+     * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
+     * @param lang           language in which record data should be displayed
      * @param request        incoming request
      * @param response       generated response
      * @return matching records in the turtle format
@@ -278,9 +299,11 @@ public class ObjectController {
     public ModelAndView recordTurtle(@PathVariable String collectionId,
                              @PathVariable String recordId,
                              @RequestParam(value = "wskey") String wskey,
+                             @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
+                             @RequestParam(value = "lang", required = false) String lang,
                              @ApiIgnore HttpServletRequest request,
                              @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, null, null, request);
+        RequestData data = new RequestData(collectionId, recordId, wskey, profile, lang, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
     }
 
@@ -290,33 +313,40 @@ public class ObjectController {
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
             throws EuropeanaException {
-        ModelAndView result;
+        long startTime = System.currentTimeMillis();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Retrieving record with id {}, type = {}", data.europeanaId, recordType);
+        }
 
         // 1) Check if HTTP method is supported, HTTP 405 if not
         if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) &&
                 !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
             response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-            return null; // figure out what to return exactly in these cases
+            return null;
         }
 
-        long startTime = System.currentTimeMillis();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Retrieving record with id " + data.europeanaId + ", type = " + recordType);
-        }
-
+        // 2) check API key & routing
         apiKeyUtils.validateApiKey(data.wskey);
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
-        BaseUrlWrapper urls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
-
         if (dataSource.isEmpty() || dataSource.get().getRecordDao().isEmpty()) {
             LOG.error("Error while retrieving record id {}, type= {}. No record server configured for route {}", 
                       data.europeanaId, recordType, data.servletRequest.getServerName());
             throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
         }
 
+        // 3) validate other common params
+        if (!isTranslationEnabled && RecordProfile.TRANSLATE.isActive(data.profile)) {
+            throw new TranslationServiceDisabledException();
+        }
+        if (data.lang != null) {
+            data.setLanguages(Language.validateMultiple(data.lang));
+        }
+
+        // 4) get the fullbean
         FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true);
 
-        // 3) Check if record exists, HTTP 404 if not
+        // 5) Check if record exists, return 404 if not
+        ModelAndView result;
         if (Objects.isNull(bean)) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             if (recordType == RecordType.OBJECT_RDF) {
@@ -340,7 +370,7 @@ public class ObjectController {
         *        }
         */
 
-
+        // 6) Handle caching
         // ETag is created from timestamp + api version.
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
         String eTag      = httpCacheUtils.generateETag(data.europeanaId +tsUpdated, true, true);
@@ -355,7 +385,7 @@ public class ObjectController {
             }
             // If If-Match is present: check if it contains a matching eTag OR == '*"
             // Yes: proceed. No: return HTTP 412, no cache headers
-        } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))){
+        } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))) {
             if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
                 response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
                 return null;
@@ -367,16 +397,33 @@ public class ObjectController {
             return null;
         }
 
+        // 7) Process bean further (adding webresource meta info, set proper urls)
         // cannot be null here, as method has already checked for record dao
         RecordDao recordDao = dataSource.get().getRecordDao().get();
 
-        // now the FullBean can be processed further (adding webresource meta info, set proper urls)
-        bean = recordService.enrichFullBean(recordDao, bean, urls);
+        BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
+        bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
 
+        // 8) When translation profile is active, do translation
+        if (RecordProfile.TRANSLATE.isActive(data.profile)) {
+            if (data.languages == null || data.languages.isEmpty()) {
+                // Get the edm:language for default translation and filtering (if we find a default language)
+                data.setLanguages(translateFilterService.getDefaultTranslationLanguage(bean));
+            }
+            if (data.languages != null && !data.languages.isEmpty()) {
+                bean = translateFilterService.translateProxyFields(bean, data.languages);
+            }
+        }
+
+        // 9) When lang profile is provided, do filtering
+        if (data.languages != null && !data.languages.isEmpty()) {
+            bean = BeanFilterLanguage.filter(bean, data.languages);
+        }
+
+        // 10) Generate output
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
 
-        // generate output depending on type of record
         Object output;
         switch (recordType) {
             case OBJECT_JSON:
@@ -399,7 +446,7 @@ public class ObjectController {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Done generating record output in " + (System.currentTimeMillis() - startTime) + " ms");
+            LOG.debug("Done generating record output in {} ms ", (System.currentTimeMillis() - startTime));
         }
         return output;
     }
@@ -407,14 +454,14 @@ public class ObjectController {
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
         ObjectResult objectResult = new ObjectResult(data.wskey);
         // add schemaOrg in the response if profile = schemaOrg
-        if (StringUtils.containsIgnoreCase(data.profile, PROFILE_SCHEMAORG)) {
+        if (RecordProfile.SCHEMAORG.isActive(data.profile)) {
             try {
                 objectResult.schemaOrg = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
             } catch (IOException e) {
                 LOG.error("Error generating schema.org data", e);
             }
         }
-        if (StringUtils.containsIgnoreCase(data.profile, "params")) {
+        if (RecordProfile.PARAMS.isActive(data.profile)) {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
         }
@@ -436,17 +483,17 @@ public class ObjectController {
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
-        try (InputStream rdfInput = IOUtils.toInputStream(rdf);
-              OutputStream outputStream = new ByteArrayOutputStream()) {
+        try (InputStream rdfInput = IOUtils.toInputStream(rdf, StandardCharsets.UTF_8);
+             OutputStream outputStream = new ByteArrayOutputStream()) {
+                 RiotRdfUtils.disableErrorForSpaceURI();
                  Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
                  DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
-                 PrefixMap pm = RiotLib.prefixMap(graph);
                  JsonLDWriteContext ctx = new JsonLDWriteContext();
                  ctx.setJsonLDContext(ObjectController.jsonldContext);
-                 WriterDatasetRIOT writer = RDFDataMgr.createDatasetWriter(RDFFormat.JSONLD_FLAT);
-                 writer.write(outputStream, graph, pm, null, ctx);
+                 RDFWriter writer = RDFWriter.create().source(graph).format(RDFFormat.JSONLD_FLAT).context(ctx).build();
+                 writer.output(outputStream);
                  return JsonUtils.toJsonLd(outputStream.toString(), data.callback);
-        } catch (IOException e) {
+        } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
@@ -470,7 +517,7 @@ public class ObjectController {
              model.put("record", outputStream);
              return new ModelAndView("ttl", model);
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
-            LOG.error("Error parsing Turtle data for record " + bean.getAbout(), e);
+            LOG.error("Error parsing Turtle data for record {}", bean.getAbout(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
         }
@@ -524,18 +571,25 @@ public class ObjectController {
      */
     private static class RequestData{
         String             europeanaId;
-        String             profile;             // called format in json-ld
         String             wskey;
+        String             profile;
+        String             lang;
+        List<Language>     languages;
         String             callback;
         HttpServletRequest servletRequest;
 
-        RequestData(String collectionId, String recordId, String wskey, String profile, String callback,
+        RequestData(String collectionId, String recordId, String wskey, String profile, String lang, String callback,
                     HttpServletRequest servletRequest) {
-            this.europeanaId = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
-            this.wskey             = wskey;
-            this.profile           = profile;
-            this.callback          = callback;
-            this.servletRequest    = servletRequest;
+            this.europeanaId    = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
+            this.wskey          = wskey;
+            this.profile        = profile;
+            this.lang           = lang;
+            this.callback       = callback;
+            this.servletRequest = servletRequest;
+        }
+
+        void setLanguages(List<Language> languages) {
+            this.languages = languages;
         }
     }
 }
