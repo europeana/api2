@@ -47,7 +47,7 @@ public class BeanTranslateLanguageTest {
 
     private static final String TARGET_LANG = "nl";
 
-    private static final List<String> DC_CREATOR = List.of("Leonardo da Vinci (1452-1519)", "graveur");
+    private static final List<String> DC_CREATOR = List.of("Leonardo da Vinci (1452-1519)", "graveur", "relatieve uri . testen");
     private static final List<String> DC_DATE = List.of("1821-1869");
     private static final List<String> DC_IDENTIFIER = List.of("TvB G 3674");
     private static final List<String> DC_TITLE = List.of("Mona Lisa");
