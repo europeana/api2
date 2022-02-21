@@ -288,7 +288,7 @@ public class BeanTranslateService {
     private FieldValuesLanguageMap getUriValuesFromDef(List<String> valuesToCheck, String fieldName) {
         List<String> valuesToTranslate = new ArrayList<>();
         for (String value : valuesToCheck) {
-            if (EuropeanaUriUtils.isUri(value)) {
+            if (EuropeanaUriUtils.isUriExt(value)) {
                 valuesToTranslate.add(value);
             }
         }
@@ -314,7 +314,7 @@ public class BeanTranslateService {
         List<String> urisToRemove = new ArrayList<>();
         List<FieldValuesLanguageMap> prefLabelsToTranslate = new ArrayList<>();
         for (String value : valuesToCheck) {
-            if (EuropeanaUriUtils.isUri(value)) {
+            if (EuropeanaUriUtils.isUriExt(value)) {
                 urisToRemove.add(value);
                 if (hasStaticTranslation) {
                     // we assume uris are resolved as part of static translation, no need to find entity preflabels

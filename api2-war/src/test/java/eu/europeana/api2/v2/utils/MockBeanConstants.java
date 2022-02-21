@@ -43,6 +43,7 @@ public class MockBeanConstants {
     public static final String  DC_CREATOR_8             = "http://data.europeana.eu/agent/base/146741";
     public static final String  DC_CREATOR_9             = "Europeana";
     public static final String  DC_CREATOR_10             = "http://thesaurus.europeanafashion.eu/thesaurus/testing";
+    public static final String  DC_CREATOR_11            = "/direct/testing_realtiveUri";
     public static final String  DC_TERMS_CREATED         = "01 November 1928";
     public static final String  EDM_COUNTRY              = "netherlands";
     public static final String  DC_TERMS_TEMPORAL_1      = "http://semium.org/time/19xx";
