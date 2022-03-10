@@ -25,3 +25,6 @@ docker/tomcat/api.war
 .env.*
 !.env.example
 
+# Kubernetes config properties
+*.properties.yaml
+
