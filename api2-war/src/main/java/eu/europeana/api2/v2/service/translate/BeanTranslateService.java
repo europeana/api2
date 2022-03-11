@@ -49,9 +49,13 @@ public class BeanTranslateService {
 
     /**
      * Returns the default language list of the edm:languages
+     * NOTE : For region locales values, if present in edm:languages
+     * the first two ISO letters will be picked up.
+     *
      * Only returns the supported official languages,See: {@link Language}
      * Default translation and filtering for non-official language
      * is not supported
+     *
      *
      * @param bean
      * @return
@@ -61,6 +65,7 @@ public class BeanTranslateService {
         Map<String,List<String>> edmLanguage = bean.getEuropeanaAggregation().getEdmLanguage();
         for (Map.Entry<String, List<String>> entry : edmLanguage.entrySet()) {
             for (String languageAbbreviation : entry.getValue()) {
+                languageAbbreviation = TranslationUtils.getISOLanguage(languageAbbreviation);
                 if (Language.isSupported(languageAbbreviation)) {
                    lang.add(Language.valueOf(languageAbbreviation.trim().toUpperCase(Locale.ROOT)));
                 } else {
@@ -72,7 +77,6 @@ public class BeanTranslateService {
             LOG.debug("Default translation and filtering applied for language : {} ", lang);
         }
         return lang;
-
     }
 
     /**
@@ -142,7 +146,6 @@ public class BeanTranslateService {
             boolean hasStaticTranslation = moreThanOneProxy && hasStaticTranslations(mainProxy, field);
             LOG.trace("Processing field {}, hasStaticTranslation {}...", field.getName(), hasStaticTranslation);
             List<FieldValuesLanguageMap> toTranslate = getProxyFieldToTranslate(proxies, field, hasStaticTranslation, targetLang);
-
             if (!toTranslate.isEmpty()) {
                 for (FieldValuesLanguageMap map : toTranslate) {
                     result.addAll(checkValuesForUris(bean, map, hasStaticTranslation, targetLang));
@@ -240,13 +243,14 @@ public class BeanTranslateService {
         if (lang == null && !map.keySet().isEmpty()) {
             // return any value if available, but only if it's a supported language
             for (String key : map.keySet()) {
-                if (Language.isSupported(key)) {
-                    return Collections.singletonList(new FieldValuesLanguageMap(key, fieldName, map.get(key)));
+                 String isoLang = TranslationUtils.getISOLanguage(key);
+                if (Language.isSupported(isoLang)) {
+                    return Collections.singletonList(new FieldValuesLanguageMap(isoLang, fieldName, map.get(key)));
                 } else {
                     LOG.debug("  Found value for field {} in unsupported language {}", fieldName, key);
                 }
             }
-        } else if (lang != null && map.containsKey(lang)) {
+        } else if (lang != null && (map.containsKey(lang) || map.keySet().stream().anyMatch(key -> key.startsWith(lang)))) {
             return getValuesFromLanguageMap(map, fieldName, lang, checkForUriInDef);
         }
         return Collections.emptyList();
@@ -266,7 +270,9 @@ public class BeanTranslateService {
      * @return
      */
     private List<FieldValuesLanguageMap> getValuesFromLanguageMap(Map<String, List<String>> map, String fieldName, String lang, boolean checkForUriInDef) {
-        FieldValuesLanguageMap valueMap = new FieldValuesLanguageMap(lang, fieldName, map.get(lang));
+        // values will not be null, as we have checked already if the lang is present
+        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslateFromMultilingualMap(map, lang);
+        FieldValuesLanguageMap valueMap = new FieldValuesLanguageMap(lang, fieldName, valuesToTranslate);
         // if checkForUriInDef is true and map contains def tag, add all the uri's present in def
         if (checkForUriInDef && map.containsKey(Language.DEF)) {
             FieldValuesLanguageMap defMapWithUriValues = getUriValuesFromDef(map.get(Language.DEF), fieldName);

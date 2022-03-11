@@ -107,9 +107,11 @@ public final class BeanFilterLanguage {
             }
             // remove all unsupported languages and languages not requested
             String keyLang = keyValue.getKey().toString();
-            if (!Language.isSupported(keyLang) || !targetLangs.contains(Language.valueOf(keyLang.toUpperCase(Locale.ROOT)))) {
+            // fetch the first two ISO letters, and validate that
+            String isoLanguageToCheck = TranslationUtils.getISOLanguage(keyLang);
+            if (!Language.isSupported(isoLanguageToCheck) || !targetLangs.contains(Language.valueOf(isoLanguageToCheck.toUpperCase(Locale.ROOT)))) {
                 LOG.debug("      Removing key {}, value {}", keyLang, keyValue.getValue());
-                keysToRemove.add(keyLang);
+                keysToRemove.add(keyLang); // add the original key language for removal
             } else {
                 LOG.debug("      Keeping key {}, value {}", keyLang, keyValue.getValue());
             }

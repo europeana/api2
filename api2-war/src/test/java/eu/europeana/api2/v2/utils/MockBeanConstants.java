@@ -23,6 +23,9 @@ public class MockBeanConstants {
     public static final String DE                       = "de";
     public static final String NO                       = "no";
     public static final String NL                       = "nl";
+    public static final String EN_GB                    = "en-GB";
+    public static final String NL_NL                    = "nl-NL";
+    public static final String DE_NL                    = "de-NL";
 
     public static final String  URL_PREFIX               = "http://data.europeana.eu";
     public static final String  ABOUT                    = "/item/" + COMMON_ABOUT ;
@@ -76,6 +79,12 @@ public class MockBeanConstants {
     public static final String PROXY1_DC_FORMAT2_DEF    = "paper: width: 522 mm";
     public static final String PROXY1_DC_FORMAT1_NL     = "papier: hoogte: 675 mm";
     public static final String PROXY1_DC_FORMAT2_NL     = "papier: breedte: 522 mm";
+    public static final String PROXY1_DC_TERMS_MEDIUM_EN = "canvas";
+    public static final String PROXY1_DC_TERMS_MEDIUM_IT = "tela";
+    public static final String PROXY1_DC_TERMS_MEDIUM_NL = "doek";
+    public static final String PROXY1_DC_DESCRIPTION_NL = "Meisje met de parel partial";
+    public static final String PROXY1_DC_DESCRIPTION_DE = "Meisje met de parel exact match";
+
 
     //agent Person
     public static final String AGENT1_PREF_LABEL_EN      = "Science and inventions of Leonardo da Vinci";
