@@ -1,0 +1,26 @@
+# Ingress for routing traffic on IBM cloud.
+# To configure,
+#    - copy this file to "record-api-ingress.yaml"
+#    - replace HOSTNAME and SECRET_NAME placeholders with correct values
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: record-api-ingress
+  annotations:
+    kubernetes.io/ingress.class: "public-iks-k8s-nginx"
+spec:
+  tls:
+    - hosts:
+        - HOSTNAME
+      secretName: SECRET_NAME
+  rules:
+    - host: HOSTNAME
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: record-api-cluster-ip-service
+                port:
+                  number: 8080
