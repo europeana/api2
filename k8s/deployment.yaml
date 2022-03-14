@@ -27,7 +27,7 @@ spec:
               mountPath: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/europeana.user.properties"
               subPath: europeana.properties
               readOnly: true
-            - name: config
+            - name: secret
               mountPath: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/google_cloud_credentials.json"
               subPath: google_cloud_credentials.json
               readOnly: true
@@ -35,3 +35,7 @@ spec:
         - name: config
           configMap:
             name: record-api-config-map
+        - name: secret
+          secret:
+            secretName: record-api-secret
+
