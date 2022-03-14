@@ -18,6 +18,18 @@ spec:
           image: europeana/record-api
           ports:
             - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /info
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /info
+            initialDelaySeconds: 30
+            periodSeconds: 30
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               # matches volume mount path for json file
