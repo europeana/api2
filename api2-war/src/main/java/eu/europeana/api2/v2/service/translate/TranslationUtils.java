@@ -136,18 +136,4 @@ public final class TranslationUtils {
         }
         return valuesToTranslate;
     }
-
-    /**
-     * Method recognizes the ISO 2 letter when it has only 2 digits
-     * or when followed by a regional locale.
-     * @param lang
-     * @return
-     */
-    public static String getISOLanguage(String lang) {
-        if(lang.length() > 2) {
-            LOG.debug("Found regional code language = {}", lang);
-            return StringUtils.substringBefore(lang, "-");
-        }
-        return lang;
-    }
 }

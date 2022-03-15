@@ -65,9 +65,8 @@ public class BeanTranslateService {
         Map<String,List<String>> edmLanguage = bean.getEuropeanaAggregation().getEdmLanguage();
         for (Map.Entry<String, List<String>> entry : edmLanguage.entrySet()) {
             for (String languageAbbreviation : entry.getValue()) {
-                languageAbbreviation = TranslationUtils.getISOLanguage(languageAbbreviation);
                 if (Language.isSupported(languageAbbreviation)) {
-                   lang.add(Language.valueOf(languageAbbreviation.trim().toUpperCase(Locale.ROOT)));
+                    lang.add(Language.getLanguage(languageAbbreviation));
                 } else {
                     LOG.warn("edm:language '{}' is not supported for default translation and filtering ", languageAbbreviation);
                 }
@@ -243,9 +242,8 @@ public class BeanTranslateService {
         if (lang == null && !map.keySet().isEmpty()) {
             // return any value if available, but only if it's a supported language
             for (String key : map.keySet()) {
-                 String isoLang = TranslationUtils.getISOLanguage(key);
-                if (Language.isSupported(isoLang)) {
-                    return Collections.singletonList(new FieldValuesLanguageMap(isoLang, fieldName, map.get(key)));
+                if (Language.isSupported(key)) {
+                    return Collections.singletonList(new FieldValuesLanguageMap(Language.getLanguage(key).name().toLowerCase(Locale.ROOT), fieldName, map.get(key)));
                 } else {
                     LOG.debug("  Found value for field {} in unsupported language {}", fieldName, key);
                 }
