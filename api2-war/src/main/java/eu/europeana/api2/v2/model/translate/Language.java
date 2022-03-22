@@ -69,12 +69,37 @@ public enum Language {
         return result;
     }
 
+    public static Language getLanguage(String lang) {
+        return Language.valueOf(stripLangStringIfRegionPresent(lang).toUpperCase(Locale.ROOT));
+    }
+
     /**
      * Check if a particular string is one of the supported languages
      * @param lang 2 letter ISO-code abbrevation of a language
      * @return true if we support it, otherwise false
      */
     public static boolean isSupported(String lang) {
-        return LANGUAGES.contains(lang.toUpperCase(Locale.ROOT));
+        return LANGUAGES.contains(stripLangStringIfRegionPresent(lang).toUpperCase(Locale.ROOT));
+    }
+
+    /**
+     * Return true, if lang value is with regions ex: en-GB
+     * @param lang
+     * @return
+     */
+    private static boolean isLanguageWithRegionLocales(String lang) {
+        return lang.length() > 2 && lang.contains("-") ;
+    }
+
+    /**
+     * returns the substring  before '-' if lang value is with region locales
+     * @param lang
+     * @return
+     */
+    private static String stripLangStringIfRegionPresent(String lang) {
+        if (isLanguageWithRegionLocales(lang)) {
+            return StringUtils.substringBefore(lang, "-");
+        }
+        return lang;
     }
 }
