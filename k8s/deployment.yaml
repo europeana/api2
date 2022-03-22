@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: record-api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: record-api
+  template:
+    metadata:
+      labels:
+        app: record-api
+    spec:
+      containers:
+        - name: record-api
+#         No version specified here as we'll imperatively update this deployment .
+          image: europeana/record-api
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /info
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /info
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              # matches volume mount path for json file
+              value: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/google_cloud_credentials.json"
+          volumeMounts:
+            - name: config
+              mountPath: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/europeana.user.properties"
+              subPath: europeana.properties
+              readOnly: true
+            - name: secret
+              mountPath: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/google_cloud_credentials.json"
+              subPath: google_cloud_credentials.json
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: record-api-config-map
+        - name: secret
+          secret:
+            secretName: record-api-secret
+

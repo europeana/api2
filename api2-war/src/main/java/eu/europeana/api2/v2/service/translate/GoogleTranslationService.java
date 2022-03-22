@@ -6,6 +6,7 @@ import com.google.cloud.translate.v3.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -19,6 +20,9 @@ import java.util.List;
  * (defined in the application properties).
  */
 @Service
+@PropertySource("classpath:europeana.properties")
+@PropertySource(value = "classpath:europeana.user.properties",
+    ignoreResourceNotFound = true)
 public class GoogleTranslationService implements TranslationService {
 
     private static final Logger LOG = LogManager.getLogger(GoogleTranslationService.class);
@@ -27,7 +31,7 @@ public class GoogleTranslationService implements TranslationService {
     @Value("${google.translate.projectId}")
     private String projectId;
     @Value("${translation.enabled}")
-    private Boolean translationEnabled;
+    private boolean translationEnabled;
 
     private TranslationServiceClient client;
     private LocationName locationName;

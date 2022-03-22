@@ -1,0 +1,11 @@
+# To configure deployment,
+# - copy this file to "record-api-config-map.properties.yaml"
+# - paste europeana.properties
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: record-api-config-map
+data:
+  europeana.properties: |
+    # paste properties file here. eg:
+    route1.path               = localhost

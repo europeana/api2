@@ -1,0 +1,15 @@
+# NodePort service for accessing API locally. Use ingress for IBM cloud deployments
+# API can be accessed on http://<cluster-ip>:30000
+# For Docker Desktop, cluster-ip is "localhost";
+# if using Minikube, run "minikube ip" to get IP address of your cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: record-api-node-port
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      nodePort: 30000
+  selector:
+    app: record-api
