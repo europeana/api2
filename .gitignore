@@ -4,6 +4,7 @@
 
 # Maven
 */target/**
+target/
 
 # Temp files
 *~
