@@ -5,6 +5,7 @@ import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.utils.ComparatorUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -115,5 +116,24 @@ public final class TranslationUtils {
             return new FieldValuesLanguageMap(translatedMap.getSourceLanguage(), actualTranslationMap);
         }
         return null;
+    }
+
+    /**
+     * lang in the map might be present with or without region codes ex : en-GB or only 'en'
+     * hence first try the exact match of key. if empty, try the partial match to fetch the values
+     *
+     * @param map
+     * @param lang
+     * @return
+     */
+    public static List<String> getValuesToTranslateFromMultilingualMap(Map<String, List<String>> map, String lang) {
+        List<String> valuesToTranslate = map.get(lang);
+        if (valuesToTranslate == null || valuesToTranslate.isEmpty()) {
+            valuesToTranslate = map.entrySet().stream()
+                    .filter(entry -> entry.getKey().startsWith(lang))
+                    .map(Map.Entry :: getValue)
+                    .findFirst().orElse(null);
+        }
+        return valuesToTranslate;
     }
 }

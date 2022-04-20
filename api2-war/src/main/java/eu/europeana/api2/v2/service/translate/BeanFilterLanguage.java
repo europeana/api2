@@ -101,15 +101,15 @@ public final class BeanFilterLanguage {
         List<String> keysToRemove = new ArrayList<>();
         for (Map.Entry<?,?> keyValue : set) {
             // keep all def keys and keep all uri values
-            if ("def".equals(keyValue.getKey()) || EuropeanaUriUtils.isUri(keyValue.getValue().toString())) {
+            if ("def".equals(keyValue.getKey()) || EuropeanaUriUtils.isUriExt(keyValue.getValue().toString())) {
                 LOG.debug("      Keeping key def, value {}", keyValue.getValue());
                 continue;
             }
             // remove all unsupported languages and languages not requested
             String keyLang = keyValue.getKey().toString();
-            if (!Language.isSupported(keyLang) || !targetLangs.contains(Language.valueOf(keyLang.toUpperCase(Locale.ROOT)))) {
+            if (!Language.isSupported(keyLang) || !targetLangs.contains(Language.getLanguage(keyLang))) {
                 LOG.debug("      Removing key {}, value {}", keyLang, keyValue.getValue());
-                keysToRemove.add(keyLang);
+                keysToRemove.add(keyLang); // add the original key language for removal
             } else {
                 LOG.debug("      Keeping key {}, value {}", keyLang, keyValue.getValue());
             }

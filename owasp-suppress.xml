@@ -42,4 +42,18 @@
         <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring\-boot\-autoconfigure@.*$</packageUrl>
         <cve>CVE-2018-1196</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: dom4j-1.6.1.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/dom4j/dom4j@.*$</packageUrl>
+        <cve>CVE-2020-10683</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: spring-beans-4.3.23.RELEASE.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org.springframework/spring-beans@.*$</packageUrl>
+        <cve>CVE-2022-22965</cve>
+    </suppress>
 </suppressions>

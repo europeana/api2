@@ -23,6 +23,9 @@ public class MockBeanConstants {
     public static final String DE                       = "de";
     public static final String NO                       = "no";
     public static final String NL                       = "nl";
+    public static final String EN_GB                    = "en-GB";
+    public static final String NL_NL                    = "nl-NL";
+    public static final String DE_NL                    = "de-NL";
 
     public static final String  URL_PREFIX               = "http://data.europeana.eu";
     public static final String  ABOUT                    = "/item/" + COMMON_ABOUT ;
@@ -43,6 +46,7 @@ public class MockBeanConstants {
     public static final String  DC_CREATOR_8             = "http://data.europeana.eu/agent/base/146741";
     public static final String  DC_CREATOR_9             = "Europeana";
     public static final String  DC_CREATOR_10             = "http://thesaurus.europeanafashion.eu/thesaurus/testing";
+    public static final String  DC_CREATOR_11            = "/direct/testing_realtiveUri";
     public static final String  DC_TERMS_CREATED         = "01 November 1928";
     public static final String  EDM_COUNTRY              = "netherlands";
     public static final String  DC_TERMS_TEMPORAL_1      = "http://semium.org/time/19xx";
@@ -75,6 +79,12 @@ public class MockBeanConstants {
     public static final String PROXY1_DC_FORMAT2_DEF    = "paper: width: 522 mm";
     public static final String PROXY1_DC_FORMAT1_NL     = "papier: hoogte: 675 mm";
     public static final String PROXY1_DC_FORMAT2_NL     = "papier: breedte: 522 mm";
+    public static final String PROXY1_DC_TERMS_MEDIUM_EN = "canvas";
+    public static final String PROXY1_DC_TERMS_MEDIUM_IT = "tela";
+    public static final String PROXY1_DC_TERMS_MEDIUM_NL = "doek";
+    public static final String PROXY1_DC_DESCRIPTION_NL = "Meisje met de parel partial";
+    public static final String PROXY1_DC_DESCRIPTION_DE = "Meisje met de parel exact match";
+
 
     //agent Person
     public static final String AGENT1_PREF_LABEL_EN      = "Science and inventions of Leonardo da Vinci";

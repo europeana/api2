@@ -59,6 +59,11 @@ public class BeanFilterLanguageTest {
         assertEquals(MockBeanConstants.PROXY1_DC_FORMAT1_DEF, bean.getProxies().get(1).getDcFormat().get(MockBeanConstants.DEF).get(0));
         assertEquals(MockBeanConstants.PROXY1_DC_FORMAT2_DEF, bean.getProxies().get(1).getDcFormat().get(MockBeanConstants.DEF).get(1));
         assertNull(bean.getProxies().get(1).getDcFormat().get(MockBeanConstants.NL));
+
+        // dcTermsMedium should have en-GB values - assert to check filtering with locales
+        assertEquals(1, bean.getProxies().get(1).getDctermsMedium().size());
+        assertEquals(MockBeanConstants.PROXY1_DC_TERMS_MEDIUM_EN, bean.getProxies().get(1).getDctermsMedium().get(MockBeanConstants.EN_GB).get(0));
+
     }
 
     @Test
@@ -71,5 +76,24 @@ public class BeanFilterLanguageTest {
         assertEquals(1, bean.getAgents().get(0).getPrefLabel().size());
         assertEquals(MockBeanConstants.AGENT1_PREF_LABEL_PL, bean.getAgents().get(0).getPrefLabel().get(MockBeanConstants.PL).get(0));
         assertNull(bean.getAgents().get(0).getPrefLabel().get(MockBeanConstants.EN));
+    }
+
+    @Test
+    public void testMultipleFilterWithLocales() {
+        FullBean bean = MockFullBean.mock();
+        List<Language> languages = new ArrayList<>(Arrays.asList(Language.EN, Language.NL, Language.DE));
+        BeanFilterLanguage.filter(bean, languages);
+
+        // dcTermsMedium should have en-GB and nl-NL values - assert to check filtering with locales
+        assertEquals(2, bean.getProxies().get(1).getDctermsMedium().size());
+        assertEquals(MockBeanConstants.PROXY1_DC_TERMS_MEDIUM_EN, bean.getProxies().get(1).getDctermsMedium().get(MockBeanConstants.EN_GB).get(0));
+        assertEquals(MockBeanConstants.PROXY1_DC_TERMS_MEDIUM_NL, bean.getProxies().get(1).getDctermsMedium().get(MockBeanConstants.NL_NL).get(0));
+        // 'it' lang should not be present and must have been filtered out
+        assertNull(bean.getProxies().get(1).getDctermsMedium().get(MockBeanConstants.IT));
+
+        // dcDescription, both de and 'de-NL' should be present
+        assertEquals(2, bean.getProxies().get(1).getDcDescription().size());
+        assertEquals(MockBeanConstants.PROXY1_DC_DESCRIPTION_NL, bean.getProxies().get(1).getDcDescription().get(MockBeanConstants.DE_NL).get(0));
+        assertEquals(MockBeanConstants.PROXY1_DC_DESCRIPTION_DE, bean.getProxies().get(1).getDcDescription().get(MockBeanConstants.DE).get(0));
     }
 }

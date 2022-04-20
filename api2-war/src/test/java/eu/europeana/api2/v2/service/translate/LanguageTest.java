@@ -65,6 +65,19 @@ public class LanguageTest {
         assertTrue(Language.isSupported("Da"));
         assertFalse(Language.isSupported(""));
         assertFalse(Language.isSupported("zz"));
+        // with regions
+        assertTrue(Language.isSupported("en-GB"));
+        assertTrue(Language.isSupported("de-NL"));
+        assertFalse(Language.isSupported(""));
+        assertFalse(Language.isSupported("zz"));
+    }
+
+    @Test
+    public void testGetLanguage() {
+        assertEquals(Language.FI, Language.getLanguage("fi"));
+        assertEquals(Language.EN, Language.getLanguage("en-GB"));
+        assertEquals(Language.DE, Language.getLanguage("de-NL"));
+        assertEquals(Language.ES, Language.getLanguage("es"));
     }
 
 }

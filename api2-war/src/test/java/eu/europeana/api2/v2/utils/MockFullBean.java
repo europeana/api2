@@ -107,6 +107,8 @@ public final class MockFullBean {
         proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_1);
         proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_4);
         proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_10);
+        proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_11);
+
 
         proxy.setDcDate(new HashMap<>());
         proxy.getDcDate().put(MockBeanConstants.DEF, new ArrayList<>());
@@ -141,6 +143,25 @@ public final class MockFullBean {
         proxy.getDcRelation().put(MockBeanConstants.DEF, new ArrayList<>());
         proxy.getDcRelation().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_RELATION1);
         proxy.getDcRelation().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_RELATION2);
+
+        // for testing with region locales
+        proxy.setDctermsMedium(new HashMap<>());
+        proxy.getDctermsMedium().put(MockBeanConstants.EN_GB, new ArrayList<>());
+        proxy.getDctermsMedium().get(MockBeanConstants.EN_GB).add(MockBeanConstants.PROXY1_DC_TERMS_MEDIUM_EN);
+
+        proxy.getDctermsMedium().put(MockBeanConstants.IT, new ArrayList<>());
+        proxy.getDctermsMedium().get(MockBeanConstants.IT).add(MockBeanConstants.PROXY1_DC_TERMS_MEDIUM_IT);
+
+        proxy.getDctermsMedium().put(MockBeanConstants.NL_NL, new ArrayList<>());
+        proxy.getDctermsMedium().get(MockBeanConstants.NL_NL).add(MockBeanConstants.PROXY1_DC_TERMS_MEDIUM_NL);
+
+        // if target lang other than 'de', the first value present will be picked up for translation
+        // if target lang is 'de', then exact match 'de' should be picked up
+        proxy.setDcDescription(new HashMap<>());
+        proxy.getDcDescription().put(MockBeanConstants.DE_NL, new ArrayList<>());
+        proxy.getDcDescription().get(MockBeanConstants.DE_NL).add(MockBeanConstants.PROXY1_DC_DESCRIPTION_NL);
+        proxy.getDcDescription().put(MockBeanConstants.DE, new ArrayList<>());
+        proxy.getDcDescription().get(MockBeanConstants.DE).add(MockBeanConstants.PROXY1_DC_DESCRIPTION_DE);
 
         bean.setProxies(proxies);
     }
@@ -317,6 +338,18 @@ public final class MockFullBean {
         agent.getRdaGr2DateOfTermination().get(MockBeanConstants.DEF).add(MockBeanConstants.DISOLUTION_DATE);
 
         agent.setAbout(MockBeanConstants.DC_CREATOR_8);
+
+        // third agent for relative uri testing
+        agent = new AgentImpl();
+        agents.add(agent);
+
+        agent.setPrefLabel(new HashMap<>());
+        agent.getPrefLabel().put(MockBeanConstants.EN, new ArrayList<>());
+        agent.getPrefLabel().get(MockBeanConstants.EN).add("testing relative uri");
+        agent.getPrefLabel().put(MockBeanConstants.FR, new ArrayList<>());
+        agent.getPrefLabel().get(MockBeanConstants.FR).add("tester l'uri relative");
+
+        agent.setAbout(MockBeanConstants.DC_CREATOR_11);
 
         bean.setAgents(agents);
     }
