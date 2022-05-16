@@ -2,8 +2,8 @@ package eu.europeana.api2.v2.web.controller;
 
 import static org.junit.Assert.*;
 
+import eu.europeana.api2.v2.utils.GeoUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
-import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -162,16 +162,16 @@ public class SearchControllerTest {
     public void testProcessQFParameters () throws EuropeanaException {
 	    String [] refinementArray = {"MIME_TYPE:application/dash+xml", "IMAGE_SIZE:small", "SOUND_HQ:true"};
         final List<Integer> filterTags = new ArrayList<>();
-        StringBuilder geoParameters = new StringBuilder("");
+        GeoUtils            geoUtils   = new GeoUtils();
         
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 3);
         assertTrue(refinementArray.length == 4);
 
         filterTags.clear();
         refinementArray = new String[]{"IMAGE_COLOUR:true", "IMAGE_GREYSCALE:true", "COLORPALETTE:#4682b4"};
 
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 2);
         assertTrue(refinementArray.length == 4);
 
@@ -179,7 +179,7 @@ public class SearchControllerTest {
         filterTags.clear();
         refinementArray = new String[]{"SOUND_HQ:test", "MIME_TYPE:application/dash+ltxml"};
 
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 1);
         assertTrue(filterTags.contains(0));
         assertTrue(refinementArray.length == 4);
@@ -188,7 +188,7 @@ public class SearchControllerTest {
         // add theme:art and invalid tech facet
         refinementArray = new String[]{"MIME_TYPE:application/dash+ltxml", "collection:art"};
 
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 1);
         assertTrue(filterTags.contains(0));
         assertTrue(refinementArray.length == 5);
@@ -197,7 +197,7 @@ public class SearchControllerTest {
         // valid non-tech facet
         refinementArray = new String[]{"contentTier:(1 OR 2 OR 3 OR 4)"};
 
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 0);
         assertTrue(refinementArray.length == 5);
 
@@ -205,7 +205,7 @@ public class SearchControllerTest {
         // valid non-tech facet and invalid tech facet
         refinementArray = new String[]{"contentTier:(1 OR 2 OR 3 OR 4)", "SOUND_HQ:test"};
 
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 1);
         assertTrue(filterTags.contains(0));
         assertTrue(refinementArray.length == 5);
@@ -214,7 +214,7 @@ public class SearchControllerTest {
         // valid non-tech facet and valid tech facet
         refinementArray = new String[]{"contentTier:(1 OR 2 OR 3 OR 4)", "MIME_TYPE:video/mpeg"};
 
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 1);
         // should NOT have filter tag 0
         assertFalse(filterTags.contains(0));
@@ -226,7 +226,7 @@ public class SearchControllerTest {
                 "IMAGE_GRAYSCALE:test", "COLOURPALETTE:test", "COLORPALETTE:test", "IMAGE_ASPECTRATIO:test", "SOUND_HQ:test", "SOUND_DURATION:test",
         "VIDEO_HD:test", "VIDEO_DURATION:test", "MEDIA:test", "THUMBNAIL:test", "TEXT_FULLTEXT:test", "LANDINGPAGE:test"};
 
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 1);
         // should have filter tag 0
         assertTrue(filterTags.contains(0));
@@ -238,7 +238,7 @@ public class SearchControllerTest {
         // hence should be ignored and there should not any filter tag added
         refinementArray = new String[]{"SOUND_HQ:false", "VIDEO_HD:false"};
 
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 0);
         // should NOT have filter tag 0
         assertFalse(filterTags.contains(0));
@@ -248,31 +248,39 @@ public class SearchControllerTest {
         // valid boolean tech facet with false value ( SOUND_HQ, VIDEO_HD - don't not have a false scenario) and valid non-tech facet and valid tech facet
         refinementArray = new String[]{"SOUND_HQ:false", "VIDEO_HD:false", "contentTier:(1 OR 2 OR 3 OR 4)", "MIME_TYPE:video/mpeg" };
 
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 1);
         // should NOT have filter tag 0 as it has a valid tech facet
         assertFalse(filterTags.contains(0));
         assertTrue(refinementArray.length == 5);
-
-
-        filterTags.clear();
+    
+    
         // empty refinement
+        filterTags.clear();
         refinementArray = new String[]{};
 
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
         assertTrue(filterTags.size() == 0);
         assertTrue(refinementArray.length == 4);
     
     
-        refinementArray = new String[]{"MIME_TYPE:application/dash+xml", "IMAGE_SIZE:small", "SOUND_HQ:true", "distance(currentLocation_wgs,20.4,80.09,40)"};
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
-        assertTrue(filterTags.size() == 3);
+        // empty refinement
+        filterTags.clear();
+        
+        refinementArray = new String[]{"distance(currentLocation_wgs,20.4,80.09,40)"};
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
+        assertTrue(filterTags.size() == 0);
         assertTrue(refinementArray.length == 5);
-
-        refinementArray = new String[]{"MIME_TYPE:application/dash+xml", "IMAGE_SIZE:small", "SOUND_HQ:true", "distance(currentLocation_wgs,20.4,80.09,40)"};
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
-        assertTrue(filterTags.size() == 3);
-        assertTrue(refinementArray.length == 5);
-    
     }
+    
+    @Test(expected = EuropeanaException.class)
+    public void whenExceptionThrown_thenExpectationSatisfied() throws EuropeanaException {
+        final List<Integer> filterTags = new ArrayList<>();
+        GeoUtils geoUtils = new GeoUtils();
+        
+        // negative distance should fail
+        String [] refinementArray = new String[]{"distance(currentLocation_wgs,20.4,80.09,-40)"};
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoUtils);
+    }
+    
 }

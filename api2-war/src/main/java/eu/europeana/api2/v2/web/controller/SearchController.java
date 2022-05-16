@@ -5,6 +5,7 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.*;
+import eu.europeana.api2.v2.model.GeoDistance;
 import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
@@ -73,8 +74,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static eu.europeana.api2.v2.utils.GeoUtils.FQ_GEOFILT;
-import static eu.europeana.api2.v2.utils.GeoUtils.formatDistanceRefinement;
+import static eu.europeana.api2.v2.utils.GeoUtils.*;
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 /**
@@ -297,12 +297,16 @@ public class SearchController {
         final List<Integer> filterTags = new ArrayList<>();
         
         // EA-2996 this is to hold the sfield, pt and d geospatial parameters
-        // they are set in processQfParameters() together with required fq={!geofilt}
-        StringBuilder geoParameters = new StringBuilder("");
+        // it is initialised and assigned in processQfParameters() together with required fq={!geofilt}
+        GeoUtils geoUtils = new GeoUtils();
         
         // NOTE the zero tag is now added in processQfParameters
-        refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags, geoParameters);
-
+        try {
+            refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags, geoUtils);
+        } catch (EuropeanaException e) {
+            throw new SolrQueryException(ProblemType.INVALID_PARAMETER_VALUE, e.getMessage());
+        }
+    
         // add the CF filter facets to the query string like this:
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
         if (!filterTags.isEmpty()) {
@@ -353,9 +357,10 @@ public class SearchController {
                                 .setParameter("facet.mincount","1")
                                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                                 .setSpellcheckAllowed(false);
-
-        if (StringUtils.isNotBlank(geoParameters.toString())){
-            query.addGeoParamsToQuery(geoParameters.toString());
+        
+        GeoDistance geoDistance = geoUtils.getGeoDistance();
+        if (null != geoDistance){
+            query.addGeoParamsToQuery(geoDistance.getPoint(), geoDistance.getDistance(), geoDistance.getFlString());
         }
 
         if (facetsRequested) {
@@ -480,7 +485,7 @@ public class SearchController {
                                             Boolean fullText,
                                             Boolean landingPage,
                                             List<Integer> filterTags,
-                                            StringBuilder geoParameters) throws EuropeanaException {
+                                            GeoUtils geoUtils) throws EuropeanaException {
         boolean hasImageRefinements = false;
         boolean hasAudioRefinements = false;
         boolean hasVideoRefinements = false;
@@ -680,9 +685,10 @@ public class SearchController {
                         String refinementValue = StringUtils.substringAfter(qf, "distance(")
                                                             .replaceAll("^\"|\"$", "")
                                                             .replaceAll("[\\(\\)]", "");
-                        geoParameters.append(formatDistanceRefinement(refinementValue));
-                        if (StringUtils.isNotBlank(geoParameters)) {
-                            newRefinements.add(FQ_GEOFILT);
+                        geoUtils.setQfValue(refinementValue);
+                        GeoDistance geoDistance = geoUtils.getGeoDistance();
+                        if (null != geoDistance && StringUtils.isNotBlank(geoDistance.getFQGeoSField())) {
+                            newRefinements.add(geoDistance.getFQGeoSField());
                             hasGeoDistanceSearch = true;
                         }
                     }
