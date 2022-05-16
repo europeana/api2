@@ -298,7 +298,7 @@ public class SearchController {
         
         // EA-2996 this is to hold the sfield, pt and d geospatial parameters
         // they are set in processQfParameters() together with required fq={!geofilt}
-        final String geoParameters = null;
+        StringBuilder geoParameters = new StringBuilder("");
         
         // NOTE the zero tag is now added in processQfParameters
         refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags, geoParameters);
@@ -353,11 +353,11 @@ public class SearchController {
                                 .setParameter("facet.mincount","1")
                                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                                 .setSpellcheckAllowed(false);
-        // EA-2996
-        if (!geoParameters.isEmpty()) {
-            query = query.addGeoParamsToQuery(geoParameters);
+
+        if (StringUtils.isNotBlank(geoParameters.toString())){
+            query.addGeoParamsToQuery(geoParameters.toString());
         }
-        
+
         if (facetsRequested) {
             Map<String, String[]> parameterMap = request.getParameterMap();
             try {
@@ -480,11 +480,11 @@ public class SearchController {
                                             Boolean fullText,
                                             Boolean landingPage,
                                             List<Integer> filterTags,
-                                            String geoParameters) {
+                                            StringBuilder geoParameters) throws EuropeanaException {
         boolean hasImageRefinements = false;
         boolean hasAudioRefinements = false;
         boolean hasVideoRefinements = false;
-        boolean hasTextRefinements  = false;
+       // boolean hasTextRefinements  = false;
         boolean hasBrokenTechFacet  = false;
         
         boolean hasGeoDistanceSearch = false;
@@ -675,13 +675,12 @@ public class SearchController {
                     // EA-2996 geo distance search
                 } else if (StringUtils.contains(qf, "distance")) {
                     if (hasGeoDistanceSearch){
-                        System.out.println("throw exception: can only have one distance query at a time");
+                        throw new InvalidParamValueException("Only one distance query can be supplied");
                     } else {
                         String refinementValue = StringUtils.substringAfter(qf, "distance(")
-                                                            .toLowerCase(Locale.GERMAN)
                                                             .replaceAll("^\"|\"$", "")
                                                             .replaceAll("[\\(\\)]", "");
-                        geoParameters = formatDistanceRefinement(refinementValue);
+                        geoParameters.append(formatDistanceRefinement(refinementValue));
                         if (StringUtils.isNotBlank(geoParameters)) {
                             newRefinements.add(FQ_GEOFILT);
                             hasGeoDistanceSearch = true;

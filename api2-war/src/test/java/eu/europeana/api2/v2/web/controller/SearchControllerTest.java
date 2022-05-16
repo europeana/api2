@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import eu.europeana.api2.v2.utils.ModelUtils;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
+import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -158,10 +159,10 @@ public class SearchControllerTest {
     }
 
     @Test
-    public void testProcessQFParameters () {
+    public void testProcessQFParameters () throws EuropeanaException {
 	    String [] refinementArray = {"MIME_TYPE:application/dash+xml", "IMAGE_SIZE:small", "SOUND_HQ:true"};
         final List<Integer> filterTags = new ArrayList<>();
-        String geoParameters = "";
+        StringBuilder geoParameters = new StringBuilder("");
         
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
         assertTrue(filterTags.size() == 3);
@@ -263,12 +264,15 @@ public class SearchControllerTest {
         assertTrue(refinementArray.length == 4);
     
     
-        refinementArray = new String[]{"MIME_TYPE:application/dash+xml", "IMAGE_SIZE:small", "SOUND_HQ:true", "distance(currentLocation_wgs,20.4,-80.09,40)"};
-    
+        refinementArray = new String[]{"MIME_TYPE:application/dash+xml", "IMAGE_SIZE:small", "SOUND_HQ:true", "distance(currentLocation_wgs,20.4,80.09,40)"};
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
         assertTrue(filterTags.size() == 3);
         assertTrue(refinementArray.length == 5);
-    
+
+        refinementArray = new String[]{"MIME_TYPE:application/dash+xml", "IMAGE_SIZE:small", "SOUND_HQ:true", "distance(currentLocation_wgs,20.4,80.09,40)"};
+        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoParameters);
+        assertTrue(filterTags.size() == 3);
+        assertTrue(refinementArray.length == 5);
     
     }
 }
