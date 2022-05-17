@@ -6,7 +6,7 @@ package eu.europeana.api2.v2.model;
 public class GeoDistance {
     
     
-    public static final  String FQ_GEOFILT_SFIELD = "{!geofilt sfield=%s}";
+    public static final  String FQ_GEOFILT_SFIELD = "{!geofilt}";
     public static final  String FL_STRING = "proxy_dcterms_spatial coverageLocation_wgs pl_wgs84_pos_lat pl_wgs84_pos_long";
     
     private String sField;
@@ -23,12 +23,12 @@ public class GeoDistance {
         this.distance = distance;
     }
     
-    public String getsField() {
-        return "sfield=" + sField;
+    public String getSField() {
+        return sField;
     }
-    
-    public String getFQGeoSField() {
-        return String.format(FQ_GEOFILT_SFIELD, sField);
+
+    public String getFQGeo() {
+        return FQ_GEOFILT_SFIELD;
     }
     
     public void setSField(String sField) {

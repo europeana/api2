@@ -33,7 +33,6 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.edm.utils.CountryUtils;
-import eu.europeana.corelib.edm.utils.ValidateUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.search.utils.SearchUtils;
@@ -74,7 +73,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static eu.europeana.api2.v2.utils.GeoUtils.*;
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 /**
@@ -345,6 +343,27 @@ public class SearchController {
             }
         }
 
+        // EA-2996 only allow sorting on distance if a qf distance function is requested
+        boolean isGeoDistanceRequested = false;
+        GeoDistance geoDistance = null;
+        for (String refinement : refinementArray){
+            if (StringUtils.containsIgnoreCase(refinement, "geofilt")){
+                isGeoDistanceRequested = true;
+            }
+        }
+        if (isGeoDistanceRequested){
+            geoDistance = geoUtils.getGeoDistance();
+            if (StringUtils.containsIgnoreCase(sort, "distance") && null != geoDistance) {
+                sort = StringUtils.replaceIgnoreCase(sort, "distance", "geodist()");
+            }
+        } else if (StringUtils.containsIgnoreCase(sort, "distance")){
+            sort = StringUtils.remove(sort, "distance");
+            // if remainder is just 'asc / desc', remove altogether
+            if (sort.strip().length() < 5){
+                sort = null;
+            }
+        }
+
         Class<? extends IdBean> clazz = selectBean(profile);
         Query query = new Query(SearchUtils.rewriteQueryFields(
                 SearchUtils.fixBuggySolrIndex(queryString)))
@@ -357,10 +376,10 @@ public class SearchController {
                                 .setParameter("facet.mincount","1")
                                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                                 .setSpellcheckAllowed(false);
-        
-        GeoDistance geoDistance = geoUtils.getGeoDistance();
+
+        // EA-2996
         if (null != geoDistance){
-            query.addGeoParamsToQuery(geoDistance.getPoint(), geoDistance.getDistance(), geoDistance.getFlString());
+            query.addGeoParamsToQuery(geoDistance.getSField(), geoDistance.getPoint(), geoDistance.getDistance());
         }
 
         if (facetsRequested) {
@@ -687,8 +706,8 @@ public class SearchController {
                                                             .replaceAll("[\\(\\)]", "");
                         geoUtils.setQfValue(refinementValue);
                         GeoDistance geoDistance = geoUtils.getGeoDistance();
-                        if (null != geoDistance && StringUtils.isNotBlank(geoDistance.getFQGeoSField())) {
-                            newRefinements.add(geoDistance.getFQGeoSField());
+                        if (null != geoDistance && StringUtils.isNotBlank(geoDistance.getFQGeo())) {
+                            newRefinements.add(geoDistance.getFQGeo());
                             hasGeoDistanceSearch = true;
                         }
                     }
