@@ -295,12 +295,12 @@ public class SearchController {
         final List<Integer> filterTags = new ArrayList<>();
         
         // EA-2996 this is to hold the sfield, pt and d geospatial parameters
-        // it is initialised and assigned in processQfParameters() together with required fq={!geofilt}
-        GeoUtils geoUtils = new GeoUtils();
+        // Created here, passed to processQfParameters() & initialised there
+        GeoDistance geoDistance = new GeoDistance();
         
         // NOTE the zero tag is now added in processQfParameters
         try {
-            refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags, geoUtils);
+            refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags, geoDistance);
         } catch (EuropeanaException e) {
             throw new SolrQueryException(ProblemType.INVALID_PARAMETER_VALUE, e.getMessage());
         }
@@ -343,17 +343,9 @@ public class SearchController {
             }
         }
 
-        // EA-2996 only allow sorting on distance if a qf distance function is requested
-        boolean isGeoDistanceRequested = false;
-        GeoDistance geoDistance = null;
-        for (String refinement : refinementArray){
-            if (StringUtils.containsIgnoreCase(refinement, "geofilt")){
-                isGeoDistanceRequested = true;
-            }
-        }
-        if (isGeoDistanceRequested){
-            geoDistance = geoUtils.getGeoDistance();
-            if (StringUtils.containsIgnoreCase(sort, "distance") && null != geoDistance) {
+        // EA-2996 only allow sorting on distance if a qf distance function is requested => if geoDistance is initialised
+        if (geoDistance.isInitialised()){
+            if (StringUtils.containsIgnoreCase(sort, "distance")) {
                 sort = StringUtils.replaceIgnoreCase(sort, "distance", "geodist()");
             }
         } else if (StringUtils.containsIgnoreCase(sort, "distance")){
@@ -378,7 +370,7 @@ public class SearchController {
                                 .setSpellcheckAllowed(false);
 
         // EA-2996
-        if (null != geoDistance){
+        if (geoDistance.isInitialised()){
             query.addGeoParamsToQuery(geoDistance.getSField(), geoDistance.getPoint(), geoDistance.getDistance());
         }
 
@@ -504,7 +496,7 @@ public class SearchController {
                                             Boolean fullText,
                                             Boolean landingPage,
                                             List<Integer> filterTags,
-                                            GeoUtils geoUtils) throws EuropeanaException {
+                                            GeoDistance geoDistance) throws EuropeanaException {
         boolean hasImageRefinements = false;
         boolean hasAudioRefinements = false;
         boolean hasVideoRefinements = false;
@@ -704,9 +696,8 @@ public class SearchController {
                         String refinementValue = StringUtils.substringAfter(qf, "distance(")
                                                             .replaceAll("^\"|\"$", "")
                                                             .replaceAll("[\\(\\)]", "");
-                        geoUtils.setQfValue(refinementValue);
-                        GeoDistance geoDistance = geoUtils.getGeoDistance();
-                        if (null != geoDistance && StringUtils.isNotBlank(geoDistance.getFQGeo())) {
+                        geoDistance.initialise(refinementValue);
+                        if (geoDistance.isInitialised()) {
                             newRefinements.add(geoDistance.getFQGeo());
                             hasGeoDistanceSearch = true;
                         }
