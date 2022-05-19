@@ -20,7 +20,7 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.GoogleTranslationService;
+import eu.europeana.api2.v2.service.translate.PangeanicTranslationService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
@@ -32,7 +32,6 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.edm.utils.CountryUtils;
-import eu.europeana.corelib.edm.utils.ValidateUtils;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.search.utils.SearchUtils;
@@ -86,7 +85,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 @SwaggerSelect
 @Api(tags = {"Search"})
 // imports to enable Multi-lingual search
-@Import({GoogleTranslationService.class, QueryTranslator.class, MultilingualQueryGenerator.class})
+@Import({PangeanicTranslationService.class, QueryTranslator.class, MultilingualQueryGenerator.class})
 public class SearchController {
 
     private static final Logger LOG                       = LogManager.getLogger(SearchController.class);

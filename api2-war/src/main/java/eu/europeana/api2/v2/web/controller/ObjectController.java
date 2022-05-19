@@ -95,7 +95,7 @@ public class ObjectController {
 
     private RouteDataService        routeService;
     private RecordService           recordService;
-    private BeanTranslateService translateFilterService;
+    private BeanTranslateService    translateFilterService;
     private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
 

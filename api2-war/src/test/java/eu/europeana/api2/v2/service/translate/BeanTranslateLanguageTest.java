@@ -126,7 +126,7 @@ public class BeanTranslateLanguageTest {
     }};
 
     @Before
-    public void setup() {
+    public void setup() throws TranslationException {
         when(translationService.translate(anyList(), eq(TARGET_LANG))).thenReturn(MOCK_TRANSLATION_FROM_DEF);
         when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG_DEF))).thenReturn(MOCK_TRANSLATION_FROM_DEF);
         // dctermsAlternative is only available in German

@@ -26,7 +26,7 @@ import java.util.*;
  * Created June - August 2021
  */
 @Service
-@Import(GoogleTranslationService.class)
+@Import({PangeanicTranslationService.class})
 public class BeanTranslateService {
 
     private static final Logger LOG = LogManager.getLogger(BeanTranslateService.class);
@@ -99,7 +99,11 @@ public class BeanTranslateService {
             LOG.debug("Translate - Gathering data took {} ms", (System.currentTimeMillis() - startTime));
         }
 
+        long startTimeTranslate = System.currentTimeMillis();
         FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
+        }
 
         // add translations to Europeana proxy
         long startTimeOutput = System.currentTimeMillis();

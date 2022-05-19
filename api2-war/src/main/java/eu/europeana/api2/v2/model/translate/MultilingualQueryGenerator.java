@@ -1,9 +1,11 @@
 package eu.europeana.api2.v2.model.translate;
 
 /**
- * Google translate + autodetect language
+ * Generate multi-lingual search query
  */
 
+import eu.europeana.api2.v2.exceptions.TranslationException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,16 +35,19 @@ public class MultilingualQueryGenerator {
      * @param sourceLanguage optional, if null Google Translate will try and detect the language
      * @return
      */
-    public String getMultilingualQuery(String queryString, String targetLanguage, String sourceLanguage) {
+    public String getMultilingualQuery(String queryString, String targetLanguage, String sourceLanguage) throws TranslationException {
         return getMultilingualQuery(new eu.europeana.api2.v2.model.translate.Query(queryString), targetLanguage, sourceLanguage);
     }
 
-    private String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage) throws IndexOutOfBoundsException {
+    private String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage) throws TranslationException, IndexOutOfBoundsException {
         LOG.debug("target language {}, source language {}", targetLanguage, sourceLanguage);
         QueryParser qParser = new QueryParser();
         query = qParser.parse(query);
         String translation = queryTranslator.translate(query, targetLanguage, sourceLanguage);
-        return "(" +  query.getText() + ")" + " OR " + "(" + translation + ")"; //TODO: basic multilingual query
+        if (!StringUtils.isBlank(translation)) { // this is to prevent issues with Pangeanic returning empty result sometimes
+            return "(" + query.getText() + ")" + " OR " + "(" + translation + ")"; //TODO: basic multilingual query
+        }
+        return query.getText(); // fallback, in case we don't get translation
     }
 
     @PreDestroy

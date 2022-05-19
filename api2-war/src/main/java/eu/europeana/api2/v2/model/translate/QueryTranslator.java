@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.model.translate;
 
+import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.service.translate.TranslationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,21 +22,21 @@ public class QueryTranslator {
     private TranslationService translationService;
 
     @Autowired
-    public QueryTranslator(TranslationService translationService){
+    public QueryTranslator(TranslationService translationService) {
         this.translationService = translationService;
         LOG.info("QueryTranslator initialised with {} service", translationService);
     }
 
-    private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose){
+    private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose) throws TranslationException {
         StringBuilder sb =  new StringBuilder();
         String toTranslate = text.trim();
         if (!toTranslate.isEmpty()) {
             String translation;
             long start = System.nanoTime(); //DEBUG
             if (sourceLanguage == null) {
-                translation = this.translationService.translate(toTranslate, targetLanguage);
+                translation = this.translationService.translate(List.of(toTranslate), targetLanguage).get(0);
             } else {
-                translation = this.translationService.translate(toTranslate, targetLanguage, sourceLanguage);
+                translation = this.translationService.translate(List.of(toTranslate), targetLanguage, sourceLanguage).get(0);
             }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("<TRANSLATION> text: {} time: {}", text.replaceAll("\t", " "), (System.nanoTime() - start) / 1_000_000);
@@ -56,7 +58,7 @@ public class QueryTranslator {
         return sb.toString();
     }
 
-    public String translate(Query query, String targetLanguage, String sourceLanguage){
+    public String translate(Query query, String targetLanguage, String sourceLanguage) throws TranslationException {
         QueryPartType previous = null;
         StringBuilder outputQuery = new StringBuilder();
         for (QueryPart queryPart : query.getQueryPartList()) {
@@ -85,7 +87,7 @@ public class QueryTranslator {
     }
 
     @PreDestroy
-    public void close(){
+    public void close() {
         if (this.translationService != null) {
             this.translationService.close();
         }
