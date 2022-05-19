@@ -266,7 +266,7 @@ public class SearchControllerTest {
         // empty refinement
         filterTags.clear();
         
-        refinementArray = new String[]{"distance(currentLocation_wgs,20.4,80.09,40)"};
+        refinementArray = new String[]{"distance(currentLocation,20.4,80.09,40)"};
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
         assertTrue(filterTags.size() == 0);
         assertTrue(refinementArray.length == 5);
@@ -278,7 +278,7 @@ public class SearchControllerTest {
         GeoDistance         geoDistance   = new GeoDistance();
         
         // negative distance should fail
-        String [] refinementArray = new String[]{"distance(currentLocation_wgs,20.4,80.09,-40)"};
+        String [] refinementArray = new String[]{"distance(currentLocation,20.4,80.09,-40)"};
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
     }
     
