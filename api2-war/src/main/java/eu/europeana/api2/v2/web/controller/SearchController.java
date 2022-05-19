@@ -69,6 +69,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -301,8 +302,8 @@ public class SearchController {
         // NOTE the zero tag is now added in processQfParameters
         try {
             refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags, geoDistance);
-        } catch (EuropeanaException e) {
-            throw new SolrQueryException(ProblemType.INVALID_PARAMETER_VALUE, e.getMessage());
+        } catch (InvalidParamValueException e) {
+            throw new SolrQueryException(ProblemType.INVALID_PARAMETER_VALUE, e.getErrorDetails());
         }
     
         // add the CF filter facets to the query string like this:
@@ -496,7 +497,7 @@ public class SearchController {
                                             Boolean fullText,
                                             Boolean landingPage,
                                             List<Integer> filterTags,
-                                            GeoDistance geoDistance) throws EuropeanaException {
+                                            GeoDistance geoDistance) throws InvalidParamValueException {
         boolean hasImageRefinements = false;
         boolean hasAudioRefinements = false;
         boolean hasVideoRefinements = false;
