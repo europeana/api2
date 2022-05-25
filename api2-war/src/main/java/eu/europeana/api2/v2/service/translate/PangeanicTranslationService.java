@@ -3,6 +3,7 @@ package eu.europeana.api2.v2.service.translate;
 import com.auth0.jwt.JWT;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -89,7 +91,7 @@ public class PangeanicTranslationService implements TranslationService {
             CloseableHttpResponse response = client.execute(post)) {
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new IOException("Unable to retrieve token from Pangeanic Translation API: " +
-                        response.getStatusLine().getReasonPhrase());
+                        response.getStatusLine().getStatusCode() + " - " + response.getStatusLine().getReasonPhrase());
             } else {
                 String json = EntityUtils.toString(response.getEntity());
                 JSONObject obj = new JSONObject(json);
@@ -138,18 +140,26 @@ public class PangeanicTranslationService implements TranslationService {
             body.put("src", sourceLanguage);
         }
         body.put("tgt", targetLanguage);
-        post.setEntity(new StringEntity(body.toString()));
+        post.setEntity(new StringEntity(body.toString(), StandardCharsets.UTF_8));
         post.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + getValidToken());
         post.setHeader(HttpHeaders.ACCEPT, APPLICATION_JSON);
         post.setHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Sending POST {}", post.getURI());
+            LOG.trace("  body {}", body.toString());
+            LOG.trace("  headers:");
+            for (Header header :post.getAllHeaders()) {
+                LOG.trace("  {}: {}", header.getName(), header.getValue());
+            }
+        }
         return post;
     }
 
     private List<String> sendTranslateRequestAndParse(HttpPost post) throws IOException, JSONException {
         try (CloseableHttpResponse response = translateClient.execute(post)) {
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new IOException("Error sending request to Pangeanic Translation API: " +
-                        response.getStatusLine().getReasonPhrase());
+                throw new IOException("Error from Pangeanic Translation API: " +
+                        response.getStatusLine().getStatusCode() + " - " + response.getStatusLine().getReasonPhrase());
             } else {
                 String json = EntityUtils.toString(response.getEntity());
 
