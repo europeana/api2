@@ -1,5 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
+import org.apache.logging.log4j.LogManager;
+
 import java.util.Locale;
 
 /**
@@ -27,6 +29,7 @@ public enum TranslationEngine {
                 return value;
             }
         }
+        LogManager.getLogger(TranslationEngine.class).warn("Unknown translation engine value '{}'. Using NONE", s);
         return NONE;
     }
 }

@@ -2,6 +2,10 @@ package eu.europeana.api2.config;
 
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.service.RouteDataService;
+import eu.europeana.api2.v2.service.translate.GoogleTranslationService;
+import eu.europeana.api2.v2.service.translate.PangeanicTranslationService;
+import eu.europeana.api2.v2.service.translate.TranslationEngine;
+import eu.europeana.api2.v2.service.translate.TranslationService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import org.apache.logging.log4j.LogManager;
@@ -45,6 +49,9 @@ public class AppConfig {
 
     @Value("${apiGateway.baseUrl:}")
     private String apiGatewayBaseUrl;
+
+    @Value("${translation.engine:NONE}") // should be either PANGEANIC, GOOGLE or NONE
+    private String translationEngineString;
 
     @Autowired
     private Environment env;
@@ -110,6 +117,22 @@ public class AppConfig {
         return urlService;
     }
 
+    /**
+     * Make sure the correct translation service is initialized and available for components that need it
+     * @return translation service or null if none is configured.
+     */
+    @Bean
+    public TranslationService translationService() {
+        TranslationEngine engine = TranslationEngine.fromString(translationEngineString);
+        if (TranslationEngine.PANGEANIC.equals(engine)) {
+            return new PangeanicTranslationService();
+        } else if (TranslationEngine.GOOGLE.equals(engine)) {
+            return new GoogleTranslationService();
+        }
+        LOG.info("No translation engine available.");
+        return null;
+    }
+
     @Bean
     public RouteConfigLoader routeConfigLoader(){
         return new RouteConfigLoader();
@@ -119,4 +142,5 @@ public class AppConfig {
     public RouteDataService routeService(){
         return new RouteDataService();
     }
+
 }

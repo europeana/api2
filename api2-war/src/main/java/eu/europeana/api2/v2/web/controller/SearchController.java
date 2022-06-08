@@ -20,7 +20,6 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.PangeanicTranslationService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
@@ -85,7 +84,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 @SwaggerSelect
 @Api(tags = {"Search"})
 // imports to enable Multi-lingual search
-@Import({PangeanicTranslationService.class, QueryTranslator.class, MultilingualQueryGenerator.class})
+@Import({QueryTranslator.class, MultilingualQueryGenerator.class})
 public class SearchController {
 
     private static final Logger LOG                       = LogManager.getLogger(SearchController.class);
@@ -121,12 +120,6 @@ public class SearchController {
 
     @Value("${api.search.hl.MaxAnalyzedChars}")
     private String hlMaxAnalyzedChars;
-
-    @Value("${translation.enabled:false}")
-    private boolean isTranslationEnabled; // global flag that enables/disabled Google Translate
-    @Value("${translation.query.enabled:false}")
-    private boolean isQueryTranslationEnabled; // feature flag to enable/disable query translate
-
 
     private RouteDataService routeService;
     private MultilingualQueryGenerator queryGenerator;
@@ -222,7 +215,7 @@ public class SearchController {
         boolean isTranslateProfileActive = StringUtils.containsIgnoreCase(profile, TRANSLATE);
 
         // fail fast if user is requesting a translation when not enabled on service
-        if(isTranslateProfileActive && (!isTranslationEnabled || !isQueryTranslationEnabled)){
+        if (isTranslateProfileActive && !queryGenerator.isEnabled()){
             throw new TranslationServiceDisabledException();
         }
 

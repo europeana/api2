@@ -45,6 +45,7 @@ public class PangeanicTranslationService implements TranslationService {
     private static final String APPLICATION_JSON = "application/json";
     private static final int MAX_CONNECTIONS = 100;
     private static final int MAX_CONNECTIONS_PER_ROUTE = 100;
+    private static final int TOKEN_MIN_AGE = 30_000; //ms
 
     @Value("${translation.pangeanic.endpoint.translate:}")
     private String translateEndpoint;
@@ -75,6 +76,7 @@ public class PangeanicTranslationService implements TranslationService {
         cm.setMaxTotal(MAX_CONNECTIONS);
         cm.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
         translateClient = HttpClients.custom().setConnectionManager(cm).build();
+        LOG.info("Pangeanic translation service is initialized. Endpoint is {}", translateEndpoint);
     }
 
     private String getNewToken(String tokenEndpoint, String username, String password) throws IOException, JSONException {
@@ -106,7 +108,7 @@ public class PangeanicTranslationService implements TranslationService {
      */
     private synchronized String getValidToken() throws JSONException, IOException {
         // return true if token expires in less than 30 seconds
-        if (tokenExpiration - new Date().getTime() < 30_000) {
+        if (tokenExpiration - new Date().getTime() < TOKEN_MIN_AGE) {
             this.token = getNewToken(tokenEndpoint, userName, password);
             this.tokenExpiration = JWT.decode(token).getExpiresAt().getTime();
         }
@@ -146,7 +148,7 @@ public class PangeanicTranslationService implements TranslationService {
         post.setHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
         if (LOG.isTraceEnabled()) {
             LOG.trace("Sending POST {}", post.getURI());
-            LOG.trace("  body {}", body.toString());
+            LOG.trace("  body {}", body);
             LOG.trace("  headers:");
             for (Header header :post.getAllHeaders()) {
                 LOG.trace("  {}: {}", header.getName(), header.getValue());

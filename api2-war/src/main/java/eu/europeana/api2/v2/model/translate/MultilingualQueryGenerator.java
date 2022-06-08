@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
@@ -20,6 +21,9 @@ import javax.annotation.PreDestroy;
 public class MultilingualQueryGenerator {
 
     private static final Logger LOG = LoggerFactory.getLogger(MultilingualQueryGenerator.class);
+
+    @Value("#{europeanaProperties['translation.query.enabled']}")
+    private boolean isQueryTranslationEnabled; // feature flag to enable/disable query translate
 
     private QueryTranslator queryTranslator;
 
@@ -48,6 +52,13 @@ public class MultilingualQueryGenerator {
             return "(" + query.getText() + ")" + " OR " + "(" + translation + ")"; //TODO: basic multilingual query
         }
         return query.getText(); // fallback, in case we don't get translation
+    }
+
+    /**
+     * @return true if there is a translation engine configured and query translation configuration option is enabled
+     */
+    public boolean isEnabled() {
+        return isQueryTranslationEnabled && queryTranslator.isServiceConfigured();
     }
 
     @PreDestroy

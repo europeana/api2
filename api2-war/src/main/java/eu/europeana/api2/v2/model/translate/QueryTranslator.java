@@ -86,6 +86,13 @@ public class QueryTranslator {
         return outputQuery.toString();
     }
 
+    /**
+     * @return true if there is a translation engine configured
+     */
+    public boolean isServiceConfigured() {
+        return translationService != null;
+    }
+
     @PreDestroy
     public void close() {
         if (this.translationService != null) {
