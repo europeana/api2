@@ -43,6 +43,7 @@ public class SearchRequest {
     private String cursor;
     private String callback;
     private Hit hit = new Hit();
+    private String boost;
 
     public String getQuery() {
         return query;
@@ -178,5 +179,13 @@ public class SearchRequest {
 
     public void setHit(Hit hit) {
         this.hit = hit;
+    }
+
+    public String getBoost() {
+        return boost;
+    }
+
+    public void setBoost(String boost) {
+        this.boost = boost;
     }
 }
