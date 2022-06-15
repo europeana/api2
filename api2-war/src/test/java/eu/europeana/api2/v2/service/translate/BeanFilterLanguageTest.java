@@ -54,6 +54,10 @@ public class BeanFilterLanguageTest {
         assertNull(bean.getConcepts().get(0).getPrefLabel());
         assertNull(bean.getConcepts().get(0).getNote());
 
+        // dcDate has non-linguistic content, so should not be translated and still be present in provider proxy
+        assertNull(bean.getProxies().get(0).getDcDate());
+        assertEquals(MockBeanConstants.DC_DATE, bean.getProxies().get(1).getDcDate().get(MockBeanConstants.ZXX).get(0));
+
         // dcFormat is a field in the superClass of the superClass of a proxy, so we check if we can find and filter those okay
         assertEquals(1, bean.getProxies().get(1).getDcFormat().size());
         assertEquals(MockBeanConstants.PROXY1_DC_FORMAT1_DEF, bean.getProxies().get(1).getDcFormat().get(MockBeanConstants.DEF).get(0));

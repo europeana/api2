@@ -51,7 +51,6 @@ public class BeanTranslateLanguageTest {
 
     // for first target lang nl
     private static final List<String> DC_CREATOR = List.of("Leonardo da Vinci (1452-1519)", "graveur", "relatieve uri . testen");
-    private static final List<String> DC_DATE = List.of("1821-1869");
     private static final List<String> DC_IDENTIFIER = List.of("TvB G 3674");
     private static final List<String> DC_TITLE = List.of("Mona Lisa");
     private static final List<String> DC_TYPE = List.of("grafiek");
@@ -76,7 +75,6 @@ public class BeanTranslateLanguageTest {
 
     // manually created using Google Translate
     private static final List<String> MOCK_TRANSLATION_FROM_DEF = new ArrayList<>() {{
-        addAll(DC_DATE);
         addAll(DC_IDENTIFIER);
         addAll(DC_TITLE);
     }};
@@ -115,7 +113,6 @@ public class BeanTranslateLanguageTest {
         addAll(DC_CREATOR_ENTITY_PREFLABEL_IT_TO_FR);
     }};
     private static final List<String> MOCK_TRANSLATION_FOR_LOCALES_FROM_DEF = new ArrayList<>() {{
-        addAll(DC_DATE);
         addAll(DC_FORMAT_FR);
         addAll(DC_IDENTIFIER);
         addAll(DC_TITLE);

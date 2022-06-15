@@ -24,6 +24,7 @@ public enum Language {
     private static final String SEPARATOR = ",";
 
     public static final String DEF = "def";
+    public static final String NO_LINGUISTIC_CONTENT = "zxx";
     public static final String ENGLISH = Language.EN.name().toLowerCase(Locale.ROOT);
 
     /**
@@ -80,6 +81,16 @@ public enum Language {
      */
     public static boolean isSupported(String lang) {
         return LANGUAGES.contains(stripLangStringIfRegionPresent(lang).toUpperCase(Locale.ROOT));
+    }
+
+    /**
+     * Check if the provided language code indicates no linguistic content
+     * (see also https://en.wikipedia.org/wiki/Zxx)
+     * @param lang language code to check
+     * @return true if provided language is zxx, else false
+     */
+    public static boolean isNoLinguisticContent(String lang) {
+        return NO_LINGUISTIC_CONTENT.equalsIgnoreCase(lang);
     }
 
     /**

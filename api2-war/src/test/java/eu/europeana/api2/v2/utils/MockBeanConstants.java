@@ -16,6 +16,7 @@ public class MockBeanConstants {
 
     public static final String COMMON_ABOUT             = "2021618/internetserver_Details_kunst_25027";
     public static final String DEF                      = "def";
+    public static final String ZXX                      = "zxx";
     public static final String IT                       = "it";
     public static final String EN                       = "en";
     public static final String PL                       = "pl";
