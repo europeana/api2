@@ -233,6 +233,12 @@ public class SearchController {
         }
 
         queryString = queryString.trim();
+
+        // append the boost value in the query
+        if(StringUtils.isNotEmpty(boostParam)) {
+            queryString = boostParam + queryString;
+        }
+
         queryString = fixCountryCapitalization(queryString);
 
 
@@ -385,17 +391,6 @@ public class SearchController {
             }
         } else {
             query.setFacetsAllowed(false);
-        }
-
-        // add dismax query param
-        if(StringUtils.isNotBlank(boostParam)) {
-            Map<String, String> dismaxQueryMap = BoostParamUtils.getDismaxQueryMap(boostParam);
-            if (!dismaxQueryMap.isEmpty()) {
-                query.setParameter("defType", QueryType.DISMAX.toString());
-                for (Map.Entry<String, String> entry : dismaxQueryMap.entrySet()) {
-                    query.setParameter(entry.getKey(), entry.getValue());
-                }
-            }
         }
 
         if (StringUtils.containsIgnoreCase(profile, HITS)) {
