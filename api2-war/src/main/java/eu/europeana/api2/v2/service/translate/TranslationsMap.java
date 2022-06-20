@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMap> {
 
-    private static final Logger LOG = LogManager.getLogger(TranslationsMap.class);
+//    private static final Logger LOG = LogManager.getLogger(TranslationsMap.class);
 
     private static final long serialVersionUID = 3953283538425288592L;
 
@@ -72,7 +72,6 @@ public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMa
      */
     public FieldValuesLanguageMap translate(TranslationService translationService, String targetLanguage) throws EuropeanaException {
         // send a request for each of the languages
-        long startTimeTranslate = System.currentTimeMillis();
         List<FieldValuesLanguageMap> translations = new ArrayList<>();
         long nrCharacters = 0;
         for (FieldValuesLanguageMap mapToTranslate : this.values()) {
@@ -90,19 +89,12 @@ public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMa
             }
         }
         // Temp functionality (to remove later), for EA-2633 / 2661 we need to log the amount of characters that are sent for 1 record
-        LOG.info("{}", nrCharacters);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Translate - Sending and receiving requests took {} ms", (System.currentTimeMillis() - startTimeTranslate));
-        }
+//        LOG.info("{}", nrCharacters);
 
         // merge result values from different languages (we do this separately to avoid ConcurrentModificationExceptions)
-        long startTimeMerge = System.currentTimeMillis();
         FieldValuesLanguageMap result = new FieldValuesLanguageMap(targetLanguage);
         for (FieldValuesLanguageMap translation : translations) {
             result.merge(translation);
-        }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Translate - Merging results values took {} ms", (System.currentTimeMillis() - startTimeMerge));
         }
         return result;
     }

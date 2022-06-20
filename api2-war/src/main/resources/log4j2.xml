@@ -10,7 +10,7 @@
             </PatternLayout>
 
             <!-- Use this pattern for local debugging -->
-            <!--<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %logger{36}:%L - %msg%n" />-->
+<!--        <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %logger{36}:%L - %msg%n" />-->
         </Console>
     </Appenders>
     <Loggers>
@@ -20,10 +20,13 @@
         <Logger name="eu.europeana.api2.v2.web.controller" level="INFO"/>
         <Logger name="org.mongodb.driver" level="INFO"/>
         <Logger name="org.apache.jena.riot" level="ERROR" />
-        <Logger name="eu.europeana.corelib.record.api.IIIFLink" level="DEBUG" />
+        <Logger name="eu.europeana.corelib.record.api.IIIFLink" level="INFO" />
         <Logger name="eu.europeana.api2.v2.service.translate.BeanFilterLanguage" level="INFO" />
+
+        <!-- Set to DEBUG to see which record fields are or are not chosen to be translated + see how long the entire process took -->
         <Logger name="eu.europeana.api2.v2.service.translate.BeanTranslateService" level="INFO" />
-        <Logger name="eu.europeana.api2.v2.service.translate.TranslationMap" level="INFO" />
+
+        <!-- Set to DEBUG to see which translation requests are sent, or TRACE to see request contents -->
         <Logger name="eu.europeana.api2.v2.service.translate.TranslationUtils" level="INFO" />
     </Loggers>
 </Configuration>

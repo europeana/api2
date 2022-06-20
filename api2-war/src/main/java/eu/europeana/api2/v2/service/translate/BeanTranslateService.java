@@ -11,7 +11,6 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
@@ -26,7 +25,6 @@ import java.util.*;
  * Created June - August 2021
  */
 @Service
-@Import(GoogleTranslationService.class)
 public class BeanTranslateService {
 
     private static final Logger LOG = LogManager.getLogger(BeanTranslateService.class);
@@ -79,6 +77,13 @@ public class BeanTranslateService {
     }
 
     /**
+     * @return true if there is a translation service available
+     */
+    public boolean isEnabled() {
+        return translationService != null;
+    }
+
+    /**
      * Add a translation of various proxy fields to the provided record, but only if that field does not already have
      * values in the requested language
      *
@@ -99,7 +104,11 @@ public class BeanTranslateService {
             LOG.debug("Translate - Gathering data took {} ms", (System.currentTimeMillis() - startTime));
         }
 
+        long startTimeTranslate = System.currentTimeMillis();
         FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
+        }
 
         // add translations to Europeana proxy
         long startTimeOutput = System.currentTimeMillis();
@@ -243,7 +252,8 @@ public class BeanTranslateService {
             // return any value if available, but only if it's a supported language
             for (String key : map.keySet()) {
                 if (Language.isSupported(key)) {
-                    return Collections.singletonList(new FieldValuesLanguageMap(Language.getLanguage(key).name().toLowerCase(Locale.ROOT), fieldName, map.get(key)));
+                    return Collections.singletonList(
+                            new FieldValuesLanguageMap(Language.getLanguage(key).name().toLowerCase(Locale.ROOT), fieldName, map.get(key)));
                 } else {
                     LOG.debug("  Found value for field {} in unsupported language {}", fieldName, key);
                 }

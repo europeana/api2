@@ -44,7 +44,6 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -95,12 +94,9 @@ public class ObjectController {
 
     private RouteDataService        routeService;
     private RecordService           recordService;
-    private BeanTranslateService translateFilterService;
+    private BeanTranslateService    translateFilterService;
     private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
-
-    @Value("${translation.enabled:false}")
-    private boolean isTranslationEnabled;
 
     /**
      * Create a static Object for JSONLD Context. This will read the file once during initialization
@@ -335,7 +331,7 @@ public class ObjectController {
         }
 
         // 3) validate other common params
-        if (!isTranslationEnabled && RecordProfile.TRANSLATE.isActive(data.profile)) {
+        if (!translateFilterService.isEnabled() && RecordProfile.TRANSLATE.isActive(data.profile)) {
             throw new TranslationServiceDisabledException();
         }
         if (data.lang != null) {
