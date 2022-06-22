@@ -27,6 +27,7 @@ import eu.europeana.corelib.definitions.edm.beans.ApiBean;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
+import eu.europeana.corelib.definitions.solr.QueryType;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
@@ -165,6 +166,7 @@ public class SearchController {
                              searchRequest.getHit().getSelectors(),
                              null, // TODO for now we set sourceLang and targetLang to null for POSTS until we decide how this will work officially
                              null,
+                             searchRequest.getBoost(),
                              request,
                              response);
     }
@@ -201,6 +203,7 @@ public class SearchController {
                                       @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
                                       @RequestParam(value = "q.source", required = false) String querySourceLang,
                                       @RequestParam(value = "q.target", required = false) String queryTargetLang,
+                                      @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
                                       HttpServletResponse response) throws EuropeanaException {
 
@@ -211,6 +214,9 @@ public class SearchController {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
 
+       // validate boost Param
+        BoostParamUtils.validateBoostParam(boostParam);
+
         // only handle q.source and q.target params if translate profile is active
         boolean isTranslateProfileActive = StringUtils.containsIgnoreCase(profile, TRANSLATE);
 
@@ -220,6 +226,12 @@ public class SearchController {
         }
 
         queryString = queryString.trim();
+
+        // append the boost value in the query
+        if(StringUtils.isNotEmpty(boostParam)) {
+            queryString = boostParam + queryString;
+        }
+
         queryString = fixCountryCapitalization(queryString);
 
 
