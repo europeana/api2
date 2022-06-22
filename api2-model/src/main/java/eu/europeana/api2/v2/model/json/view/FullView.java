@@ -31,7 +31,7 @@ public class FullView implements FullBean {
         extractTimestampUpdated();
     }
 
-    // TODO check if setting id's to null is still neccessary
+    // TODO check if setting id's to null is still necessary
 
     @Override
     public String getId() {
