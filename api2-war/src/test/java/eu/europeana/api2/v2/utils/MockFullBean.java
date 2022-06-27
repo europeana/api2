@@ -109,10 +109,10 @@ public final class MockFullBean {
         proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_10);
         proxy.getDcCreator().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_CREATOR_11);
 
-
+        // non-linguistic content should be kept in the original proxy and not translated
         proxy.setDcDate(new HashMap<>());
-        proxy.getDcDate().put(MockBeanConstants.DEF, new ArrayList<>());
-        proxy.getDcDate().get(MockBeanConstants.DEF).add(MockBeanConstants.DC_DATE);
+        proxy.getDcDate().put(MockBeanConstants.ZXX, new ArrayList<>());
+        proxy.getDcDate().get(MockBeanConstants.ZXX).add(MockBeanConstants.DC_DATE);
 
         proxy.setDcFormat(new HashMap<>());
         proxy.getDcFormat().put(MockBeanConstants.DEF, new ArrayList<>());
