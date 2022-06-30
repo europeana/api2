@@ -17,10 +17,12 @@
         <Root level="INFO">
             <AppenderRef ref="Console"/>
         </Root>
+        <Logger name="org.mongodb.driver.connection" level="WARN"/> <!-- to prevent opened/closed connection messages -->
+        <Logger name="org.apache.jena.riot" level="ERROR" /> <!-- to prevent JENA warnings about parsing data -->
+
         <Logger name="eu.europeana.api2.v2.web.controller" level="INFO"/>
-        <Logger name="org.mongodb.driver" level="INFO"/>
-        <Logger name="org.apache.jena.riot" level="ERROR" />
         <Logger name="eu.europeana.corelib.record.api.IIIFLink" level="INFO" />
+        
         <Logger name="eu.europeana.api2.v2.service.translate.BeanFilterLanguage" level="INFO" />
 
         <!-- Set to DEBUG to see which record fields are or are not chosen to be translated + see how long the entire process took -->
