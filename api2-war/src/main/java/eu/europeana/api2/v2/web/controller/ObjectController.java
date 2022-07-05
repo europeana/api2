@@ -40,6 +40,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.JsonLDWriteContext;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFWriter;
+import org.apache.jena.riot.RDFWriterBuilder;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -486,7 +487,8 @@ public class ObjectController {
                  DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
                  JsonLDWriteContext ctx = new JsonLDWriteContext();
                  ctx.setJsonLDContext(ObjectController.jsonldContext);
-                 RDFWriter writer = RDFWriter.create().source(graph).format(RDFFormat.JSONLD_FLAT).context(ctx).build();
+                 RDFWriterBuilder writerBuilder = RDFWriter.create();
+                 RDFWriter writer = writerBuilder.source(graph).format(RDFFormat.JSONLD10_FLAT).context(ctx).build();
                  writer.output(outputStream);
                  return JsonUtils.toJsonLd(outputStream.toString(), data.callback);
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
