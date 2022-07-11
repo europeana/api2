@@ -1,14 +1,21 @@
 package eu.europeana.api2.v2.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.indexing.solr.facet.EncodedFacet;
-import eu.europeana.indexing.solr.facet.value.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
 
@@ -21,10 +28,17 @@ import java.util.*;
  */
 public class ModelUtils {
 
+    private static final Logger LOG  = LogManager.getLogger(ModelUtils.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     private static final String TECHNICALFACETS = "technicalfacets";
     private static final String SOLRFACETS      = "solrfacets";
     private static final String CUSTOMFACETS    = "customfacets";
     private static final String DEFAULT         = "DEFAULT";
+    private static final String JSONLD_GRAPH    = "@graph";
+    private static final String JSONLD_TYPE   = "@type";
+    private static final String JSONLD_WR_RDF_TYPE    = "edm:WebResource";
+    private static final String JSONLD_WR_RDF_ID    = "@id";
 
     private static final int          FACET_LIMIT        = 150;
     // static goodies: Lists containing the enum Facet type names
@@ -229,4 +243,48 @@ public class ModelUtils {
         }
     }
 
+    /**
+     * Sorts the web resources for the JsonLD response
+     * If there is an error, returns the original response.
+     * @param orderOfWebresources - correct order of the web resources
+     * @param jsonString - JsonLd response
+     * @return
+     */
+    public static String sortWebResources(List<String> orderOfWebresources, String jsonString) {
+        try {
+            ObjectNode node = mapper.readValue(jsonString, ObjectNode.class);
+            // remove the existing non-ordered web resources
+             if (node.has(JSONLD_GRAPH)) {
+                 List<JsonNode> webResources = new ArrayList<>();
+                 JsonNode graph = node.get(JSONLD_GRAPH);
+                 Iterator<JsonNode> iterator = graph.iterator();
+                 int originalGraphSize = graph.size();
+
+                 while (iterator.hasNext()) {
+                     JsonNode jsonNode = iterator.next();
+                     // @type can be an array with multiple values other than edm:WebResources. Example:  for FulltextResources or ManifestResources
+                     if (StringUtils.contains(jsonNode.get(JSONLD_TYPE).toString(), StringUtils.wrap(JSONLD_WR_RDF_TYPE, "\""))) {
+                         webResources.add(jsonNode);
+                         iterator.remove();
+                     }
+                 }
+                 // add the ordered web resources
+                 ArrayNode graphArrayNode = (ArrayNode) node.get(JSONLD_GRAPH);
+                 orderOfWebresources.stream().forEach(order ->
+                         webResources.stream().forEach(webResource -> {
+                             if (StringUtils.equals(webResource.get(JSONLD_WR_RDF_ID).toString(), StringUtils.wrap(order, "\""))) {
+                                 graphArrayNode.add(webResource);
+                             }}));
+
+                 // There should NOT be a mismatch in the data size, else will return original string
+                 if (graphArrayNode.size() == originalGraphSize) {
+                     return node.toString();
+                 }
+             }
+        } catch (JsonProcessingException e) {
+            // will log the error and send back the original response (non-ordered one)
+            LOG.error("Error sorting the we resources", e);
+        }
+        return jsonString;
+    }
 }

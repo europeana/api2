@@ -16,6 +16,7 @@ import eu.europeana.api2.v2.service.translate.BeanFilterLanguage;
 import eu.europeana.api2.v2.service.translate.BeanTranslateService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
+import eu.europeana.api2.v2.utils.ModelUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -479,6 +480,10 @@ public class ObjectController {
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
+        // get the web resources order
+        List<String> orderOfWebResource = new ArrayList<>();
+        bean.getAggregations().get(0).getWebResources().stream().forEach(webResource -> orderOfWebResource.add(webResource.getAbout()));
+
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (InputStream rdfInput = IOUtils.toInputStream(rdf, StandardCharsets.UTF_8);
              OutputStream outputStream = new ByteArrayOutputStream()) {
@@ -490,7 +495,10 @@ public class ObjectController {
                  RDFWriterBuilder writerBuilder = RDFWriter.create();
                  RDFWriter writer = writerBuilder.source(graph).format(RDFFormat.JSONLD10_FLAT).context(ctx).build();
                  writer.output(outputStream);
-                 return JsonUtils.toJsonLd(outputStream.toString(), data.callback);
+                 // Jena model sorts the data with it's own logic. We can not manipulate the order there.
+                // Hence, we will sort the web resources with JsonObject that is created by RDFWriter.
+                String orderedJsonLd = ModelUtils.sortWebResources(orderOfWebResource, outputStream.toString());
+                return JsonUtils.toJsonLd(orderedJsonLd, data.callback);
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
