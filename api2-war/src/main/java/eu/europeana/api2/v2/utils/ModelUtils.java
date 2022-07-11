@@ -253,7 +253,7 @@ public class ModelUtils {
      */
     public static String sortWebResources(List<? extends WebResource> webResources, String jsonString) {
         try {
-            // 1. get the original order of web resources from bean
+            // 1. get the original order of web resources
             Map<String, JsonNode> sortedWebResourceMap = new LinkedHashMap<>(webResources.size());
             for (WebResource wr : webResources) {
                 sortedWebResourceMap.put(StringUtils.wrap(wr.getAbout(), "\""),  null);

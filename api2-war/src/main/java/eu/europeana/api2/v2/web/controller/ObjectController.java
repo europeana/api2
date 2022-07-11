@@ -480,10 +480,6 @@ public class ObjectController {
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
-        // get the web resources order
-        List<String> orderOfWebResource = new ArrayList<>();
-        bean.getAggregations().get(0).getWebResources().stream().forEach(webResource -> orderOfWebResource.add(webResource.getAbout()));
-
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (InputStream rdfInput = IOUtils.toInputStream(rdf, StandardCharsets.UTF_8);
              OutputStream outputStream = new ByteArrayOutputStream()) {
