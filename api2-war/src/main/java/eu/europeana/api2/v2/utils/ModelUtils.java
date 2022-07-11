@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
+import eu.europeana.corelib.definitions.edm.entity.WebResource;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.indexing.solr.facet.EncodedFacet;
@@ -246,40 +247,33 @@ public class ModelUtils {
     /**
      * Sorts the web resources for the JsonLD response
      * If there is an error, returns the original response.
-     * @param orderOfWebresources - correct order of the web resources
+     * @param webResources - web resources
      * @param jsonString - JsonLd response
      * @return
      */
-    public static String sortWebResources(List<String> orderOfWebresources, String jsonString) {
+    public static String sortWebResources(List<? extends WebResource> webResources, String jsonString) {
         try {
-            ObjectNode node = mapper.readValue(jsonString, ObjectNode.class);
-            // remove the existing non-ordered web resources
-             if (node.has(JSONLD_GRAPH)) {
-                 List<JsonNode> webResources = new ArrayList<>();
-                 JsonNode graph = node.get(JSONLD_GRAPH);
-                 Iterator<JsonNode> iterator = graph.iterator();
-                 int originalGraphSize = graph.size();
+            // 1. get the original order of web resources from bean
+            Map<String, JsonNode> sortedWebResourceMap = new LinkedHashMap<>(webResources.size());
+            for (WebResource wr : webResources) {
+                sortedWebResourceMap.put(StringUtils.wrap(wr.getAbout(), "\""),  null);
+            }
 
+            // 2. remove the existing non-ordered web resources and add the web Resource values in the ordered Map
+            ObjectNode node = mapper.readValue(jsonString, ObjectNode.class);
+             if (node.has(JSONLD_GRAPH)) {
+                 Iterator<JsonNode> iterator = node.get(JSONLD_GRAPH).iterator();
                  while (iterator.hasNext()) {
                      JsonNode jsonNode = iterator.next();
                      // @type can be an array with multiple values other than edm:WebResources. Example:  for FulltextResources or ManifestResources
                      if (StringUtils.contains(jsonNode.get(JSONLD_TYPE).toString(), StringUtils.wrap(JSONLD_WR_RDF_TYPE, "\""))) {
-                         webResources.add(jsonNode);
+                         sortedWebResourceMap.replace(jsonNode.get(JSONLD_WR_RDF_ID).toString(), jsonNode);
                          iterator.remove();
                      }
                  }
-                 // add the ordered web resources
-                 ArrayNode graphArrayNode = (ArrayNode) node.get(JSONLD_GRAPH);
-                 orderOfWebresources.stream().forEach(order ->
-                         webResources.stream().forEach(webResource -> {
-                             if (StringUtils.equals(webResource.get(JSONLD_WR_RDF_ID).toString(), StringUtils.wrap(order, "\""))) {
-                                 graphArrayNode.add(webResource);
-                             }}));
-
-                 // There should NOT be a mismatch in the data size, else will return original string
-                 if (graphArrayNode.size() == originalGraphSize) {
-                     return node.toString();
-                 }
+                 // 3. add the ordered web resources
+                 ((ArrayNode) node.get(JSONLD_GRAPH)).addAll(sortedWebResourceMap.values());
+                 return node.toString();
              }
         } catch (JsonProcessingException e) {
             // will log the error and send back the original response (non-ordered one)
