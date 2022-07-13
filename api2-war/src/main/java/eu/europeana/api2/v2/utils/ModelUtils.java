@@ -1,14 +1,22 @@
 package eu.europeana.api2.v2.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
+import eu.europeana.corelib.definitions.edm.entity.WebResource;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.indexing.solr.facet.EncodedFacet;
-import eu.europeana.indexing.solr.facet.value.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
 
@@ -21,10 +29,17 @@ import java.util.*;
  */
 public class ModelUtils {
 
+    private static final Logger LOG  = LogManager.getLogger(ModelUtils.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     private static final String TECHNICALFACETS = "technicalfacets";
     private static final String SOLRFACETS      = "solrfacets";
     private static final String CUSTOMFACETS    = "customfacets";
     private static final String DEFAULT         = "DEFAULT";
+    private static final String JSONLD_GRAPH    = "@graph";
+    private static final String JSONLD_TYPE   = "@type";
+    private static final String JSONLD_WR_RDF_TYPE    = "edm:WebResource";
+    private static final String JSONLD_WR_RDF_ID    = "@id";
 
     private static final int          FACET_LIMIT        = 150;
     // static goodies: Lists containing the enum Facet type names
@@ -229,4 +244,41 @@ public class ModelUtils {
         }
     }
 
+    /**
+     * Sorts the web resources for the JsonLD response
+     * If there is an error, returns the original response.
+     * @param webResources - web resources
+     * @param jsonString - JsonLd response
+     * @return
+     */
+    public static String sortWebResources(List<? extends WebResource> webResources, String jsonString) {
+        try {
+            // 1. get the original order of web resources
+            Map<String, JsonNode> sortedWebResourceMap = new LinkedHashMap<>(webResources.size());
+            for (WebResource wr : webResources) {
+                sortedWebResourceMap.put(StringUtils.wrap(wr.getAbout(), "\""),  null);
+            }
+
+            // 2. remove the existing non-ordered web resources and add the web Resource values in the ordered Map
+            ObjectNode node = mapper.readValue(jsonString, ObjectNode.class);
+             if (node.has(JSONLD_GRAPH)) {
+                 Iterator<JsonNode> iterator = node.get(JSONLD_GRAPH).iterator();
+                 while (iterator.hasNext()) {
+                     JsonNode jsonNode = iterator.next();
+                     // @type can be an array with multiple values other than edm:WebResources. Example:  for FulltextResources or ManifestResources
+                     if (StringUtils.contains(jsonNode.get(JSONLD_TYPE).toString(), StringUtils.wrap(JSONLD_WR_RDF_TYPE, "\""))) {
+                         sortedWebResourceMap.replace(jsonNode.get(JSONLD_WR_RDF_ID).toString(), jsonNode);
+                         iterator.remove();
+                     }
+                 }
+                 // 3. add the ordered web resources
+                 ((ArrayNode) node.get(JSONLD_GRAPH)).addAll(sortedWebResourceMap.values());
+                 return node.toString();
+             }
+        } catch (JsonProcessingException e) {
+            // will log the error and send back the original response (non-ordered one)
+            LOG.error("Error sorting the we resources", e);
+        }
+        return jsonString;
+    }
 }
