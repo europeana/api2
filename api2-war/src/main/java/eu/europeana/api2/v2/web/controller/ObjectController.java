@@ -492,8 +492,8 @@ public class ObjectController {
                  RDFWriter writer = writerBuilder.source(graph).format(RDFFormat.JSONLD10_FLAT).context(ctx).build();
                  writer.output(outputStream);
                  // Jena model sorts the data with it's own logic. We can not manipulate the order there.
-                // Hence, we will sort the web resources with JsonObject that is created by RDFWriter.
-                String orderedJsonLd = ModelUtils.sortWebResources(bean.getAggregations().get(0).getWebResources(), outputStream.toString());
+                // Hence, we will sort the hasView with JsonObject that is created by RDFWriter.
+                String orderedJsonLd = ModelUtils.sortHasViews(bean, outputStream.toString());
                 return JsonUtils.toJsonLd(orderedJsonLd, data.callback);
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);
