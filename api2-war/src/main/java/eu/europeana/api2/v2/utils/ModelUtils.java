@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
-import eu.europeana.corelib.definitions.edm.entity.WebResource;
+import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.indexing.solr.facet.EncodedFacet;
@@ -38,8 +38,9 @@ public class ModelUtils {
     private static final String DEFAULT         = "DEFAULT";
     private static final String JSONLD_GRAPH    = "@graph";
     private static final String JSONLD_TYPE   = "@type";
-    private static final String JSONLD_WR_RDF_TYPE    = "edm:WebResource";
-    private static final String JSONLD_WR_RDF_ID    = "@id";
+    private static final String JSONLD_AGGREGATION_RDF_TYPE    = "ore:Aggregation";
+    private static final String JSONLD_EDM_HAS_VIEW    = "edm:hasView";
+    private static final String JSONLD_RDF_ID    = "@id";
 
     private static final int          FACET_LIMIT        = 150;
     // static goodies: Lists containing the enum Facet type names
@@ -245,40 +246,62 @@ public class ModelUtils {
     }
 
     /**
-     * Sorts the web resources for the JsonLD response
+     * Sorts the has View for the JsonLD response
      * If there is an error, returns the original response.
-     * @param webResources - web resources
+     * @param bean - bean
      * @param jsonString - JsonLd response
      * @return
      */
-    public static String sortWebResources(List<? extends WebResource> webResources, String jsonString) {
+    public static String sortHasViews(FullBean bean, String jsonString) {
         try {
-            // 1. get the original order of web resources
-            Map<String, JsonNode> sortedWebResourceMap = new LinkedHashMap<>(webResources.size());
-            for (WebResource wr : webResources) {
-                sortedWebResourceMap.put(StringUtils.wrap(wr.getAbout(), "\""),  null);
+            // 1. check if sorting is required
+            if (hasViewSortingRequired(bean)) {
+                return jsonString;
             }
-
-            // 2. remove the existing non-ordered web resources and add the web Resource values in the ordered Map
+            // 2. get the original order of hasView
+            Map<String, JsonNode> sortedHasView = new LinkedHashMap<>(bean.getAggregations().get(0).getHasView().length);
+            for (String view : bean.getAggregations().get(0).getHasView()) {
+                sortedHasView.put(StringUtils.wrap(view, "\""), null);
+            }
+            // 3. remove the existing non-ordered hasView and add the hasView values in the ordered Map
             ObjectNode node = mapper.readValue(jsonString, ObjectNode.class);
-             if (node.has(JSONLD_GRAPH)) {
-                 Iterator<JsonNode> iterator = node.get(JSONLD_GRAPH).iterator();
-                 while (iterator.hasNext()) {
-                     JsonNode jsonNode = iterator.next();
-                     // @type can be an array with multiple values other than edm:WebResources. Example:  for FulltextResources or ManifestResources
-                     if (StringUtils.contains(jsonNode.get(JSONLD_TYPE).toString(), StringUtils.wrap(JSONLD_WR_RDF_TYPE, "\""))) {
-                         sortedWebResourceMap.replace(jsonNode.get(JSONLD_WR_RDF_ID).toString(), jsonNode);
-                         iterator.remove();
-                     }
-                 }
-                 // 3. add the ordered web resources
-                 ((ArrayNode) node.get(JSONLD_GRAPH)).addAll(sortedWebResourceMap.values());
-                 return node.toString();
-             }
+            if (node.has(JSONLD_GRAPH)) {
+                Iterator<JsonNode> graphIterator = node.get(JSONLD_GRAPH).iterator();
+                while (graphIterator.hasNext()) {
+                    JsonNode jsonNode = graphIterator.next();
+                    // get the node with value of type matching "ore:Aggregation"
+                    if (StringUtils.contains(jsonNode.get(JSONLD_TYPE).toString(), StringUtils.wrap(JSONLD_AGGREGATION_RDF_TYPE, "\""))) {
+                        addOrderedHasView(jsonNode, sortedHasView);
+                        break; // conditional break. We do not want to process anything further.
+                    }
+                }
+                return node.toString();
+            }
         } catch (JsonProcessingException e) {
             // will log the error and send back the original response (non-ordered one)
             LOG.error("Error sorting the we resources", e);
         }
         return jsonString;
+    }
+
+    /**
+     * Adds the ordered hasView values in the aggregation Node
+     * @param aggregationNode
+     * @param sortedHasView
+     */
+    private static void addOrderedHasView(JsonNode aggregationNode,Map<String, JsonNode> sortedHasView) {
+        // get hasView from the aggregation Node
+        Iterator<JsonNode> hasViewIterator = aggregationNode.get(JSONLD_EDM_HAS_VIEW).iterator();
+        while (hasViewIterator.hasNext()) {
+            JsonNode idNode = hasViewIterator.next();
+            sortedHasView.replace(idNode.get(JSONLD_RDF_ID).toString(), idNode);
+            hasViewIterator.remove();
+        }
+        // add all ordered values in hasView
+        ((ArrayNode) aggregationNode.get(JSONLD_EDM_HAS_VIEW)).addAll(sortedHasView.values());
+    }
+
+    private static boolean hasViewSortingRequired(FullBean bean) {
+        return (bean.getAggregations().get(0).getHasView() == null || bean.getAggregations().get(0).getHasView().length == 1);
     }
 }
