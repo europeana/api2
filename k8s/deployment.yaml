@@ -16,6 +16,15 @@ spec:
         - name: record-api
 #         No version specified here as we'll imperatively update this deployment .
           image: europeana/record-api
+          resources:
+            limits:
+#             use max 1gb RAM and 50% of a CPU core
+              memory: 1Gi
+              cpu: "500m"
+            requests:
+#             start with 512 MB RAM and 10% CPU
+              memory: 512Mi
+              cpu: "100m"
           ports:
             - containerPort: 8080
           livenessProbe:
