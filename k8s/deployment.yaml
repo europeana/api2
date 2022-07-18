@@ -18,9 +18,9 @@ spec:
           image: europeana/record-api
           resources:
             limits:
-#             use max 1gb RAM and 50% of a CPU core
+#             use max 1gb RAM and 25% of a CPU core
               memory: 1Gi
-              cpu: "500m"
+              cpu: "250m"
             requests:
 #             start with 512 MB RAM and 10% CPU
               memory: 512Mi
