@@ -22,7 +22,8 @@
 
         <Logger name="eu.europeana.api2.v2.web.controller" level="INFO"/>
         <Logger name="eu.europeana.corelib.record.api.IIIFLink" level="INFO" />
-        
+        <Logger name="eu.europeana.corelib.record.config" level="INFO" />
+
         <Logger name="eu.europeana.api2.v2.service.translate.BeanFilterLanguage" level="INFO" />
 
         <!-- Set to DEBUG to see which record fields are or are not chosen to be translated + see how long the entire process took -->
