@@ -1,0 +1,15 @@
+# to use, copy to ingress_patch.properties.yaml, replacing <host> with correct value
+- op: add
+  path: /spec/tls/-
+  value:
+    hosts:
+      - <host>.eanadev.org
+    secretName: <host>.eanadev.org
+- op: add
+  path: /spec/rules/-
+  value:
+      path: '/'
+      pathType: 'Prefix'
+      backend:
+          serviceName: record-api-cluster-ip-service
+          servicePort: 8080

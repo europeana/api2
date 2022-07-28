@@ -4,6 +4,7 @@ resources:
 commonLabels:
   app: record-api
 
+# expects files to be in the same directory
 configMapGenerator:
   - name: record-api-config-map
     files:
