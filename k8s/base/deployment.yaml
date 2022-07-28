@@ -3,28 +3,14 @@ kind: Deployment
 metadata:
   name: record-api-deployment
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: record-api
   template:
-    metadata:
-      labels:
-        app: record-api
     spec:
       containers:
         - name: record-api
-#         No version specified here as we'll imperatively update this deployment .
           image: europeana/record-api
-          resources:
-            limits:
-#             use max 1gb RAM and 25% of a CPU core
-              memory: 1Gi
-              cpu: "250m"
-            requests:
-#             start with 512 MB RAM and 10% CPU
-              memory: 512Mi
-              cpu: "100m"
           ports:
             - containerPort: 8080
           livenessProbe:
@@ -46,8 +32,8 @@ spec:
           volumeMounts:
             - name: config
               mountPath: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/europeana.user.properties"
-              subPath: europeana.properties
               readOnly: true
+              subPath: europeana.user.properties
             - name: secret
               mountPath: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/google_cloud_credentials.json"
               subPath: google_cloud_credentials.json
@@ -59,4 +45,3 @@ spec:
         - name: secret
           secret:
             secretName: record-api-secret
-

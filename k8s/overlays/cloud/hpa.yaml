@@ -1,16 +1,15 @@
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: record-api-autoscaler
+  name: record-api-hpa
 spec:
-  maxReplicas: 3
+  maxReplicas: 2
   minReplicas: 1
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: record-api-deployment
   metrics:
-#   Scale app instances (up to 3) when average CPU usage across all pods is 70%
     - type: Resource
       resource:
         name: cpu

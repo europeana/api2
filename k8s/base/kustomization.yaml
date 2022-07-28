@@ -1,0 +1,15 @@
+resources:
+  - deployment.yaml
+
+commonLabels:
+  app: record-api
+
+configMapGenerator:
+  - name: record-api-config-map
+    files:
+      - europeana.user.properties
+
+secretGenerator:
+  - name: record-api-secret
+    files:
+      - google_cloud_credentials.json
