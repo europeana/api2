@@ -3,7 +3,6 @@ kind: Ingress
 metadata:
   name: search-api-ingress
   annotations:
-    kubernetes.io/ingress.class: "public-iks-k8s-nginx"
     cert-manager.io/issuer: letsencrypt-production
 spec:
   ingressClassName: public-iks-k8s-nginx
