@@ -8,6 +8,7 @@ spec:
     spec:
       containers:
         - name: search-api
+          imagePullPolicy: Always
           resources:
             requests:
               memory: "${MEMORY_REQUEST}M"
