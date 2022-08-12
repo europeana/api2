@@ -1,19 +1,8 @@
 resources:
   - ../../base
-  - hpa.yaml
-  - ingress.yaml
   - service.yaml
+  - ingress.properties.yaml
+  - hpa.properties.yaml
 
-patches:
-  - path: ingress_patch.properties.yaml
-    target:
-      group: networking.k8s.io
-      version: v1beta1
-      kind: Ingress
-      name: record-api-ingress
-  - path: hpa_patch.properties.yaml
-    target:
-      group: autoscaling
-      version: v2
-      kind: HorizontalPodAutoscaler
-      name: record-api-hpa
+patchesStrategicMerge:
+  - deployment_patch.properties.yaml

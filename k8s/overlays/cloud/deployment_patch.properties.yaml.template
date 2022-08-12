@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: record-api-deployment
+spec:
+  replicas: ${MIN_REPLICAS}
+  template:
+    spec:
+      containers:
+        - name: record-api
+          resources:
+            requests:
+              memory: "${MEMORY_REQUEST}M"
+              cpu: "${CPU_REQUEST}m"
+            limits:
+              memory: "${MEMORY_LIMIT}M"
+              cpu: "${CPU_LIMIT}m"

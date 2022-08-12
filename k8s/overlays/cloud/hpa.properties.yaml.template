@@ -3,8 +3,8 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: record-api-hpa
 spec:
-  maxReplicas: 2
-  minReplicas: 1
+  maxReplicas: ${MAX_REPLICAS}
+  minReplicas: ${MIN_REPLICAS}
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
