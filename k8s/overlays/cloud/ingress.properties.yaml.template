@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: record-api-ingress
+  name: search-api-ingress
   annotations:
     kubernetes.io/ingress.class: "public-iks-k8s-nginx"
     cert-manager.io/issuer: letsencrypt-production
@@ -19,6 +19,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: record-api-service
+                name: search-api-service
                 port:
                   number: 8080

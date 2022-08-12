@@ -1,13 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: record-api-deployment
+  name: search-api-deployment
 spec:
   replicas: ${MIN_REPLICAS}
   template:
     spec:
       containers:
-        - name: record-api
+        - name: search-api
           resources:
             requests:
               memory: "${MEMORY_REQUEST}M"

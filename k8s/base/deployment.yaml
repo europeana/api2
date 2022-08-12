@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: record-api-deployment
+  name: search-api-deployment
 spec:
   selector:
     matchLabels:
-      app: record-api
+      app: search-api
   template:
     spec:
       containers:
-        - name: record-api
-          image: europeana/record-api
+        - name: search-api
+          image: europeana/search-api
           ports:
             - containerPort: 8080
           livenessProbe:
@@ -41,7 +41,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: record-api-config-map
+            name: search-api-config-map
         - name: secret
           secret:
-            secretName: record-api-secret
+            secretName: search-api-secret
