@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-api-deployment
+spec:
+  template:
+    spec:
+      containers:
+        - name: search-api
+          # required to use local image
+          imagePullPolicy: Never
