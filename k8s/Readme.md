@@ -44,18 +44,18 @@ File names have the following structure:
 
 ## Deployment Instructions
 For both environments:
-- Copy a valid properties to the `base` directory, and rename it to `europeana.user.properties`. Ensure at least [one route](https://github.com/europeana/api2/blob/6b0a64770f07a6a45a65f3c17b18bdcbea9010f4/api2-war/src/main/resources/europeana.properties#L5) matches the URL hostname through which the app will be accessed.
-- Copy `google_cloud_credentials.json` to the `base`
+- Copy a valid properties file to the `base` directory, and rename it to `europeana.user.properties`. Ensure at least [one route](https://github.com/europeana/api2/blob/6b0a64770f07a6a45a65f3c17b18bdcbea9010f4/api2-war/src/main/resources/europeana.properties#L5) matches the URL hostname through which the app will be accessed.
+- Copy `google_cloud_credentials.json` to the `base` directory.
 
 ### Local Deployment
 - Build the API from the project root directory: `mvn clean package -f ../pom.xml`
-- Build a docker image from the project root: `docker build -t europeana/search-api ../`. 
+- Build a docker image from the project root: `docker build -t europeana/search-api ../` 
 - If required, load the image into your local Kubernetes cluster. 
 - To view the customised Kubernetes manifests run `kustomize build overlays/dev`
 - Apply the manifests to the cluster: `kubectl apply -k overlays/dev`
 
 Run `kubectl get deployment/search-api-deployment` to view the deployment's status. 
-After deploying successfully the app will be available on `<cluster_host>:30000`, where `<cluster_host>` :
+After deploying successfully the app will be available on `<cluster_host>:30000`, where `<cluster_host>`:
 - is "localhost" for Docker Desktop and Kind
 - can be retrieved by running `minikube ip` if using Minikube 
 
