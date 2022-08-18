@@ -41,6 +41,7 @@ File names have the following structure:
 - `*.properties.yaml` are generated from a template by interpolating the environment variables within the template. These contain configurable settings and are not checked in to git.
 - `*_patch*.yaml` "patch" resources created in the base layer. These don't have to configurable, eg. `overlays/dev/deployment_patch.yaml`
 - `*.yaml` are plain Kubernetes YAML files that don't require any customization; however they could be "patched" in an overlay. eg. `base/deployment.yaml` is patched by both overlays.
+- `kustomize.yaml` is the [kustomization file](https://kubectl.docs.kubernetes.io/references/kustomize/glossary/#kustomization) used for orchestrating Kustomize workflows.
 
 ## Deployment Instructions
 For both environments:
