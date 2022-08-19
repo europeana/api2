@@ -1,4 +1,4 @@
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: search-api-hpa
@@ -9,6 +9,9 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: search-api-deployment
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 900
   metrics:
     - type: Resource
       resource:
