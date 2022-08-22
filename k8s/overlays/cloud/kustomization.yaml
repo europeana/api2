@@ -1,0 +1,8 @@
+resources:
+  - ../../base
+  - service.yaml
+  - ingress.properties.yaml
+  - hpa.properties.yaml
+
+patchesStrategicMerge:
+  - deployment_patch.properties.yaml

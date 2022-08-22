@@ -1,0 +1,21 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: search-api-hpa
+spec:
+  maxReplicas: ${MAX_REPLICAS}
+  minReplicas: ${MIN_REPLICAS}
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: search-api-deployment
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 900
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

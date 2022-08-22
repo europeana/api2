@@ -1,0 +1,16 @@
+resources:
+  - deployment.yaml
+
+commonLabels:
+  app: search-api
+
+# expects files to be in the same directory
+configMapGenerator:
+  - name: search-api-config-map
+    files:
+      - europeana.user.properties
+
+secretGenerator:
+  - name: search-api-secret
+    files:
+      - google_cloud_credentials.json
