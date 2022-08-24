@@ -21,7 +21,7 @@ public class SearchControllerTest {
 
     @Before
     public void setup() {
-        searchController = new SearchController(null, null);
+        searchController = new SearchController(null, null, null);
     }
 
 	@Test

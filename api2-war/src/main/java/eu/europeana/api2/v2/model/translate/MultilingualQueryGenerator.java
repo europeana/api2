@@ -22,7 +22,7 @@ public class MultilingualQueryGenerator {
 
     private static final Logger LOG = LoggerFactory.getLogger(MultilingualQueryGenerator.class);
 
-    @Value("#{europeanaProperties['translation.query.enabled']}")
+    @Value("#{europeanaProperties['translation.search.query']}")
     private boolean isQueryTranslationEnabled; // feature flag to enable/disable query translate
 
     private QueryTranslator queryTranslator;
