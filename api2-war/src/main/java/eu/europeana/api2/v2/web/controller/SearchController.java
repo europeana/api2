@@ -20,7 +20,6 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.utils.LanguageFilter;
 import eu.europeana.api2.v2.service.translate.SearchResultTranslateService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
@@ -264,6 +263,9 @@ public class SearchController {
         boolean isMinimalProfileActive = StringUtils.containsIgnoreCase(profile, Profile.MINIMAL.getName());
         String translateTargetLang = null;
         if (resultsTranslationEnabled && isTranslateProfileActive && isMinimalProfileActive) {
+            if (filterLanguages == null || filterLanguages.isEmpty()) {
+                Language.validateSingle(null); // let that method throw appropriate error
+            }
             translateTargetLang = filterLanguages.get(0).name(); // only use first provided language for translations
         }
 
