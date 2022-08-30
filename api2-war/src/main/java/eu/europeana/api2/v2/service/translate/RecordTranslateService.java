@@ -24,9 +24,9 @@ import java.util.*;
  * Created June - August 2021
  */
 @Service
-public class BeanTranslateService {
+public class RecordTranslateService {
 
-    private static final Logger LOG = LogManager.getLogger(BeanTranslateService.class);
+    private static final Logger LOG = LogManager.getLogger(RecordTranslateService.class);
 
     // TODO check if we should also include dcIdentifier to the exclude list
     private static final Set<String> EXCLUDE_PROXY_MAP_FIELDS = Set.of("dcLanguage", "year", "userTags", "edmRights");
@@ -40,7 +40,7 @@ public class BeanTranslateService {
      *
      * @param translationService underlying translation service to use for translations
      */
-    public BeanTranslateService(TranslationService translationService) {
+    public RecordTranslateService(TranslationService translationService) {
         this.translationService = translationService;
     }
 

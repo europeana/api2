@@ -24,10 +24,10 @@
 
         <Logger name="eu.europeana.corelib.record.api.IIIFLink" level="INFO" />
 
-        <Logger name="eu.europeana.api2.v2.service.translate.BeanFilterLanguage" level="INFO" />
+        <Logger name="eu.europeana.api2.v2.utils.LanguageFilter" level="INFO" />
 
         <!-- Set to DEBUG to see which record fields are or are not chosen to be translated + see how long the entire process took -->
-        <Logger name="eu.europeana.api2.v2.service.translate.BeanTranslateService" level="INFO" />
+        <Logger name="eu.europeana.api2.v2.service.translate.RecordTranslateService" level="INFO" />
 
         <!-- Set to DEBUG to see which search result fields are or are not chosen to be translated + see how long the entire process took \
              use TRACE to see details which values are selected for translations -->

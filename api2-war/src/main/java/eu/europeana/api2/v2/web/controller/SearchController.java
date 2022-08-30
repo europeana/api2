@@ -20,6 +20,7 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
+import eu.europeana.api2.v2.utils.LanguageFilter;
 import eu.europeana.api2.v2.service.translate.SearchResultTranslateService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
@@ -130,7 +131,8 @@ public class SearchController {
     private SearchResultTranslateService resultTranslator;
 
     @Autowired
-    public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator, SearchResultTranslateService resultTranslator){
+    public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator,
+                            SearchResultTranslateService resultTranslator) {
         this.routeService = routeService;
         this.queryGenerator = queryGenerator;
         this.resultTranslator = resultTranslator;
@@ -221,8 +223,14 @@ public class SearchController {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
 
-       // validate boost Param
+        // validate boost Param
         BoostParamUtils.validateBoostParam(boostParam);
+        
+        // validate provided languages
+        List<Language> filterLanguages = null;
+        if (lang != null) {
+             filterLanguages = Language.validateMultiple(lang);
+        }
 
         boolean isTranslateProfileActive = StringUtils.containsIgnoreCase(profile, TRANSLATE);
         // fail fast if user is requesting translations when translation service is not enabled
@@ -254,11 +262,9 @@ public class SearchController {
             LOG.debug("TRANSLATED QUERY: |{}|", queryString);
         }
         boolean isMinimalProfileActive = StringUtils.containsIgnoreCase(profile, Profile.MINIMAL.getName());
-        List<Language> languages = null;
         String translateTargetLang = null;
         if (resultsTranslationEnabled && isTranslateProfileActive && isMinimalProfileActive) {
-            languages = Language.validateMultiple(lang);
-            translateTargetLang = languages.get(0).name(); // only use first provided language for translations
+            translateTargetLang = filterLanguages.get(0).name(); // only use first provided language for translations
         }
 
         if ((cursorMark != null) && (start > 1)) {
@@ -428,7 +434,8 @@ public class SearchController {
             query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
         }
 
-        SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz, request.getServerName(), translateTargetLang);
+        SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz, request.getServerName(),
+                translateTargetLang, filterLanguages);
 
         if (StringUtils.containsIgnoreCase(profile, "params")) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
@@ -817,7 +824,8 @@ public class SearchController {
                                                               Query query,
                                                               Class<T> clazz,
                                                               String requestRoute,
-                                                              String translateTargetLang) throws EuropeanaException {
+                                                              String translateTargetLang,
+                                                              List<Language> filterLanguages) throws EuropeanaException {
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
 
@@ -844,6 +852,13 @@ public class SearchController {
             resultTranslator.translateSearchResults((List<BriefBean>)
                     resultSet.getResults(), translateTargetLang);
         }
+        // Filtering of results
+        if (filterLanguages != null) {
+            for (IdBean result : resultSet.getResults()) {
+                LanguageFilter.filter(result, filterLanguages);
+            }
+        }
+
         // Generate views
         List<T> beans = new ArrayList<>();
         for (T b : resultSet.getResults()) {
