@@ -88,8 +88,6 @@ public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMa
                 translations.add(TranslationUtils.translate(translationService, mapToTranslate, targetLanguage));
             }
         }
-        // Temp functionality (to remove later), for EA-2633 / 2661 we need to log the amount of characters that are sent for 1 record
-//        LOG.info("{}", nrCharacters);
 
         // merge result values from different languages (we do this separately to avoid ConcurrentModificationExceptions)
         FieldValuesLanguageMap result = new FieldValuesLanguageMap(targetLanguage);

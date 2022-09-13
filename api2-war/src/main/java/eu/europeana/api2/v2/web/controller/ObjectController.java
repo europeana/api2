@@ -12,8 +12,8 @@ import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.BeanFilterLanguage;
-import eu.europeana.api2.v2.service.translate.BeanTranslateService;
+import eu.europeana.api2.v2.utils.LanguageFilter;
+import eu.europeana.api2.v2.service.translate.RecordTranslateService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
@@ -82,7 +82,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
         "/record",
 })
 @SwaggerSelect
-@Import(BeanTranslateService.class) // to enable title and description translation
+@Import(RecordTranslateService.class) // to enable title and description translation
 public class ObjectController {
 
     private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
@@ -96,7 +96,7 @@ public class ObjectController {
 
     private RouteDataService        routeService;
     private RecordService           recordService;
-    private BeanTranslateService    translateFilterService;
+    private RecordTranslateService translateFilterService;
     private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
 
@@ -124,7 +124,7 @@ public class ObjectController {
      * @param httpCacheUtils for request caching
      */
     @Autowired
-    public ObjectController(RouteDataService routeService, RecordService recordService, BeanTranslateService tfService,
+    public ObjectController(RouteDataService routeService, RecordService recordService, RecordTranslateService tfService,
                             ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
         this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;
@@ -415,7 +415,7 @@ public class ObjectController {
 
         // 9) When lang profile is provided, do filtering
         if (data.languages != null && !data.languages.isEmpty()) {
-            bean = BeanFilterLanguage.filter(bean, data.languages);
+            bean = (FullBean) LanguageFilter.filter(bean, data.languages);
         }
 
         // 10) Generate output
