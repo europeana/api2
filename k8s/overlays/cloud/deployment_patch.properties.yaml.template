@@ -5,6 +5,10 @@ metadata:
 spec:
   replicas: ${MIN_REPLICAS}
   template:
+    metadata:
+      annotations:
+        fluentd/include: '${COLLECT_LOGS}'
+        fluentd/multiline: 'true'
     spec:
       containers:
         - name: search-api
