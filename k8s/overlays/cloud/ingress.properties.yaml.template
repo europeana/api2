@@ -4,6 +4,7 @@ metadata:
   name: search-api-ingress
   annotations:
     cert-manager.io/issuer: letsencrypt-production
+    nginx.ingress.kubernetes.io/server-alias: ${K8S_SERVER_ALIASES}
 spec:
   ingressClassName: public-iks-k8s-nginx
   tls:
