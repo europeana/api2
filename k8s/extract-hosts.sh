@@ -2,7 +2,10 @@
 # This script is used to extract the hostnames in the europeana.properties file, while creating the Kubernetes ingress
 # for the deployment.
 #
-# Usage: ./extract-hosts.sh <path_to_europeana_properties>
+# Usage: ./extract-hosts.sh <path_to_europeana_properties> <host_suffix>
+# where
+#   <path_to_europeana_properties> points to a valid europeana properties file
+#   <host_suffix> is optional. If specified, the value is appended to all host names extracted by this script
 # Exports two properties to the environment:
 #     K8S_HOSTNAME: to be used as the main ingress hostname
 #     K8S_SERVER_ALIASES: to be used as ingress server aliases
@@ -55,13 +58,14 @@ for i in "${exclusion_array[@]}"; do
 done
 
 ## The previous loop creates gaps in hostname_array (as elements in the middle could have been deleted).
-## We close the gaps here
+## We close the gaps here;
 for i in "${!hostname_array[@]}"; do
   if [ -z "${hostname_array[i]}" ]; then
     # omit empty values from new array
     continue
   else
-    new_array+=("${hostname_array[i]}")
+    #  also append hostname suffix if provided to script
+    new_array+=("${hostname_array[i]}$2")
   fi
 done
 hostname_array=("${new_array[@]}")
