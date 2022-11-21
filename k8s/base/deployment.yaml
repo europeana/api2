@@ -3,9 +3,7 @@ kind: Deployment
 metadata:
   name: search-api-deployment
 spec:
-  selector:
-    matchLabels:
-      app: search-api
+# selector.matchLabels provided via Kustomize
   template:
     spec:
       containers:

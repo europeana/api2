@@ -3,8 +3,7 @@ kind: Service
 metadata:
   name: search-api-service
 spec:
-  selector:
-    app: search-api
+  # selector provided via Kustomize
   ports:
     - name: http
       port: 8080
