@@ -85,16 +85,17 @@ where `<cluster_host>`:
 `overlay/cloud` contains templates to be used for generating YAML files for Kustomize.
 The following environment variables are required:
 
-| ENVIRONMENT VARIABLE | DESCRIPTION                                                                                     | USED BY                                                                         |
-|----------------------|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| MIN_REPLICAS         | Minimum number of replicas to run                                                               | `deployment_patch.properties.yaml.template`<br/> `hpa_properties.yaml.template` |
-| MAX_REPLICAS         | Maximum number of replicas to run when auto scaling                                             | `hpa_properties.yaml.template`                                                  |
-| MEMORY_REQUEST       | Amount of memory in megabytes to request during application deployment                          | `deployment_patch.properties.yaml.template`                                     |
-| MEMORY_LIMIT         | Application memory limit in megabytes                                                           | `deployment_patch.properties.yaml.template`                                     |
-| CPU_REQUEST          | Amount of CPU to request during application deployment, in milliCPU form. <br>1000 = 1 CPU core | `deployment_patch.properties.yaml.template`                                     |
-| CPU_LIMIT            | Max CPU allocation for app, in milliCPU form. <br> 1000 = 1 CPU core                            | `deployment_patch.properties.yaml.template`                                     |
-| SEARCH_API_HOSTNAME  | Ingress hostname, ie. a FQDN to be used for accessing the app                                   | `ingress.properties.yaml.template`                                              |
-| COLLECT_LOGS         | Configures log collection from deployment if set to `true`                                      | `deployment_patch.properties.yaml.template`                                     |
+| ENVIRONMENT VARIABLE  | DESCRIPTION                                                                                     | USED BY                                                                         |
+|-----------------------|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| MIN_REPLICAS          | Minimum number of replicas to run                                                               | `deployment_patch.properties.yaml.template`<br/> `hpa_properties.yaml.template` |
+| MAX_REPLICAS          | Maximum number of replicas to run when auto scaling                                             | `hpa_properties.yaml.template`                                                  |
+| MEMORY_REQUEST        | Amount of memory in megabytes to request during application deployment                          | `deployment_patch.properties.yaml.template`                                     |
+| MEMORY_LIMIT          | Application memory limit in megabytes                                                           | `deployment_patch.properties.yaml.template`                                     |
+| CPU_REQUEST           | Amount of CPU to request during application deployment, in milliCPU form. <br>1000 = 1 CPU core | `deployment_patch.properties.yaml.template`                                     |
+| CPU_LIMIT             | Max CPU allocation for app, in milliCPU form. <br> 1000 = 1 CPU core                            | `deployment_patch.properties.yaml.template`                                     |
+| K8S_HOSTNAME   | Ingress hostname, ie. a FQDN to be used for accessing the app                                   | `ingress.properties.yaml.template`                                              |
+| K8S_SERVER_ALIASES    | Alternative FQDNs used for accessing the app (derived from routes in `europeana.properties`)    | `ingress.properties.yaml.template`                                              |
+| COLLECT_LOGS          | Configures log collection from deployment if set to `true`                                      | `deployment_patch.properties.yaml.template`                                     |
 
 These variables can be provided either via a `.env` file, Jenkins job configuration, or the Linux `export`
 command.
