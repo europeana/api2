@@ -166,4 +166,13 @@
         <packageUrl regex="true">^pkg:maven/org.apache.commons/commons-rdf-jena@.*$</packageUrl>
         <cve>CVE-2022-28890</cve>
     </suppress>
+
+    <!-- Only part of metis-schema -->
+    <suppress>
+        <notes><![CDATA[
+   file name: bcel-6.5.0.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.bcel/bcel@.*$</packageUrl>
+        <cve>CVE-2022-42920</cve>
+    </suppress>
 </suppressions>
