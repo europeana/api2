@@ -13,10 +13,10 @@ spec:
   ingressClassName: public-iks-k8s-nginx
   tls:
     - hosts:
-        - ${SEARCH_API_HOSTNAME}
-      secretName: ${SEARCH_API_HOSTNAME}
+        - ${K8S_HOSTNAME}
+      secretName: ${K8S_HOSTNAME}
   rules:
-    - host: ${SEARCH_API_HOSTNAME}
+    - host: ${K8S_HOSTNAME}
       http:
         paths:
           - path: /

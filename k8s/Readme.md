@@ -93,7 +93,7 @@ The following environment variables are required:
 | MEMORY_LIMIT          | Application memory limit in megabytes                                                           | `deployment_patch.properties.yaml.template`                                     |
 | CPU_REQUEST           | Amount of CPU to request during application deployment, in milliCPU form. <br>1000 = 1 CPU core | `deployment_patch.properties.yaml.template`                                     |
 | CPU_LIMIT             | Max CPU allocation for app, in milliCPU form. <br> 1000 = 1 CPU core                            | `deployment_patch.properties.yaml.template`                                     |
-| SEARCH_API_HOSTNAME   | Ingress hostname, ie. a FQDN to be used for accessing the app                                   | `ingress.properties.yaml.template`                                              |
+| K8S_HOSTNAME   | Ingress hostname, ie. a FQDN to be used for accessing the app                                   | `ingress.properties.yaml.template`                                              |
 | K8S_SERVER_ALIASES    | Alternative FQDNs used for accessing the app (derived from routes in `europeana.properties`)    | `ingress.properties.yaml.template`                                              |
 | COLLECT_LOGS          | Configures log collection from deployment if set to `true`                                      | `deployment_patch.properties.yaml.template`                                     |
 
