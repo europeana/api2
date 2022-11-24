@@ -96,6 +96,8 @@ The following environment variables are required:
 | K8S_HOSTNAME   | Ingress hostname, ie. a FQDN to be used for accessing the app                                   | `ingress.properties.yaml.template`                                              |
 | K8S_SERVER_ALIASES    | Alternative FQDNs used for accessing the app (derived from routes in `europeana.properties`)    | `ingress.properties.yaml.template`                                              |
 | COLLECT_LOGS          | Configures log collection from deployment if set to `true`                                      | `deployment_patch.properties.yaml.template`                                     |
+| ELASTIC_APM_SERVERS          | Comma-separated URLs for Elastic APM servers.                                                   | `deployment_patch.properties.yaml.template`                                     |
+| APP_NAME          | Application name to be used for APM publication. Should be unique across the entire cluster     | `deployment_patch.properties.yaml.template`                                     |
 
 These variables can be provided either via a `.env` file, Jenkins job configuration, or the Linux `export`
 command.
@@ -108,6 +110,22 @@ envsubst < hpa.properties.yaml.template > hpa.properties.yaml
 envsubst < deployment_patch.properties.yaml.template > deployment_patch.properties.yaml
 ```
 The YAML files created by these commands are used by Kustomize.
+
+The following commands can be run to further customize the deployment. These should be run from `overlays/cloud` until [this issue](https://github.com/kubernetes-sigs/kustomize/issues/2803) is fixed.
+
+* Set the app version to deploy; where `${API_BRANCH}` is a Git branch, tag or commit hash:
+  ```
+  kustomize edit set image search-api:${API_BRANCH}
+  ```
+* Append a suffix to all resources within the deployment; `${RESOURCE_SUFFIX}` should be unique within the namespace. This is useful for deploying multiple instances of the application within the same namespace.
+  ```
+  kustomize edit set namesuffix -- ${RESOURCE_SUFFIX}
+  ```
+* Add a label for resources. This also adds with the label for services specified in the Kustomization file:
+  ```
+  kustomize edit set label app:search-api-${RESOURCE_SUFFIX}
+  ```
+
 
 To view the customised Kubernetes manifests run `kustomize build overlays/cloud`. 
 
