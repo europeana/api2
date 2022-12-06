@@ -13,6 +13,12 @@ spec:
       containers:
         - name: search-api
           imagePullPolicy: Always
+          env:
+            - name: CATALINA_OPTS
+              value: "-javaagent:/usr/local/elastic-apm-agent.jar
+                      -Delastic.apm.application_packages=eu.europeana.corelib,eu.europeana.api2
+                      -Delastic.apm.server_urls=${ELASTIC_APM_SERVERS}
+                      -Delastic.apm.service_name=${APP_NAME}"
           resources:
             requests:
               memory: "${MEMORY_REQUEST}M"
