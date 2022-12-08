@@ -117,11 +117,11 @@ The following commands can be run to further customize the deployment. These sho
   ```
   kustomize edit set image search-api:${API_BRANCH}
   ```
-* Append a suffix to all resources within the deployment; `${RESOURCE_SUFFIX}` should be unique within the namespace. This is useful for deploying multiple instances of the application within the same namespace.
+* Append a suffix to all resources within the deployment; `${RESOURCE_SUFFIX}` should be unique within the namespace (eg. "test", "test2", "acceptance"). This is useful for deploying multiple instances of the application within the same namespace.
   ```
   kustomize edit set namesuffix -- ${RESOURCE_SUFFIX}
   ```
-* Add a label for resources. This also adds with the label for services specified in the Kustomization file:
+* Add a label for resources. This also adds the label for services specified in the Kustomization file:
   ```
   kustomize edit set label app:search-api-${RESOURCE_SUFFIX}
   ```
