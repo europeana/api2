@@ -33,9 +33,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <corelib.version>2.16.0</corelib.version>
+        <corelib.version>2.16.1-SNAPSHOT</corelib.version>
         <metis.version>6</metis.version>
-        <apicommons.version>0.3.14</apicommons.version>
+        <apicommons.version>0.3.18-SNAPSHOT</apicommons.version>
 
         <httpclient.version>4.5.13</httpclient.version>
         <jackson.version>2.14.1</jackson.version>

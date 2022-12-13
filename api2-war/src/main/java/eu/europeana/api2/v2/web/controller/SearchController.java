@@ -83,7 +83,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 @Controller
 @SwaggerSelect
 @Api(tags = {"Search"})
-public class SearchController {
+public class SearchController extends BaseController {
 
     private static final Logger LOG                       = LogManager.getLogger(SearchController.class);
 
@@ -102,13 +102,7 @@ public class SearchController {
     private static final Pattern COUNTRY_PATTERN = Pattern.compile("COUNTRY:\"(.*?)\"|COUNTRY:(.*?)(&|\\s|$)");
 
     @Resource
-    private SearchService searchService;
-
-    @Resource
     private Api2UrlService urlService;
-
-    @Resource
-    private ApiKeyUtils apiKeyUtils;
 
     @Resource(name = "api2_mvc_xmlUtils")
     private XmlUtils xmlUtils;
@@ -125,14 +119,13 @@ public class SearchController {
     @Value("#{europeanaProperties['translation.search.results']}")
     private Boolean resultsTranslationEnabled;
 
-    private RouteDataService routeService;
     private MultilingualQueryGenerator queryGenerator;
     private SearchResultTranslateService resultTranslator;
 
     @Autowired
     public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator,
                             SearchResultTranslateService resultTranslator) {
-        this.routeService = routeService;
+        super(routeService);
         this.queryGenerator = queryGenerator;
         this.resultTranslator = resultTranslator;
     }
@@ -945,24 +938,6 @@ public class SearchController {
         kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
         kmlResponse.setItems(resultSet.getResults());
         return kmlResponse;
-    }
-
-    /**
-     * Gets Solr client to use for request
-     *
-     * @param route request route
-     * @return Solr client
-     * @throws SolrIOException if no SolrClient is configured for route
-     */
-    private SolrClient getSolrClient(String route) throws InvalidConfigurationException {
-        Optional<SolrClient> solrClient = routeService.getSolrClientForRequest(route);
-        if (solrClient.isEmpty()) {
-            LOG.error("No Solr client configured for route {}", route);
-            throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR,
-                                                    "No search engine configured for request route");
-        }
-
-        return solrClient.get();
     }
 
     /**
