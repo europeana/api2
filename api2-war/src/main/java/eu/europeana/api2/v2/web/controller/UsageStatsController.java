@@ -8,6 +8,7 @@ import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +27,7 @@ import java.util.Date;
 public class UsageStatsController extends BaseController {
 
     private static final String URL_PREFIX = "\"http://data.europeana.eu/";
+    private static final String ORGANIZATION_QUERY = "foaf_organization:*";
 
     public UsageStatsController(RouteDataService routeService) {
         super(routeService);
@@ -58,11 +60,11 @@ public class UsageStatsController extends BaseController {
         metric.setType(UsageStatsFields.OVERALL_TOTAL_TYPE);
 
         LinkedItemMetric linkedItemMetric = new LinkedItemMetric();
-        linkedItemMetric.setPlaces(getLinkedItems(solrClient, "place"));
-        linkedItemMetric.setAgents(getLinkedItems(solrClient,"agent"));
-        linkedItemMetric.setConcepts(getLinkedItems(solrClient, "concept"));
-        linkedItemMetric.setOrganisations(getLinkedItems(solrClient, "organization"));
-        linkedItemMetric.setTimespans(getLinkedItems(solrClient, "timespan"));
+        linkedItemMetric.setPlaces(getLinkedItems(solrClient, UsageStatsFields.PLACE));
+        linkedItemMetric.setAgents(getLinkedItems(solrClient,UsageStatsFields.AGENT));
+        linkedItemMetric.setConcepts(getLinkedItems(solrClient, UsageStatsFields.CONCEPT));
+        linkedItemMetric.setOrganisations(getLinkedItems(solrClient, UsageStatsFields.ORGANISATION));
+        linkedItemMetric.setTimespans(getLinkedItems(solrClient, UsageStatsFields.TIMESPAN));
         linkedItemMetric.setTotal(linkedItemMetric.getOverallTotal());
         metric.setItemsLinkedToEntities(linkedItemMetric);
 
@@ -86,10 +88,20 @@ public class UsageStatsController extends BaseController {
      * @return
      */
     public static Query createQueryForStats(String entityType) {
-        StringBuilder q = new StringBuilder(URL_PREFIX);
-        q.append(entityType).append("/\"");
-        Query query = new Query(q.toString());
-        query.setPageSize(0);
-        return query;
+        /** The Organizations URIs are not being indexed as expected.Hence we are making and exception
+         * for Organizations for now to get the counts this way
+         * https://api.europeana.eu/record/search.json?wskey=api2demo&query=foaf_organization:*&rows=0
+         */
+        if(StringUtils.equals(entityType, UsageStatsFields.ORGANISATION)) {
+            Query query = new Query(ORGANIZATION_QUERY);
+            query.setPageSize(0);
+            return query;
+        } else {
+            StringBuilder q = new StringBuilder(URL_PREFIX);
+            q.append(entityType).append("/\"");
+            Query query = new Query(q.toString());
+            query.setPageSize(0);
+            return query;
+        }
     }
 }
