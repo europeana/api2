@@ -64,7 +64,8 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
 
     @Override
     public List<String> translate(List<String> texts, String targetLanguage, Language edmLang) throws TranslationException {
-        return translateWithLangDetect(texts, targetLanguage, edmLang.name().toLowerCase(Locale.ROOT));
+        String hint = edmLang != null ? edmLang.name().toLowerCase(Locale.ROOT) : null ;
+        return translateWithLangDetect(texts, targetLanguage, hint);
     }
 
     @Override
@@ -92,9 +93,10 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
         try {
             // TODO Get apikey
             HttpPost post = createDetectlanguageRequest(texts, hint, "");
-            List<String> re = sendDetectRequestAndParse(post);
+            List<String> lang = sendDetectRequestAndParse(post);
             // create lang-value map for translation
-            Map<String, List<String>> detectedLangValueMap = PangeanicUtils.getDetectedLangValueMap(texts, re);
+            Map<String, List<String>> detectedLangValueMap = PangeanicUtils.getDetectedLangValueMap(texts, lang);
+            LOG.debug("Pangeanic detect lang request with hint {} is executed. Detected languages are {} ", hint, detectedLangValueMap.keySet());
             Map<String, String> translations = new LinkedHashMap<>();
             for (Map.Entry<String, List<String>> entry : detectedLangValueMap.entrySet()) {
                 if (!PangeanicUtils.noTranslationRequired(entry.getKey())) {
@@ -145,7 +147,7 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
 
 
     // TODO score logic still pending
-    private Map<String, String> sendTranslateRequestAndParse(HttpPost post) throws IOException, JSONException {
+    private Map<String, String> sendTranslateRequestAndParse(HttpPost post) throws IOException, JSONException, TranslationException {
         try (CloseableHttpResponse response = translateClient.execute(post)) {
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new IOException("Error from Pangeanic Translation API: " +
@@ -159,6 +161,10 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
                     JSONObject object = (JSONObject) translations.get(i);
                    results.put(object.getString(PangeanicUtils.TRANSLATE_SOURCE), object.getString(PangeanicUtils.TRANSLATE_TARGET));
 
+                }
+                // response should not be empty
+                if (results.isEmpty()) {
+                    throw new TranslationException("Pangeanic Translation API translation failed for source lang " +obj.getString(PangeanicUtils.SOURCE_LANG));
                 }
                 return  results;
             }

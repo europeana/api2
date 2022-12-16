@@ -12,4 +12,8 @@ public class TranslationException extends EuropeanaException {
     public TranslationException(Exception e) {
         super(ProblemType.TRANSLATION_SERVICE_ERROR, e);
     }
+
+    public TranslationException(String message) {
+        super(ProblemType.TRANSLATION_SERVICE_ERROR, message);
+    }
 }
