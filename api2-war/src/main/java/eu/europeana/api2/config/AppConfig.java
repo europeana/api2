@@ -74,7 +74,8 @@ public class AppConfig {
         //Make sure the correct translation service is initialized and available for components that need it
         TranslationEngine engine = TranslationEngine.fromString(translationEngineString);
         if (TranslationEngine.PANGEANIC.equals(engine)) {
-            this.translationService = new PangeanicTranslationService();
+           // this.translationService = new PangeanicTranslationService();
+            this.translationService = new PangeanicTranslationServiceV2();
         } else if (TranslationEngine.GOOGLE.equals(engine)) {
             this.translationService = new GoogleTranslationService();
         }
