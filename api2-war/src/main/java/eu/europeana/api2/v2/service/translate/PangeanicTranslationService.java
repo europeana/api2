@@ -2,6 +2,7 @@ package eu.europeana.api2.v2.service.translate;
 
 import com.auth0.jwt.JWT;
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.utils.PangeanicUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
@@ -112,8 +113,8 @@ public class PangeanicTranslationService implements TranslationService {
     }
 
     @Override
-    public List<String> translate(List<String> texts, String targetLanguage) throws TranslationException {
-        return translate(texts, targetLanguage, null);
+    public List<String> translate(List<String> texts, String targetLanguage, Language edmLang) throws TranslationException {
+        return translate(texts, targetLanguage, edmLang);
     }
 
     @Override

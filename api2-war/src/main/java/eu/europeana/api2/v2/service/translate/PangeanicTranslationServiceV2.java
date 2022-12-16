@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.utils.PangeanicUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
@@ -62,8 +63,8 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
     }
 
     @Override
-    public List<String> translate(List<String> texts, String targetLanguage) throws TranslationException {
-        return translateWithLangDetect(texts,targetLanguage,"es");
+    public List<String> translate(List<String> texts, String targetLanguage, Language edmLang) throws TranslationException {
+        return translateWithLangDetect(texts, targetLanguage, edmLang.name().toLowerCase(Locale.ROOT));
     }
 
     @Override
@@ -89,7 +90,7 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
      */
     private List<String> translateWithLangDetect(List<String> texts, String targetLanguage, String hint) throws TranslationException {
         try {
-            // TODO get edm language first and apikey
+            // TODO Get apikey
             HttpPost post = createDetectlanguageRequest(texts, hint, "");
             List<String> re = sendDetectRequestAndParse(post);
             // create lang-value map for translation
@@ -165,7 +166,7 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
     }
 
     // TODO score logic still pending
-    private List<String> sendDetectRequestAndParse(HttpPost post) throws IOException, JSONException {
+    public List<String> sendDetectRequestAndParse(HttpPost post) throws IOException, JSONException {
         try (CloseableHttpResponse response = translateClient.execute(post)) {
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new IOException("Error from Pangeanic Translation API: " +

@@ -122,7 +122,7 @@ public class BeanTranslateLanguageTest {
 
     @Before
     public void setup() throws TranslationException {
-        when(translationService.translate(anyList(), eq(TARGET_LANG))).thenReturn(MOCK_TRANSLATION_FROM_DEF);
+        when(translationService.translate(anyList(), eq(TARGET_LANG), (Language) eq(null))).thenReturn(MOCK_TRANSLATION_FROM_DEF);
         when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG_DEF))).thenReturn(MOCK_TRANSLATION_FROM_DEF);
         // dctermsAlternative is only available in German
         when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG_DE))).thenReturn(MOCK_TRANSLATION_FROM_DE);
@@ -135,7 +135,7 @@ public class BeanTranslateLanguageTest {
         when(translationService.translate(anyList(), eq(SECOND_TARGET_LANG), eq(SOURCE_LANG_EN))).thenReturn(MOCK_TRANSLATION_FOR_LOCALES_FROM_EN);
         when(translationService.translate(anyList(), eq(SECOND_TARGET_LANG), eq(SOURCE_LANG_NO))).thenReturn(MOCK_TRANSLATION_FOR_LOCALES_FROM_NO);
         when(translationService.translate(anyList(), eq(SECOND_TARGET_LANG), eq(SOURCE_LANG_IT))).thenReturn(MOCK_TRANSLATION_FOR_LOCALES_FROM_IT);
-        when(translationService.translate(anyList(), eq(SECOND_TARGET_LANG))).thenReturn(MOCK_TRANSLATION_FOR_LOCALES_FROM_DEF);
+        when(translationService.translate(anyList(), eq(SECOND_TARGET_LANG), (Language) eq(null))).thenReturn(MOCK_TRANSLATION_FOR_LOCALES_FROM_DEF);
         when(translationService.translate(anyList(), eq(SECOND_TARGET_LANG), eq(SOURCE_LANG_DE))).thenReturn(MOCK_TRANSLATION_FOR_LOCALES_FROM_DE);
 
     }

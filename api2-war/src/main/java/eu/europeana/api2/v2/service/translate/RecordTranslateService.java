@@ -75,6 +75,14 @@ public class RecordTranslateService {
         return lang;
     }
 
+    private Language getHintForLangDetect(FullBean bean) {
+        List<Language> defaultTranslationLanguage = getDefaultTranslationLanguage(bean);
+        if (!defaultTranslationLanguage.isEmpty()) {
+            return defaultTranslationLanguage.get(0);
+        }
+        return null;
+    }
+
     /**
      * @return true if there is a translation service available
      */
@@ -104,7 +112,13 @@ public class RecordTranslateService {
         }
 
         long startTimeTranslate = System.currentTimeMillis();
-        FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang);
+
+        // edmLanguage is passed a hint for Pageanic translations
+        Language edmLang = null ;
+        if (translationService.getClass().equals(PangeanicTranslationServiceV2.class)) {
+            edmLang = getHintForLangDetect(bean);
+        }
+        FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang, edmLang);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Translate - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
         }

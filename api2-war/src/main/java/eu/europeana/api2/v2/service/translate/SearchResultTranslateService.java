@@ -67,7 +67,7 @@ public class SearchResultTranslateService {
 
         // actual translation
         long startTimeTranslate = System.currentTimeMillis();
-        FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang);
+        FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang, null);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Translate results - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
         }
