@@ -27,7 +27,7 @@ public class PangeanicTranslationServiceV2Test {
 
     @Before
     public void setup() throws TranslationException {
-        pangeanicService = Mockito.spy(PangeanicTranslationServiceV2.class);
+        pangeanicService = Mockito.mock(PangeanicTranslationServiceV2.class);
 
         // multiple language texts
         multipleLangText = new ArrayList<>(Arrays.asList("Isto é uma frase para teste",
