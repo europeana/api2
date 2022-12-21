@@ -118,6 +118,11 @@ public class RecordTranslateService {
         if (translationService.getClass().equals(PangeanicTranslationServiceV2.class)) {
             edmLang = getHintForLangDetect(bean);
         }
+
+        if(!textsToTranslate.isEmpty()) {
+            LOG.info("Translate - record {}", bean.getAbout());
+        }
+
         FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang, edmLang);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Translate - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
