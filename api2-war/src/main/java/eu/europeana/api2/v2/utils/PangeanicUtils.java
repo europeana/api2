@@ -119,22 +119,30 @@ public class PangeanicUtils {
 
     /**
      * Returns the translations.
-     * If sort is true then sorts the results in the order of the texts List
-     * NOTE : Sorting is required only if kang detect request was made before and it returned a multi-language response
+     * If nonTranslatedDataExists is true then add non-translated values as it is
+     *
+     * LOGIC :
+     * if there is a size mismatch then the order the translation according to text sequence is performed.
+     * As if multiple language were detected the order of translation result will vary.
+     * Also, if duplicate texts are sent for translation there will be a size mismatch
+     * ex: [Chine, Notice du catalogue, Chine] which results in
+     * {Chine=China, Notice du catalogue=Catalogue notice} as translateResult is a map and will contain unique values
+     *
+     * Or else the translations are returned in the same order
      *
      * @param texts original values sent for translations
      * @param translateResult
-     * @param sort
+     * @param nonTranslatedDataExists if language zxx or na was detected
      * @return
      */
-    public static List<String> getResults(List<String> texts, Map<String, String> translateResult, boolean sort) {
+    public static List<String> getResults(List<String> texts, Map<String, String> translateResult, boolean nonTranslatedDataExists) {
         List<String> translations = new ArrayList<>();
-        if (sort) {
+        if (texts.size() != translateResult.size()) {
             for (String text : texts) {
                 if (translateResult.containsKey(text)) {
                     translations.add(translateResult.get(text));
-                } else {
-                    // add non-translated values as it is. For "zxx" or no-lang detected responses
+                } else if (nonTranslatedDataExists) {
+                    // add non-translated values as it is. Only if "zxx" or no-lang detected responses were present.
                     translations.add(text);
                 }
             }
@@ -149,14 +157,4 @@ public class PangeanicUtils {
     public static boolean noTranslationRequired(String lang) {
         return (StringUtils.equals(lang, PangeanicUtils.LANG_ZXX) || StringUtils.equals(lang, PangeanicUtils.LANG_NA));
     }
-
-    /**
-     * if more than one language is detected, sorting of the results will be required
-     * @param detectedLangValueMap
-     * @return
-     */
-    public static boolean isSortingRequired(Map<String, List<String>> detectedLangValueMap) {
-        return detectedLangValueMap.size() > 1 ;
-    }
-
 }

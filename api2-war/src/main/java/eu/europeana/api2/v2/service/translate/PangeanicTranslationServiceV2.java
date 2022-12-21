@@ -97,6 +97,7 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
             // create lang-value map for translation
             Map<String, List<String>> detectedLangValueMap = PangeanicUtils.getDetectedLangValueMap(texts, lang);
             LOG.debug("Pangeanic detect lang request with hint {} is executed. Detected languages are {} ", hint, detectedLangValueMap.keySet());
+
             Map<String, String> translations = new LinkedHashMap<>();
             for (Map.Entry<String, List<String>> entry : detectedLangValueMap.entrySet()) {
                 if (!PangeanicUtils.noTranslationRequired(entry.getKey())) {
@@ -104,7 +105,7 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
                     translations.putAll(sendTranslateRequestAndParse(translateRequest));
                 }
             }
-            return PangeanicUtils.getResults(texts, translations, PangeanicUtils.isSortingRequired(detectedLangValueMap));
+            return PangeanicUtils.getResults(texts, translations, (lang.contains(PangeanicUtils.LANG_ZXX) || lang.contains(PangeanicUtils.LANG_NA)));
         } catch (JSONException | IOException e) {
             throw  new TranslationException(e);
         }
@@ -172,13 +173,17 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
     }
 
     // TODO score logic still pending
-    public List<String> sendDetectRequestAndParse(HttpPost post) throws IOException, JSONException {
+    public List<String> sendDetectRequestAndParse(HttpPost post) throws IOException, JSONException, TranslationException {
         try (CloseableHttpResponse response = translateClient.execute(post)) {
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new IOException("Error from Pangeanic Translation API: " +
                         response.getStatusLine().getStatusCode() + " - " + response.getStatusLine().getReasonPhrase());
             } else {
                 String json = EntityUtils.toString(response.getEntity());
+                // sometimes language detect sends 200 ok status with empty response data
+                if (json.isEmpty()) {
+                    throw new TranslationException("Language detect returned an empty response");
+                }
                 JSONObject obj = new JSONObject(json);
                 List<String> result = new ArrayList<>();
                 JSONArray detectedLangs = obj.getJSONArray(PangeanicUtils.DETECTED_LANGUAGE);
@@ -187,7 +192,7 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
                     if (object.has(PangeanicUtils.SOURCE_DETECTED)) {
                         result.add(object.getString(PangeanicUtils.SOURCE_DETECTED));
                     }
-                    else {// when no deceted lang is returned
+                    else {// when no detected lang is returned
                         result.add(PangeanicUtils.LANG_NA);
                     }
                 }

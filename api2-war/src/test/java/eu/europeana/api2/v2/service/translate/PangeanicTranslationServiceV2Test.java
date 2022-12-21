@@ -20,12 +20,14 @@ public class PangeanicTranslationServiceV2Test {
 
     List<String> singleLangText;
     List<String> multipleLangText;
+    List<String> duplicateText;
     List<String> multipleLangTextResponse;
     List<String> singleLangTextResponse;
+    List<String> duplicateTextResponse;
 
     @Before
     public void setup() throws TranslationException {
-        pangeanicService = Mockito.mock(PangeanicTranslationServiceV2.class);
+        pangeanicService = Mockito.spy(PangeanicTranslationServiceV2.class);
 
         // multiple language texts
         multipleLangText = new ArrayList<>(Arrays.asList("Isto é uma frase para teste",
@@ -39,6 +41,10 @@ public class PangeanicTranslationServiceV2Test {
                 "Francisco del VILLAR CARMONA",
                 "Jos? L?PEZ SALLABERRY"));
 
+        duplicateText = new ArrayList<>(Arrays.asList("Chine",
+                "Notice du catalogue",
+                "Chine"));
+
         // responses
         multipleLangTextResponse = new ArrayList<>(Arrays.asList("This is a test sentence",
                 "Also translates this sentence",
@@ -50,10 +56,16 @@ public class PangeanicTranslationServiceV2Test {
                 "Francisco del VILLAR CARMON",
                 "Jos? L? PEZ SALLABERRY"));
 
+        // responses
+        duplicateTextResponse = new ArrayList<>(Arrays.asList("China",
+                "Catalogue notice",
+                "China"));
 
         Mockito.when(pangeanicService.translate(eq(multipleLangText), anyString(), (Language) eq(null ))).thenReturn(multipleLangTextResponse);
         Mockito.when(pangeanicService.translate(eq(singleLangText), anyString(), eq(Language.ES))).thenReturn(singleLangTextResponse);
         Mockito.when(pangeanicService.translate(eq(singleLangText), anyString(), eq("es"))).thenReturn(singleLangTextResponse);
+        Mockito.when(pangeanicService.translate(eq(duplicateText), anyString(), eq("fr"))).thenReturn(duplicateTextResponse);
+        Mockito.when(pangeanicService.translate(eq(duplicateText), anyString(), (Language) eq(null ))).thenReturn(duplicateTextResponse);
     }
 
     @Test
@@ -74,6 +86,21 @@ public class PangeanicTranslationServiceV2Test {
     public void testTranslateWithSource() throws TranslationException {
         List<String> translations = pangeanicService.translate(singleLangText,  "en", "es");
         Assert.assertNotNull(translations);
-        Assert.assertEquals(singleLangTextResponse, translations);      }
+        Assert.assertEquals(singleLangTextResponse, translations);
+    }
+
+    @Test
+    public void testTranslateWithSourceAndDuplicates() throws TranslationException {
+        List<String> translations = pangeanicService.translate(duplicateText,  "en", "fr");
+        Assert.assertNotNull(translations);
+        Assert.assertEquals(duplicateTextResponse, translations);
+    }
+
+    @Test
+    public void testTranslateWithoutSourceAndDuplicates() throws TranslationException {
+        List<String> translations = pangeanicService.translate(duplicateText,  "en", (Language) null);
+        Assert.assertNotNull(translations);
+        Assert.assertEquals(duplicateTextResponse, translations);
+    }
 
 }
