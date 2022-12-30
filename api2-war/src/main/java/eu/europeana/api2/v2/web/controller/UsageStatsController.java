@@ -1,14 +1,16 @@
 package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api.commons.definitions.statistics.UsageStatsFields;
+import eu.europeana.api.commons.definitions.statistics.search.HighQualityMetric;
 import eu.europeana.api.commons.definitions.statistics.search.LinkedItemMetric;
 import eu.europeana.api.commons.definitions.statistics.search.SearchMetric;
 import eu.europeana.api2.v2.service.RouteDataService;
+import eu.europeana.api2.v2.utils.UsageStatsUtils;
+import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,9 +27,6 @@ import java.util.Date;
 @Api(tags = "Usage Statistics API")
 @SwaggerSelect
 public class UsageStatsController extends BaseController {
-
-    private static final String URL_PREFIX = "\"http://data.europeana.eu/";
-    private static final String ORGANIZATION_QUERY = "foaf_organization:*";
 
     public UsageStatsController(RouteDataService routeService) {
         super(routeService);
@@ -46,19 +45,29 @@ public class UsageStatsController extends BaseController {
             @RequestParam(value = "wskey") String wskey,
             HttpServletRequest request) throws EuropeanaException {
         apiKeyUtils.validateApiKey(wskey);
-        return getEntityLinkedItem(request);
+        return getSearchMetric(request);
     }
 
-    /**
-     * Get the usage statistics for entity api
-     *
-     * @return
-     */
-    private ResponseEntity<String> getEntityLinkedItem(HttpServletRequest request) throws EuropeanaException {
+
+    private ResponseEntity<String> getSearchMetric(HttpServletRequest request) throws EuropeanaException {
         SolrClient solrClient = getSolrClient(request.getServerName());
         SearchMetric metric = new SearchMetric();
         metric.setType(UsageStatsFields.OVERALL_TOTAL_TYPE);
+        // linked item
+        getEntityLinkedItem(solrClient, metric);
+        // high quality metrics
+        getHighQualityMetric(solrClient, metric);
 
+        metric.setTimestamp(new Date());
+        return new ResponseEntity<>(serializeToJson(metric), HttpStatus.OK);
+    }
+
+    /**
+     * Get the usage statistics for linked items of entities
+     *
+     * @return
+     */
+    private void getEntityLinkedItem(SolrClient solrClient, SearchMetric searchMetric) {
         LinkedItemMetric linkedItemMetric = new LinkedItemMetric();
         linkedItemMetric.setPlaces(getLinkedItems(solrClient, UsageStatsFields.PLACE));
         linkedItemMetric.setAgents(getLinkedItems(solrClient,UsageStatsFields.AGENT));
@@ -66,10 +75,22 @@ public class UsageStatsController extends BaseController {
         linkedItemMetric.setOrganisations(getLinkedItems(solrClient, UsageStatsFields.ORGANISATION));
         linkedItemMetric.setTimespans(getLinkedItems(solrClient, UsageStatsFields.TIMESPAN));
         linkedItemMetric.setTotal(linkedItemMetric.getOverallTotal());
-        metric.setItemsLinkedToEntities(linkedItemMetric);
+        searchMetric.setItemsLinkedToEntities(linkedItemMetric);
+    }
 
-        metric.setTimestamp(new Date());
-        return new ResponseEntity<>(serializeToJson(metric), HttpStatus.OK);
+    /**
+     * Get the stats for high quality metrics
+     * @param solrClient
+     * @param searchMetric
+     */
+    private void getHighQualityMetric(SolrClient solrClient, SearchMetric searchMetric) {
+        searchMetric.setAllRecords(getMetric(solrClient, new Query(UsageStatsUtils.QUERY_ALL)));
+        searchMetric.setNonCompliantRecord(getMetric(solrClient, new Query(UsageStatsUtils.QUERY_T0)));
+        searchMetric.setAllCompliantRecords(getMetric(solrClient, new Query(UsageStatsUtils.QUERY_ALL_MINUS_0)));
+        searchMetric.setHighQualityData(getMetric(solrClient, new Query(UsageStatsUtils.QUERY_T2_TA)));
+        searchMetric.setHighQualityContent(getMetric(solrClient, new Query(UsageStatsUtils.QUERY_T2)));
+        searchMetric.setHighQualityReusableContent(getMetric(solrClient, new Query(UsageStatsUtils.QUERY_T3)));
+        searchMetric.setHighQualityMetadata(getMetric(solrClient, new Query(UsageStatsUtils.QUERY_TA)));
     }
 
     /**
@@ -79,29 +100,10 @@ public class UsageStatsController extends BaseController {
      * @return
      */
     private Long getLinkedItems(SolrClient solrClient, String entityType) {
-        return searchService.getItemsLinkedToEntity(solrClient, createQueryForStats(entityType));
+        return searchService.getItemsLinkedToEntity(solrClient, UsageStatsUtils.createQueryForLinkedItems(entityType));
     }
 
-    /**
-     * creates query for solr
-     * @param entityType
-     * @return
-     */
-    public static Query createQueryForStats(String entityType) {
-        /** The Organizations URIs are not being indexed as expected.Hence we are making and exception
-         * for Organizations for now to get the counts this way
-         * https://api.europeana.eu/record/search.json?wskey=api2demo&query=foaf_organization:*&rows=0
-         */
-        if(StringUtils.equals(entityType, UsageStatsFields.ORGANISATION)) {
-            Query query = new Query(ORGANIZATION_QUERY);
-            query.setPageSize(0);
-            return query;
-        } else {
-            StringBuilder q = new StringBuilder(URL_PREFIX);
-            q.append(entityType).append("/\"");
-            Query query = new Query(q.toString());
-            query.setPageSize(0);
-            return query;
-        }
+    private HighQualityMetric getMetric(SolrClient solrClient, Query query) {
+        return UsageStatsUtils.processFacetMap(searchService.getFacet(solrClient, query, SolrFacetType.TYPE));
     }
 }
