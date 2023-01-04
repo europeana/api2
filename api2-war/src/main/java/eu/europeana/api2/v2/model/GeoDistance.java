@@ -32,8 +32,6 @@ public class GeoDistance {
     private Float  longitude;
     private Float  distance;
     
-    public GeoDistance() {}
-    
     public String getSField() {
         return sField;
     }
@@ -48,14 +46,14 @@ public class GeoDistance {
     
     public void setLatitude(float latitude) throws InvalidParamValueException {
         if (abs(latitude) > 90.0) {
-            throw new InvalidParamValueException("The value for longitude must be between -90.0 and 90.0");
+            throw new InvalidParamValueException("The value for latitude must be between -90.0 and 90.0");
         }
         this.latitude = latitude;
     }
     
     public void setLongitude(float longitude) throws InvalidParamValueException {
         if (abs(longitude) > 90.0) {
-            throw new InvalidParamValueException("The value for latitude must be between -180.0 and 180.0");
+            throw new InvalidParamValueException("The value for longitude must be between -180.0 and 180.0");
         }
         this.longitude = longitude;
     }
@@ -86,7 +84,6 @@ public class GeoDistance {
      */
     public void initialise(String qfValue) throws InvalidParamValueException {
         this.qfValue = qfValue;
-        
         if (StringUtils.isBlank(qfValue)) {
             throw new InvalidParamValueException("No value for qf=distance set");
         }
@@ -154,6 +151,4 @@ public class GeoDistance {
         }
         
     }
-    
-    
 }

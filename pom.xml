@@ -36,7 +36,7 @@
 
         <corelib.version>2.15.5-SNAPSHOT</corelib.version>
         <metis.version>5</metis.version>
-        <apicommons.version>0.3.13</apicommons.version>
+        <apicommons.version>0.3.16-SNAPSHOT</apicommons.version>
 
         <httpclient.version>4.5.13</httpclient.version>
         <jackson.version>2.13.0</jackson.version>
