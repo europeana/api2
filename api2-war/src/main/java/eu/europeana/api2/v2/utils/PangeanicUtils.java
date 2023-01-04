@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.utils;
 
+import eu.europeana.api2.v2.model.translate.Language;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -14,7 +15,6 @@ public class PangeanicUtils {
     public static final int TOKEN_MIN_AGE = 30_000; //ms
 
     public static final String LANG_ZXX = "zxx";
-    public static final String LANG_NA = "na";
 
     // request body fields
     public static final String MODE = "mode";
@@ -155,6 +155,10 @@ public class PangeanicUtils {
     }
 
     public static boolean noTranslationRequired(String lang) {
-        return (StringUtils.equals(lang, PangeanicUtils.LANG_ZXX) || StringUtils.equals(lang, PangeanicUtils.LANG_NA));
+        return (StringUtils.equals(lang, PangeanicUtils.LANG_ZXX) || StringUtils.equals(lang, Language.DEF) || StringUtils.equals(lang, Language.ENGLISH));
+    }
+
+    public static boolean nonTranslatedDataExists(List<String> detectedLanguages) {
+        return (detectedLanguages.contains(PangeanicUtils.LANG_ZXX) || detectedLanguages.contains(Language.DEF) || detectedLanguages.contains(Language.ENGLISH));
     }
 }

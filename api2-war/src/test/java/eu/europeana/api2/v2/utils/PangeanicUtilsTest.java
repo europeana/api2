@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.utils;
 
+import eu.europeana.api2.v2.model.translate.Language;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.Assert;
@@ -38,7 +39,7 @@ public class PangeanicUtilsTest {
     }
 
     @Test
-    public void test_getDetectedLangValueMap() throws JSONException {
+    public void test_getDetectedLangValueMap() {
         Map<String, List<String>> map =  PangeanicUtils.getDetectedLangValueMap(texts, lang );
         Assert.assertNotNull(map);
         Assert.assertEquals(4, map.size());
@@ -46,7 +47,7 @@ public class PangeanicUtilsTest {
 
 
     @Test
-    public void test_getResultsWithoutSorting() throws JSONException {
+    public void test_getResultsWithoutSorting() {
         translateResult.put(texts.get(0), "This is a test sentence");
         translateResult.put(texts.get(1), "Also translates this sentence");
         translateResult.put(texts.get(2), "2014");
@@ -58,7 +59,7 @@ public class PangeanicUtilsTest {
     }
 
     @Test
-    public void test_getResultsWithSorting() throws JSONException {
+    public void test_getResultsWithSorting() {
         translateResult.put(texts.get(2), "2014");
         translateResult.put(texts.get(0), "This is a test sentence");
         translateResult.put(texts.get(1), "Also translates this sentence");
@@ -73,11 +74,11 @@ public class PangeanicUtilsTest {
     }
 
     @Test
-    public void noTranslationRequired() throws JSONException {
-        Assert.assertTrue(PangeanicUtils.noTranslationRequired(PangeanicUtils.LANG_NA));
+    public void noTranslationRequired() {
+        Assert.assertTrue(PangeanicUtils.noTranslationRequired(Language.DEF));
         Assert.assertTrue(PangeanicUtils.noTranslationRequired(PangeanicUtils.LANG_ZXX));
         Assert.assertFalse(PangeanicUtils.noTranslationRequired("es"));
-        Assert.assertFalse(PangeanicUtils.noTranslationRequired("en"));
+        Assert.assertTrue(PangeanicUtils.noTranslationRequired("en"));
     }
 
     private void checkJson(JSONObject body, boolean v2OrDetect) {

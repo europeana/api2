@@ -93,9 +93,9 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
         try {
             // TODO Get apikey
             HttpPost post = createDetectlanguageRequest(texts, hint, "");
-            List<String> lang = sendDetectRequestAndParse(post);
+            List<String> detectedLanguages = sendDetectRequestAndParse(post);
             // create lang-value map for translation
-            Map<String, List<String>> detectedLangValueMap = PangeanicUtils.getDetectedLangValueMap(texts, lang);
+            Map<String, List<String>> detectedLangValueMap = PangeanicUtils.getDetectedLangValueMap(texts, detectedLanguages);
             LOG.debug("Pangeanic detect lang request with hint {} is executed. Detected languages are {} ", hint, detectedLangValueMap.keySet());
 
             Map<String, String> translations = new LinkedHashMap<>();
@@ -105,7 +105,7 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
                     translations.putAll(sendTranslateRequestAndParse(translateRequest));
                 }
             }
-            return PangeanicUtils.getResults(texts, translations, (lang.contains(PangeanicUtils.LANG_ZXX) || lang.contains(PangeanicUtils.LANG_NA)));
+            return PangeanicUtils.getResults(texts, translations, PangeanicUtils.nonTranslatedDataExists(detectedLanguages));
         } catch (JSONException | IOException e) {
             throw  new TranslationException(e);
         }
@@ -157,6 +157,10 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
                 String json = EntityUtils.toString(response.getEntity());
                 JSONObject obj = new JSONObject(json);
                 Map<String, String> results = new LinkedHashMap<>();
+                // there are cases where we get an empty response
+                if (!obj.has(PangeanicUtils.TRANSLATIONS)) {
+                    throw new TranslationException("Pangeanic Translation API returned empty response");
+                }
                 JSONArray translations = obj.getJSONArray(PangeanicUtils.TRANSLATIONS);
                 for (int i = 0; i < translations.length(); i++) {
                     JSONObject object = (JSONObject) translations.get(i);
@@ -165,7 +169,7 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
                 }
                 // response should not be empty
                 if (results.isEmpty()) {
-                    throw new TranslationException("Pangeanic Translation API translation failed for source lang " +obj.getString(PangeanicUtils.SOURCE_LANG));
+                    throw new TranslationException("Translation failed for source language - " +obj.get(PangeanicUtils.SOURCE_LANG));
                 }
                 return  results;
             }
@@ -192,8 +196,10 @@ public class PangeanicTranslationServiceV2 implements TranslationService  {
                     if (object.has(PangeanicUtils.SOURCE_DETECTED)) {
                         result.add(object.getString(PangeanicUtils.SOURCE_DETECTED));
                     }
-                    else {// when no detected lang is returned
-                        result.add(PangeanicUtils.LANG_NA);
+                    else {// when no detected lang is returned. Ideally, for values that doesn't need translations
+                         // Pangeanic will return 'en' or 'zxx' for dates. But this is for just-in cases when src_detected is
+                        // not returned. These values as well will not be translated and returned as it is
+                        result.add(Language.DEF);
                     }
                 }
                 return result;
