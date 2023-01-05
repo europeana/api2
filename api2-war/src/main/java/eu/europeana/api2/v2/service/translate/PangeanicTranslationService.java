@@ -3,7 +3,7 @@ package eu.europeana.api2.v2.service.translate;
 import com.auth0.jwt.JWT;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.model.translate.Language;
-import eu.europeana.api2.v2.utils.PangeanicUtils;
+import eu.europeana.api2.v2.utils.MetadataTranslationUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -70,8 +70,8 @@ public class PangeanicTranslationService implements TranslationService {
         this.tokenExpiration = JWT.decode(token).getExpiresAt().getTime();
 
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal(PangeanicUtils.MAX_CONNECTIONS);
-        cm.setDefaultMaxPerRoute(PangeanicUtils.MAX_CONNECTIONS_PER_ROUTE);
+        cm.setMaxTotal(MetadataTranslationUtils.MAX_CONNECTIONS);
+        cm.setDefaultMaxPerRoute(MetadataTranslationUtils.MAX_CONNECTIONS_PER_ROUTE);
         translateClient = HttpClients.custom().setConnectionManager(cm).build();
         LOG.info("Pangeanic translation service is initialized. Endpoint is {}", translateEndpoint);
     }
@@ -105,7 +105,7 @@ public class PangeanicTranslationService implements TranslationService {
      */
     private synchronized String getValidToken() throws JSONException, IOException {
         // return true if token expires in less than 30 seconds
-        if (tokenExpiration - new Date().getTime() < PangeanicUtils.TOKEN_MIN_AGE) {
+        if (tokenExpiration - new Date().getTime() < MetadataTranslationUtils.TOKEN_MIN_AGE) {
             this.token = getNewToken(tokenEndpoint, userName, password);
             this.tokenExpiration = JWT.decode(token).getExpiresAt().getTime();
         }
@@ -129,7 +129,7 @@ public class PangeanicTranslationService implements TranslationService {
 
     private HttpPost createTranslateRequest(List<String> texts, String targetLanguage, String sourceLanguage) throws JSONException, IOException {
         HttpPost post = new HttpPost(translateEndpoint);
-        JSONObject body = PangeanicUtils.createTranslateRequestBody(texts, targetLanguage, sourceLanguage, null, false);
+        JSONObject body = MetadataTranslationUtils.createTranslateRequestBody(texts, targetLanguage, sourceLanguage, null, false);
         post.setEntity(new StringEntity(body.toString(), StandardCharsets.UTF_8));
         post.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + getValidToken());
         post.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);

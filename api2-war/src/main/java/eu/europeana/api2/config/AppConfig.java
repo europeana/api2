@@ -74,10 +74,11 @@ public class AppConfig {
         //Make sure the correct translation service is initialized and available for components that need it
         TranslationEngine engine = TranslationEngine.fromString(translationEngineString);
         if (TranslationEngine.PANGEANIC.equals(engine)) {
-           // this.translationService = new PangeanicTranslationService();
-            this.translationService = new PangeanicTranslationServiceV2();
+            this.translationService = new PangeanicTranslationService();
         } else if (TranslationEngine.GOOGLE.equals(engine)) {
             this.translationService = new GoogleTranslationService();
+        } else if (TranslationEngine.INGESTION.equals(engine)) {
+            this.translationService = new SourceMetadataTranslations();
         }
         LOG.info("No translation engine available.");
     }

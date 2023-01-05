@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import java.util.*;
 
-public class PangeanicUtilsTest {
+public class MetadataTranslationUtilsTest {
 
     // multiple language texts
     List<String> texts = new ArrayList<>(Arrays.asList("Isto é uma frase para teste",
@@ -22,25 +22,25 @@ public class PangeanicUtilsTest {
 
     @Test
     public void test_createTranslateRequestBodyV2() throws JSONException {
-       JSONObject object =  PangeanicUtils.createTranslateRequestBody(texts, "en", "es", "", true );
+       JSONObject object =  MetadataTranslationUtils.createTranslateRequestBody(texts, "en", "es", "", true );
        checkJson(object, true);
     }
 
     @Test
     public void test_createTranslateRequestBodyV1() throws JSONException {
-        JSONObject object =  PangeanicUtils.createTranslateRequestBody(texts, "en", "es", "", false );
+        JSONObject object =  MetadataTranslationUtils.createTranslateRequestBody(texts, "en", "es", "", false );
         checkJson(object, false);
     }
 
     @Test
     public void test_createDetectRequestBody() throws JSONException {
-        JSONObject object =  PangeanicUtils.createDetectRequestBody(texts, "en",  "" );
+        JSONObject object =  MetadataTranslationUtils.createDetectRequestBody(texts, "en",  "" );
         checkJson(object, true);
     }
 
     @Test
     public void test_getDetectedLangValueMap() {
-        Map<String, List<String>> map =  PangeanicUtils.getDetectedLangValueMap(texts, lang );
+        Map<String, List<String>> map =  MetadataTranslationUtils.getDetectedLangValueMap(texts, lang );
         Assert.assertNotNull(map);
         Assert.assertEquals(4, map.size());
     }
@@ -53,7 +53,7 @@ public class PangeanicUtilsTest {
         translateResult.put(texts.get(2), "2014");
         translateResult.put(texts.get(3), "एहि वाक्यक सेहो अनुवाद करू");
 
-        List<String> results =  PangeanicUtils.getResults(texts, translateResult, false);
+        List<String> results =  MetadataTranslationUtils.getResults(texts, translateResult, false);
         Assert.assertNotNull(results);
         Assert.assertEquals(4, results.size());
     }
@@ -64,7 +64,7 @@ public class PangeanicUtilsTest {
         translateResult.put(texts.get(0), "This is a test sentence");
         translateResult.put(texts.get(1), "Also translates this sentence");
 
-        List<String> results =  PangeanicUtils.getResults(texts, translateResult, true);
+        List<String> results =  MetadataTranslationUtils.getResults(texts, translateResult, true);
         Assert.assertNotNull(results);
         Assert.assertEquals(4, results.size());
         Assert.assertEquals("This is a test sentence", results.get(0));
@@ -75,24 +75,24 @@ public class PangeanicUtilsTest {
 
     @Test
     public void noTranslationRequired() {
-        Assert.assertTrue(PangeanicUtils.noTranslationRequired(Language.DEF));
-        Assert.assertTrue(PangeanicUtils.noTranslationRequired(PangeanicUtils.LANG_ZXX));
-        Assert.assertFalse(PangeanicUtils.noTranslationRequired("es"));
-        Assert.assertTrue(PangeanicUtils.noTranslationRequired("en"));
+        Assert.assertTrue(MetadataTranslationUtils.noTranslationRequired(Language.DEF));
+        Assert.assertTrue(MetadataTranslationUtils.noTranslationRequired(Language.NO_LINGUISTIC_CONTENT));
+        Assert.assertFalse(MetadataTranslationUtils.noTranslationRequired("es"));
+        Assert.assertTrue(MetadataTranslationUtils.noTranslationRequired("en"));
     }
 
     private void checkJson(JSONObject body, boolean v2OrDetect) {
         Assert.assertNotNull(body);
         if (v2OrDetect) {
             Assert.assertTrue(body.has("apikey"));
-            Assert.assertTrue(body.has(PangeanicUtils.MODE));
-            Assert.assertTrue(body.has(PangeanicUtils.SOURCE_LANG));
-            Assert.assertTrue(body.has(PangeanicUtils.TRANSLATE_SOURCE));
+            Assert.assertTrue(body.has(MetadataTranslationUtils.MODE));
+            Assert.assertTrue(body.has(MetadataTranslationUtils.SOURCE_LANG));
+            Assert.assertTrue(body.has(MetadataTranslationUtils.TRANSLATE_SOURCE));
 
         } else {
-            Assert.assertTrue(body.has(PangeanicUtils.TEXT));
-            Assert.assertTrue(body.has(PangeanicUtils.TRANSLATE_SOURCE));
-            Assert.assertTrue(body.has(PangeanicUtils.TRANSLATE_TARGET));
+            Assert.assertTrue(body.has(MetadataTranslationUtils.TEXT));
+            Assert.assertTrue(body.has(MetadataTranslationUtils.TRANSLATE_SOURCE));
+            Assert.assertTrue(body.has(MetadataTranslationUtils.TRANSLATE_TARGET));
         }
 
 
