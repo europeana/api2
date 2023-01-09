@@ -74,7 +74,7 @@ public class UsageStatsController extends BaseController {
         linkedItemMetric.setConcepts(getLinkedItems(solrClient, UsageStatsFields.CONCEPT));
         linkedItemMetric.setOrganisations(getLinkedItems(solrClient, UsageStatsFields.ORGANISATION));
         linkedItemMetric.setTimespans(getLinkedItems(solrClient, UsageStatsFields.TIMESPAN));
-        linkedItemMetric.setTotal(linkedItemMetric.getOverallTotal());
+        linkedItemMetric.setAll(searchService.getItemsLinkedToEntity(solrClient, UsageStatsUtils.createAllQuery()));
         searchMetric.setItemsLinkedToEntities(linkedItemMetric);
     }
 
