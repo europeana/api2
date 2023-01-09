@@ -35,7 +35,7 @@ spec:
   tls:
     - hosts:
         - ${K8S_HOSTNAME_1}
-      secretName: ${K8S_HOSTNAME_SECRET1}
+      secretName: ${K8S_HOSTNAME_SECRET_1}
     - hosts:
         - ${K8S_HOSTNAME_2}
-      secretName: ${K8S_HOSTNAME_SECRET2}
+      secretName: ${K8S_HOSTNAME_SECRET_2}
