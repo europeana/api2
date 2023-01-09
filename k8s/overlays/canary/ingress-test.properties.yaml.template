@@ -1,14 +1,14 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: search-api-canary-ingress
+  name: search-api-ingress
   annotations:
     cert-manager.io/issuer: letsencrypt-production
+    nginx.ingress.kubernetes.io/server-alias: ${K8S_SERVER_ALIASES}
     # requests will only end up in this ingress if header "X-Canary: always" is specified
     nginx.ingress.kubernetes.io/canary: "true"
     nginx.ingress.kubernetes.io/canary-by-header: "X-Canary"
     nginx.ingress.kubernetes.io/canary-weight: 0
-
 spec:
   ingressClassName: public-iks-k8s-nginx
   tls:
@@ -23,7 +23,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # Kustomize used for adding suffix to resource names
                 name: search-api-service
                 port:
-                  number: 8080
+                  number: 80
