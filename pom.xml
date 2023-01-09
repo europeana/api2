@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -7,7 +8,7 @@
         <artifactId>europeana-parent-pom</artifactId>
         <version>2.0</version>
     </parent>
-    
+
     <artifactId>api2</artifactId>
     <version>2.16.1-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -55,30 +56,35 @@
         <springWebService.version>2.4.7.RELEASE</springWebService.version>
     </properties>
 
-    <build>
-        <plugins>
-            <!-- This will be active when running the verify or install goal
-                 To skip (e.g. during debugging) use 'mvn clean package')-->
-            <plugin>
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <version>7.3.0</version>
-                <configuration>
-                    <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
-                    <failBuildOnCVSS>8</failBuildOnCVSS>
-                    <suppressionFiles>
-                        <suppressionFile>owasp-suppress.xml</suppressionFile>
-                    </suppressionFiles>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+    <profiles>
+        <profile>
+            <id>depcheck</id>
+            <build>
+                <plugins>
+                    <!-- This will be active when running the verify or install goal
+                         To skip (e.g. during debugging) use 'mvn clean package')-->
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                        <version>7.4.4</version>
+                        <configuration>
+                            <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+                            <failBuildOnCVSS>8</failBuildOnCVSS>
+                            <suppressionFiles>
+                                <suppressionFile>owasp-suppress.xml</suppressionFile>
+                            </suppressionFiles>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
