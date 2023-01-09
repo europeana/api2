@@ -34,7 +34,7 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - ${K8S_HOSTNAME1}
+        - ${K8S_HOSTNAME_1}
       secretName: ${K8S_HOSTNAME_SECRET1}
     - hosts:
         - ${K8S_HOSTNAME_2}
