@@ -69,7 +69,6 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -350,11 +349,9 @@ public class SearchController {
                 sort = StringUtils.replaceIgnoreCase(sort, "distance", "geodist()");
             }
         } else if (StringUtils.containsIgnoreCase(sort, "distance")){
-            sort = StringUtils.remove(sort, "distance");
-            // if remainder is just 'asc / desc', remove altogether
-            if (sort.strip().length() < 5){
-                sort = null;
-            }
+            // removes "distance", "distance asc", "distance desc" also when followed by other sort parameters,
+            // including possible spaces and the trailing comma in those cases
+            sort = org.apache.commons.lang3.RegExUtils.removePattern(sort, "distance\\s(asc|desc)(\\s|,)*");
         }
 
         Class<? extends IdBean> clazz = selectBean(profile);
