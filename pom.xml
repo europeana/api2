@@ -55,10 +55,6 @@
 
         <springWebService.version>2.4.7.RELEASE</springWebService.version>
     </properties>
-
-    <profiles>
-        <profile>
-            <id>depcheck</id>
             <build>
                 <plugins>
                     <!-- This will be active when running the verify or install goal
@@ -84,7 +80,4 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-    </profiles>
-
 </project>
