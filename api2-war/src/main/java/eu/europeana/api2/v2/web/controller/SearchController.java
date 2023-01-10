@@ -351,7 +351,7 @@ public class SearchController {
         } else if (StringUtils.containsIgnoreCase(sort, "distance")){
             // removes "distance", "distance asc", "distance desc" also when followed by other sort parameters,
             // including possible spaces and the trailing comma in those cases
-            sort = org.apache.commons.lang3.RegExUtils.removePattern(sort, "distance\\s(asc|desc)(\\s|,)*");
+            sort = org.apache.commons.lang3.RegExUtils.removePattern(sort, "distance\\s?(asc|desc)?(\\s|,)*");
         }
 
         Class<? extends IdBean> clazz = selectBean(profile);
