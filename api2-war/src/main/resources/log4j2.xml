@@ -43,6 +43,6 @@
     <Logger name="eu.europeana.api2.v2.service.translate.TranslationUtils" level="INFO"/>
 
     <!-- Set to DEBUG to see which record fields are or are not chosen to be translated + see how long the entire process took -->
-    <Logger name="eu.europeana.api2.v2.service.translate.SourceMetadataTranslations" level="INFO"/>
+    <Logger name="eu.europeana.api2.v2.service.translate.SourceMetadataTranslations" level="DEBUG"/>
   </Loggers>
 </Configuration>

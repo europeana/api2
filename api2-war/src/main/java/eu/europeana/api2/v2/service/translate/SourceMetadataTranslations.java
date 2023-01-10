@@ -71,8 +71,13 @@ public class SourceMetadataTranslations implements TranslationService  {
     @Override
     public List<String> translate(List<String> texts, String targetLanguage, String sourceLanguage) throws TranslationException {
         try {
+            long startTime = System.currentTimeMillis();
             HttpPost post = createTranslateRequest(texts, targetLanguage, sourceLanguage, "" );
-            return MetadataTranslationUtils.getResults(texts, sendTranslateRequestAndParse(post), false);
+            Map<String, String> results = sendTranslateRequestAndParse(post);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Translate results - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTime));
+            }
+            return MetadataTranslationUtils.getResults(texts, results, false);
         } catch (JSONException|IOException e) {
             throw new TranslationException(e);
         }
@@ -91,13 +96,21 @@ public class SourceMetadataTranslations implements TranslationService  {
      */
     private List<String> translateWithLangDetect(List<String> texts, String targetLanguage, String hint) throws TranslationException {
         try {
+            long startTime = System.currentTimeMillis();
+
             // TODO Get apikey
             HttpPost post = createDetectlanguageRequest(texts, hint, "");
             List<String> detectedLanguages = sendDetectRequestAndParse(post);
             // create lang-value map for translation
             Map<String, List<String>> detectedLangValueMap = MetadataTranslationUtils.getDetectedLangValueMap(texts, detectedLanguages);
-            LOG.debug("Pangeanic detect lang request with hint {} is executed. Detected languages are {} ", hint, detectedLangValueMap.keySet());
 
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Language detection and Gatering results took {} ms", (System.currentTimeMillis() - startTime));
+                LOG.debug("Pangeanic detect lang request with hint {} is executed. Detected languages are {} ", hint, detectedLangValueMap.keySet());
+            }
+
+            // actual translation
+            long startTimeTranslate = System.currentTimeMillis();
             Map<String, String> translations = new LinkedHashMap<>();
             for (Map.Entry<String, List<String>> entry : detectedLangValueMap.entrySet()) {
                 if (MetadataTranslationUtils.noTranslationRequired(entry.getKey())) {
@@ -110,6 +123,9 @@ public class SourceMetadataTranslations implements TranslationService  {
                     HttpPost translateRequest = createTranslateRequest(entry.getValue(), targetLanguage, entry.getKey(), "");
                     translations.putAll(sendTranslateRequestAndParse(translateRequest));
                 }
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Translate results - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
             }
             return MetadataTranslationUtils.getResults(texts, translations, MetadataTranslationUtils.nonTranslatedDataExists(detectedLanguages));
         } catch (JSONException | IOException e) {
