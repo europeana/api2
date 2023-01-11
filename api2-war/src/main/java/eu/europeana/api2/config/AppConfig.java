@@ -77,8 +77,8 @@ public class AppConfig {
             this.translationService = new PangeanicTranslationService();
         } else if (TranslationEngine.GOOGLE.equals(engine)) {
             this.translationService = new GoogleTranslationService();
-        } else if (TranslationEngine.INGESTION.equals(engine)) {
-            this.translationService = new SourceMetadataTranslations();
+        } else if (TranslationEngine.PANGEANIC2.equals(engine)) {
+            this.translationService = new PangeanicV2TranslationService();
         }
         LOG.info("No translation engine available.");
     }

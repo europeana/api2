@@ -35,9 +35,9 @@ import java.util.*;
 @Service
 @PropertySource("classpath:europeana.properties")
 @PropertySource(value = "classpath:europeana.user.properties", ignoreResourceNotFound = true)
-public class SourceMetadataTranslations implements TranslationService  {
+public class PangeanicV2TranslationService implements TranslationService  {
 
-    private static final Logger LOG = LogManager.getLogger(SourceMetadataTranslations.class);
+    private static final Logger LOG = LogManager.getLogger(PangeanicV2TranslationService.class);
 
     @Value("${translation.pangeanic.endpoint.translate:}")
     private String translateEndpoint;
@@ -63,8 +63,8 @@ public class SourceMetadataTranslations implements TranslationService  {
     }
 
     @Override
-    public List<String> translate(List<String> texts, String targetLanguage, Language edmLang) throws TranslationException {
-        String hint = edmLang != null ? edmLang.name().toLowerCase(Locale.ROOT) : null ;
+    public List<String> translate(List<String> texts, String targetLanguage, Language sourceLangHint) throws TranslationException {
+        String hint = (sourceLangHint != null ? sourceLangHint.name().toLowerCase(Locale.ROOT) : null);
         return translateWithLangDetect(texts, targetLanguage, hint);
     }
 
@@ -201,8 +201,8 @@ public class SourceMetadataTranslations implements TranslationService  {
                     JSONObject object = (JSONObject) detectedLangs.get(i);
                     if (object.has(MetadataTranslationUtils.SOURCE_DETECTED)) {
                         result.add(object.getString(MetadataTranslationUtils.SOURCE_DETECTED));
-                    }
-                    else {// when no detected lang is returned. Ideally, this should not happen
+                    } else {
+                        // when no detected lang is returned. Ideally, this should not happen
                          // But this is for just-in cases when src_detected is
                         // not returned. These values as well will not be translated and returned as it is
                         // TODO adding "def" for now utill Pangeanic finds a way for the

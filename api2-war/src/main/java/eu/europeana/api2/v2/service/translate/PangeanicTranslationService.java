@@ -32,7 +32,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Service to send data to translate to Pangeanic Translate API
+ * Service to send data to translate to (old) Pangeanic Translate API
  * Pangeanic Translate API requires a token, so this is issued first and on each request we check if the token is
  * still valid for at least 30 seconds
  * @author Patrick Ehlert
@@ -113,8 +113,8 @@ public class PangeanicTranslationService implements TranslationService {
     }
 
     @Override
-    public List<String> translate(List<String> texts, String targetLanguage, Language edmLang) throws TranslationException {
-        return translate(texts, targetLanguage, edmLang);
+    public List<String> translate(List<String> texts, String targetLanguage, Language sourceLangHint) throws TranslationException {
+        return translate(texts, targetLanguage, sourceLangHint);
     }
 
     @Override

@@ -115,7 +115,7 @@ public class RecordTranslateService {
 
         // edmLanguage is passed a hint for Pageanic translations
         Language edmLang = null ;
-        if (translationService.getClass().equals(SourceMetadataTranslations.class)) {
+        if (translationService.getClass().equals(PangeanicV2TranslationService.class)) {
             edmLang = getHintForLangDetect(bean);
         }
 

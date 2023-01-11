@@ -64,7 +64,7 @@ public class GoogleTranslationService implements TranslationService {
     }
 
     @Override
-    public List<String> translate(List<String> texts, String targetLanguage, Language edmLang) {
+    public List<String> translate(List<String> texts, String targetLanguage, Language sourceLangHint) {
         TranslateTextRequest request = TranslateTextRequest.newBuilder()
                 .setParent(locationName.toString())
                 .setMimeType(MIME_TYPE_TEXT)

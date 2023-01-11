@@ -16,7 +16,7 @@ import java.util.List;
 
 public class SourceMetadataTranslationsTest {
 
-    private SourceMetadataTranslations pangeanicService;
+    private PangeanicV2TranslationService pangeanicService;
 
     List<String> singleLangText;
     List<String> multipleLangText;
@@ -27,7 +27,7 @@ public class SourceMetadataTranslationsTest {
 
     @Before
     public void setup() throws TranslationException {
-        pangeanicService = Mockito.mock(SourceMetadataTranslations.class);
+        pangeanicService = Mockito.mock(PangeanicV2TranslationService.class);
 
         // multiple language texts
         multipleLangText = new ArrayList<>(Arrays.asList("Isto é uma frase para teste",

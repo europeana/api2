@@ -11,7 +11,7 @@ import java.util.Locale;
  */
 public enum TranslationEngine {
 
-    GOOGLE, PANGEANIC, INGESTION, NONE;
+    GOOGLE, PANGEANIC, PANGEANIC2, NONE;
 
     /**
      * Uses case-insensitive matching to find the corresponding enum value
