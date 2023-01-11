@@ -5,6 +5,7 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.*;
+import eu.europeana.api2.v2.model.GeoDistance;
 import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.api2.v2.model.json.SearchResults;
@@ -274,6 +275,7 @@ public class SearchController {
                                          "Parameters 'start' and 'cursorMark' cannot be used together");
         }
 
+        // TODO April '22 - this issue is now over 11 years old and I'm quite certain that we can stop checking this
         // TODO check whether this is still necessary? <= about time we did that!
         // workaround of a Spring issue
         // (https://jira.springsource.org/browse/SPR-7963)
@@ -289,27 +291,35 @@ public class SearchController {
                 refinementArray = ArrayUtils.add(refinementArray, "collection:" + theme);
             }
         }
-
+    
         List<String> colourPalette = new ArrayList<>();
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
             StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         }
         colourPalette.replaceAll(String::toUpperCase);
-
+    
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
         if (!colourPalette.isEmpty()) {
-            Set<Integer> filterTags = TagUtils.encodeColourPalette(colourPalette);
-            if (!filterTags.isEmpty()) {
-                queryString = filterQueryBuilder(filterTags.iterator(), queryString, " AND ", false);
+            Set<Integer> colourPaletteTags = TagUtils.encodeColourPalette(colourPalette);
+            if (!colourPaletteTags.isEmpty()) {
+                queryString = filterQueryBuilder(colourPaletteTags.iterator(), queryString, " AND ", false);
             }
         }
 
         final List<Integer> filterTags = new ArrayList<>();
-
+        
+        // EA-2996 this is to hold the sfield, pt and d geospatial parameters
+        // Created here, passed to processQfParameters() & initialised there
+        GeoDistance geoDistance = new GeoDistance();
+        
         // NOTE the zero tag is now added in processQfParameters
-        refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags);
-
+        try {
+            refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags, geoDistance);
+        } catch (InvalidParamValueException e) {
+            throw new SolrQueryException(ProblemType.INVALID_PARAMETER_VALUE, e.getErrorDetails());
+        }
+    
         // add the CF filter facets to the query string like this:
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
         if (!filterTags.isEmpty()) {
@@ -348,6 +358,17 @@ public class SearchController {
             }
         }
 
+        // EA-2996 only allow sorting on distance if a qf distance function is requested => if geoDistance is initialised
+        if (geoDistance.isInitialised()){
+            if (StringUtils.containsIgnoreCase(sort, "distance")) {
+                sort = StringUtils.replaceIgnoreCase(sort, "distance", "geodist()");
+            }
+        } else if (StringUtils.containsIgnoreCase(sort, "distance")){
+            // removes "distance", "distance asc", "distance desc" also when followed by other sort parameters,
+            // including possible spaces and the trailing comma in those cases
+            sort = org.apache.commons.lang3.RegExUtils.removePattern(sort, "distance\\s?(asc|desc)?(\\s|,)*");
+        }
+
         Class<? extends IdBean> clazz = selectBean(profile);
         Query query = new Query(SearchUtils.rewriteQueryFields(
                 SearchUtils.fixBuggySolrIndex(queryString)))
@@ -360,6 +381,11 @@ public class SearchController {
                                 .setParameter("facet.mincount","1")
                                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                                 .setSpellcheckAllowed(false);
+
+        // EA-2996
+        if (geoDistance.isInitialised()){
+            query.addGeoParamsToQuery(geoDistance.getSField(), geoDistance.getPoint(), geoDistance.getDistance());
+        }
 
         if (facetsRequested) {
             Map<String, String[]> parameterMap = request.getParameterMap();
@@ -498,17 +524,21 @@ public class SearchController {
      * Processes all qf parameters. Note that besides returning a new array of refinements we may add new filterTags to
      * the provided filterTags list (if there are image, audio, video or mimetype refinements)
      */
-    protected String[] processQfParameters(String[] refinementArray,
-                                         Boolean media,
-                                         Boolean thumbnail,
-                                         Boolean fullText,
-                                         Boolean landingPage,
-                                         List<Integer> filterTags) {
-        boolean      hasImageRefinements = false;
-        boolean      hasAudioRefinements = false;
-        boolean      hasVideoRefinements = false;
-        boolean      hasTextRefinements  = false;
-        boolean      hasBrokenTechFacet  = false;
+    protected String[] processQfParameters( String[] refinementArray,
+                                            Boolean media,
+                                            Boolean thumbnail,
+                                            Boolean fullText,
+                                            Boolean landingPage,
+                                            List<Integer> filterTags,
+                                            GeoDistance geoDistance) throws InvalidParamValueException {
+        boolean hasImageRefinements = false;
+        boolean hasAudioRefinements = false;
+        boolean hasVideoRefinements = false;
+       // boolean hasTextRefinements  = false;
+        boolean hasBrokenTechFacet  = false;
+        
+        boolean hasGeoDistanceSearch = false;
+        
         Boolean whatYouWant;
         FacetEncoder facetEncoder        = new FacetEncoder();
         List<String> newRefinements      = new ArrayList<>();
@@ -530,7 +560,7 @@ public class SearchController {
 
         // retrieves the faceted refinements from the QF part of the request and stores them separately
         // the rest of the refinements is kept in the refinementArray
-        // NOTE prefixes are case sensitive, only uppercase cf:params are recognised
+        // NOTE prefixes are case sensitive: tech facets processed here are uppercase, but (geo) distance IS NOT!
         // ALSO NOTE that the suffixes are NOT case sensitive. They are all made lowercase, except 'colourpalette'
         if (refinementArray != null) {
             for (String qf : refinementArray) {
@@ -691,6 +721,20 @@ public class SearchController {
                             break;
                         default:
                             newRefinements.add(qf);
+                    }
+                    // EA-2996 geo distance search
+                } else if (StringUtils.contains(qf, "distance")) {
+                    if (hasGeoDistanceSearch){
+                        throw new InvalidParamValueException("Only one distance query can be supplied");
+                    } else {
+                        String refinementValue = StringUtils.substringAfter(qf, "distance(")
+                                                            .replaceAll("^\"|\"$", "")
+                                                            .replaceAll("[\\(\\)]", "");
+                        geoDistance.initialise(refinementValue);
+                        if (geoDistance.isInitialised()) {
+                            newRefinements.add(geoDistance.getFQGeo());
+                            hasGeoDistanceSearch = true;
+                        }
                     }
                 } else {
                     newRefinements.add(qf);
