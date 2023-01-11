@@ -5,10 +5,11 @@ import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.utils.ComparatorUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -18,6 +19,9 @@ import java.util.*;
  * Created 22 jul 2021
  */
 public final class TranslationUtils {
+
+    public static final String FIELD_NAME_INDEX_SEPARATOR = ".";
+    public static final String FIELD_NAME_INDEX_REGEX = "\\.";
 
     private static final Logger LOG = LogManager.getLogger(TranslationUtils.class);
 
@@ -103,10 +107,14 @@ public final class TranslationUtils {
         for (Map.Entry<String, List<String>> translated : translatedMap.entrySet()) {
             List<String> actualTranslatedValues = new ArrayList<>();
             // we have already performed the sanity check in translate() method. So the list size will be equal here
-            for(int i = 0; i < translated.getValue().size(); i++) {
-               if (!ComparatorUtils.sameValueWithoutSpace(mapToTranslate.get(translated.getKey()).get(i), translated.getValue().get(i))) {
+            for (int i = 0; i < translated.getValue().size(); i++) {
+                String origValue = mapToTranslate.get(translated.getKey()).get(i);
+                if (!ComparatorUtils.sameValueWithoutSpace(origValue, translated.getValue().get(i))) {
                    actualTranslatedValues.add(translated.getValue().get(i));
-               }
+                } else {
+                   LOG.debug("Skipping translated def " +
+                           "value as it's the same as original: {}", origValue);
+                }
             }
             if (!actualTranslatedValues.isEmpty()) {
                 actualTranslationMap.put(translated.getKey(), actualTranslatedValues);
@@ -119,12 +127,14 @@ public final class TranslationUtils {
     }
 
     /**
-     * lang in the map might be present with or without region codes ex : en-GB or only 'en'
-     * hence first try the exact match of key. if empty, try the partial match to fetch the values
+     * Given a particular language code, this retrieves a value from a language map
+     * Note that the language in the map might be present with or without region codes e.g. "en-GB".
+     * So we first try an exact match with the provided 2-letter language code, and if that returns nothing we try
+     * a partial starts-with match.
      *
      * @param map
      * @param lang
-     * @return
+     * @return null if nothing was found
      */
     public static List<String> getValuesToTranslateFromMultilingualMap(Map<String, List<String>> map, String lang) {
         List<String> valuesToTranslate = map.get(lang);
@@ -135,5 +145,59 @@ public final class TranslationUtils {
                     .findFirst().orElse(null);
         }
         return valuesToTranslate;
+    }
+
+    /**
+     * Add translations to the provided field of the provided object. The field must be a Language map
+     * @param object object to which translations are added
+     * @param fieldName name of the field part of the object to which translations are added
+     * @param lang the language in which translations are (used as key in the language map)
+     * @param values the translated values to add
+     */
+    public static void addTranslationsToObject(Object object, String fieldName, String lang, List<String> values) {
+        Field field = ReflectionUtils.findField(object.getClass(), fieldName);
+        if (field == null) {
+            LOG.error("Cannot find field with name {} in object {}", fieldName, object.getClass().getSimpleName());
+        } else {
+            ReflectionUtils.makeAccessible(field);
+            Object o = ReflectionUtils.getField(field, object);
+            if (o instanceof Map) {
+                Map<String, List<String>> map = (Map<String, List<String>>) o;
+                if (map.containsKey(lang)) {
+                    // should not happen!
+                    LOG.error("Object {} already has values for field {} and language {}!", object.getClass(), fieldName, lang);
+                } else {
+                    LOG.trace("Adding to field {}, key {} and value {}", fieldName, lang, values);
+                    map.put(lang, values);
+                }
+            } else {
+                Map<String, List<String>> newMap = new LinkedHashMap<>();
+                newMap.put(lang, values);
+                ReflectionUtils.setField(field, object, newMap);
+            }
+        }
+    }
+
+    /**
+     * Add translations to the provided field of the provided list. The field must be a Language map and the provided
+     * fieldname must start with the list index followed by a dot. For example field <pre>0.dcCreatorLangAware</pre>
+     * refers to the field named dcCreatorLangAware in the first item in the list
+     * We also need to convert back to the proper Solr names, since these will be filtered later while presenting the
+     * final results (using EmdUtils.cloneMap)
+     * @param list list containing objects to which translations are added
+     * @param fieldName index of the object in the list and name of the field to which translations are added
+     * @param solrKeyName, the name of the key as used in solr (e.g. proxy_dc_creator.en)
+     * @param values the translated values to add
+     */
+    public static void addTranslationsToList(List list, String fieldName, String solrKeyName, List<String> values) {
+        try {
+            LOG.trace("   add fieldName = {}, solrKeyname = {}, values = {}", fieldName, solrKeyName, values);
+            String[] parts = fieldName.split(FIELD_NAME_INDEX_REGEX);
+            int index = Integer.valueOf(parts[0]);
+            String fName = parts[1];
+            addTranslationsToObject(list.get(index), fName, solrKeyName, values);
+        } catch (RuntimeException e) {
+            LOG.warn("Error reading fieldName {}. Unable to add translation for it.", fieldName, e);
+        }
     }
 }

@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../../base
+- nodeport.yaml
+
+patchesStrategicMerge:
+- deployment_patch.yaml
+
+commonLabels:
+  app: search-api

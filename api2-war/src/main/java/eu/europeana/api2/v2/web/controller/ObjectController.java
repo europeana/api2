@@ -12,10 +12,11 @@ import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.BeanFilterLanguage;
-import eu.europeana.api2.v2.service.translate.BeanTranslateService;
+import eu.europeana.api2.v2.utils.LanguageFilter;
+import eu.europeana.api2.v2.service.translate.RecordTranslateService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
+import eu.europeana.api2.v2.utils.ModelUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -40,11 +41,11 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.JsonLDWriteContext;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFWriter;
+import org.apache.jena.riot.RDFWriterBuilder;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -81,7 +82,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
         "/record",
 })
 @SwaggerSelect
-@Import(BeanTranslateService.class) // to enable title and description translation
+@Import(RecordTranslateService.class) // to enable title and description translation
 public class ObjectController {
 
     private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
@@ -95,12 +96,9 @@ public class ObjectController {
 
     private RouteDataService        routeService;
     private RecordService           recordService;
-    private BeanTranslateService translateFilterService;
+    private RecordTranslateService translateFilterService;
     private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
-
-    @Value("${translation.enabled:false}")
-    private boolean isTranslationEnabled;
 
     /**
      * Create a static Object for JSONLD Context. This will read the file once during initialization
@@ -126,7 +124,7 @@ public class ObjectController {
      * @param httpCacheUtils for request caching
      */
     @Autowired
-    public ObjectController(RouteDataService routeService, RecordService recordService, BeanTranslateService tfService,
+    public ObjectController(RouteDataService routeService, RecordService recordService, RecordTranslateService tfService,
                             ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
         this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;
@@ -335,7 +333,7 @@ public class ObjectController {
         }
 
         // 3) validate other common params
-        if (!isTranslationEnabled && RecordProfile.TRANSLATE.isActive(data.profile)) {
+        if (!translateFilterService.isEnabled() && RecordProfile.TRANSLATE.isActive(data.profile)) {
             throw new TranslationServiceDisabledException();
         }
         if (data.lang != null) {
@@ -417,7 +415,7 @@ public class ObjectController {
 
         // 9) When lang profile is provided, do filtering
         if (data.languages != null && !data.languages.isEmpty()) {
-            bean = BeanFilterLanguage.filter(bean, data.languages);
+            bean = (FullBean) LanguageFilter.filter(bean, data.languages);
         }
 
         // 10) Generate output
@@ -490,9 +488,13 @@ public class ObjectController {
                  DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
                  JsonLDWriteContext ctx = new JsonLDWriteContext();
                  ctx.setJsonLDContext(ObjectController.jsonldContext);
-                 RDFWriter writer = RDFWriter.create().source(graph).format(RDFFormat.JSONLD_FLAT).context(ctx).build();
+                 RDFWriterBuilder writerBuilder = RDFWriter.create();
+                 RDFWriter writer = writerBuilder.source(graph).format(RDFFormat.JSONLD10_FLAT).context(ctx).build();
                  writer.output(outputStream);
-                 return JsonUtils.toJsonLd(outputStream.toString(), data.callback);
+                 // Jena model sorts the data with it's own logic. We can not manipulate the order there.
+                // Hence, we will sort the hasView with JsonObject that is created by RDFWriter.
+                String orderedJsonLd = ModelUtils.sortHasViews(bean, outputStream.toString());
+                return JsonUtils.toJsonLd(orderedJsonLd, data.callback);
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

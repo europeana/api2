@@ -68,6 +68,11 @@ public class ApiKeyUtils{
      *
      */
     public void validateApiKey(String apikey) throws ApiKeyException {
+        if (StringUtils.isBlank(urlService.getApikeyValidateUrl())) {
+            LOG.debug("API Key validation disabled");
+            return;
+        }
+
         if (StringUtils.isBlank(apikey)) {
             throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
         }

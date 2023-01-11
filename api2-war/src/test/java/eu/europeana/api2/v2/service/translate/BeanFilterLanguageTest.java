@@ -3,6 +3,7 @@ package eu.europeana.api2.v2.service.translate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.api2.v2.model.translate.Language;
+import eu.europeana.api2.v2.utils.LanguageFilter;
 import eu.europeana.api2.v2.utils.MockBeanConstants;
 import eu.europeana.api2.v2.utils.MockFullBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -31,7 +32,7 @@ public class BeanFilterLanguageTest {
                 mapper.writeValueAsString(bean));
 
         List<Language> languages = Collections.singletonList(Language.EN);
-        BeanFilterLanguage.filter(bean, languages);
+        LanguageFilter.filter(bean, languages);
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Filtered fullbean = {}",
                 mapper.writeValueAsString(bean));
 
@@ -54,6 +55,10 @@ public class BeanFilterLanguageTest {
         assertNull(bean.getConcepts().get(0).getPrefLabel());
         assertNull(bean.getConcepts().get(0).getNote());
 
+        // dcDate has non-linguistic content, so should not be translated and still be present in provider proxy
+        assertNull(bean.getProxies().get(0).getDcDate());
+        assertEquals(MockBeanConstants.DC_DATE, bean.getProxies().get(1).getDcDate().get(MockBeanConstants.ZXX).get(0));
+
         // dcFormat is a field in the superClass of the superClass of a proxy, so we check if we can find and filter those okay
         assertEquals(1, bean.getProxies().get(1).getDcFormat().size());
         assertEquals(MockBeanConstants.PROXY1_DC_FORMAT1_DEF, bean.getProxies().get(1).getDcFormat().get(MockBeanConstants.DEF).get(0));
@@ -70,7 +75,7 @@ public class BeanFilterLanguageTest {
     public void testMultipleFilter() {
         FullBean bean = MockFullBean.mock();
         List<Language> languages = new ArrayList<>(Arrays.asList(Language.PL, Language.IT, Language.BG));
-        BeanFilterLanguage.filter(bean, languages);
+        LanguageFilter.filter(bean, languages);
 
         // first agents.preflabel should now have only 1 translation (English, Polish one should be filtered out)
         assertEquals(1, bean.getAgents().get(0).getPrefLabel().size());
@@ -82,7 +87,7 @@ public class BeanFilterLanguageTest {
     public void testMultipleFilterWithLocales() {
         FullBean bean = MockFullBean.mock();
         List<Language> languages = new ArrayList<>(Arrays.asList(Language.EN, Language.NL, Language.DE));
-        BeanFilterLanguage.filter(bean, languages);
+        LanguageFilter.filter(bean, languages);
 
         // dcTermsMedium should have en-GB and nl-NL values - assert to check filtering with locales
         assertEquals(2, bean.getProxies().get(1).getDctermsMedium().size());

@@ -3,9 +3,7 @@ package eu.europeana.api2.v2.service.translate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
 import eu.europeana.api2.v2.exceptions.TranslationException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.utils.MockBeanConstants;
 import eu.europeana.api2.v2.utils.MockFullBean;
@@ -51,7 +49,6 @@ public class BeanTranslateLanguageTest {
 
     // for first target lang nl
     private static final List<String> DC_CREATOR = List.of("Leonardo da Vinci (1452-1519)", "graveur", "relatieve uri . testen");
-    private static final List<String> DC_DATE = List.of("1821-1869");
     private static final List<String> DC_IDENTIFIER = List.of("TvB G 3674");
     private static final List<String> DC_TITLE = List.of("Mona Lisa");
     private static final List<String> DC_TYPE = List.of("grafiek");
@@ -76,7 +73,6 @@ public class BeanTranslateLanguageTest {
 
     // manually created using Google Translate
     private static final List<String> MOCK_TRANSLATION_FROM_DEF = new ArrayList<>() {{
-        addAll(DC_DATE);
         addAll(DC_IDENTIFIER);
         addAll(DC_TITLE);
     }};
@@ -115,7 +111,6 @@ public class BeanTranslateLanguageTest {
         addAll(DC_CREATOR_ENTITY_PREFLABEL_IT_TO_FR);
     }};
     private static final List<String> MOCK_TRANSLATION_FOR_LOCALES_FROM_DEF = new ArrayList<>() {{
-        addAll(DC_DATE);
         addAll(DC_FORMAT_FR);
         addAll(DC_IDENTIFIER);
         addAll(DC_TITLE);
@@ -126,7 +121,7 @@ public class BeanTranslateLanguageTest {
     }};
 
     @Before
-    public void setup() {
+    public void setup() throws TranslationException {
         when(translationService.translate(anyList(), eq(TARGET_LANG))).thenReturn(MOCK_TRANSLATION_FROM_DEF);
         when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG_DEF))).thenReturn(MOCK_TRANSLATION_FROM_DEF);
         // dctermsAlternative is only available in German
@@ -165,7 +160,7 @@ public class BeanTranslateLanguageTest {
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Original fullbean = {}",
                 mapper.writeValueAsString(bean));
 
-        BeanTranslateService translateService = new BeanTranslateService(translationService);
+        RecordTranslateService translateService = new RecordTranslateService(translationService);
         translateService.translateProxyFields(bean, List.of(Language.validateSingle(TARGET_LANG)));
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Translated fullbean = {}",
                 mapper.writeValueAsString(bean));
@@ -222,7 +217,7 @@ public class BeanTranslateLanguageTest {
     @Test
     public void testStaticTranslation() throws JsonProcessingException, EuropeanaException {
         FullBean bean = MockFullBean.mock();
-        BeanTranslateService translateService = new BeanTranslateService(translationService);
+        RecordTranslateService translateService = new RecordTranslateService(translationService);
 
         // We modify the bean to have a static translation for fields dcContributor, dcPublisher, dcRights and
         // dcSource
@@ -292,7 +287,7 @@ public class BeanTranslateLanguageTest {
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Original fullbean = {}",
                 mapper.writeValueAsString(bean));
 
-        BeanTranslateService translateService = new BeanTranslateService(translationService);
+        RecordTranslateService translateService = new RecordTranslateService(translationService);
         translateService.translateProxyFields(bean, List.of(Language.validateSingle(SECOND_TARGET_LANG)));
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Translated fullbean = {}",
                 mapper.writeValueAsString(bean));
@@ -314,7 +309,7 @@ public class BeanTranslateLanguageTest {
     @Test
     public void testDefaultLanguageTest(){
         FullBean bean = MockFullBean.mock();
-        BeanTranslateService service = new BeanTranslateService(translationService);
+        RecordTranslateService service = new RecordTranslateService(translationService);
         List<Language> languages = service.getDefaultTranslationLanguage(bean);
         assertNotNull(languages);
         assertEquals(Language.NL, languages.get(0));
@@ -327,7 +322,7 @@ public class BeanTranslateLanguageTest {
         bean.getEuropeanaAggregation().getEdmLanguage().get(MockBeanConstants.DEF).clear();
         bean.getEuropeanaAggregation().getEdmLanguage().get(MockBeanConstants.DEF).add("en-GB");
 
-        BeanTranslateService service = new BeanTranslateService(translationService);
+        RecordTranslateService service = new RecordTranslateService(translationService);
         List<Language> languages = service.getDefaultTranslationLanguage(bean);
         assertNotNull(languages);
         assertEquals(Language.EN, languages.get(0));
@@ -340,15 +335,15 @@ public class BeanTranslateLanguageTest {
         bean.getEuropeanaAggregation().getEdmLanguage().get(MockBeanConstants.DEF).add("se");
         bean.getEuropeanaAggregation().getEdmLanguage().get(MockBeanConstants.DEF).add("en-GB");
 
-        BeanTranslateService service = new BeanTranslateService(translationService);
+        RecordTranslateService service = new RecordTranslateService(translationService);
         List<Language> languages = service.getDefaultTranslationLanguage(bean);
         assertNotNull(languages);
         assertEquals(Language.NL, languages.get(0));
         assertEquals(Language.EN, languages.get(1));
     }
 
-    private void testHasStaticTranslation(BeanTranslateService translateService, Proxy aggregatorProxy, String proxyFieldName,
-                                       boolean expectedValue) {
+    private void testHasStaticTranslation(RecordTranslateService translateService, Proxy aggregatorProxy, String proxyFieldName,
+                                          boolean expectedValue) {
         Field proxyField = ReflectionUtils.findField(aggregatorProxy.getClass(), proxyFieldName);
         assertNotNull("Field " + proxyField + " was not found", proxyField);
         if (expectedValue) {

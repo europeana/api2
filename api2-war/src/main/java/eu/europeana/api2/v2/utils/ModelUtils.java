@@ -1,14 +1,22 @@
 package eu.europeana.api2.v2.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.SpellCheck;
+import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import eu.europeana.indexing.solr.facet.EncodedFacet;
-import eu.europeana.indexing.solr.facet.value.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.response.SpellCheckResponse;
 import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
 
@@ -21,10 +29,18 @@ import java.util.*;
  */
 public class ModelUtils {
 
+    private static final Logger LOG  = LogManager.getLogger(ModelUtils.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     private static final String TECHNICALFACETS = "technicalfacets";
     private static final String SOLRFACETS      = "solrfacets";
     private static final String CUSTOMFACETS    = "customfacets";
     private static final String DEFAULT         = "DEFAULT";
+    private static final String JSONLD_GRAPH    = "@graph";
+    private static final String JSONLD_TYPE   = "@type";
+    private static final String JSONLD_AGGREGATION_RDF_TYPE    = "ore:Aggregation";
+    private static final String JSONLD_EDM_HAS_VIEW    = "edm:hasView";
+    private static final String JSONLD_RDF_ID    = "@id";
 
     private static final int          FACET_LIMIT        = 150;
     // static goodies: Lists containing the enum Facet type names
@@ -229,4 +245,63 @@ public class ModelUtils {
         }
     }
 
+    /**
+     * Sorts the has View for the JsonLD response
+     * If there is an error, returns the original response.
+     * @param bean - bean
+     * @param jsonString - JsonLd response
+     * @return
+     */
+    public static String sortHasViews(FullBean bean, String jsonString) {
+        try {
+            // 1. check if sorting is required
+            if (hasViewSortingRequired(bean)) {
+                return jsonString;
+            }
+            // 2. get the original order of hasView
+            Map<String, JsonNode> sortedHasView = new LinkedHashMap<>(bean.getAggregations().get(0).getHasView().length);
+            for (String view : bean.getAggregations().get(0).getHasView()) {
+                sortedHasView.put(StringUtils.wrap(view, "\""), null);
+            }
+            // 3. remove the existing non-ordered hasView and add the hasView values in the ordered Map
+            ObjectNode node = mapper.readValue(jsonString, ObjectNode.class);
+            if (node.has(JSONLD_GRAPH)) {
+                Iterator<JsonNode> graphIterator = node.get(JSONLD_GRAPH).iterator();
+                while (graphIterator.hasNext()) {
+                    JsonNode jsonNode = graphIterator.next();
+                    // get the node with value of type matching "ore:Aggregation"
+                    if (StringUtils.contains(jsonNode.get(JSONLD_TYPE).toString(), StringUtils.wrap(JSONLD_AGGREGATION_RDF_TYPE, "\""))) {
+                        addOrderedHasView(jsonNode, sortedHasView);
+                        break; // conditional break. We do not want to process anything further.
+                    }
+                }
+                return node.toString();
+            }
+        } catch (JsonProcessingException e) {
+            // will log the error and send back the original response (non-ordered one)
+            LOG.error("Error sorting the we resources", e);
+        }
+        return jsonString;
+    }
+
+    /**
+     * Adds the ordered hasView values in the aggregation Node
+     * @param aggregationNode
+     * @param sortedHasView
+     */
+    private static void addOrderedHasView(JsonNode aggregationNode,Map<String, JsonNode> sortedHasView) {
+        // get hasView from the aggregation Node
+        Iterator<JsonNode> hasViewIterator = aggregationNode.get(JSONLD_EDM_HAS_VIEW).iterator();
+        while (hasViewIterator.hasNext()) {
+            JsonNode idNode = hasViewIterator.next();
+            sortedHasView.replace(idNode.get(JSONLD_RDF_ID).toString(), idNode);
+            hasViewIterator.remove();
+        }
+        // add all ordered values in hasView
+        ((ArrayNode) aggregationNode.get(JSONLD_EDM_HAS_VIEW)).addAll(sortedHasView.values());
+    }
+
+    private static boolean hasViewSortingRequired(FullBean bean) {
+        return (bean.getAggregations().get(0).getHasView() == null || bean.getAggregations().get(0).getHasView().length == 1);
+    }
 }

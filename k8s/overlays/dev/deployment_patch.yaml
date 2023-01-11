@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-api-deployment
+spec:
+  template:
+    metadata:
+      annotations:
+        fluentd/include: "true" # indicates that logs should be collected from the deployment
+        fluentd/multiline: "true" # only required if the application generates multi-line logs (eg. stacktraces)
+    spec:
+      containers:
+        - name: search-api
+          # required to use local image
+          imagePullPolicy: Never

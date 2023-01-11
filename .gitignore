@@ -3,6 +3,7 @@
 *.iml
 
 # Maven
+*/target/**
 target/
 
 # Temp files

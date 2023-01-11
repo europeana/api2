@@ -1,7 +1,10 @@
 package eu.europeana.api2.config;
 
 import eu.europeana.api2.model.utils.Api2UrlService;
+import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
+import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.service.RouteDataService;
+import eu.europeana.api2.v2.service.translate.*;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import org.apache.logging.log4j.LogManager;
@@ -46,6 +49,16 @@ public class AppConfig {
     @Value("${apiGateway.baseUrl:}")
     private String apiGatewayBaseUrl;
 
+    @Value("${translation.engine:NONE}") // should be either PANGEANIC, GOOGLE or NONE
+    private String translationEngineString;
+    private TranslationService translationService;
+
+    @Value("${translation.search.query:false}")
+    private Boolean translationSearchQuery;
+
+    @Value("${translation.search.results:false}")
+    private Boolean translationSearchResults;
+
     @Autowired
     private Environment env;
 
@@ -57,6 +70,15 @@ public class AppConfig {
             LOG.info("Active Spring profiles: {}", Arrays.toString(env.getActiveProfiles()));
             LOG.info("Default Spring profiles: {}", Arrays.toString(env.getDefaultProfiles()));
         }
+
+        //Make sure the correct translation service is initialized and available for components that need it
+        TranslationEngine engine = TranslationEngine.fromString(translationEngineString);
+        if (TranslationEngine.PANGEANIC.equals(engine)) {
+            this.translationService = new PangeanicTranslationService();
+        } else if (TranslationEngine.GOOGLE.equals(engine)) {
+            this.translationService = new GoogleTranslationService();
+        }
+        LOG.info("No translation engine available.");
     }
 
     /**
@@ -110,6 +132,41 @@ public class AppConfig {
         return urlService;
     }
 
+    /**
+     * Make sure the correct translation service is initialized and available for components that need it
+     * @return translation service or null if none is configured.
+     */
+    @Bean
+    public TranslationService translationService() {
+        return this.translationService;
+    }
+
+    /**
+     * Initialize the multil lingual search query generator if the option is enabled and there's a translation engein
+     * configured
+     * @return query generator bean or null
+     */
+    @Bean
+    MultilingualQueryGenerator multilingualQueryGenerator() {
+        if (translationSearchQuery && this.translationService != null) {
+            return new MultilingualQueryGenerator(new QueryTranslator(this.translationService));
+        }
+        return null;
+    }
+
+    /**
+     * Initialize the search result translation service if the option is enabled and there's a translation engine
+     * configured
+     * @return search result translation service bean or null
+     */
+    @Bean
+    SearchResultTranslateService searchResultTranslationService() {
+        if (translationSearchResults && this.translationService != null) {
+            return new SearchResultTranslateService(this.translationService);
+        }
+        return null;
+    }
+
     @Bean
     public RouteConfigLoader routeConfigLoader(){
         return new RouteConfigLoader();
@@ -119,4 +176,5 @@ public class AppConfig {
     public RouteDataService routeService(){
         return new RouteDataService();
     }
+
 }

@@ -4,14 +4,12 @@ import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
-import eu.europeana.corelib.solr.entity.ProxyImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
@@ -26,10 +24,9 @@ import java.util.*;
  * Created June - August 2021
  */
 @Service
-@Import(GoogleTranslationService.class)
-public class BeanTranslateService {
+public class RecordTranslateService {
 
-    private static final Logger LOG = LogManager.getLogger(BeanTranslateService.class);
+    private static final Logger LOG = LogManager.getLogger(RecordTranslateService.class);
 
     // TODO check if we should also include dcIdentifier to the exclude list
     private static final Set<String> EXCLUDE_PROXY_MAP_FIELDS = Set.of("dcLanguage", "year", "userTags", "edmRights");
@@ -43,7 +40,7 @@ public class BeanTranslateService {
      *
      * @param translationService underlying translation service to use for translations
      */
-    public BeanTranslateService(TranslationService translationService) {
+    public RecordTranslateService(TranslationService translationService) {
         this.translationService = translationService;
     }
 
@@ -56,9 +53,9 @@ public class BeanTranslateService {
      * Default translation and filtering for non-official language
      * is not supported
      *
-     *
-     * @param bean
-     * @return
+     * @param bean the fullbean to inspect
+     * @return the default language as specified in Europeana Aggregation edmLanguage field (if the language found there
+     * is one of the EU languages we support in this application for translation)
      */
     public List<Language> getDefaultTranslationLanguage(FullBean bean) {
         List<Language> lang = new ArrayList<>();
@@ -76,6 +73,13 @@ public class BeanTranslateService {
             LOG.debug("Default translation and filtering applied for language : {} ", lang);
         }
         return lang;
+    }
+
+    /**
+     * @return true if there is a translation service available
+     */
+    public boolean isEnabled() {
+        return translationService != null;
     }
 
     /**
@@ -99,12 +103,16 @@ public class BeanTranslateService {
             LOG.debug("Translate - Gathering data took {} ms", (System.currentTimeMillis() - startTime));
         }
 
+        long startTimeTranslate = System.currentTimeMillis();
         FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
+        }
 
         // add translations to Europeana proxy
         long startTimeOutput = System.currentTimeMillis();
         for (Map.Entry<String, List<String>> entry : translations.entrySet()) {
-            generateTranslatedField(bean, entry.getKey(), entry.getValue(), targetLang);
+            generateTranslatedField(bean, entry.getKey(), targetLang, entry.getValue());
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("Translate - Generating output took {} ms", (System.currentTimeMillis() - startTimeOutput));
@@ -243,7 +251,8 @@ public class BeanTranslateService {
             // return any value if available, but only if it's a supported language
             for (String key : map.keySet()) {
                 if (Language.isSupported(key)) {
-                    return Collections.singletonList(new FieldValuesLanguageMap(Language.getLanguage(key).name().toLowerCase(Locale.ROOT), fieldName, map.get(key)));
+                    return Collections.singletonList(
+                            new FieldValuesLanguageMap(Language.getLanguage(key).name().toLowerCase(Locale.ROOT), fieldName, map.get(key)));
                 } else {
                     LOG.debug("  Found value for field {} in unsupported language {}", fieldName, key);
                 }
@@ -292,7 +301,7 @@ public class BeanTranslateService {
     private FieldValuesLanguageMap getUriValuesFromDef(List<String> valuesToCheck, String fieldName) {
         List<String> valuesToTranslate = new ArrayList<>();
         for (String value : valuesToCheck) {
-            if (EuropeanaUriUtils.isUriExt(value)) {
+            if (EuropeanaUriUtils.isUri(value)) {
                 valuesToTranslate.add(value);
             }
         }
@@ -318,7 +327,7 @@ public class BeanTranslateService {
         List<String> urisToRemove = new ArrayList<>();
         List<FieldValuesLanguageMap> prefLabelsToTranslate = new ArrayList<>();
         for (String value : valuesToCheck) {
-            if (EuropeanaUriUtils.isUriExt(value)) {
+            if (EuropeanaUriUtils.isUri(value)) {
                 urisToRemove.add(value);
                 if (hasStaticTranslation) {
                     // we assume uris are resolved as part of static translation, no need to find entity preflabels
@@ -438,33 +447,14 @@ public class BeanTranslateService {
         return entityPrefLabel;
     }
 
-    private void generateTranslatedField(FullBean bean, String key, List<String> values, String lang) {
+
+    private void generateTranslatedField(FullBean bean, String key, String lang, List<String> values) {
         Proxy proxy = bean.getProxies().get(0);
         if (proxy == null || !proxy.isEuropeanaProxy()) {
             LOG.error("First proxy of record {} is not an EuropeanaProxy!", bean.getAbout());
             return;
         }
-
-        Field field = ReflectionUtils.findField(ProxyImpl.class, key);
-        if (field == null) {
-            LOG.error("Cannot find field with name {}", key);
-        } else {
-            ReflectionUtils.makeAccessible(field);
-            Object o = ReflectionUtils.getField(field, proxy);
-            if (o instanceof Map) {
-                Map<String, List<String>> map = (Map<String, List<String>>) o;
-                if (map.containsKey(lang)) {
-                    // should not happen!
-                    LOG.error("Europeana proxy already has values for field {} and language {}!", key, lang);
-                } else {
-                    map.put(lang, values);
-                }
-            } else {
-                Map<String, List<String>> newMap = new LinkedHashMap<>();
-                newMap.put(lang, values);
-                ReflectionUtils.setField(field, proxy, newMap);
-            }
-        }
+        TranslationUtils.addTranslationsToObject(proxy, key, lang, values);
     }
 
 }

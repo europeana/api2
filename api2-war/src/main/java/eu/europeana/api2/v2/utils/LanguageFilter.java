@@ -1,7 +1,7 @@
-package eu.europeana.api2.v2.service.translate;
+package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.v2.model.translate.Language;
-import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.entity.EuropeanaAggregation;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import org.apache.logging.log4j.LogManager;
@@ -16,26 +16,26 @@ import java.util.*;
  * @author P. Ehlert
  * Created 20 July 2021
  */
-public final class BeanFilterLanguage {
+public final class LanguageFilter {
 
-    private static final Logger LOG = LogManager.getLogger(BeanFilterLanguage.class);
+    private static final Logger LOG = LogManager.getLogger(LanguageFilter.class);
 
-    private BeanFilterLanguage() {
+    private LanguageFilter() {
         // empty constructor to prevent initialization
     }
 
     /**
-     * Filter all the language maps in the provided fullbean. Note that if a languagemap only has 1 value nothing is
-     * filtered, nor are any "def" values in the map removed.
-     * @param bean the fullbean to filter
-     * @param targetLangs the languages that need to remain in the fullbean
-     * @return filtered fullbean
+     * Filter all the language maps in the provided search result or fullbean. Note that if a languagemap only has 1
+     * value nothing is filtered, nor are any "def" values in the map removed.
+     * @param bean search result or fullbean to filter
+     * @param targetLangs the languages that need to remain in the search result
+     * @return filtered search result of fullbean
      */
-    public static FullBean filter(FullBean bean, List<Language> targetLangs) {
+    public static IdBean filter(IdBean bean, List<Language> targetLangs) {
         long startTime = System.currentTimeMillis();
         iterativeFilterFields(bean, targetLangs);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Filtering record language data took {} ms", (System.currentTimeMillis() - startTime));
+            LOG.debug("Filtering language data took {} ms", (System.currentTimeMillis() - startTime));
         }
         return bean;
     }
@@ -58,13 +58,14 @@ public final class BeanFilterLanguage {
     @SuppressWarnings("java:S3011") // suppress the setAccessibility(true) or ReflectionUtils.makeAccessible warning
     private static void iterativeFilterFields(Object o, List<Language> targetLangs) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Filtering - object {}", o.getClass().getName());
+            LOG.debug("Inspecting object {}", o.getClass().getName());
         }
         // we only want to look at fields that are language maps or can contain them
         ReflectionUtils.FieldFilter fieldFilter = field ->
-                field.getType().isAssignableFrom(Map.class) ||
+                (field.getType().isAssignableFrom(Map.class) ||
                         field.getType().isAssignableFrom(List.class) ||
-                        field.getType().isAssignableFrom(EuropeanaAggregation.class);
+                        field.getType().isAssignableFrom(EuropeanaAggregation.class)) &&
+                !"fieldMap".equals(field.getName()); // search resuls have a special field called fieldMap (see IdBeanImpl.getFields())
 
         ReflectionUtils.doWithFields(o.getClass(), field -> {
             ReflectionUtils.makeAccessible(field); // this is needed to access protected fields, may not be allowed in JDKs newer than 11!
@@ -100,18 +101,23 @@ public final class BeanFilterLanguage {
         Set<? extends Map.Entry<?,?>> set = map.entrySet();
         List<String> keysToRemove = new ArrayList<>();
         for (Map.Entry<?,?> keyValue : set) {
+            String origKey = keyValue.getKey().toString();
+            // Language keys of search results are compound and exist of <solrFieldName>.<lang>, so we need to filter
+            // the language from the key name
+            String keyLang = origKey.substring(origKey.indexOf(".") + 1);
+
             // keep all def keys and keep all uri values
-            if ("def".equals(keyValue.getKey()) || EuropeanaUriUtils.isUriExt(keyValue.getValue().toString())) {
+            if ("def".equals(keyLang) || EuropeanaUriUtils.isUri(origKey)) {
                 LOG.debug("      Keeping key def, value {}", keyValue.getValue());
                 continue;
             }
             // remove all unsupported languages and languages not requested
-            String keyLang = keyValue.getKey().toString();
-            if (!Language.isSupported(keyLang) || !targetLangs.contains(Language.getLanguage(keyLang))) {
-                LOG.debug("      Removing key {}, value {}", keyLang, keyValue.getValue());
-                keysToRemove.add(keyLang); // add the original key language for removal
+            if (Language.isNoLinguisticContent(keyLang) ||
+                    (Language.isSupported(keyLang) && targetLangs.contains(Language.getLanguage(keyLang)))) {
+                LOG.debug("      Keeping key {}, value {}", origKey, keyValue.getValue());
             } else {
-                LOG.debug("      Keeping key {}, value {}", keyLang, keyValue.getValue());
+                LOG.debug("      Removing key {}, value {}", origKey, keyValue.getValue());
+                keysToRemove.add(origKey); // add the original key language for removal
             }
         }
         // do actual removal
