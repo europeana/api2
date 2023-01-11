@@ -40,7 +40,7 @@ public final class TranslationUtils {
      * @throws TranslationException when there is a problem sending/retrieving translation data
      */
     public static FieldValuesLanguageMap translate(TranslationService translationService, FieldValuesLanguageMap toTranslate,
-                                                   String targetLanguage) throws TranslationException, TranslationServiceLimitException {
+                                                   String targetLanguage, Language edmLang) throws TranslationException, TranslationServiceLimitException {
         // We don't use delimiters because we want to keep the number of characters we sent low.
         // Instead we use line counts to determine start and end of a field.
         Map<String, Integer> linesPerField = new LinkedHashMap<>();
@@ -59,7 +59,7 @@ public final class TranslationUtils {
         try {
             if (Language.DEF.equals(toTranslate.getSourceLanguage())) {
                 LOG.debug("Sending translate query with language detect...");
-                translations = translationService.translate(linesToTranslate, targetLanguage);
+                translations = translationService.translate(linesToTranslate, targetLanguage, edmLang);
             } else {
                 LOG.debug("Sending translate query with source language {} and target language {}...", toTranslate.getSourceLanguage(), targetLanguage);
                 translations = translationService.translate(linesToTranslate, targetLanguage, toTranslate.getSourceLanguage());

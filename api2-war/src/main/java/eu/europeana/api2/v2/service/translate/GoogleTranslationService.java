@@ -3,6 +3,8 @@ package eu.europeana.api2.v2.service.translate;
 import com.google.api.gax.rpc.TransportChannelProvider;
 import com.google.cloud.tasks.v2.stub.CloudTasksStubSettings;
 import com.google.cloud.translate.v3.*;
+import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.model.translate.Language;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,7 +64,7 @@ public class GoogleTranslationService implements TranslationService {
     }
 
     @Override
-    public List<String> translate(List<String> texts, String targetLanguage) {
+    public List<String> translate(List<String> texts, String targetLanguage, Language sourceLangHint) {
         TranslateTextRequest request = TranslateTextRequest.newBuilder()
                 .setParent(locationName.toString())
                 .setMimeType(MIME_TYPE_TEXT)

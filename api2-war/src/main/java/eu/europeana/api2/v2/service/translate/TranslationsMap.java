@@ -70,7 +70,7 @@ public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMa
      * @return a FieldValuesLanguageMap containing the fields and translated values
      * @throws EuropeanaException when there is an error sending/retrieving data from the translation service
      */
-    public FieldValuesLanguageMap translate(TranslationService translationService, String targetLanguage) throws EuropeanaException {
+    public FieldValuesLanguageMap translate(TranslationService translationService, String targetLanguage, Language edmLang) throws EuropeanaException {
         // send a request for each of the languages
         List<FieldValuesLanguageMap> translations = new ArrayList<>();
         long nrCharacters = 0;
@@ -80,12 +80,12 @@ public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMa
             // do not add those translations. As the original value is already in the desired target language.
             if (mapToTranslate.getSourceLanguage().equals(Language.DEF)) {
                 FieldValuesLanguageMap translatedDefMap = TranslationUtils.removeIfOriginalIsSameAsTranslated(
-                                             TranslationUtils.translate(translationService, mapToTranslate, targetLanguage), mapToTranslate);
+                                             TranslationUtils.translate(translationService, mapToTranslate, targetLanguage, edmLang), mapToTranslate);
                 if (translatedDefMap != null) {
                     translations.add(translatedDefMap);
                 }
             } else { // for other source languages, no checks
-                translations.add(TranslationUtils.translate(translationService, mapToTranslate, targetLanguage));
+                translations.add(TranslationUtils.translate(translationService, mapToTranslate, targetLanguage, edmLang));
             }
         }
 
