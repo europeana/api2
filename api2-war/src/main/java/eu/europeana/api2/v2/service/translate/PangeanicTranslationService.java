@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Service to send data to translate to (old) Pangeanic Translate API
@@ -114,7 +115,8 @@ public class PangeanicTranslationService implements TranslationService {
 
     @Override
     public List<String> translate(List<String> texts, String targetLanguage, Language sourceLangHint) throws TranslationException {
-        return translate(texts, targetLanguage, sourceLangHint);
+        String hint = (sourceLangHint != null ? sourceLangHint.name().toLowerCase(Locale.ROOT) : null);
+        return translate(texts, targetLanguage, hint);
     }
 
     @Override
