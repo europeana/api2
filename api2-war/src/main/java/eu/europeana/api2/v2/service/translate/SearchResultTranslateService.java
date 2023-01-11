@@ -96,6 +96,8 @@ public class SearchResultTranslateService {
     private List<FieldValuesLanguageMap> getTextsToTranslate(List<BriefBean> searchResults, String targetLang) {
         List<FieldValuesLanguageMap> result = new ArrayList<>();
 
+        long charCount = 0;         // TMP added for EA-3293
+
         ReflectionUtils.FieldFilter resultFieldFilter = field -> field.getType().isAssignableFrom(Map.class) &&
                 FIELDS_TO_TRANSLATE.contains(field.getName());
 
@@ -114,6 +116,12 @@ public class SearchResultTranslateService {
             }, resultFieldFilter);
             index++;
         }
+
+        for (FieldValuesLanguageMap map : result) {
+            charCount = charCount + map.getNrCharacters();
+        }
+        LOG.info("Char count = {}", charCount);   // TMP added for EA-3293
+
         return result;
     }
 

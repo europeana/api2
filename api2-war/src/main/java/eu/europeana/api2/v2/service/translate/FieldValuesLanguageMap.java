@@ -88,7 +88,7 @@ public class FieldValuesLanguageMap extends LinkedHashMap<String, List<String>> 
     }
 
     /**
-     * Temporarily functionality for ticket EA-2633 / EA-2661
+     * Temporarily functionality for ticket EA-2633 / EA-2661 / EA-3293
      * @return the number of characters of all values in this map
      */
     public long getNrCharacters() {
