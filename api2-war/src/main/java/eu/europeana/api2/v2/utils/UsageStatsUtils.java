@@ -85,7 +85,7 @@ public class UsageStatsUtils extends UsageStatsFields {
                 metric.setThreeD(entry.getValue());
             }
         }
-        metric.setTotal(metric.getOverall());
+        metric.setAll(metric.getOverall());
         return metric;
     }
 }
