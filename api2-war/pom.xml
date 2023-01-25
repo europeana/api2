@@ -194,10 +194,6 @@
                     <artifactId>commons-net</artifactId>
                     <groupId>eu.europeana.api.commons</groupId>
                 </exclusion>
-                <exclusion>
-                    <artifactId>commons-definitions</artifactId>
-                    <groupId>eu.europeana.api.commons</groupId>
-                </exclusion>
                 <!-- mongo dependency clashes with Corelib's-->
                 <exclusion>
                     <groupId>org.mongodb</groupId>
