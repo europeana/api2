@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.model.translate.Language;
 
 import java.util.List;
 
@@ -13,10 +14,11 @@ public interface TranslationService {
      * Translate multiple texts and leave it to the translation engine to detect the source language
      * @param texts to translate
      * @param targetLanguage language into which the texts are translated
+     * @param sourceLangHint optional provide a hint which language the texts are in (for PangeanicV2 only)
      * @return translations of the provided texts
      * @throws TranslationException when there is a problem sending the translation request
      */
-    List<String> translate(List<String> texts, String targetLanguage) throws TranslationException;
+    List<String> translate(List<String> texts, String targetLanguage, Language sourceLangHint) throws TranslationException;
 
     /**
      * Translate multiple texts and leave it to the translation engine to detect the source language

@@ -2,7 +2,8 @@ package eu.europeana.api2.v2.service.translate;
 
 import com.auth0.jwt.JWT;
 import eu.europeana.api2.v2.exceptions.TranslationException;
-import org.apache.commons.lang3.StringUtils;
+import eu.europeana.api2.v2.model.translate.Language;
+import eu.europeana.api2.v2.utils.MetadataTranslationUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -28,9 +30,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
- * Service to send data to translate to Pangeanic Translate API
+ * Service to send data to translate to (old) Pangeanic Translate API
  * Pangeanic Translate API requires a token, so this is issued first and on each request we check if the token is
  * still valid for at least 30 seconds
  * @author Patrick Ehlert
@@ -41,11 +44,6 @@ import java.util.List;
 public class PangeanicTranslationService implements TranslationService {
 
     private static final Logger LOG = LogManager.getLogger(PangeanicTranslationService.class);
-
-    private static final String APPLICATION_JSON = "application/json";
-    private static final int MAX_CONNECTIONS = 100;
-    private static final int MAX_CONNECTIONS_PER_ROUTE = 100;
-    private static final int TOKEN_MIN_AGE = 30_000; //ms
 
     @Value("${translation.pangeanic.endpoint.translate:}")
     private String translateEndpoint;
@@ -73,8 +71,8 @@ public class PangeanicTranslationService implements TranslationService {
         this.tokenExpiration = JWT.decode(token).getExpiresAt().getTime();
 
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal(MAX_CONNECTIONS);
-        cm.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
+        cm.setMaxTotal(MetadataTranslationUtils.MAX_CONNECTIONS);
+        cm.setDefaultMaxPerRoute(MetadataTranslationUtils.MAX_CONNECTIONS_PER_ROUTE);
         translateClient = HttpClients.custom().setConnectionManager(cm).build();
         LOG.info("Pangeanic translation service is initialized. Endpoint is {}", translateEndpoint);
     }
@@ -86,8 +84,8 @@ public class PangeanicTranslationService implements TranslationService {
         body.put("user", username);
         body.put("password", password);
         post.setEntity(new StringEntity(body.toString()));
-        post.setHeader(HttpHeaders.ACCEPT, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+        post.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        post.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
         try (CloseableHttpClient client = HttpClients.createDefault();
             CloseableHttpResponse response = client.execute(post)) {
@@ -108,7 +106,7 @@ public class PangeanicTranslationService implements TranslationService {
      */
     private synchronized String getValidToken() throws JSONException, IOException {
         // return true if token expires in less than 30 seconds
-        if (tokenExpiration - new Date().getTime() < TOKEN_MIN_AGE) {
+        if (tokenExpiration - new Date().getTime() < MetadataTranslationUtils.TOKEN_MIN_AGE) {
             this.token = getNewToken(tokenEndpoint, userName, password);
             this.tokenExpiration = JWT.decode(token).getExpiresAt().getTime();
         }
@@ -116,8 +114,9 @@ public class PangeanicTranslationService implements TranslationService {
     }
 
     @Override
-    public List<String> translate(List<String> texts, String targetLanguage) throws TranslationException {
-        return translate(texts, targetLanguage, null);
+    public List<String> translate(List<String> texts, String targetLanguage, Language sourceLangHint) throws TranslationException {
+        String hint = (sourceLangHint != null ? sourceLangHint.name().toLowerCase(Locale.ROOT) : null);
+        return translate(texts, targetLanguage, hint);
     }
 
     @Override
@@ -132,20 +131,11 @@ public class PangeanicTranslationService implements TranslationService {
 
     private HttpPost createTranslateRequest(List<String> texts, String targetLanguage, String sourceLanguage) throws JSONException, IOException {
         HttpPost post = new HttpPost(translateEndpoint);
-        JSONObject body = new JSONObject();
-        JSONArray textArray = new JSONArray();
-        for (String text : texts) {
-            textArray.put(text);
-        }
-        body.put("text", textArray);
-        if (StringUtils.isNotBlank(sourceLanguage)) {
-            body.put("src", sourceLanguage);
-        }
-        body.put("tgt", targetLanguage);
+        JSONObject body = MetadataTranslationUtils.createTranslateRequestBody(texts, targetLanguage, sourceLanguage, null, false);
         post.setEntity(new StringEntity(body.toString(), StandardCharsets.UTF_8));
         post.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + getValidToken());
-        post.setHeader(HttpHeaders.ACCEPT, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
+        post.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        post.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         if (LOG.isTraceEnabled()) {
             LOG.trace("Sending POST {}", post.getURI());
             LOG.trace("  body {}", body);

@@ -34,7 +34,7 @@ public class QueryTranslator {
             String translation;
             long start = System.nanoTime(); //DEBUG
             if (sourceLanguage == null) {
-                translation = this.translationService.translate(List.of(toTranslate), targetLanguage).get(0);
+                translation = this.translationService.translate(List.of(toTranslate), targetLanguage, (Language) null).get(0);
             } else {
                 translation = this.translationService.translate(List.of(toTranslate), targetLanguage, sourceLanguage).get(0);
             }

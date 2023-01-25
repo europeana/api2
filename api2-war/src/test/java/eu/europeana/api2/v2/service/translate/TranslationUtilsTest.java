@@ -80,7 +80,7 @@ public class TranslationUtilsTest {
             addAll(TRANSLATION2);
         }});
 
-        FieldValuesLanguageMap translation = TranslationUtils.translate(translationService, MAP_TO_TRANSLATE, TARGET_LANG);
+        FieldValuesLanguageMap translation = TranslationUtils.translate(translationService, MAP_TO_TRANSLATE, TARGET_LANG, null);
 
         assertEqual(EXPECTED_MAP_WITH_TRANSLATION, translation);
     }
