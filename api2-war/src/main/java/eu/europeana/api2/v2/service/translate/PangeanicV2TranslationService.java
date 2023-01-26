@@ -169,7 +169,8 @@ public class PangeanicV2TranslationService implements TranslationService  {
                 }
                 JSONArray translations = obj.getJSONArray(MetadataTranslationUtils.TRANSLATIONS);
                 for (int i = 0; i < translations.length(); i++) {
-                    JSONObject object = (JSONObject) translations.get(i);
+                    // TODO Pangeanic changed the object model. Still need to verify this change
+                    JSONObject object = (JSONObject) ((JSONArray)translations.get(i)).get(0);
                    results.put(object.getString(MetadataTranslationUtils.TRANSLATE_SOURCE), object.getString(MetadataTranslationUtils.TRANSLATE_TARGET));
 
                 }
