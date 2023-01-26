@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -7,7 +8,7 @@
         <artifactId>europeana-parent-pom</artifactId>
         <version>2.0</version>
     </parent>
-    
+
     <artifactId>api2</artifactId>
     <version>2.16.1-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -32,9 +33,10 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <apicommons.version>0.3.16-SNAPSHOT</apicommons.version>
+
         <corelib.version>2.16.1-SNAPSHOT</corelib.version>
         <metis.version>6</metis.version>
+        <apicommons.version>0.3.18-SNAPSHOT</apicommons.version>
 
         <httpclient.version>4.5.13</httpclient.version>
         <jackson.version>2.14.1</jackson.version>
@@ -53,7 +55,6 @@
 
         <springWebService.version>2.4.7.RELEASE</springWebService.version>
     </properties>
-
     <build>
         <plugins>
             <!-- This will be active when running the verify or install goal
@@ -79,5 +80,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
