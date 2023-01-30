@@ -1,8 +1,8 @@
 package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api.commons.definitions.statistics.UsageStatsFields;
+import eu.europeana.api.commons.definitions.statistics.entity.EntityStats;
 import eu.europeana.api.commons.definitions.statistics.search.HighQualityMetric;
-import eu.europeana.api.commons.definitions.statistics.search.LinkedItemMetric;
 import eu.europeana.api.commons.definitions.statistics.search.SearchMetric;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.utils.UsageStatsUtils;
@@ -68,7 +68,7 @@ public class UsageStatsController extends BaseController {
      * @return
      */
     private void getEntityLinkedItem(SolrClient solrClient, SearchMetric searchMetric) {
-        LinkedItemMetric linkedItemMetric = new LinkedItemMetric();
+        EntityStats linkedItemMetric = new EntityStats();
         linkedItemMetric.setPlaces(getLinkedItems(solrClient, UsageStatsFields.PLACE));
         linkedItemMetric.setAgents(getLinkedItems(solrClient,UsageStatsFields.AGENT));
         linkedItemMetric.setConcepts(getLinkedItems(solrClient, UsageStatsFields.CONCEPT));
