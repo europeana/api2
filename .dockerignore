@@ -1,3 +1,4 @@
 # Send only unzipped war directory to Docker
 **
 !/api2-war/target/api/
+**/*.user.properties
