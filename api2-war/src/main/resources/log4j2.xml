@@ -2,17 +2,11 @@
 <Configuration status="INFO">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
-      <!-- We use a specific patternLayout with JSON formatting. It adds a stacktrace (if available) and removes
-           newlines, tabs and double quotes, so everything can be parsed by our ELK stack
-           Not required for Kubernetes
-           -->
-      <!--            <PatternLayout>-->
-      <!--                <alwaysWriteExceptions>false</alwaysWriteExceptions>-->
-      <!--                <pattern>{&quot;@timestamp&quot;:&quot;%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}&quot;,&quot;level&quot;:&quot;%-5p&quot;,&quot;thread&quot;:&quot;%t&quot;,&quot;class&quot;:&quot;%C&quot;, &quot;code_line_number&quot;:&quot;%L&quot;,&quot;message&quot;:&quot;%replace{%m %throwable}{[\n\t"]}{ }&quot;}%n</pattern>-->
-      <!--            </PatternLayout>-->
-
-      <!-- Use this pattern for local debugging and Kubernetes deployments -->
-      <PatternLayout pattern="%d{HH:mm:ss.SSS} %level %C:%L [%t] - %m%n" />
+            <!-- Use this pattern for Kubernetes deployments -->
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %level %C:%L [%t] - %m%n" />
+           
+            <!-- Optional pattern with color encoding for local debugging -->
+            <!-- <PatternLayout pattern="%d{HH:mm:ss.SSS} %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %C:%L [%t] %logger{36} - %m%n" /> -->
     </Console>
   </Appenders>
   <Loggers>
