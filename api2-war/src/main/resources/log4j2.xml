@@ -12,8 +12,7 @@
       <!--            </PatternLayout>-->
 
       <!-- Use this pattern for local debugging and Kubernetes deployments -->
-      <PatternLayout
-        pattern="%d{HH:mm:ss.SSS} [%t] %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} %logger{36}:%L - %msg%n"/>
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} %level %C:%L [%t] - %m%n" />
     </Console>
   </Appenders>
   <Loggers>
