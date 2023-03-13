@@ -129,6 +129,13 @@ public class SearchController extends BaseController {
         super(routeService);
         this.queryGenerator = queryGenerator;
         this.resultTranslator = resultTranslator;
+        if (queryTranslationEnabled == null) {
+            queryTranslationEnabled = false;
+        }
+        if (resultsTranslationEnabled == null) {
+            resultsTranslationEnabled = false;
+        }
+
     }
 
     /**
