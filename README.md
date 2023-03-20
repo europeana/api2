@@ -1,5 +1,3 @@
-![](https://github.com/europeana/portal/blob/master/portal2/src/main/webapp/themes/default/images/europeana-logo-retina-1.png)
-
 # Europeana: catalyst for change in the world of cultural heritage
 
 ## What does it do?
@@ -8,9 +6,7 @@ Europeana is an internet portal that acts as an interface to millions of books, 
 
 ## Full Documentation
 
-See the [Wiki](https://github.com/europeana/api2/wiki) for full documentation, examples, operational details and other information.
-
-The JavaDoc will be generated once the upcoming code overhaul is complete.
+See the [Europeana Pro website](https://pro.europeana.eu/page/apis) for full documentation, examples, operational details and other information.
 
 ## Communication
 
@@ -44,8 +40,6 @@ is set to be ignored by git. All settings in the europeana.user.properties will 
 
 
 ## LICENSE
-
-Copyright 2007-2020 The Europeana Foundation
 
 Licenced under the EUPL, Version 1.2 (the "Licence") and subsequent versions as approved by the European Commission;
 You may not use this work except in compliance with the Licence.
