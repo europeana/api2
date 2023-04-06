@@ -99,12 +99,12 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - ${K8S_HOSTNAME1}
-        - ${K8S_HOSTNAME2}
-        - ${K8S_HOSTNAME3}
-        - ${K8S_HOSTNAME4}
-        - ${K8S_HOSTNAME5}
-        - ${K8S_HOSTNAME6}
-        - ${K8S_HOSTNAME7}
-        - ${K8S_HOSTNAME8}
+        - ${K8S_HOSTNAME_1}
+        - ${K8S_HOSTNAME_2}
+        - ${K8S_HOSTNAME_3}
+        - ${K8S_HOSTNAME_4}
+        - ${K8S_HOSTNAME_5}
+        - ${K8S_HOSTNAME_6}
+        - ${K8S_HOSTNAME_7}
+        - ${K8S_HOSTNAME_8}
       secretName: ${K8S_HOSTNAME_SECRET_1}
