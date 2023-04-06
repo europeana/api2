@@ -1,12 +1,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: search-api-metis-ingress
+  name: search-api-ingress
   annotations:
-    # requests will only end up in this ingress if header "X-Canary: always" is specified
-    nginx.ingress.kubernetes.io/canary: "true"
-    nginx.ingress.kubernetes.io/canary-by-header: "X-Canary"
-    nginx.ingress.kubernetes.io/canary-weight: 0
+    cert-manager.io/issuer: letsencrypt-production
 spec:
   ingressClassName: public-iks-k8s-nginx
   rules:
