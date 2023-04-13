@@ -1,5 +1,3 @@
-# Server aliases don't work well with tls secrets when using multiple domains, so we declare each production route separately
-# K8S_HOSTNAME_1 is europeana.eu subdomain, K8S_HOSTNAME_2, K8S_HOSTNAME_3 and K8S_HOSTNAME_4 are eanadev.org subdomains
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -40,23 +38,9 @@ spec:
                 port:
                   number: 80
 
-    - host: ${K8S_HOSTNAME_4}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: search-api-service
-                port:
-                  number: 80
-
   tls:
     - hosts:
         - ${K8S_HOSTNAME_1}
-      secretName: ${K8S_HOSTNAME_SECRET_1}
-    - hosts:
         - ${K8S_HOSTNAME_2}
         - ${K8S_HOSTNAME_3}
-        - ${K8S_HOSTNAME_4}
-      secretName: ${K8S_HOSTNAME_SECRET_2}
+      secretName: ${K8S_HOSTNAME_SECRET_1}

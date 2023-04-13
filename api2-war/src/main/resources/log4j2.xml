@@ -29,8 +29,7 @@
 
     <!-- Set to DEBUG to see which search result fields are or are not chosen to be translated + see how long the entire process took \
          use TRACE to see details which values are selected for translations -->
-    <Logger name="eu.europeana.api2.v2.service.translate.SearchResultTranslateService"
-      level="INFO"/>
+    <Logger name="eu.europeana.api2.v2.service.translate.SearchResultTranslateService" level="INFO"/>
 
     <!-- Set to DEBUG to see which translation requests are sent, or TRACE to see request contents -->
     <Logger name="eu.europeana.api2.v2.service.translate.TranslationUtils" level="INFO"/>
