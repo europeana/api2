@@ -44,7 +44,6 @@ import eu.europeana.corelib.utils.StringArrayUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
-import eu.europeana.corelib.web.utils.NavigationUtils;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import eu.europeana.indexing.solr.facet.FacetEncoder;
 import eu.europeana.indexing.solr.facet.value.*;
@@ -937,9 +936,6 @@ public class SearchController extends BaseController {
                                                                        query.isDefaultFacetsRequested(),
                                                                        query.getTechnicalFacetLimits(),
                                                                        query.getTechnicalFacetOffsets());
-        }
-        if (StringUtils.containsIgnoreCase(profile, BREADCRUMB) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
-            response.breadCrumbs = NavigationUtils.createBreadCrumbList(query);
         }
         if (StringUtils.containsIgnoreCase(profile, HITS) && MapUtils.isNotEmpty(resultSet.getHighlighting())) {
             response.hits = new HitMaker().createHitList(resultSet.getHighlighting(), query.getNrSelectors());
