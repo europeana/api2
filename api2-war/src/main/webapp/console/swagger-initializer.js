@@ -5,7 +5,8 @@ window.onload = function() {
   window.ui = SwaggerUIBundle({
     // url: "https://petstore.swagger.io/v2/swagger.json",
     //url: "https://search-api.test.eanadev.org/api/api-docs",
-    url: "https://api.europeana.eu/api/api-docs",
+    //url: "https://api.europeana.eu/api/api-docs",
+    url: "https://search-api.eanadev.org/api/api-docs",
     dom_id: '#swagger-ui',
     deepLinking: true,
     presets: [
