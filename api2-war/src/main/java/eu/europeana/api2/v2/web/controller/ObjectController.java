@@ -332,10 +332,12 @@ public class ObjectController {
             throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
         }
 
+        // We need to bypass the exception now for translation project EA-3453.
+        // Hence, we will not validate if profile is translate the service is enabled or not
         // 3) validate other common params
-        if (!translateFilterService.isEnabled() && RecordProfile.TRANSLATE.isActive(data.profile)) {
-            throw new TranslationServiceDisabledException();
-        }
+//        if (!translateFilterService.isEnabled() && RecordProfile.TRANSLATE.isActive(data.profile)) {
+//            throw new TranslationServiceDisabledException();
+//        }
         if (data.lang != null) {
             data.setLanguages(Language.validateMultiple(data.lang));
         }
@@ -402,8 +404,16 @@ public class ObjectController {
         BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
         bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
 
-        // 8) When translation profile is active, do translation
-        if (RecordProfile.TRANSLATE.isActive(data.profile)) {
+        /**
+         * 8) When translation profile is active
+         *     AND translation service is enabled ( SEE - EA-3453), Only then translate the data.
+         *
+         *     this “feature“ for cases where we want to see the metadata as it is available
+         *     in the record which is the case of the Europeana Translate project where we want to assess
+         *     the quality of the results (without any bias added by e.g. Google Translate).
+         *     This extra check is for the translation project to see the data without translating anything.
+         */
+        if (RecordProfile.TRANSLATE.isActive(data.profile) && translateFilterService.isEnabled()) {
             if (data.languages == null || data.languages.isEmpty()) {
                 // Get the edm:language for default translation and filtering (if we find a default language)
                 data.setLanguages(translateFilterService.getDefaultTranslationLanguage(bean));
