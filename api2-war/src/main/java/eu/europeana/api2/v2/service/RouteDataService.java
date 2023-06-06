@@ -51,8 +51,8 @@ public class RouteDataService {
         String dsId;
         boolean isConfigValid = true;
         for (Map.Entry<String, String> entry : routeConfig.getRouteDataSourceMap().entrySet()) {
-            route = entry.getKey();
-            dsId = entry.getValue();
+            route = entry.getKey().trim();
+            dsId = entry.getValue().trim();
             if (recordServerConfig.getDataSourceById(dsId).isPresent()) {
                 LOG.info("Route {} - data source id {} configured", route, dsId);
             } else {
@@ -63,8 +63,8 @@ public class RouteDataService {
 
         String solrId;
         for (Map.Entry<String, String> entry : routeConfig.getRouteSolrMap().entrySet()) {
-            route = entry.getKey();
-            solrId = entry.getValue();
+            route = entry.getKey().trim();
+            solrId = entry.getValue().trim();
 
             if (searchServerConfig.getSolrClientById(solrId).isPresent()) {
                 LOG.info("Route {} - solr client id {} configured", route, solrId);
@@ -77,7 +77,7 @@ public class RouteDataService {
         // log baseUrl mapping
         BaseUrlWrapper urls;
         for (Map.Entry<String, BaseUrlWrapper> entry : routeConfig.getRouteBaseUrlMap().entrySet()) {
-            route = entry.getKey();
+            route = entry.getKey().trim();
             urls = entry.getValue();
             LOG.info("Route {} - configured baseUrls {}", route, urls);
         }
