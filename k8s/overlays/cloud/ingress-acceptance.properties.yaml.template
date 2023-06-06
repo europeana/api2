@@ -3,14 +3,17 @@ kind: Ingress
 metadata:
   name: search-api-ingress
   annotations:
-    cert-manager.io/issuer: letsencrypt-production
+    ${K8S_INGRESS_ANNOTATIONS}
 spec:
   ingressClassName: public-iks-k8s-nginx
   tls:
     - hosts:
         - ${K8S_HOSTNAME_1}
-        - ${K8S_HOSTNAME_2}
-      secretName: ${K8S_HOSTNAME_SECRET_1}
+        - ${K8S_HOSTNAME_2}        
+      secretName: ${K8S_HOSTNAME_SECRET_1}      
+    - hosts:
+        - ${K8S_HOSTNAME_3}
+      secretName: ${K8S_HOSTNAME_SECRET_3}
   rules:
     - host: ${K8S_HOSTNAME_1}
       http:

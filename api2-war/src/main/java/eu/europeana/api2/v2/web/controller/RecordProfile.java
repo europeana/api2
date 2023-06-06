@@ -30,6 +30,6 @@ public enum RecordProfile {
      * @return the String value of this profile
      */
     public String getParamValue() {
-        return this.getParamValue();
+        return this.paramValue;
     }
 }
