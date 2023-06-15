@@ -7,6 +7,7 @@ import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.RecordType;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
@@ -35,6 +36,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHeaders;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -54,6 +56,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.UriComponentsBuilder;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
@@ -62,6 +65,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -409,7 +413,20 @@ public class ObjectController {
                 data.setLanguages(translateFilterService.getDefaultTranslationLanguage(bean));
             }
             if (data.languages != null && !data.languages.isEmpty()) {
-                bean = translateFilterService.translateProxyFields(bean, data.languages);
+                try {
+                    bean = translateFilterService.translateProxyFields(bean, data.languages);
+                } catch (TranslationServiceLimitException e) {
+                    // EA-3463 - return 307 redirect without profile param
+                    String query = StringUtils.remove(data.servletRequest.getQueryString(), "profile=translate");
+                    URI redirectUrl =  UriComponentsBuilder.newInstance()
+                            .path(data.servletRequest.getRequestURI())
+                            .query(query).build()
+                            .toUri();
+                    response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
+                    response.setHeader(HttpHeaders.LOCATION, redirectUrl.toString());
+                    // Keep the Error Response Body indicating the reason for troubleshooting
+                    throw new TranslationServiceLimitException(e);
+                }
             }
         }
 
