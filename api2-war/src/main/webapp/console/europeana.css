@@ -1,0 +1,14 @@
+.swagger-ui .topbar {
+    visibility: collapse;
+    height: 0px;
+}
+
+.swagger-ui section.models {
+    visibility: collapse;
+    height: 0px;
+}
+
+.swagger-ui .info .title small {
+    visibility: collapse;
+    height: 0px;
+}
