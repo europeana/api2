@@ -54,6 +54,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHeaders;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -63,13 +64,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.net.URI;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
@@ -462,7 +466,7 @@ public class SearchController extends BaseController {
         }
 
         SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz, request.getServerName(),
-                translateTargetLang, filterLanguages);
+                translateTargetLang, filterLanguages, request, response);
 
         if (StringUtils.containsIgnoreCase(profile, "params")) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
@@ -870,7 +874,9 @@ public class SearchController extends BaseController {
                                                               Class<T> clazz,
                                                               String requestRoute,
                                                               String translateTargetLang,
-                                                              List<Language> filterLanguages) throws EuropeanaException {
+                                                              List<Language> filterLanguages,
+                                                              HttpServletRequest servletRequest,
+                                                              HttpServletResponse servletResponse) throws EuropeanaException {
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
 
@@ -894,8 +900,26 @@ public class SearchController extends BaseController {
         // We need to modify BriefBeans with translations before creating views otherwise access becomes harder
         // Note that translateTargetLang is only set when minimal profile is enabled (so we are sure we get BriefBeans)
         if (translateTargetLang != null) {
-            resultTranslator.translateSearchResults((List<BriefBean>)
-                    resultSet.getResults(), translateTargetLang);
+            try {
+                resultTranslator.translateSearchResults((List<BriefBean>)
+                        resultSet.getResults(), translateTargetLang);
+            } catch (TranslationServiceLimitException e) {
+                // EA-3463 - return 307 redirect without profile param
+               String queryString = ControllerUtils.getQueryStringWithoutTranslate(servletRequest.getQueryString(), profile);
+
+               final URI location = ServletUriComponentsBuilder
+                        .fromCurrentServletMapping()
+                        .path(servletRequest.getRequestURI())
+                        .query(queryString)
+                        .build().toUri();
+
+
+                servletResponse.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
+                servletResponse.setHeader(HttpHeaders.LOCATION, location.toString());
+                // Keep the Error Response Body indicating the reason for troubleshooting
+                throw new TranslationServiceLimitException(e);
+            }
+
         }
         // Filtering of results
         if (filterLanguages != null) {
