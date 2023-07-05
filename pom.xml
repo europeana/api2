@@ -68,6 +68,8 @@
                     <suppressionFiles>
                         <suppressionFile>owasp-suppress.xml</suppressionFile>
                     </suppressionFiles>
+                    <!-- see EA-3505 why we host the known exploited vulnerabilties file ourselves -->
+                    <knownExploitedUrl>http://artifactory.eanadev.org/artifactory/ext-release-local/gov/cisa/www/known_exploited_vulnerabilities.json</knownExploitedUrl>
                 </configuration>
                 <executions>
                     <execution>
