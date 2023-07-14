@@ -1,12 +1,11 @@
 package eu.europeana.api2.v2.utils;
 
+import eu.europeana.api2.v2.model.enums.Profile;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -18,7 +17,7 @@ public final class ControllerUtils {
     public static final String ALLOWED_GET_HEAD       = "GET, HEAD";
     public static final String ALLOWED_GET_HEAD_POST  = "GET, HEAD, POST";
     private static final String ACCEPT                = "Accept";
-    private static final String TRANSLATE                 = "translate";
+    private static final String PROFILE_PATTERN = "[&?]profile.*?(?=&|\\?|$)";
 
     private ControllerUtils() {
         // to avoid instantiating this class
@@ -70,23 +69,33 @@ public final class ControllerUtils {
     /**
      * Removes 'profile=translate' OR 'translate' from the query string
      * @param query
-     * @param profile
+     * @param profiles
      * @return
      */
-    public static String getQueryStringWithoutTranslate(String query, String profile) {
-        String queryString;
-        if (StringUtils.contains(profile, ",")) {
-            query = StringUtils.remove(query, "profile="+profile);
-
-            List<String> profileList = Arrays.stream(profile.split(","))
-                    .map(String::trim)
-                    .collect(Collectors.toList());
-            profileList.remove(TRANSLATE);
-
-            queryString = query + "&profile="+profileList.stream().collect(Collectors.joining(","));
-        } else {
-            queryString = StringUtils.remove(query, "profile=translate");
+    public static String getQueryStringWithoutTranslate(String query, Set<Profile> profiles) {
+        String queryString = removeProfileFromRequest(query);
+        profiles.remove(Profile.TRANSLATE); // translate profile is always present in this case
+        if (!profiles.isEmpty()) {
+            queryString = queryString + "&profile=" + profiles.stream().map(Profile::getName).collect(Collectors.joining(","));
         }
         return queryString;
     }
+
+    /**
+     * Cleans the query string by removing the profile param
+     * There are high chances of profile param to ve present multiple time,
+     * also in middle or in the start of the query. (As seen in production requests)
+     *
+     * "?" is added only if the query string starts with profile param
+     *
+     * @param query
+     * @return
+     */
+    private static String removeProfileFromRequest(String query) {
+        if (StringUtils.startsWith(query , "profile")) {
+            query = "?" + query;
+        }
+        return query.replaceAll(PROFILE_PATTERN, "");
+    }
+
 }

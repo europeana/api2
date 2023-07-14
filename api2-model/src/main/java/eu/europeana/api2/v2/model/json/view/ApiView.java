@@ -8,10 +8,7 @@ import eu.europeana.corelib.utils.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
@@ -46,8 +43,8 @@ public class ApiView extends BriefView implements ApiBean {
     private Map<String, List<String>> edmConceptBroaderLabelLangAware;
     private Map<String, List<String>> edmPlaceAltLabelLangAware;
 
-    public ApiView(ApiBean bean, String profile, String wskey, String requestRoute) {
-        super(bean, profile, wskey, requestRoute);
+    public ApiView(ApiBean bean, Set<Profile> profiles, String wskey, String requestRoute) {
+        super(bean, profiles, wskey, requestRoute);
 
         edmConceptTerm = bean.getEdmConcept();
         if (bean.getEdmConceptLabel() != null) {
@@ -93,8 +90,8 @@ public class ApiView extends BriefView implements ApiBean {
 
     @Override
     public String[] getEdmConceptBroaderTerm() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)
-            || isProfile(Profile.RICH)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)
+            || profiles.contains(Profile.RICH)) {
             return new String[0];
         }
         return edmConceptBroaderTerm;
@@ -106,8 +103,8 @@ public class ApiView extends BriefView implements ApiBean {
 
     @Override
     public List<Map<String, String>> getEdmConceptBroaderLabel() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)
-            || isProfile(Profile.RICH)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)
+            || profiles.contains(Profile.RICH)) {
             return Collections.emptyList();
         }
         return edmConceptBroaderLabel;
@@ -165,7 +162,7 @@ public class ApiView extends BriefView implements ApiBean {
 
     @Override
     public String[] getCountry() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return new String[0];
         }
         return country;
@@ -209,8 +206,8 @@ public class ApiView extends BriefView implements ApiBean {
 
     @Override
     public List<Map<String, String>> getEdmPlaceAltLabel() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)
-            || isProfile(Profile.RICH)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)
+            || profiles.contains(Profile.RICH)) {
             Collections.emptyList();
         }
         return edmPlaceAltLabel;

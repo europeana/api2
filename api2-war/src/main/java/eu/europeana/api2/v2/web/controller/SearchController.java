@@ -30,10 +30,8 @@ import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
-import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.edm.utils.CountryUtils;
-import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.search.utils.SearchUtils;
 import eu.europeana.corelib.solr.bean.impl.ApiBeanImpl;
@@ -73,7 +71,6 @@ import java.net.URI;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
@@ -90,15 +87,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 public class SearchController extends BaseController {
 
     private static final Logger LOG                       = LogManager.getLogger(SearchController.class);
-
-    private static final String PORTAL                    = "portal";
-    private static final String FACETS                    = "facets";
-    private static final String TRANSLATE                 = "translate";
-    private static final String DEBUG                     = "debug";
-    private static final String SPELLING                  = "spelling"; // @Deprecated(since = "May 2021")
-    private static final String BREADCRUMB                = "breadcrumb"; // @Deprecated(since = "May 2021")
     private static final String FACET_RANGE               = "facet.range";
-    private static final String HITS                      = "hits";
     private static final String UTF8                      = "UTF-8";
 
     // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
@@ -218,8 +207,9 @@ public class SearchController extends BaseController {
                                       @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
                                       HttpServletResponse response) throws EuropeanaException {
-
         apiKeyUtils.validateApiKey(apikey);
+        // get the profiles
+        Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -235,7 +225,7 @@ public class SearchController extends BaseController {
              filterLanguages = Language.validateMultiple(lang);
         }
 
-        boolean isTranslateProfileActive = StringUtils.containsIgnoreCase(profile, TRANSLATE);
+        boolean isTranslateProfileActive = profiles.contains(Profile.TRANSLATE);
         // fail fast if user is requesting translations when translation service is not enabled
         // note that we'll ignore when query translations or results translations is disabled
         if (isTranslateProfileActive && (
@@ -264,7 +254,9 @@ public class SearchController extends BaseController {
                     querySourceLang);
             LOG.debug("TRANSLATED QUERY: |{}|", queryString);
         }
-        boolean isMinimalProfileActive = StringUtils.containsIgnoreCase(profile, Profile.MINIMAL.getName());
+        boolean isMinimalProfileActive = profiles.contains(Profile.MINIMAL);
+
+        //StringUtils.containsIgnoreCase(profile, Profile.MINIMAL.getName());
         String translateTargetLang = null;
         if (resultsTranslationEnabled && isTranslateProfileActive && isMinimalProfileActive) {
             if (filterLanguages == null || filterLanguages.isEmpty()) {
@@ -337,8 +329,8 @@ public class SearchController extends BaseController {
 
         boolean rangeFacetsSpecified = request.getParameterMap().containsKey(FACET_RANGE);
         boolean noFacetsSpecified    = ArrayUtils.isEmpty(mixedFacets);
-        boolean facetsRequested =
-                StringUtils.containsIgnoreCase(profile, PORTAL) || StringUtils.containsIgnoreCase(profile, FACETS);
+        boolean facetsRequested = profiles.contains(Profile.PORTAL) || profiles.contains(Profile.FACETS);
+
         boolean defaultFacetsRequested = facetsRequested && !rangeFacetsSpecified &&
                                          (noFacetsSpecified || ArrayUtils.contains(mixedFacets, "DEFAULT"));
         boolean defaultOrReusabilityFacetsRequested =
@@ -425,7 +417,7 @@ public class SearchController extends BaseController {
             query.setFacetsAllowed(false);
         }
 
-        if (StringUtils.containsIgnoreCase(profile, HITS)) {
+        if (profiles.contains(Profile.HITS)) {
             int nrSelectors;
             if (StringUtils.isBlank(hlSelectors)) {
                 nrSelectors = 1;
@@ -457,7 +449,7 @@ public class SearchController extends BaseController {
         if (defaultOrReusabilityFacetsRequested) {
             query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
         }
-        if (StringUtils.containsIgnoreCase(profile, PORTAL) || StringUtils.containsIgnoreCase(profile, SPELLING)) {
+        if (profiles.contains(Profile.PORTAL) || profiles.contains(Profile.SPELLING)) {
             query.setSpellcheckAllowed(true);
         }
         if (facetsRequested && !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
@@ -465,10 +457,10 @@ public class SearchController extends BaseController {
             query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
         }
 
-        SearchResults<? extends IdBean> result = createResults(apikey, profile, query, clazz, request.getServerName(),
+        SearchResults<? extends IdBean> result = createResults(apikey, profiles, query, clazz, request.getServerName(),
                 translateTargetLang, filterLanguages, request, response);
 
-        if (StringUtils.containsIgnoreCase(profile, "params")) {
+        if (profiles.contains(Profile.PARAMS)) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
             result.addParam("start", start);
@@ -869,7 +861,7 @@ public class SearchController extends BaseController {
 
     @SuppressWarnings("unchecked")
     private <T extends IdBean> SearchResults<T> createResults(String apiKey,
-                                                              String profile,
+                                                              Set<Profile> profiles,
                                                               Query query,
                                                               Class<T> clazz,
                                                               String requestRoute,
@@ -882,7 +874,7 @@ public class SearchController extends BaseController {
 
         SolrClient solrClient = getSolrClient(requestRoute);
 
-        if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
+        if (profiles.contains(Profile.DEBUG)) {
             resultSet = searchService.search(solrClient, clazz, query, true);
         } else {
             resultSet = searchService.search(solrClient, clazz, query);
@@ -905,7 +897,7 @@ public class SearchController extends BaseController {
                         resultSet.getResults(), translateTargetLang);
             } catch (TranslationServiceLimitException e) {
                 // EA-3463 - return 307 redirect without profile param
-               String queryString = ControllerUtils.getQueryStringWithoutTranslate(servletRequest.getQueryString(), profile);
+               String queryString = ControllerUtils.getQueryStringWithoutTranslate(servletRequest.getQueryString(), profiles);
 
                final URI location = ServletUriComponentsBuilder
                         .fromCurrentServletMapping()
@@ -932,11 +924,11 @@ public class SearchController extends BaseController {
         List<T> beans = new ArrayList<>();
         for (T b : resultSet.getResults()) {
             if (b instanceof RichBean) {
-                beans.add((T) new RichView((RichBean) b, profile, apiKey, requestRoute));
+                beans.add((T) new RichView((RichBean) b, profiles, apiKey, requestRoute));
             } else if (b instanceof ApiBean) {
-                beans.add((T) new ApiView((ApiBean) b, profile, apiKey, requestRoute));
+                beans.add((T) new ApiView((ApiBean) b, profiles, apiKey, requestRoute));
             } else if (b instanceof BriefBean) {
-                beans.add((T) new BriefView((BriefBean) b, profile, apiKey, requestRoute));
+                beans.add((T) new BriefView((BriefBean) b, profiles, apiKey, requestRoute));
             }
         }
 
@@ -953,7 +945,7 @@ public class SearchController extends BaseController {
         }
 
         response.items = beans;
-        if (StringUtils.containsIgnoreCase(profile, FACETS) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
+        if (profiles.contains(Profile.FACETS) || profiles.contains(Profile.PORTAL)) {
             response.facets = new FacetWrangler().consolidateFacetList(resultSet.getFacetFields(),
                                                                        resultSet.getRangeFacets(),
                                                                        query.getTechnicalFacets(),
@@ -961,13 +953,13 @@ public class SearchController extends BaseController {
                                                                        query.getTechnicalFacetLimits(),
                                                                        query.getTechnicalFacetOffsets());
         }
-        if (StringUtils.containsIgnoreCase(profile, HITS) && MapUtils.isNotEmpty(resultSet.getHighlighting())) {
+        if (profiles.contains(Profile.HITS) && MapUtils.isNotEmpty(resultSet.getHighlighting())) {
             response.hits = new HitMaker().createHitList(resultSet.getHighlighting(), query.getNrSelectors());
         }
-        if (StringUtils.containsIgnoreCase(profile, SPELLING) || StringUtils.containsIgnoreCase(profile, PORTAL)) {
+        if (profiles.contains(Profile.SPELLING) || profiles.contains(Profile.PORTAL)) {
             response.spellcheck = ModelUtils.convertSpellCheck(resultSet.getSpellcheck());
         }
-        if (StringUtils.containsIgnoreCase(profile, DEBUG)) {
+        if (profiles.contains(Profile.DEBUG)) {
             response.debug = resultSet.getSolrQueryString();
         }
         return response;
