@@ -92,7 +92,7 @@ public class SearchController extends BaseController {
     private static final String FACETS                    = "facets";
     private static final String TRANSLATE                 = "translate";
     private static final String DEBUG                     = "debug";
-    private static final String SPELLING                  = "spelling"; // @Deprecated(since = "May 2021")
+    private static final String SPELLING                = "spelling"; // @Deprecated(since = "May 2021")
     private static final String BREADCRUMB                = "breadcrumb"; // @Deprecated(since = "May 2021")
     private static final String FACET_RANGE               = "facet.range";
     private static final String HITS                      = "hits";
@@ -257,10 +257,30 @@ public class SearchController extends BaseController {
         if (queryTranslationEnabled && isTranslateProfileActive && StringUtils.isNotBlank(queryTargetLang)) {
             validateQueryTranslateParams(querySourceLang, queryTargetLang);
             // generate multi-lingual search query
-            queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
-                    querySourceLang);
-            LOG.debug("TRANSLATED QUERY: |{}|", queryString);
+            try {
+                queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
+                        querySourceLang);
+                LOG.debug("TRANSLATED QUERY: |{}|", queryString);
+            } catch (TranslationServiceLimitException e) {
+                // TODO when all the changes are merged, split this part of code in a method
+                // EA-3463 - return 307 redirect without profile param
+                String queryStringWithoutTranslate = ControllerUtils.getQueryStringWithoutTranslate(request.getQueryString(), profile);
+
+                final URI location = ServletUriComponentsBuilder
+                        .fromCurrentServletMapping()
+                        .path(request.getRequestURI())
+                        .query(queryStringWithoutTranslate)
+                        .build().toUri();
+
+
+                response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
+                response.setHeader(HttpHeaders.LOCATION, location.toString());
+                // Keep the Error Response Body indicating the reason for troubleshooting
+                throw new TranslationServiceLimitException(e);
+            }
+
         }
+
         boolean isMinimalProfileActive = StringUtils.containsIgnoreCase(profile, Profile.MINIMAL.getName());
         String translateTargetLang = null;
         if (resultsTranslationEnabled && isTranslateProfileActive && isMinimalProfileActive) {
@@ -1139,5 +1159,7 @@ public class SearchController extends BaseController {
         }
         return sb.toString();
     }
+
+
 
 }
