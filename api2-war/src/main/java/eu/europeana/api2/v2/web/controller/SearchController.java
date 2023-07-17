@@ -30,10 +30,8 @@ import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.beans.RichBean;
 import eu.europeana.corelib.definitions.solr.model.Query;
-import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.edm.utils.CountryUtils;
-import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.search.model.ResultSet;
 import eu.europeana.corelib.search.utils.SearchUtils;
 import eu.europeana.corelib.solr.bean.impl.ApiBeanImpl;
@@ -73,7 +71,6 @@ import java.net.URI;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
@@ -270,7 +267,7 @@ public class SearchController extends BaseController {
             if (filterLanguages == null || filterLanguages.isEmpty()) {
                 Language.validateSingle(null); // let that method throw appropriate error
             }
-            translateTargetLang = filterLanguages.get(0).name(); // only use first provided language for translations
+            translateTargetLang = filterLanguages.get(0).name().toLowerCase(Locale.ROOT); // only use first provided language for translations
         }
 
         if ((cursorMark != null) && (start > 1)) {
