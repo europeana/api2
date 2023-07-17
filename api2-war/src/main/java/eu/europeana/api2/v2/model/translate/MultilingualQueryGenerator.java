@@ -5,6 +5,7 @@ package eu.europeana.api2.v2.model.translate;
  */
 
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +40,11 @@ public class MultilingualQueryGenerator {
      * @param sourceLanguage optional, if null Google Translate will try and detect the language
      * @return
      */
-    public String getMultilingualQuery(String queryString, String targetLanguage, String sourceLanguage) throws TranslationException {
+    public String getMultilingualQuery(String queryString, String targetLanguage, String sourceLanguage) throws EuropeanaException {
         return getMultilingualQuery(new eu.europeana.api2.v2.model.translate.Query(queryString), targetLanguage, sourceLanguage);
     }
 
-    private String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage) throws TranslationException, IndexOutOfBoundsException {
+    private String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage) throws EuropeanaException, IndexOutOfBoundsException {
         LOG.debug("target language {}, source language {}", targetLanguage, sourceLanguage);
         QueryParser qParser = new QueryParser();
         query = qParser.parse(query);
