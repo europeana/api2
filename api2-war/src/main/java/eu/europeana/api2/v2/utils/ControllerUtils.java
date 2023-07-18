@@ -80,15 +80,14 @@ public final class ControllerUtils {
     public static void redirectForTranslationsLimitException(HttpServletRequest request, HttpServletResponse response, Set<Profile> profiles) {
         String queryStringWithoutTranslate = getQueryStringWithoutTranslate(request.getQueryString(), profiles);
 
-        final URI location = ServletUriComponentsBuilder
+        final String location = ServletUriComponentsBuilder
                 .fromCurrentServletMapping()
                 .path(request.getRequestURI())
                 .query(queryStringWithoutTranslate)
-                .build().toUri();
-
+                .build().toUriString();
 
         response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
-        response.setHeader(HttpHeaders.LOCATION, location.toString());
+        response.setHeader(HttpHeaders.LOCATION, location);
     }
 
 
