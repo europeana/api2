@@ -130,8 +130,8 @@ public class ObjectController {
                             ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
         this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;
-        this.httpCacheUtils = httpCacheUtils;
         this.routeService = routeService;
+        this.httpCacheUtils = httpCacheUtils;
         this.translateFilterService = tfService;
     }
 
@@ -414,18 +414,9 @@ public class ObjectController {
                 try {
                     bean = translateFilterService.translateProxyFields(bean, data.languages);
                 } catch (TranslationServiceLimitException e) {
-                    // EA-3463 - return 307 redirect without profile param
-                    String query = ControllerUtils.getQueryStringWithoutTranslate(data.servletRequest.getQueryString(), data.profiles);
-
-                    final URI location = ServletUriComponentsBuilder
-                            .fromCurrentServletMapping()
-                            .path(data.servletRequest.getRequestURI())
-                            .query(query)
-                            .build().toUri();
-
-                    response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
-                    response.setHeader(HttpHeaders.LOCATION, location.toString());
-                    // Keep the Error Response Body indicating the reason for troubleshooting
+                    // EA-3463 - return 307 redirect without profile param and Keep the Error Response
+                    // Body indicating the reason for troubleshooting
+                    ControllerUtils.redirectForTranslationsLimitException(data.servletRequest, response, data.profiles);
                     throw new TranslationServiceLimitException(e);
                 }
             }

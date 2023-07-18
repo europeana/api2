@@ -2,9 +2,12 @@ package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.v2.model.enums.Profile;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHeaders;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.net.URI;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,6 +68,29 @@ public final class ControllerUtils {
         response.setCharacterEncoding("UTF-8");
         response.addHeader("Allow", ALLOWED_GET_HEAD);
     }
+
+    /**
+     * Build a Redirect response for Translation limit (Resource exhausted) exception
+     * Removes the 'translate' profile from the query string
+     *
+     *
+     * @param request
+     * @param response
+     */
+    public static void redirectForTranslationsLimitException(HttpServletRequest request, HttpServletResponse response, Set<Profile> profiles) {
+        String queryStringWithoutTranslate = getQueryStringWithoutTranslate(request.getQueryString(), profiles);
+
+        final URI location = ServletUriComponentsBuilder
+                .fromCurrentServletMapping()
+                .path(request.getRequestURI())
+                .query(queryStringWithoutTranslate)
+                .build().toUri();
+
+
+        response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
+        response.setHeader(HttpHeaders.LOCATION, location.toString());
+    }
+
 
     /**
      * Removes 'profile=translate' OR 'translate' from the query string
