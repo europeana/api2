@@ -3,7 +3,9 @@ package eu.europeana.api2.v2.model.json.view;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import eu.europeana.api2.v2.model.enums.Profile;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,15 +29,15 @@ public class RichView extends ApiView implements RichBean {
     // temporary added for debugging purposes (see EA-1395)
     private Map<String, List<String>> fulltextLangAware;
 
-    public RichView(RichBean bean, String profile, String wskey, String requestRoute) {
-        super(bean, profile, wskey, requestRoute);
+    public RichView(RichBean bean, Set<Profile> profiles, String wskey, String requestRoute) {
+        super(bean, profiles, wskey, requestRoute);
         isShownBy = bean.getEdmIsShownBy();
         edmLandingPage = bean.getEdmLandingPage();
         organizations = bean.getOrganizations();
         dcTypeLangAware = bean.getDcTypeLangAware();
         dcSubjectLangAware = bean.getDcSubjectLangAware();
 
-        if (StringUtils.containsIgnoreCase(profile, "debug")) {
+        if (profiles.contains(Profile.DEBUG)) {
             fulltext = bean.getFulltext();
             fulltextLangAware = bean.getFulltextLangAware();
         }

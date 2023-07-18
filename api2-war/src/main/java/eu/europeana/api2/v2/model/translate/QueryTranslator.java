@@ -1,7 +1,10 @@
 package eu.europeana.api2.v2.model.translate;
 
+import com.google.api.gax.rpc.ResourceExhaustedException;
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.service.translate.TranslationService;
+import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,16 +30,25 @@ public class QueryTranslator {
         LOG.info("QueryTranslator initialised with {} service", translationService);
     }
 
-    private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose) throws TranslationException {
+    private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose) throws TranslationException, TranslationServiceLimitException {
         StringBuilder sb =  new StringBuilder();
         String toTranslate = text.trim();
         if (!toTranslate.isEmpty()) {
             String translation;
             long start = System.nanoTime(); //DEBUG
-            if (sourceLanguage == null) {
-                translation = this.translationService.translate(List.of(toTranslate), targetLanguage, (Language) null).get(0);
-            } else {
-                translation = this.translationService.translate(List.of(toTranslate), targetLanguage, sourceLanguage).get(0);
+            try {
+                if (sourceLanguage == null) {
+                    translation = this.translationService.translate(List.of(toTranslate), targetLanguage, (Language) null).get(0);
+                } else {
+                    translation = this.translationService.translate(List.of(toTranslate), targetLanguage, sourceLanguage).get(0);
+                }
+            } catch (ResourceExhaustedException e) {
+                // catch Google StatusRuntimeException: RESOURCE_EXHAUSTED exception
+                // this will be thrown if the limit for the day is exceeded
+                throw new TranslationServiceLimitException(e);
+            } catch (RuntimeException e) {
+                // Catch Google Translate issues and wrap in our own exception
+                throw new TranslationException(e);
             }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("<TRANSLATION> text: {} time: {}", text.replaceAll("\t", " "), (System.nanoTime() - start) / 1_000_000);
@@ -58,7 +70,7 @@ public class QueryTranslator {
         return sb.toString();
     }
 
-    public String translate(Query query, String targetLanguage, String sourceLanguage) throws TranslationException {
+    public String translate(Query query, String targetLanguage, String sourceLanguage) throws EuropeanaException {
         QueryPartType previous = null;
         StringBuilder outputQuery = new StringBuilder();
         for (QueryPart queryPart : query.getQueryPartList()) {
