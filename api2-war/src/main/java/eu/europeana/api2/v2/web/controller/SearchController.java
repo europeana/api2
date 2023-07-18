@@ -250,19 +250,38 @@ public class SearchController extends BaseController {
         if (queryTranslationEnabled && isTranslateProfileActive && StringUtils.isNotBlank(queryTargetLang)) {
             validateQueryTranslateParams(querySourceLang, queryTargetLang);
             // generate multi-lingual search query
-            queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
-                    querySourceLang);
-            LOG.debug("TRANSLATED QUERY: |{}|", queryString);
+            try {
+                queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
+                        querySourceLang);
+                LOG.debug("TRANSLATED QUERY: |{}|", queryString);
+            } catch (TranslationServiceLimitException e) {
+                // TODO when all the changes are merged, split this part of code in a method
+                // EA-3463 - return 307 redirect without profile param
+                String queryStringWithoutTranslate = ControllerUtils.getQueryStringWithoutTranslate(request.getQueryString(), profile);
+
+                final URI location = ServletUriComponentsBuilder
+                        .fromCurrentServletMapping()
+                        .path(request.getRequestURI())
+                        .query(queryStringWithoutTranslate)
+                        .build().toUri();
+
+
+                response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
+                response.setHeader(HttpHeaders.LOCATION, location.toString());
+                // Keep the Error Response Body indicating the reason for troubleshooting
+                throw new TranslationServiceLimitException(e);
+            }
+
         }
         boolean isMinimalProfileActive = profiles.contains(Profile.MINIMAL);
-
         //StringUtils.containsIgnoreCase(profile, Profile.MINIMAL.getName());
+
         String translateTargetLang = null;
         if (resultsTranslationEnabled && isTranslateProfileActive && isMinimalProfileActive) {
             if (filterLanguages == null || filterLanguages.isEmpty()) {
                 Language.validateSingle(null); // let that method throw appropriate error
             }
-            translateTargetLang = filterLanguages.get(0).name(); // only use first provided language for translations
+            translateTargetLang = filterLanguages.get(0).name().toLowerCase(Locale.ROOT); // only use first provided language for translations
         }
 
         if ((cursorMark != null) && (start > 1)) {
@@ -1134,5 +1153,7 @@ public class SearchController extends BaseController {
         }
         return sb.toString();
     }
+
+
 
 }
