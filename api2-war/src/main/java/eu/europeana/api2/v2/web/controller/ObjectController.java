@@ -9,6 +9,7 @@ import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.RecordType;
+import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.translate.Language;
@@ -54,7 +55,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
@@ -335,7 +335,7 @@ public class ObjectController {
         }
 
         // 3) validate other common params
-        if (!translateFilterService.isEnabled() && RecordProfile.TRANSLATE.isActive(data.profile)) {
+        if (!translateFilterService.isEnabled() && data.profiles.contains(Profile.TRANSLATE)) {
             throw new TranslationServiceDisabledException();
         }
         if (data.lang != null) {
@@ -405,7 +405,7 @@ public class ObjectController {
         bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
 
         // 8) When translation profile is active, do translation
-        if (RecordProfile.TRANSLATE.isActive(data.profile)) {
+        if (data.profiles.contains(Profile.TRANSLATE)) {
             if (data.languages == null || data.languages.isEmpty()) {
                 // Get the edm:language for default translation and filtering (if we find a default language)
                 data.setLanguages(translateFilterService.getDefaultTranslationLanguage(bean));
@@ -415,7 +415,7 @@ public class ObjectController {
                     bean = translateFilterService.translateProxyFields(bean, data.languages);
                 } catch (TranslationServiceLimitException e) {
                     // EA-3463 - return 307 redirect without profile param
-                    String query = ControllerUtils.getQueryStringWithoutTranslate(data.servletRequest.getQueryString(), data.profile);
+                    String query = ControllerUtils.getQueryStringWithoutTranslate(data.servletRequest.getQueryString(), data.profiles);
 
                     final URI location = ServletUriComponentsBuilder
                             .fromCurrentServletMapping()
@@ -470,14 +470,14 @@ public class ObjectController {
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
         ObjectResult objectResult = new ObjectResult(data.wskey);
         // add schemaOrg in the response if profile = schemaOrg
-        if (RecordProfile.SCHEMAORG.isActive(data.profile)) {
+        if (data.profiles.contains(Profile.SCHEMAORG)) {
             try {
                 objectResult.schemaOrg = SchemaOrgUtils.toSchemaOrg((FullBeanImpl) bean);
             } catch (IOException e) {
                 LOG.error("Error generating schema.org data", e);
             }
         }
-        if (RecordProfile.PARAMS.isActive(data.profile)) {
+        if (data.profiles.contains(Profile.PARAMS)) {
             objectResult.addParams(RequestUtils.getParameterMap(data.servletRequest), "wskey");
             objectResult.addParam("profile", data.profile);
         }
@@ -593,6 +593,7 @@ public class ObjectController {
         String             europeanaId;
         String             wskey;
         String             profile;
+        Set<Profile>       profiles;
         String             lang;
         List<Language>     languages;
         String             callback;
@@ -602,7 +603,8 @@ public class ObjectController {
                     HttpServletRequest servletRequest) {
             this.europeanaId    = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
             this.wskey          = wskey;
-            this.profile        = profile;
+            this.profile        = profile; // profile string passed in the request
+            this.profiles       = ProfileUtils.getProfiles(profile); // processed profiles from the profile string
             this.lang           = lang;
             this.callback       = callback;
             this.servletRequest = servletRequest;

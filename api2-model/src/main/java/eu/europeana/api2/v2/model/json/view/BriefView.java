@@ -26,15 +26,15 @@ public class BriefView extends IdBeanImpl implements BriefBean {
     private static final Logger          LOG = LogManager.getLogger(BriefView.class);
     protected            Api2UrlService  urlService;
 
-    protected String profile;
+    protected Set<Profile> profiles;
     protected String wskey;
     protected BriefBean bean;
     protected String requestRoute;
     private String[] thumbnails;
 
-    public BriefView(BriefBean bean, String profile, String wskey, String requestRoute) {
+    public BriefView(BriefBean bean, Set<Profile> profiles, String wskey, String requestRoute) {
         this.bean = bean;
-        this.profile = profile;
+        this.profiles = profiles;
         this.wskey = wskey;
         this.requestRoute = requestRoute;
         urlService = Api2UrlService.getBeanInstance();
@@ -44,8 +44,8 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return null; // profile;
     }
 
-    public void setProfile(String profile) {
-        this.profile = profile;
+    public void setProfile(Set<Profile> profiles) {
+        this.profiles = profiles;
     }
 
     @Override
@@ -91,7 +91,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getLanguage() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return new String[0];
         }
         return bean.getLanguage();
@@ -109,7 +109,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getDctermsSpatial() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)) {
             return new String[0];
         }
         return bean.getDctermsSpatial();
@@ -117,7 +117,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getDcLanguage() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return new String[0];
         }
         return bean.getDcLanguage();
@@ -125,7 +125,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public Map<String, List<String>> getDcLanguageLangAware() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return Collections.emptyMap();
         }
         return bean.getDcLanguageLangAware();
@@ -138,7 +138,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String getContentTier() {
-        if (isProfile(Profile.DEBUG)) {
+        if (profiles.contains(Profile.DEBUG)) {
             return bean.getContentTier();
         }
         return null;
@@ -146,7 +146,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String getMetadataTier() {
-        if (isProfile(Profile.DEBUG)) {
+        if (profiles.contains(Profile.DEBUG)) {
             return bean.getMetadataTier();
         }
         return null;
@@ -154,7 +154,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getEdmPlace() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)) {
             return new String[0];
         }
         return bean.getEdmPlace();
@@ -162,7 +162,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public List<Map<String, String>> getEdmPlaceLabel() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return Collections.emptyList();
         }
         return bean.getEdmPlaceLabel();
@@ -170,7 +170,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public Map<String, List<String>> getEdmPlaceLabelLangAware() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return Collections.emptyMap();
         }
         return bean.getEdmPlaceLabelLangAware();
@@ -188,7 +188,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getEdmTimespan() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)) {
             return new String[0];
         }
         return bean.getEdmTimespan();
@@ -196,7 +196,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public List<Map<String, String>> getEdmTimespanLabel() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return Collections.emptyList();
         }
         return bean.getEdmTimespanLabel();
@@ -204,7 +204,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public Map<String, List<String>> getEdmTimespanLabelLangAware() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return Collections.emptyMap();
         }
         return bean.getEdmTimespanLabelLangAware();
@@ -212,7 +212,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getEdmTimespanBegin() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return new String[0];
         }
         return bean.getEdmTimespanBegin();
@@ -220,7 +220,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getEdmTimespanEnd() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return new String[0];
         }
         return bean.getEdmTimespanEnd();
@@ -228,7 +228,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getEdmAgent() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)) {
             return new String[0];
         }
         return bean.getEdmAgent();
@@ -236,7 +236,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public List<Map<String, String>> getEdmAgentLabel() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)) {
             return Collections.emptyList();
         }
         return bean.getEdmAgentLabel();
@@ -244,7 +244,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public Map<String, List<String>> getEdmAgentLabelLangAware() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)) {
             return Collections.emptyMap();
         }
         return bean.getEdmAgentLabelLangAware();
@@ -265,7 +265,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getDcContributor() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)) {
             return new String[0];
         }
         return bean.getDcContributor();
@@ -273,7 +273,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public Map<String, List<String>> getDcContributorLangAware() {
-        if (isProfile(Profile.MINIMAL) || isProfile(Profile.STANDARD)) {
+        if (profiles.contains(Profile.MINIMAL) || profiles.contains(Profile.STANDARD)) {
             return Collections.emptyMap();
         }
         return bean.getDcContributorLangAware();
@@ -281,7 +281,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public Date getTimestamp() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return null;
         }
         return bean.getTimestamp();
@@ -359,9 +359,9 @@ public class BriefView extends IdBeanImpl implements BriefBean {
         return bean.getScore();
     }
 
-    protected boolean isProfile(Profile p) {
-        return StringUtils.containsIgnoreCase(profile, p.getName());
-    }
+//    protected boolean isProfile(Profile p) {
+//        return StringUtils.containsIgnoreCase(profile, p.getName());
+//    }
 
     @Override
     public String[] getEdmIsShownAt() {
@@ -380,7 +380,7 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public Boolean getPreviewNoDistribute() {
-        if (isProfile(Profile.MINIMAL)) {
+        if (profiles.contains(Profile.MINIMAL)) {
             return null; // if we return null the field won't be included in the json result
         }
         return bean.getPreviewNoDistribute() != null ? bean.getPreviewNoDistribute() : Boolean.FALSE;
