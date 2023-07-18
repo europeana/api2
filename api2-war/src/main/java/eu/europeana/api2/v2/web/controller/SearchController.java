@@ -255,20 +255,9 @@ public class SearchController extends BaseController {
                         querySourceLang);
                 LOG.debug("TRANSLATED QUERY: |{}|", queryString);
             } catch (TranslationServiceLimitException e) {
-                // TODO when all the changes are merged, split this part of code in a method
-                // EA-3463 - return 307 redirect without profile param
-                String queryStringWithoutTranslate = ControllerUtils.getQueryStringWithoutTranslate(request.getQueryString(), profile);
-
-                final URI location = ServletUriComponentsBuilder
-                        .fromCurrentServletMapping()
-                        .path(request.getRequestURI())
-                        .query(queryStringWithoutTranslate)
-                        .build().toUri();
-
-
-                response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
-                response.setHeader(HttpHeaders.LOCATION, location.toString());
-                // Keep the Error Response Body indicating the reason for troubleshooting
+                // EA-3463 - return 307 redirect without profile param and Keep the Error Response
+                // Body indicating the reason for troubleshooting
+                ControllerUtils.redirectForTranslationsLimitException(request, response, profiles);
                 throw new TranslationServiceLimitException(e);
             }
 
@@ -915,19 +904,9 @@ public class SearchController extends BaseController {
                 resultTranslator.translateSearchResults((List<BriefBean>)
                         resultSet.getResults(), translateTargetLang);
             } catch (TranslationServiceLimitException e) {
-                // EA-3463 - return 307 redirect without profile param
-               String queryString = ControllerUtils.getQueryStringWithoutTranslate(servletRequest.getQueryString(), profiles);
-
-               final URI location = ServletUriComponentsBuilder
-                        .fromCurrentServletMapping()
-                        .path(servletRequest.getRequestURI())
-                        .query(queryString)
-                        .build().toUri();
-
-
-                servletResponse.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
-                servletResponse.setHeader(HttpHeaders.LOCATION, location.toString());
-                // Keep the Error Response Body indicating the reason for troubleshooting
+                // EA-3463 - return 307 redirect without profile param and Keep the Error Response
+                // Body indicating the reason for troubleshooting
+                ControllerUtils.redirectForTranslationsLimitException(servletRequest, servletResponse, profiles);
                 throw new TranslationServiceLimitException(e);
             }
 
