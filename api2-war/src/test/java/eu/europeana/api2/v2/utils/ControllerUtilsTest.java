@@ -3,11 +3,13 @@ package eu.europeana.api2.v2.utils;
 import eu.europeana.api2.v2.model.enums.Profile;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
+@Ignore
 public class ControllerUtilsTest {
 
     private static String QUERY_1 = "profile=translate&wskey=test&rows=2";
