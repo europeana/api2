@@ -21,6 +21,8 @@ public final class ControllerUtils {
     private static final String PROFILE_PATTERN = "[&?]profile.*?(?=&|\\?|$)";
     private static final String LANG_PATTERN    = "[&?]lang.*?(?=&|\\?|$)";
     private static final String PARAM_SEPERATOR    = "&";
+    private static String URL_CLEANER_PATTERN = "\\/api|\\/v2|\\/record";
+
 
     private ControllerUtils() {
         // to avoid instantiating this class
@@ -82,9 +84,13 @@ public final class ControllerUtils {
      */
     public static void redirectForTranslationsLimitException(HttpServletRequest request, HttpServletResponse response, Set<Profile> profiles) {
         String queryStringWithoutTranslate = getQueryStringWithoutTranslate(request.getQueryString(), profiles);
-        String location = request.getRequestURI() + "?" + queryStringWithoutTranslate;
+        String location = removeRequestMapping(request.getRequestURI()) + "?" + queryStringWithoutTranslate;
         response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
         response.setHeader(HttpHeaders.LOCATION, location);
+    }
+
+    public static String removeRequestMapping(String request) {
+        return  request.replaceAll(URL_CLEANER_PATTERN, "");
     }
 
     /**
@@ -110,7 +116,7 @@ public final class ControllerUtils {
     /**
      * Removes the lang param from the query string
      */
-    public static String removeLangFromRequest(String query) {
+    private static String removeLangFromRequest(String query) {
         if (StringUtils.startsWith(query , "lang")) {
             query = "?" + query;
         }
