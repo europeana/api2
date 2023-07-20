@@ -5,6 +5,7 @@ package eu.europeana.api2.v2.model.translate;
  */
 
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

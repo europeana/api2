@@ -82,9 +82,27 @@ public final class ControllerUtils {
      */
     public static void redirectForTranslationsLimitException(HttpServletRequest request, HttpServletResponse response, Set<Profile> profiles) {
         String queryStringWithoutTranslate = getQueryStringWithoutTranslate(request.getQueryString(), profiles);
-        String location = request.getRequestURI() + "?" + queryStringWithoutTranslate;
+        String location = removeRequestMapping(request.getRequestURI()) + "?" +queryStringWithoutTranslate;
         response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
         response.setHeader(HttpHeaders.LOCATION, location);
+    }
+
+    /**
+     * The redirects will automatically append the ServletMapping and
+     * request URI.
+     *
+     * The idea is to send the data after the last "/" present in the request URI
+     * For records mappings -  "/api/v2/record/x/y.json",  "/v2/record/x/y.json", "/record/v2/x/y.json",
+     *         "/record/x/y.json" -> Only 'y.json' should be sent
+     *     search -
+     *        For these mappings -  '/record/search.json', '/api/v2/search.json', OR '/record/v2/search.json'
+     *          -> Only 'search.json' should be sent
+     *
+     * @param request
+     * @return
+     */
+    public static String removeRequestMapping(String request) {
+       return StringUtils.substringAfterLast(request, "/");
     }
 
     /**
@@ -110,7 +128,7 @@ public final class ControllerUtils {
     /**
      * Removes the lang param from the query string
      */
-    public static String removeLangFromRequest(String query) {
+    private static String removeLangFromRequest(String query) {
         if (StringUtils.startsWith(query , "lang")) {
             query = "?" + query;
         }
