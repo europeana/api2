@@ -94,17 +94,6 @@ spec:
                 name: search-api-service
                 port:
                   number: 80
-                  
-    - host: ${K8S_HOSTNAME_9}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: search-api-service
-                port:
-                  number: 80                  
   tls:
     - hosts:
         - ${K8S_HOSTNAME_1}
@@ -116,7 +105,25 @@ spec:
         - ${K8S_HOSTNAME_7}
         - ${K8S_HOSTNAME_8}
       secretName: ${K8S_HOSTNAME_SECRET_1}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: search-api-ingress2
+spec:
+  ingressClassName: public-iks-k8s-nginx
+  tls:
     - hosts:
         - ${K8S_HOSTNAME_9}
-      secretName: ${K8S_HOSTNAME_SECRET_9}      
-    
+      secretName: ${K8S_HOSTNAME_SECRET_9}
+  rules:
+    - host: ${K8S_HOSTNAME_9}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: search-api-service
+                port:
+                  number: 80
