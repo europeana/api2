@@ -5,6 +5,7 @@ package eu.europeana.api2.v2.model.translate;
  */
 
 import eu.europeana.api2.v2.exceptions.TranslationException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,7 +42,8 @@ public class MultilingualQueryGenerator {
      * @return
      */
     public String getMultilingualQuery(String queryString, String targetLanguage, String sourceLanguage) throws EuropeanaException {
-        return getMultilingualQuery(new eu.europeana.api2.v2.model.translate.Query(queryString), targetLanguage, sourceLanguage);
+      throw new TranslationServiceLimitException("test");
+       // return getMultilingualQuery(new eu.europeana.api2.v2.model.translate.Query(queryString), targetLanguage, sourceLanguage);
     }
 
     private String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage) throws EuropeanaException, IndexOutOfBoundsException {

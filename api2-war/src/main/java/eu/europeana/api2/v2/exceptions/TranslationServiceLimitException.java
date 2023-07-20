@@ -8,5 +8,10 @@ public class TranslationServiceLimitException extends EuropeanaException {
     public TranslationServiceLimitException(Exception e) {
         super(ProblemType.TRANSLATION_SERVICE_LIMIT_ERROR, "No more translations available today. Resource is exhausted", e);
     }
+
+    public TranslationServiceLimitException(String msg) {
+        super(ProblemType.TRANSLATION_SERVICE_LIMIT_ERROR, "No more translations available today. Resource is exhausted");
+
+    }
 }
 
