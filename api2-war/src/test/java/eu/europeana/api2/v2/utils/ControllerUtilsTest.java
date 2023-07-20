@@ -108,6 +108,8 @@ public class ControllerUtilsTest {
         Assert.assertFalse(result.contains("/api"));
         Assert.assertFalse(result.contains("/v2"));
         Assert.assertFalse(result.contains("/record"));
+        Assert.assertFalse(result.startsWith("/"));
+
     }
 
     private static  void check(String result, String notExpected) {
