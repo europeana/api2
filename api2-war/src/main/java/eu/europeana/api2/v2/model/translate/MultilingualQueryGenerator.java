@@ -42,8 +42,7 @@ public class MultilingualQueryGenerator {
      * @return
      */
     public String getMultilingualQuery(String queryString, String targetLanguage, String sourceLanguage) throws EuropeanaException {
-      throw new TranslationServiceLimitException("test");
-       // return getMultilingualQuery(new eu.europeana.api2.v2.model.translate.Query(queryString), targetLanguage, sourceLanguage);
+        return getMultilingualQuery(new eu.europeana.api2.v2.model.translate.Query(queryString), targetLanguage, sourceLanguage);
     }
 
     private String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage) throws EuropeanaException, IndexOutOfBoundsException {

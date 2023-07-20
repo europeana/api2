@@ -58,35 +58,34 @@ public class SearchResultTranslateService {
      * @throws EuropeanaException when there is a problem sending/retrieving translations to/from the translation engine
      */
     public List<BriefBean> translateSearchResults(List<BriefBean> results, String targetLang) throws EuropeanaException {
-//        long startTime = System.currentTimeMillis();
-//
-//        // gather all translations
-//        TranslationsMap textsToTranslate = new TranslationsMap(getTextsToTranslate(results, targetLang));
-//        if (LOG.isDebugEnabled()) {
-//            LOG.debug("Translate results - Gathering data took {} ms", (System.currentTimeMillis() - startTime));
-//        }
-//
-//        // actual translation
-//        long startTimeTranslate = System.currentTimeMillis();
-//        FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang, null);
-//        if (LOG.isDebugEnabled()) {
-//            LOG.debug("Translate results - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
-//        }
-//
-//        // add translations to result
-//        long startTimeOutput = System.currentTimeMillis();
-//        for (Map.Entry<String, List<String>> entry : translations.entrySet()) {
-//            TranslationUtils.addTranslationsToList(results, entry.getKey(), getSolrKeyName(entry.getKey(), targetLang), entry.getValue());
-//        }
-//        if (LOG.isDebugEnabled()) {
-//            LOG.debug("Translate results - Generating output took {} ms", (System.currentTimeMillis() - startTimeOutput));
-//        }
-//
-//        if (LOG.isDebugEnabled()) {
-//            LOG.debug("Translate results - Total time {} ms", (System.currentTimeMillis() - startTime));
-//        }
-//        return results;
-        throw new TranslationServiceLimitException("test");
+        long startTime = System.currentTimeMillis();
+
+        // gather all translations
+        TranslationsMap textsToTranslate = new TranslationsMap(getTextsToTranslate(results, targetLang));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate results - Gathering data took {} ms", (System.currentTimeMillis() - startTime));
+        }
+
+        // actual translation
+        long startTimeTranslate = System.currentTimeMillis();
+        FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang, null);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate results - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
+        }
+
+        // add translations to result
+        long startTimeOutput = System.currentTimeMillis();
+        for (Map.Entry<String, List<String>> entry : translations.entrySet()) {
+            TranslationUtils.addTranslationsToList(results, entry.getKey(), getSolrKeyName(entry.getKey(), targetLang), entry.getValue());
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate results - Generating output took {} ms", (System.currentTimeMillis() - startTimeOutput));
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate results - Total time {} ms", (System.currentTimeMillis() - startTime));
+        }
+        return results;
     }
 
     private String getSolrKeyName(String fieldName, String lang) {

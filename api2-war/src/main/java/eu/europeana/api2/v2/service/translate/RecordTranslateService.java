@@ -101,48 +101,47 @@ public class RecordTranslateService {
      * @throws EuropeanaException when there is a problem sending/retrieving data from the translation service
      */
     public FullBean translateProxyFields(FullBean bean, List<Language> targetLangs) throws EuropeanaException {
-//        long startTime = System.currentTimeMillis();
-//        // For the time being we only translate into the first language in the list. Any other provided language in the
-//        // list is used for filtering only
-//        String targetLang = targetLangs.get(0).name().toLowerCase(Locale.ROOT);
-//
-//        // gather all translations
-//        TranslationsMap textsToTranslate = new TranslationsMap(getProxyFieldsToTranslate(bean, targetLang));
-//        if (LOG.isDebugEnabled()) {
-//            LOG.debug("Translate - Gathering data took {} ms", (System.currentTimeMillis() - startTime));
-//        }
-//
-//        long startTimeTranslate = System.currentTimeMillis();
-//
-//        // edmLanguage is passed a hint for Pageanic translations
-//        Language edmLang = null ;
-//        if (translationService.getClass().equals(PangeanicV2TranslationService.class)) {
-//            edmLang = getHintForLangDetect(bean);
-//        }
-//
-//        if(!textsToTranslate.isEmpty()) {
-//            LOG.info("Translate - record {}", bean.getAbout());
-//        }
-//
-//        FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang, edmLang);
-//        if (LOG.isDebugEnabled()) {
-//            LOG.debug("Translate - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
-//        }
-//
-//        // add translations to Europeana proxy
-//        long startTimeOutput = System.currentTimeMillis();
-//        for (Map.Entry<String, List<String>> entry : translations.entrySet()) {
-//            generateTranslatedField(bean, entry.getKey(), targetLang, entry.getValue());
-//        }
-//        if (LOG.isDebugEnabled()) {
-//            LOG.debug("Translate - Generating output took {} ms", (System.currentTimeMillis() - startTimeOutput));
-//        }
-//
-//        if (LOG.isDebugEnabled()) {
-//            LOG.debug("Translate - Total time {} ms", (System.currentTimeMillis() - startTime));
-//        }
-//        return bean;
-        throw new TranslationServiceLimitException("test");
+        long startTime = System.currentTimeMillis();
+        // For the time being we only translate into the first language in the list. Any other provided language in the
+        // list is used for filtering only
+        String targetLang = targetLangs.get(0).name().toLowerCase(Locale.ROOT);
+
+        // gather all translations
+        TranslationsMap textsToTranslate = new TranslationsMap(getProxyFieldsToTranslate(bean, targetLang));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate - Gathering data took {} ms", (System.currentTimeMillis() - startTime));
+        }
+
+        long startTimeTranslate = System.currentTimeMillis();
+
+        // edmLanguage is passed a hint for Pageanic translations
+        Language edmLang = null ;
+        if (translationService.getClass().equals(PangeanicV2TranslationService.class)) {
+            edmLang = getHintForLangDetect(bean);
+        }
+
+        if(!textsToTranslate.isEmpty()) {
+            LOG.info("Translate - record {}", bean.getAbout());
+        }
+
+        FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang, edmLang);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate - Send/receive translation request took {} ms", (System.currentTimeMillis() - startTimeTranslate));
+        }
+
+        // add translations to Europeana proxy
+        long startTimeOutput = System.currentTimeMillis();
+        for (Map.Entry<String, List<String>> entry : translations.entrySet()) {
+            generateTranslatedField(bean, entry.getKey(), targetLang, entry.getValue());
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate - Generating output took {} ms", (System.currentTimeMillis() - startTimeOutput));
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Translate - Total time {} ms", (System.currentTimeMillis() - startTime));
+        }
+        return bean;
     }
 
     /**
