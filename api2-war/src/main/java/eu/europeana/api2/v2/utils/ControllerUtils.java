@@ -3,11 +3,9 @@ package eu.europeana.api2.v2.utils;
 import eu.europeana.api2.v2.model.enums.Profile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.URI;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,6 +19,8 @@ public final class ControllerUtils {
     public static final String ALLOWED_GET_HEAD_POST  = "GET, HEAD, POST";
     private static final String ACCEPT                = "Accept";
     private static final String PROFILE_PATTERN = "[&?]profile.*?(?=&|\\?|$)";
+    private static final String LANG_PATTERN    = "[&?]lang.*?(?=&|\\?|$)";
+    private static final String PARAM_SEPERATOR    = "&";
 
     private ControllerUtils() {
         // to avoid instantiating this class
@@ -72,6 +72,9 @@ public final class ControllerUtils {
     /**
      * Build a Redirect response for Translation limit (Resource exhausted) exception
      * Removes the 'translate' profile from the query string
+     * And 'lang' param from query
+     *
+     * The redirect should not be translated or filtered
      *
      *
      * @param request
@@ -79,17 +82,10 @@ public final class ControllerUtils {
      */
     public static void redirectForTranslationsLimitException(HttpServletRequest request, HttpServletResponse response, Set<Profile> profiles) {
         String queryStringWithoutTranslate = getQueryStringWithoutTranslate(request.getQueryString(), profiles);
-
-        final String location = ServletUriComponentsBuilder
-                .fromCurrentServletMapping()
-                .path(request.getRequestURI())
-                .query(queryStringWithoutTranslate)
-                .build().toUriString();
-
+        String location = request.getRequestURI() + "?" + queryStringWithoutTranslate;
         response.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
         response.setHeader(HttpHeaders.LOCATION, location);
     }
-
 
     /**
      * Removes 'profile=translate' OR 'translate' from the query string
@@ -98,12 +94,27 @@ public final class ControllerUtils {
      * @return
      */
     public static String getQueryStringWithoutTranslate(String query, Set<Profile> profiles) {
-        String queryString = removeProfileFromRequest(query);
+        // remove profile and lang param from request
+        String queryString = removeProfileFromRequest(removeLangFromRequest(query));
+
         profiles.remove(Profile.TRANSLATE); // translate profile is always present in this case
         if (!profiles.isEmpty()) {
+            if (StringUtils.startsWith(queryString, PARAM_SEPERATOR)) {
+                queryString = StringUtils.removeStart(queryString, PARAM_SEPERATOR);
+            }
             queryString = queryString + "&profile=" + profiles.stream().map(Profile::getName).collect(Collectors.joining(","));
         }
         return queryString;
+    }
+
+    /**
+     * Removes the lang param from the query string
+     */
+    public static String removeLangFromRequest(String query) {
+        if (StringUtils.startsWith(query , "lang")) {
+            query = "?" + query;
+        }
+        return query.replaceAll(LANG_PATTERN, "");
     }
 
     /**
