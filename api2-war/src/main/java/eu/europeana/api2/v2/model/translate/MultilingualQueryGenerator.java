@@ -50,8 +50,17 @@ public class MultilingualQueryGenerator {
         QueryParser qParser = new QueryParser();
         query = qParser.parse(query);
         String translation = queryTranslator.translate(query, targetLanguage, sourceLanguage);
-        if (!StringUtils.isBlank(translation)) { // this is to prevent issues with Pangeanic returning empty result sometimes
-            return "(" + query.getText() + ")" + " OR " + "(" + translation + ")"; //TODO: basic multilingual query
+        /**
+         * if translation is not blank, check if the translation and original query are same
+         *       if Yes : return the original
+         *       if No : return a multilingual query
+         */
+        if (StringUtils.isNotBlank(translation)) {
+            if (StringUtils.equals(query.getText(), translation)) {
+                return query.getText();
+            } else {
+                return "(" + query.getText() + ")" + " OR " + "(" + translation + ")"; //TODO: basic multilingual query
+            }
         }
         return query.getText(); // fallback, in case we don't get translation
     }
