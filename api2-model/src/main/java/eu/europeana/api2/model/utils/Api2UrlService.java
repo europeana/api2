@@ -6,6 +6,7 @@ import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.web.service.impl.EuropeanaUrlBuilder;
 import eu.europeana.corelib.web.utils.UrlBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
 
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +38,9 @@ public class Api2UrlService {
         this.defaultPortalBaseUrl = StringUtils.isNotBlank(portalBaseUrl) ? portalBaseUrl : EuropeanaStaticUrl.EUROPEANA_PORTAL_URL;
         this.defaultApi2BaseUrl = StringUtils.isNotBlank(api2BaseUrl) ? api2BaseUrl : API_BASEURL;
         this.apikeyValidateUrl = apikeyValidateUrl;
+        if (apikeyValidateUrl.isBlank()) {
+            LogManager.getLogger(Api2UrlService.class).warn("No API key services defined. API key validation is disabled!");
+        }
         this.defaultApiGatewayBaseUrl = StringUtils.isNotBlank(apiGatewayBaseUrl) ? apiGatewayBaseUrl : EuropeanaStaticUrl.API_GATEWAY_URL;
     }
 
