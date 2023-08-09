@@ -83,6 +83,7 @@ public class ApiKeyUtils{
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)){
             int statusCode = response.getStatusLine().getStatusCode();
+            LOG.trace("Validating API key {}, response is {}", apikey, statusCode);
             switch (statusCode) {
                 case HttpStatus.SC_OK: break; // everything is fine, do nothing
                 case HttpStatus.SC_NO_CONTENT: break; 
