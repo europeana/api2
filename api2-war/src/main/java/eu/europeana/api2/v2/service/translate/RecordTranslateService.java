@@ -36,12 +36,6 @@ public class RecordTranslateService {
     private final TranslationService translationService;
 
 
-    @Value("#{europeanaProperties['translation.truncate.after']}")
-    private Integer truncateFieldAfter;
-    @Value("#{europeanaProperties['translation.truncate.hardlimit']}")
-    private Integer truncateFieldHardLimit;
-
-
     /**
      * Create a new service for translating proxy fields in a particular language
      *
@@ -304,7 +298,7 @@ public class RecordTranslateService {
      */
     private List<FieldValuesLanguageMap> getValuesFromLanguageMap(Map<String, List<String>> map, String fieldName, String lang, boolean checkForUriInDef) {
         // values will not be null, as we have checked already if the lang is present
-        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslateFromMultilingualMap(map, lang, truncateFieldAfter, truncateFieldHardLimit);
+        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslateFromMultilingualMap(map, lang, null, null);
         FieldValuesLanguageMap valueMap = new FieldValuesLanguageMap(lang, fieldName, valuesToTranslate);
         // if checkForUriInDef is true and map contains def tag, add all the uri's present in def
         if (checkForUriInDef && map.containsKey(Language.DEF)) {
