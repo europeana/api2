@@ -1,6 +1,5 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
@@ -8,6 +7,7 @@ import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
@@ -32,6 +32,10 @@ public class SearchResultTranslateService {
 
     private final TranslationService translationService;
 
+    @Value("#{europeanaProperties['translation.truncate.after']}")
+    private Integer truncateFieldAfter;
+    @Value("#{europeanaProperties['translation.truncate.hardlimit']}")
+    private Integer truncateFieldHardLimit;
 
     /**
      * Create a new service for translating search results
@@ -180,7 +184,8 @@ public class SearchResultTranslateService {
     protected FieldValuesLanguageMap getNonUriValuesFromLanguageMap(Map<String, List<String>> map, String fieldName, String lang) {
         FieldValuesLanguageMap result = null;
         if (lang != null) {
-            List<String> values = filterOutUris(TranslationUtils.getValuesToTranslateFromMultilingualMap(map, lang));
+            List<String> values = filterOutUris(
+                    TranslationUtils.getValuesToTranslateFromMultilingualMap(map, lang, truncateFieldAfter, truncateFieldHardLimit));
             if (values != null && !values.isEmpty()) {
                 result = new FieldValuesLanguageMap(lang, fieldName, values);
             }
@@ -188,7 +193,8 @@ public class SearchResultTranslateService {
             // return any value if available, but only if it's a supported language
             for (String key : map.keySet()) {
                 if (Language.isSupported(key)) {
-                    List<String> values = filterOutUris(TranslationUtils.getValuesToTranslateFromMultilingualMap(map, key));
+                    List<String> values = filterOutUris(
+                            TranslationUtils.getValuesToTranslateFromMultilingualMap(map, key, truncateFieldAfter, truncateFieldHardLimit));
                     result = new FieldValuesLanguageMap(Language.getLanguage(key).name().toLowerCase(Locale.ROOT), fieldName, values);
                     if (result != null) {
                         break;
