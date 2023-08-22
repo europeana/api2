@@ -1,6 +1,5 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
@@ -11,6 +10,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
@@ -34,6 +34,12 @@ public class RecordTranslateService {
     private static final List<String> ENTITIES = List.of("agents", "concepts", "places", "timespans");
 
     private final TranslationService translationService;
+
+
+    @Value("#{europeanaProperties['translation.truncate.after']}")
+    private Integer truncateFieldAfter;
+    @Value("#{europeanaProperties['translation.truncate.hardlimit']}")
+    private Integer truncateFieldHardLimit;
 
 
     /**
@@ -298,7 +304,7 @@ public class RecordTranslateService {
      */
     private List<FieldValuesLanguageMap> getValuesFromLanguageMap(Map<String, List<String>> map, String fieldName, String lang, boolean checkForUriInDef) {
         // values will not be null, as we have checked already if the lang is present
-        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslateFromMultilingualMap(map, lang);
+        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslateFromMultilingualMap(map, lang, truncateFieldAfter, truncateFieldHardLimit);
         FieldValuesLanguageMap valueMap = new FieldValuesLanguageMap(lang, fieldName, valuesToTranslate);
         // if checkForUriInDef is true and map contains def tag, add all the uri's present in def
         if (checkForUriInDef && map.containsKey(Language.DEF)) {

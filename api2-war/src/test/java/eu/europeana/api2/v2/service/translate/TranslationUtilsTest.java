@@ -99,6 +99,15 @@ public class TranslationUtilsTest {
        assertEquals(TRANSLATED_MAP, finalMap.get(KEY3)); // all translation present
     }
 
+    @Test
+    public void testValueTruncation() {
+        String test = "This is a test string of length 34";
+        assertEquals(test, TranslationUtils.truncateFieldValue(test,100, 110));
+        assertEquals("This is a test string of length...", TranslationUtils.truncateFieldValue(test, 30, 40));
+        assertEquals("This is a test str...", TranslationUtils.truncateFieldValue(test, 17, 18));
+
+    }
+
     /**
      * To pinpoint problems faster we rely on our own check here instead of simply doing an equals
      */

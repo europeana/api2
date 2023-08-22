@@ -68,15 +68,6 @@ public class FieldValuesLanguageMap extends LinkedHashMap<String, List<String>> 
         return super.put(fieldName, textsToTranslate);
     }
 
-    /**
-     * Remove a key and it's values from this map
-     * @param fieldName the field that should be removed
-     * @return the values that are removed
-     */
-    public List<String> remove(String fieldName) {
-        return super.remove(fieldName);
-    }
-
     public boolean remove(String fieldName, List<String> valuesToRemove) {
         List<String> values = this.get(fieldName);
         for (String valueToRemove : valuesToRemove) {

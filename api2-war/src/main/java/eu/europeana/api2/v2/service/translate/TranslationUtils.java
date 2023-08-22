@@ -5,6 +5,7 @@ import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.utils.ComparatorUtils;
+import org.apache.commons.lang.WordUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.util.ReflectionUtils;
@@ -20,10 +21,16 @@ import java.util.*;
  */
 public final class TranslationUtils {
 
+    /**
+     * Added to a field value when it's truncated
+     */
+    public static final String TRUNCATED_INDICATOR = "...";
+
     public static final String FIELD_NAME_INDEX_SEPARATOR = ".";
     public static final String FIELD_NAME_INDEX_REGEX = "\\.";
 
     private static final Logger LOG = LogManager.getLogger(TranslationUtils.class);
+
 
     private TranslationUtils() {
         // empty constructor to prevent initialization
@@ -136,7 +143,8 @@ public final class TranslationUtils {
      * @param lang
      * @return null if nothing was found
      */
-    public static List<String> getValuesToTranslateFromMultilingualMap(Map<String, List<String>> map, String lang) {
+    public static List<String> getValuesToTranslateFromMultilingualMap(Map<String, List<String>> map, String lang,
+                                                                       Integer truncateAfter, Integer truncateHardLimit) {
         List<String> valuesToTranslate = map.get(lang);
         if (valuesToTranslate == null || valuesToTranslate.isEmpty()) {
             valuesToTranslate = map.entrySet().stream()
@@ -144,7 +152,15 @@ public final class TranslationUtils {
                     .map(Map.Entry :: getValue)
                     .findFirst().orElse(null);
         }
-        return valuesToTranslate;
+        if (valuesToTranslate == null) {
+            return null;
+        }
+        // truncate values if necessary
+        List<String> truncatedValues = new ArrayList<>();
+        for (String valueToTranslate : valuesToTranslate) {
+            truncatedValues.add(truncateFieldValue(valueToTranslate, truncateAfter, truncateHardLimit));
+        }
+        return truncatedValues;
     }
 
     /**
@@ -193,11 +209,23 @@ public final class TranslationUtils {
         try {
             LOG.trace("   add fieldName = {}, solrKeyname = {}, values = {}", fieldName, solrKeyName, values);
             String[] parts = fieldName.split(FIELD_NAME_INDEX_REGEX);
-            int index = Integer.valueOf(parts[0]);
+            int index = Integer.parseInt(parts[0]);
             String fName = parts[1];
             addTranslationsToObject(list.get(index), fName, solrKeyName, values);
         } catch (RuntimeException e) {
             LOG.warn("Error reading fieldName {}. Unable to add translation for it.", fieldName, e);
         }
+    }
+
+    /**
+     * Truncate the provided string on the first space after the provided limit
+     * @param fieldValue the value to truncate (or not)
+     * @return truncated or original field value
+     */
+    public static String truncateFieldValue(String fieldValue, Integer truncateAfter, Integer truncateHardLimit) {
+        if (truncateAfter == null || fieldValue.length() <= truncateAfter) {
+            return fieldValue;
+        }
+        return WordUtils.abbreviate(fieldValue, truncateAfter, truncateHardLimit, TRUNCATED_INDICATOR);
     }
 }
