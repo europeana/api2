@@ -71,7 +71,18 @@ public class AppConfig {
             LOG.info("Default Spring profiles: {}", Arrays.toString(env.getDefaultProfiles()));
         }
 
-        //Make sure the correct translation service is initialized and available for components that need it
+        // Make sure apikey url is okay
+        if (apikeyValidateUrl != null) {
+            this.apikeyValidateUrl = apikeyValidateUrl.trim();
+            if (apikeyValidateUrl.isEmpty()) {
+                LOG.warn("No API key service host defined!");
+            } else if (!apikeyValidateUrl.startsWith("http")) {
+                LOG.warn("No protocol defined for API key service host! Using http://");
+                this.apikeyValidateUrl = apikeyValidateUrl + "http://";
+            }
+        }
+
+        // Make sure the correct translation service is initialized and available for components that need it
         TranslationEngine engine = TranslationEngine.fromString(translationEngineString);
         if (TranslationEngine.PANGEANIC.equals(engine)) {
             this.translationService = new PangeanicTranslationService();
