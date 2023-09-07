@@ -5,6 +5,7 @@ import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.utils.ComparatorUtils;
+import io.swagger.models.auth.In;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -241,19 +242,10 @@ public final class TranslationUtils {
     public static List<String> truncate(List<String> valuesToTranslate , Integer translationCharLimit, Integer translationCharTolerance) {
         List<String> truncatedValues = new ArrayList<>();
 
-        AtomicReference<Integer> noOfCharacter = new AtomicReference<>(0);
-        valuesToTranslate.stream().forEach(value -> noOfCharacter.set(noOfCharacter.get() + value.length()));
-
-        if (noOfCharacter.get() <= translationCharLimit) {
+        if (truncationNotRequired(valuesToTranslate, translationCharLimit)) {
             return valuesToTranslate;
         } else {
             boolean noFurtherLooking = false;
-
-            // When the limit is reached continue until one of the following apply:
-            // 1) a phrase or line separator is reached;
-            // 2) the current field value is reached;
-            // 3) until a max tolerance is reached (the tolerance is configurable at startup time).
-
             Integer charAccumulated = 0;
             for (String value : valuesToTranslate) {
                 // check if the value exceeded the limit.
@@ -285,12 +277,26 @@ public final class TranslationUtils {
             return truncatedValues;
         }
     }
+
     /**
-     * Checks if the profile string contains multiple profiles
+     * Check if truncation id required. If the total no of char present in the
+     * field value is less than or equal too translationCharLimit. No truncation needed
+     * @param valuesToTranslate
+     * @param translationCharLimit
+     * @return
+     */
+    private static boolean truncationNotRequired(List<String> valuesToTranslate, Integer translationCharLimit){
+        AtomicReference<Integer> noOfCharacter = new AtomicReference<>(0);
+        valuesToTranslate.stream().forEach(value -> noOfCharacter.set(noOfCharacter.get() + value.length()));
+        return noOfCharacter.get() <= translationCharLimit;
+    }
+
+    /**
+     * Checks if the value contains "." or \n (new line)
      * @param value
      * @return
      */
-    public static boolean hasPhraseOrNewLine(String value) {
+    private static boolean hasPhraseOrNewLine(String value) {
         return hasPhraseOrNewLinePattern.matcher(value).find();
     }
 }

@@ -37,13 +37,13 @@ public class TruncationTest {
     public void setUp() {
         // translation char limit will keep on increasing for
         // testing until reaches final finalCharLimitValue
-        if(translationCharLimit <= finalCharLimitValue) {
+        if (translationCharLimit <= finalCharLimitValue) {
             translationCharLimit += increment;
         }
-        if(translationCharLimit >= 150) {
+        if (translationCharLimit >= 150) {
             results.add("The psychosocial work environment in human service organizations is in many respects rewarding from the aspect of human interaction.");
         }
-        if(translationCharLimit >= 235) {
+        if (translationCharLimit >= 235) {
             results.add("Digital Comprehensive Summaries of Uppsala Dissertations from the Faculty of Medicine");
         }
     }
@@ -96,7 +96,7 @@ public class TruncationTest {
     @Test
     public void test_F() {
         List<String> truncatedValues = TranslationUtils.truncate(valuesForTesting, translationCharLimit, translationCharTolerance);
-        // E test results - the third value has no phrase so we abbreviate till the tolerance
+        // F test results - the third value has no phrase so we abbreviate till the tolerance
         // translationCharLimit = 220 ; length of third value - 85
         results.add("Digital Comprehensive Summaries of Uppsala Dissertations from the Faculty...");
         check(results, truncatedValues);
