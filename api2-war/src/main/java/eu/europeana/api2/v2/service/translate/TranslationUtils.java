@@ -263,8 +263,8 @@ public final class TranslationUtils {
                         }
                     } else {
                         // abbreviate the value till the tolerance or if the end of the value is reached
-                        truncatedValues.add(WordUtils.abbreviate(value,(translationCharLimit - charAccumulated)
-                                , translationCharLimit+ translationCharTolerance, TRUNCATED_INDICATOR));
+                        truncatedValues.add(WordUtils.abbreviate(
+                                value, charLimitIndex,translationCharLimit+ translationCharTolerance, TRUNCATED_INDICATOR));
                     }
                     noFurtherLooking = true;
                 } else {
