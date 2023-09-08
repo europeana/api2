@@ -29,7 +29,6 @@ public class TruncationTest {
             "Digital Comprehensive Summaries of Uppsala Dissertations from the Faculty of Medicine",
             "Landfills as anthropogenic landforms in \n urban environment from Neamt county testing translation");
 
-    // the first value is always present in the results according to the test limits
     private static List<String> expectedResult = new ArrayList();
 
     @Before
@@ -40,6 +39,8 @@ public class TruncationTest {
             translationCharLimit += increment;
         }
         expectedResult.clear();
+
+        // the first value is always present in the results according to the test limits
         expectedResult.add("Ciscar Mart Pau");
         if (translationCharLimit >= 150) {
             expectedResult.add("The psychosocial work environment in human service organizations is in many respects rewarding from the aspect of human interaction.");

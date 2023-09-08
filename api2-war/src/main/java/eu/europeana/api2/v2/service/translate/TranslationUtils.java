@@ -5,7 +5,6 @@ import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.utils.ComparatorUtils;
-import io.swagger.models.auth.In;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -241,41 +240,38 @@ public final class TranslationUtils {
 
     public static List<String> truncate(List<String> valuesToTranslate , Integer translationCharLimit, Integer translationCharTolerance) {
         List<String> truncatedValues = new ArrayList<>();
-
         if (truncationNotRequired(valuesToTranslate, translationCharLimit)) {
             return valuesToTranslate;
-        } else {
-            boolean noFurtherLooking = false;
-            Integer charAccumulated = 0;
-            for (String value : valuesToTranslate) {
-                // check if the value exceeded the limit.
-                if ((charAccumulated + value.length()) >= translationCharLimit) {
-                    // get the string value before and after the limit
-                    Integer charLimitIndex = translationCharLimit - charAccumulated;
-                    String valueBeforeLimit = StringUtils.substring(value, 0,  charLimitIndex);
-                    String valueAfterLimit = StringUtils.substring(value, charLimitIndex, value.length());
-
-                    //  check if the string has a phrase or new line
-                    if (hasPhraseOrNewLine(valueAfterLimit)) {
-                        Matcher m = getValuesBeforePhraseOrNewLinePattern.matcher(valueAfterLimit);
-                        if (m.find()) {
-                           truncatedValues.add(valueBeforeLimit + m.group(0) + TRUNCATED_INDICATOR) ;
-                        }
-                    } else {
-                        // abbreviate the value till the tolerance or if the end of the value is reached
-                        truncatedValues.add(WordUtils.abbreviate(
-                                value, charLimitIndex,translationCharLimit+ translationCharTolerance, TRUNCATED_INDICATOR));
-                    }
-                    noFurtherLooking = true;
-                } else {
-                    truncatedValues.add(value);
-                }
-                charAccumulated +=value.length();
-                // ignore any other value after limit is reached
-                if(noFurtherLooking) break;
-            }
-            return truncatedValues;
         }
+        boolean noFurtherLooking = false;
+        Integer charAccumulated = 0;
+        for (String value : valuesToTranslate) {
+            // check if the value exceeded the limit.
+            if ((charAccumulated + value.length()) >= translationCharLimit) {
+                // get exceeded String value
+                Integer charLimitIndex = translationCharLimit - charAccumulated;
+                String valueAfterLimit = StringUtils.substring(value, charLimitIndex, value.length());
+
+                //  check if the string has a phrase or new line
+                if (hasPhraseOrNewLine(valueAfterLimit)) {
+                    Matcher m = getValuesBeforePhraseOrNewLinePattern.matcher(valueAfterLimit);
+                    if (m.find()) {
+                           truncatedValues.add(StringUtils.substring(value, 0,  charLimitIndex) + m.group(0) + TRUNCATED_INDICATOR) ;
+                    }
+                } else {
+                    // abbreviate the value till the tolerance or if the end of the value is reached
+                    truncatedValues.add(WordUtils.abbreviate(
+                            value, charLimitIndex,translationCharLimit+ translationCharTolerance, TRUNCATED_INDICATOR));
+                }
+                noFurtherLooking = true;
+            } else {
+                truncatedValues.add(value);
+            }
+            charAccumulated +=value.length();
+            // ignore any other value after limit is reached
+            if(noFurtherLooking) break;
+        }
+        return truncatedValues;
     }
 
     /**

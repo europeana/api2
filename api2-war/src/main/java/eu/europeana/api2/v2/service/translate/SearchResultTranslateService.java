@@ -173,9 +173,6 @@ public class SearchResultTranslateService {
             LOG.warn("Unexpected data - field {} did not return a map", field.getName());
         }
         LOG.trace("    Item {}, field {}, lang {}, result = {}", index, field.getName(), lang, result);
-        System.out.println("getFieldValuesForLang for " +field);
-        System.out.println(result);
-
         return result;
     }
 
