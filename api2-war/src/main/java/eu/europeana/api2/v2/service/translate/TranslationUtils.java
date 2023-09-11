@@ -13,7 +13,6 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,8 +27,7 @@ public final class TranslationUtils {
     /**
      * Added to a field value when it's truncated
      */
-    private static String hasPhraseOrNewLine = "[.|\\n]";
-    private static String getPharseOrNewLine = "[^.|\\n]+";
+    private static String getPharseOrNewLine = "^.*?(?=[.|\\n])";
 
     public static final String TRUNCATED_INDICATOR = "...";
 
@@ -38,7 +36,6 @@ public final class TranslationUtils {
 
     private static final Logger LOG = LogManager.getLogger(TranslationUtils.class);
 
-    private  static final Pattern hasPhraseOrNewLinePattern = Pattern.compile(hasPhraseOrNewLine);
     private  static final Pattern getValuesBeforePhraseOrNewLinePattern = Pattern.compile(getPharseOrNewLine);
 
 
@@ -240,9 +237,6 @@ public final class TranslationUtils {
 
     public static List<String> truncate(List<String> valuesToTranslate , Integer translationCharLimit, Integer translationCharTolerance) {
         List<String> truncatedValues = new ArrayList<>();
-        if (truncationNotRequired(valuesToTranslate, translationCharLimit)) {
-            return valuesToTranslate;
-        }
         boolean noFurtherLooking = false;
         Integer charAccumulated = 0;
         for (String value : valuesToTranslate) {
@@ -253,11 +247,9 @@ public final class TranslationUtils {
                 String valueAfterLimit = StringUtils.substring(value, charLimitIndex, value.length());
 
                 //  check if the string has a phrase or new line
-                if (hasPhraseOrNewLine(valueAfterLimit)) {
-                    Matcher m = getValuesBeforePhraseOrNewLinePattern.matcher(valueAfterLimit);
-                    if (m.find()) {
-                           truncatedValues.add(StringUtils.substring(value, 0,  charLimitIndex) + m.group(0) + TRUNCATED_INDICATOR) ;
-                    }
+                Matcher m = getValuesBeforePhraseOrNewLinePattern.matcher(valueAfterLimit);
+                if (m.find()) {
+                    truncatedValues.add(StringUtils.substring(value, 0,  charLimitIndex) + m.group(0) + TRUNCATED_INDICATOR) ;
                 } else {
                     // abbreviate the value till the tolerance or if the end of the value is reached
                     truncatedValues.add(WordUtils.abbreviate(
@@ -272,27 +264,5 @@ public final class TranslationUtils {
             if(noFurtherLooking) break;
         }
         return truncatedValues;
-    }
-
-    /**
-     * Check if truncation id required. If the total no of char present in the
-     * field value is less than or equal too translationCharLimit. No truncation needed
-     * @param valuesToTranslate
-     * @param translationCharLimit
-     * @return
-     */
-    private static boolean truncationNotRequired(List<String> valuesToTranslate, Integer translationCharLimit){
-        AtomicReference<Integer> noOfCharacter = new AtomicReference<>(0);
-        valuesToTranslate.stream().forEach(value -> noOfCharacter.set(noOfCharacter.get() + value.length()));
-        return noOfCharacter.get() <= translationCharLimit;
-    }
-
-    /**
-     * Checks if the value contains "." or \n (new line)
-     * @param value
-     * @return
-     */
-    private static boolean hasPhraseOrNewLine(String value) {
-        return hasPhraseOrNewLinePattern.matcher(value).find();
     }
 }

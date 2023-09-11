@@ -32,8 +32,9 @@ public class SearchResultTranslateService {
 
     private final TranslationService translationService;
 
-    @Value("#{europeanaProperties['translation.char.Limit']}")
+    @Value("#{europeanaProperties['translation.char.limit']}")
     private Integer translationCharLimit;
+
     @Value("#{europeanaProperties['translation.char.tolerance']}")
     private Integer translationCharTolerance;
 
