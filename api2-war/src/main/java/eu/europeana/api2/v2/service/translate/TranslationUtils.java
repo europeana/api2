@@ -27,7 +27,7 @@ public final class TranslationUtils {
     /**
      * Added to a field value when it's truncated
      */
-    private static String getPharseOrNewLine = "^.*?(?=[.|\\n])";
+    private static String getPharseOrNewLine = "^.*?(?=[.|?|!|\\n])";
 
     public static final String TRUNCATED_INDICATOR = "...";
 

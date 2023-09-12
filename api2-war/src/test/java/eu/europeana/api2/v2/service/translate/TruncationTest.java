@@ -29,6 +29,10 @@ public class TruncationTest {
             "Digital Comprehensive Summaries of Uppsala Dissertations from the Faculty of Medicine",
             "Landfills as anthropogenic landforms in \n urban environment from Neamt county testing translation");
 
+    private static List<String> valuesForTesting_1 = Arrays.asList("Ciscar Mart Pau",
+            "Struktura zbudowana przez człowieka mająca ściany i dach!! stojąca w określonym miejscu",
+            "Se trata en realidad de un conjunto formado por varios edificios ?? el construido por López Sallaberry");
+
     private static List<String> expectedResult = new ArrayList();
 
     @Before
@@ -161,6 +165,44 @@ public class TruncationTest {
         // translationCharLimit = 340 ; length of total value - 329
         expectedResult.add("Landfills as anthropogenic landforms in \n urban environment from Neamt county testing translation");
         check(expectedResult, truncatedValues);
+    }
+
+    // Testing for other phrases like ? or !
+    @Test
+    public void test_M() {
+        List<String> truncatedValues = TranslationUtils.truncate(valuesForTesting_1, 30 , translationCharTolerance);
+        // clear what we have added in set up for previous values
+        expectedResult.clear();
+        expectedResult.add("Ciscar Mart Pau");
+        expectedResult.add("Struktura zbudowana przez człowieka mająca ściany i dach...");
+        check(expectedResult, truncatedValues); // has phrase "!"
+
+        // increase limit to check further
+        truncatedValues.clear();
+        expectedResult.clear();
+        expectedResult.add("Ciscar Mart Pau");
+        expectedResult.add("Struktura zbudowana przez człowieka mająca ściany i dach!! stojąca w określonym miejscu");
+        truncatedValues = TranslationUtils.truncate(valuesForTesting_1, 100, translationCharTolerance);
+        check(expectedResult, truncatedValues); // we have reached the end of the second value
+
+
+        // increase limit to check further
+        truncatedValues.clear();
+        expectedResult.clear();
+        expectedResult.add("Ciscar Mart Pau");
+        expectedResult.add("Struktura zbudowana przez człowieka mająca ściany i dach!! stojąca w określonym miejscu");
+        expectedResult.add("Se trata en realidad de un conjunto formado por varios edificios ...");
+        truncatedValues = TranslationUtils.truncate(valuesForTesting_1, 120, translationCharTolerance);
+        check(expectedResult, truncatedValues); // has phrase "?"
+
+        // increase limit to check further
+        truncatedValues.clear();
+        expectedResult.clear();
+        expectedResult.add("Ciscar Mart Pau");
+        expectedResult.add("Struktura zbudowana przez człowieka mająca ściany i dach!! stojąca w określonym miejscu");
+        expectedResult.add("Se trata en realidad de un conjunto formado por varios edificios ?? el construido...");
+        truncatedValues = TranslationUtils.truncate(valuesForTesting_1, 180, translationCharTolerance);
+        check(expectedResult, truncatedValues); // no pharse have abbreviated
     }
 
     private void check(List<String> exceptedValues, List<String> actualValues) {
