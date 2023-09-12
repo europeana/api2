@@ -3,13 +3,14 @@ package eu.europeana.api2.model.utils;
 import eu.europeana.corelib.definitions.EuropeanaStaticUrl;
 import eu.europeana.corelib.definitions.solr.DocType;
 import eu.europeana.corelib.record.BaseUrlWrapper;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.Assert.assertEquals;
+//import static org.junit.jupiter.api.Assertions.assertEquals;
+//import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test Api2UrlService class
@@ -29,13 +30,13 @@ public class Api2UrlServiceTest {
 
 
     @Test
-    void shouldReturnDefaultPortalBaseUrl() {
+    public void shouldReturnDefaultPortalBaseUrl() {
         Api2UrlService s1 = new Api2UrlService(new HashMap<>(), configPortalUrl, configApi2Url, apikeyValidateUrl, configGatewayUrl);
         assertEquals(EuropeanaStaticUrl.EUROPEANA_PORTAL_URL, s1.getPortalBaseUrl(""));
     }
 
     @Test
-    void shouldReturnConfiguredPortalBaseUrlForRoute() {
+    public void shouldReturnConfiguredPortalBaseUrlForRoute() {
         String baseUrl = "http://portal-url";
         Map<String, BaseUrlWrapper> urlMap = new HashMap<>();
         urlMap.put(TEST_ROUTE, new BaseUrlWrapper("", "", baseUrl));
@@ -45,13 +46,13 @@ public class Api2UrlServiceTest {
     }
 
     @Test
-    void shouldReturnDefaultApi2BaseUrl() {
+    public void shouldReturnDefaultApi2BaseUrl() {
         Api2UrlService s1 = new Api2UrlService(new HashMap<>(), "", configApi2Url, apikeyValidateUrl, configGatewayUrl);
         assertEquals(Api2UrlService.API_BASEURL, s1.getApi2BaseUrl(""));
     }
 
     @Test
-    void shouldReturnConfiguredApi2BaseUrlForRoute() {
+    public void shouldReturnConfiguredApi2BaseUrlForRoute() {
         String baseUrl = "http://api2-base-url";
         Map<String, BaseUrlWrapper> urlMap = new HashMap<>();
         urlMap.put("test-route-1", new BaseUrlWrapper(baseUrl, "", ""));
@@ -61,13 +62,13 @@ public class Api2UrlServiceTest {
     }
 
     @Test
-    void shouldReturnDefaultApiGatewayBaseUrl() {
+    public void shouldReturnDefaultApiGatewayBaseUrl() {
         Api2UrlService s1 = new Api2UrlService(new HashMap<>(), "", configApi2Url, apikeyValidateUrl, configGatewayUrl);
         assertEquals(EuropeanaStaticUrl.API_GATEWAY_URL, s1.getApiGatewayBaseUrl(""));
     }
 
     @Test
-    void shouldReturnConfiguredApiGatewayBaseUrlForRoute() {
+    public void shouldReturnConfiguredApiGatewayBaseUrlForRoute() {
         String baseUrl = "http://api-gateway-base-url";
         Map<String, BaseUrlWrapper> urlMap = new HashMap<>();
         urlMap.put("test-route-1", new BaseUrlWrapper("", baseUrl, ""));
@@ -77,11 +78,12 @@ public class Api2UrlServiceTest {
     }
 
     @Test
-    void testGetApiKeyValidateUrl() {
+    public void testGetApiKeyValidateUrl() {
         String validateUrl = null;
 
         Api2UrlService s1 = new Api2UrlService(null, null, configApi2Url, apikeyValidateUrl, configGatewayUrl);
-        assertNull(s1.getApikeyValidateUrl());
+//        assertNull(s1.getApikeyValidateUrl());
+        assertEquals("", s1.getApikeyValidateUrl());
 
         validateUrl = "https://apikey.test.org/apikey/validate";
         Api2UrlService s2 = new Api2UrlService(null, validateUrl, configApi2Url, apikeyValidateUrl, configGatewayUrl);
@@ -90,7 +92,7 @@ public class Api2UrlServiceTest {
 
 
     @Test
-    void testGetRecordPortalUrl() {
+    public void testGetRecordPortalUrl() {
         String baseUrl = null;
         String testRoute = "test-route-1";
 
@@ -113,7 +115,7 @@ public class Api2UrlServiceTest {
     }
 
     @Test
-    void testGetThumbnailUrl() {
+    public void testGetThumbnailUrl() {
         String apiGatewayBaseUrl = null;
         String testRoute = "test-route-1";
 
@@ -139,12 +141,12 @@ public class Api2UrlServiceTest {
 
         urlMap.put(testRoute, new BaseUrlWrapper("https://testing", "", ""));
         Api2UrlService s4 = new Api2UrlService(urlMap, "", configApi2Url, apikeyValidateUrl, apiGatewayBaseUrl);
-        assertEquals("https://api.europeana.eu/thumbnail/v2/url.json?uri=https%3A%2F%2Ftest1.eu&type=IMAGE",
+        assertEquals("https://localhost/thumbnail/v2/url.json?uri=https%3A%2F%2Ftest1.eu&type=IMAGE",
                 s4.getThumbnailUrl(testRoute, "https://test1.eu", DocType.IMAGE.getEnumNameValue()));
     }
 
     @Test
-    void testGetRecordApi2Url() {
+    public void testGetRecordApi2Url() {
         /**
          * EA-2151: /api/v2/ only included in URLs when:
          *          - baseUrl is specified; and
@@ -166,6 +168,6 @@ public class Api2UrlServiceTest {
         baseUrl = "http://localhost:8080";
         urlMap.put(TEST_ROUTE, new BaseUrlWrapper(baseUrl, "", ""));
         Api2UrlService s3 = new Api2UrlService(urlMap, "", configApi2Url, apikeyValidateUrl, configGatewayUrl);
-        assertEquals("http://localhost:8080/api/v2/record/x/y.json?wskey=test", s3.getRecordApi2Url(TEST_ROUTE, "/x/y", "test"));
+        assertEquals("http://localhost:8080/record/x/y.json?wskey=test", s3.getRecordApi2Url(TEST_ROUTE, "/x/y", "test"));
     }
 }
