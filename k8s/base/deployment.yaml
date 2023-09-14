@@ -9,20 +9,26 @@ spec:
       containers:
         - name: search-api
           image: europeana/search-api
-#          ports:
-#            - containerPort: 8080
-#          livenessProbe:
-#            httpGet:
-#              port: 8080
-#              path: /info
-#            initialDelaySeconds: 30
-#            periodSeconds: 30
-#          readinessProbe:
-#            httpGet:
-#              port: 8080
-#              path: /info
-#            initialDelaySeconds: 30
-#            periodSeconds: 30
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /info
+              httpHeaders:
+                - name: Accept
+                  value: application/json
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /info
+              httpHeaders:
+                - name: Accept
+                  value: application/json
+            initialDelaySeconds: 30
+            periodSeconds: 30
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               # matches volume mount path for json file
