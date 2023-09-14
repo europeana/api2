@@ -15,13 +15,13 @@ spec:
             httpGet:
               port: 8080
               path: /info
-            initialDelaySeconds: 30
+            initialDelaySeconds: 120
             periodSeconds: 30
           readinessProbe:
             httpGet:
               port: 8080
               path: /info
-            initialDelaySeconds: 30
+            initialDelaySeconds: 120
             periodSeconds: 30
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
