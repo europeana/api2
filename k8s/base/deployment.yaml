@@ -15,18 +15,12 @@ spec:
             httpGet:
               port: 8080
               path: /info
-              httpHeaders:
-                - name: Accept
-                  value: application/json
             initialDelaySeconds: 120
             periodSeconds: 30
           readinessProbe:
             httpGet:
               port: 8080
               path: /info
-              httpHeaders:
-                - name: Accept
-                  value: application/json
             initialDelaySeconds: 120
             periodSeconds: 30
           env:
