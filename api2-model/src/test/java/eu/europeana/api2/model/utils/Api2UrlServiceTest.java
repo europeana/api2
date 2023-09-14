@@ -8,8 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test Api2UrlService class
@@ -78,13 +77,12 @@ public class Api2UrlServiceTest {
 
     @Test
     void testGetApiKeyValidateUrl() {
-        String validateUrl = null;
-
-        Api2UrlService s1 = new Api2UrlService(null, null, configApi2Url, apikeyValidateUrl, configGatewayUrl);
-        assertNull(s1.getApikeyValidateUrl());
+        String validateUrl = "";
+        Api2UrlService s1 = new Api2UrlService(null, null, configApi2Url, validateUrl, configGatewayUrl);
+        assertTrue(s1.getApikeyValidateUrl().isEmpty());
 
         validateUrl = "https://apikey.test.org/apikey/validate";
-        Api2UrlService s2 = new Api2UrlService(null, validateUrl, configApi2Url, apikeyValidateUrl, configGatewayUrl);
+        Api2UrlService s2 = new Api2UrlService(null, null, configApi2Url, validateUrl, configGatewayUrl);
         assertEquals(validateUrl, s2.getApikeyValidateUrl());
     }
 
@@ -136,7 +134,8 @@ public class Api2UrlServiceTest {
         Api2UrlService s3 = new Api2UrlService(urlMap, "", configApi2Url, apikeyValidateUrl, apiGatewayBaseUrl);
         assertEquals("https://localhost/thumbnail/v2/url.json?uri=http%3A%2F%2Ftest3.eu&type=IMAGE",
                 s3.getThumbnailUrl(testRoute, "http://test3.eu", DocType.IMAGE.getEnumNameValue()));
-
+    
+        apiGatewayBaseUrl = "api.europeana.eu";
         urlMap.put(testRoute, new BaseUrlWrapper("https://testing", "", ""));
         Api2UrlService s4 = new Api2UrlService(urlMap, "", configApi2Url, apikeyValidateUrl, apiGatewayBaseUrl);
         assertEquals("https://api.europeana.eu/thumbnail/v2/url.json?uri=https%3A%2F%2Ftest1.eu&type=IMAGE",
@@ -166,6 +165,6 @@ public class Api2UrlServiceTest {
         baseUrl = "http://localhost:8080";
         urlMap.put(TEST_ROUTE, new BaseUrlWrapper(baseUrl, "", ""));
         Api2UrlService s3 = new Api2UrlService(urlMap, "", configApi2Url, apikeyValidateUrl, configGatewayUrl);
-        assertEquals("http://localhost:8080/api/v2/record/x/y.json?wskey=test", s3.getRecordApi2Url(TEST_ROUTE, "/x/y", "test"));
+        assertEquals("http://localhost:8080/record/x/y.json?wskey=test", s3.getRecordApi2Url(TEST_ROUTE, "/x/y", "test"));
     }
 }
