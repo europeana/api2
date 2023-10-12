@@ -109,7 +109,7 @@ kind: Ingress
 metadata:
   name: search-api-ingress2
   annotations:
-    ${K8S_INGRESS_ANNOTATIONS}
+    ${K8S_INGRESS2_ANNOTATIONS}
 spec:
   ingressClassName: public-iks-k8s-nginx
   tls:
