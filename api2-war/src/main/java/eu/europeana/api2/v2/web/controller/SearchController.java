@@ -207,7 +207,8 @@ public class SearchController extends BaseController {
                                       @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
                                       HttpServletResponse response) throws EuropeanaException {
-        apiKeyUtils.validateApiKey(apikey);
+
+        apiKeyUtils.authorizeReadAccess(request);
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
@@ -977,11 +978,10 @@ public class SearchController extends BaseController {
     public KmlResponse searchKml(@SolrEscape @RequestParam(value = "query") String queryString,
                                  @RequestParam(value = "qf", required = false) String[] refinementArray,
                                  @RequestParam(value = "start", required = false, defaultValue = "1") int start,
-                                 @RequestParam(value = "wskey") String apikey,
                                  HttpServletRequest request,
                                  HttpServletResponse response) throws EuropeanaException {
 
-        apiKeyUtils.validateApiKey(apikey);
+        apiKeyUtils.authorizeReadAccess(request);
         SolrClient solrClient = getSolrClient(request.getServerName());
 
         String[] qfArray = request.getParameterMap().get("qf");

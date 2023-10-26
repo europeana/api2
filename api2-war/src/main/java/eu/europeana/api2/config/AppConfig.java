@@ -1,12 +1,20 @@
 package eu.europeana.api2.config;
 
+import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.*;
+import eu.europeana.api2.v2.service.translate.GoogleTranslationService;
+import eu.europeana.api2.v2.service.translate.PangeanicTranslationService;
+import eu.europeana.api2.v2.service.translate.PangeanicV2TranslationService;
+import eu.europeana.api2.v2.service.translate.SearchResultTranslateService;
+import eu.europeana.api2.v2.service.translate.TranslationEngine;
+import eu.europeana.api2.v2.service.translate.TranslationService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
+import java.util.Arrays;
+import javax.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +26,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
-
-import javax.annotation.PostConstruct;
-import java.util.Arrays;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -45,6 +50,10 @@ public class AppConfig {
 
     @Value("${apikey.validate.url:}")
     private String apikeyValidateUrl;
+
+
+    @Value("${apikey.service.url:}")
+    private String apikeyServiceUrl;
 
     @Value("${apiGateway.baseUrl:}")
     private String apiGatewayBaseUrl;
@@ -188,6 +197,14 @@ public class AppConfig {
     @Bean
     public RouteDataService routeService(){
         return new RouteDataService();
+    }
+
+
+   @Bean(name ="searchClientDetails")
+    public EuropeanaClientDetailsService getClientDetailsService() {
+        EuropeanaClientDetailsService clientDetailsService = new EuropeanaClientDetailsService();
+        clientDetailsService.setApiKeyServiceUrl(apikeyServiceUrl);
+        return clientDetailsService;
     }
 
 }

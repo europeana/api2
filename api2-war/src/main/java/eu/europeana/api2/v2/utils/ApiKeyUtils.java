@@ -1,8 +1,14 @@
 package eu.europeana.api2.v2.utils;
 
+import eu.europeana.api.commons.web.exception.ApplicationAuthenticationException;
 import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.utils.Api2UrlService;
+import eu.europeana.api2.v2.service.SearchAuthorizationService;
 import eu.europeana.corelib.web.exception.ProblemType;
+import java.io.IOException;
+import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -13,10 +19,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import java.io.IOException;
-
 /**
  * Utility class for checking API client keys
  *
@@ -24,17 +26,23 @@ import java.io.IOException;
  */
 public class ApiKeyUtils{
 
+
     private static final Logger LOG                = LogManager.getLogger(ApiKeyUtils.class);
     private static final String AUTHORIZATION      = "Authorization";
     private static final String APIKEYSERVICEERROR = "Problem connecting to the apikey service";
     private static final int    MAXCONNTOTAL       = 200;
     private static final int    MAXCONNPERROUTE    = 100;
+    public static final String X_API_KEY = "X-Api-Key";
+    public static final String WSKEY = "wskey";
 
     @Resource
     private Api2UrlService urlService;
 
     private CloseableHttpClient httpClient;
 
+    /**
+     * Constructor for ApiKeyUtils
+     */
     public ApiKeyUtils(){
         // configure http client
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
@@ -52,7 +60,8 @@ public class ApiKeyUtils{
         }
     }
 
-    /*
+
+    /**
      * This method uses the Apikey service to validate API keys. It responds like this:
      *
      * - HTTP 400 and APIKEY_MISSING if no apikey is provided OR the Apikey service returns HTTP 400
@@ -64,9 +73,10 @@ public class ApiKeyUtils{
      * However, an error is logged if there was a problem connecting to the Apikey service.
      *
      * @param apikey The user's API web service apikey
-     * @throws ApiKeyException
+     * @throws ApiKeyException exception
      *
      */
+    @Deprecated(since = "Oct 2023")
     public void validateApiKey(String apikey) throws ApiKeyException {
         if (StringUtils.isBlank(urlService.getApikeyValidateUrl())) {
             LOG.debug("API Key validation disabled");
@@ -100,4 +110,39 @@ public class ApiKeyUtils{
         }
         LOG.debug("Post request to validate apiKey took {} ms", (System.currentTimeMillis() - t));
     }
+
+
+    /** Method uses authentication from api-commons for validating the read access to the API.
+     * @param servletRequest Request Object
+     * @throws ApiKeyException exception if not authorised
+     */
+    public void authorizeReadAccess(HttpServletRequest servletRequest)
+        throws  ApiKeyException {
+        long startTime = System.currentTimeMillis();
+        try {
+            checkApiKey(servletRequest);
+            SearchAuthorizationService authService = new SearchAuthorizationService();
+            authService.authorizeReadAccess(servletRequest);
+        } catch (ApplicationAuthenticationException e) {
+            if (LOG.isErrorEnabled()) {
+                LOG.error(e);
+            }
+            int statusCode = e.getStatus() != null ? e.getStatus().value() : HttpStatus.SC_UNAUTHORIZED;
+            throw new ApiKeyException(ProblemType.APIKEY_DOES_NOT_EXIST, servletRequest.getHeader(X_API_KEY),statusCode);
+        }finally {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Validation of apiKey took {} ms", (System.currentTimeMillis() - startTime));
+            }
+        }
+
+    }
+
+    private void checkApiKey(HttpServletRequest servletRequest) throws ApiKeyException {
+        if (StringUtils.isBlank(servletRequest.getParameter(WSKEY)) &&
+            StringUtils.isBlank(servletRequest.getHeader(X_API_KEY))) {
+            throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
+        }
+    }
+
+
 }

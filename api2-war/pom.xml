@@ -185,15 +185,15 @@
             <groupId>eu.europeana.api.commons</groupId>
             <artifactId>commons-web</artifactId>
             <version>${apicommons.version}</version>
-            <exclusions>
-                <exclusion>
+           <exclusions>
+             <!--<exclusion>
                     <artifactId>commons-oauth</artifactId>
                     <groupId>eu.europeana.api.commons</groupId>
                 </exclusion>
                 <exclusion>
                     <artifactId>commons-net</artifactId>
                     <groupId>eu.europeana.api.commons</groupId>
-                </exclusion>
+                </exclusion> -->
                 <!-- mongo dependency clashes with Corelib's-->
                 <exclusion>
                     <groupId>org.mongodb</groupId>
@@ -204,6 +204,7 @@
                     <groupId>javax.ws.rs</groupId>
                     <artifactId>javax.ws.rs-api</artifactId>
                 </exclusion>
+
             </exclusions>
         </dependency>
 
@@ -232,6 +233,13 @@
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
+
+            <exclusions>
+                <exclusion>
+                    <groupId>xerces</groupId>
+                    <artifactId>xercesImpl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -246,6 +254,11 @@
             <artifactId>mockito-all</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security.oauth</groupId>
+            <artifactId>spring-security-oauth2</artifactId>
+            <version>2.5.1.RELEASE</version>
         </dependency>
     </dependencies>
 
