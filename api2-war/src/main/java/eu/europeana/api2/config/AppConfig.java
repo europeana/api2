@@ -1,16 +1,11 @@
 package eu.europeana.api2.config;
 
-import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
+
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.GoogleTranslationService;
-import eu.europeana.api2.v2.service.translate.PangeanicTranslationService;
-import eu.europeana.api2.v2.service.translate.PangeanicV2TranslationService;
-import eu.europeana.api2.v2.service.translate.SearchResultTranslateService;
-import eu.europeana.api2.v2.service.translate.TranslationEngine;
-import eu.europeana.api2.v2.service.translate.TranslationService;
+import eu.europeana.api2.v2.service.translate.*;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import java.util.Arrays;
@@ -194,6 +189,4 @@ public class AppConfig {
     public RouteDataService routeService(){
         return new RouteDataService();
     }
-
-
 }

@@ -879,7 +879,6 @@ public class SearchController extends BaseController {
                                                               List<Language> filterLanguages,
                                                               HttpServletRequest servletRequest,
                                                               HttpServletResponse servletResponse) throws EuropeanaException {
-
         String apiKey=ApiKeyUtils.extractApiKeyFromRequest(servletRequest);
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
