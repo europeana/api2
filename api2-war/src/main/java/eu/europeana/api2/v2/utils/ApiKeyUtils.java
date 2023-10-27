@@ -120,9 +120,10 @@ public class ApiKeyUtils{
         throws  ApiKeyException {
         long startTime = System.currentTimeMillis();
         try {
-            checkApiKey(servletRequest);
-            SearchAuthorizationService authService = new SearchAuthorizationService();
-            authService.authorizeReadAccess(servletRequest);
+            if (StringUtils.isBlank(extractApiKeyFromRequest(servletRequest))) {
+                throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
+            }
+            performReadAccessAuthorization(servletRequest);
         } catch (ApplicationAuthenticationException e) {
             if (LOG.isErrorEnabled()) {
                 LOG.error(e);
@@ -137,11 +138,16 @@ public class ApiKeyUtils{
 
     }
 
-    private void checkApiKey(HttpServletRequest servletRequest) throws ApiKeyException {
-        if (StringUtils.isBlank(extractApiKeyFromRequest(servletRequest))) {
-            throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
+    private void performReadAccessAuthorization(HttpServletRequest servletRequest)
+        throws ApplicationAuthenticationException {
+        if(StringUtils.isBlank(urlService.getApiKeyServiceurl())){
+            LOG.warn("API Key Service URL not defined ,validation disabled!!!");
+            return;
         }
+        SearchAuthorizationService authService = new SearchAuthorizationService();
+        authService.authorizeReadAccess(servletRequest);
     }
+
 
     /** Method to fetch ApiKey Either from request header or request parameter
      * @param request HttpServletRequest

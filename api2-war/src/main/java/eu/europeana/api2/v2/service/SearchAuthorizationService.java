@@ -6,6 +6,10 @@ import eu.europeana.api.commons.definitions.vocabulary.Role;
 import eu.europeana.api.commons.nosql.service.ApiWriteLockService;
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api.commons.service.authorization.BaseAuthorizationService;
+import eu.europeana.api2.model.utils.Api2UrlService;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 
@@ -14,9 +18,7 @@ import org.springframework.security.oauth2.provider.ClientDetailsService;
  */
 public class SearchAuthorizationService extends BaseAuthorizationService {
 
-  @Value("${apikey.service.url}")
-  private String apiKeyServiceurl;
-
+  private static final Logger LOG = LogManager.getLogger(SearchAuthorizationService.class);
 
   @Override
   protected ApiWriteLockService getApiWriteLockService() {
@@ -35,8 +37,9 @@ public class SearchAuthorizationService extends BaseAuthorizationService {
 
   @Override
   protected ClientDetailsService getClientDetailsService() {
+
     EuropeanaClientDetailsService clientDetails = new EuropeanaClientDetailsService();
-    clientDetails.setApiKeyServiceUrl(apiKeyServiceurl);
+    clientDetails.setApiKeyServiceUrl(Api2UrlService.getBeanInstance().getApiKeyServiceurl());
     return clientDetails;
   }
 

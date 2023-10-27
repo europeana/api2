@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Value;
 
 import static eu.europeana.api2.model.utils.RouteMatcher.getEntryForRoute;
 
@@ -30,6 +31,11 @@ public class Api2UrlService {
     private final String defaultPortalBaseUrl;
     private final String defaultApi2BaseUrl;
     private final String defaultApiGatewayBaseUrl;
+
+
+    @Value("${apikey.service.url}")
+    private String apiKeyServiceurl;
+
 
     private final Map<String, BaseUrlWrapper> routeBaseUrlMap;
 
@@ -208,5 +214,9 @@ public class Api2UrlService {
                 // Not sure the profile parameter still serves any purpose, can probably be removed
                 .addParam("profile", profile);
         return url.toString();
+    }
+
+    public String getApiKeyServiceurl() {
+        return apiKeyServiceurl;
     }
 }
