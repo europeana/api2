@@ -138,10 +138,18 @@ public class ApiKeyUtils{
     }
 
     private void checkApiKey(HttpServletRequest servletRequest) throws ApiKeyException {
-        if (StringUtils.isBlank(servletRequest.getParameter(WSKEY)) &&
-            StringUtils.isBlank(servletRequest.getHeader(X_API_KEY))) {
+        if (StringUtils.isBlank(extractApiKeyFromRequest(servletRequest))) {
             throw new ApiKeyException(ProblemType.APIKEY_MISSING, null, HttpStatus.SC_BAD_REQUEST);
         }
+    }
+
+    /** Method to fetch ApiKey Either from request header or request parameter
+     * @param request HttpServletRequest
+     * @return apikey String
+     */
+    public static String extractApiKeyFromRequest(HttpServletRequest request){
+      return (request.getHeader(X_API_KEY) != null ? request.getHeader(X_API_KEY)
+          : request.getParameter(WSKEY));
     }
 
 

@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api.commons.oauth2.utils.OAuthUtils;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
@@ -140,11 +141,11 @@ public class SearchController extends BaseController {
     @PostMapping(value = {"/api/v2/search.json", "/record/v2/search.json", "/record/search.json"},
                  produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE,
                  consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView searchJsonPost(@RequestParam(value = "wskey") String apikey,
+    public ModelAndView searchJsonPost(
                                        @RequestBody SearchRequest searchRequest,
                                        HttpServletRequest request,
                                        HttpServletResponse response) throws EuropeanaException {
-        return searchJsonGet(apikey,
+        return searchJsonGet(
                              searchRequest.getQuery(),
                              searchRequest.getQf(),
                              searchRequest.getReusability(),
@@ -180,7 +181,7 @@ public class SearchController extends BaseController {
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
     @GetMapping(value = {"/api/v2/search.json", "/record/v2/search.json", "/record/search.json"},
                 produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
-    public ModelAndView searchJsonGet(@RequestParam(value = "wskey") String apikey,
+    public ModelAndView searchJsonGet(
                                       @SolrEscape @RequestParam(value = "query") String queryString,
                                       @RequestParam(value = "qf", required = false) String[] refinementArray,
                                       @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
@@ -466,7 +467,7 @@ public class SearchController extends BaseController {
             query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
         }
 
-        SearchResults<? extends IdBean> result = createResults(apikey, profiles, query, clazz, request.getServerName(),
+        SearchResults<? extends IdBean> result = createResults( profiles, query, clazz, request.getServerName(),
                 translateTargetLang, filterLanguages, request, response);
 
         if (profiles.contains(Profile.PARAMS)) {
@@ -869,7 +870,7 @@ public class SearchController extends BaseController {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends IdBean> SearchResults<T> createResults(String apiKey,
+    private <T extends IdBean> SearchResults<T> createResults(
                                                               Set<Profile> profiles,
                                                               Query query,
                                                               Class<T> clazz,
@@ -878,6 +879,8 @@ public class SearchController extends BaseController {
                                                               List<Language> filterLanguages,
                                                               HttpServletRequest servletRequest,
                                                               HttpServletResponse servletResponse) throws EuropeanaException {
+
+        String apiKey=ApiKeyUtils.extractApiKeyFromRequest(servletRequest);
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
 
