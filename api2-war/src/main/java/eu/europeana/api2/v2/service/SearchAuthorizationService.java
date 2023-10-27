@@ -6,7 +6,7 @@ import eu.europeana.api.commons.definitions.vocabulary.Role;
 import eu.europeana.api.commons.nosql.service.ApiWriteLockService;
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api.commons.service.authorization.BaseAuthorizationService;
-import javax.annotation.Resource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 
 /**
@@ -14,8 +14,8 @@ import org.springframework.security.oauth2.provider.ClientDetailsService;
  */
 public class SearchAuthorizationService extends BaseAuthorizationService {
 
-  @Resource(name = "searchClientDetails")
-  ClientDetailsService clientDetailsService;
+  @Value("${apikey.service.url}")
+  private String apiKeyServiceurl;
 
 
   @Override
@@ -36,8 +36,7 @@ public class SearchAuthorizationService extends BaseAuthorizationService {
   @Override
   protected ClientDetailsService getClientDetailsService() {
     EuropeanaClientDetailsService clientDetails = new EuropeanaClientDetailsService();
-    clientDetails.setApiKeyServiceUrl("http://apikey.acceptance.eanadev.org/apikey");
-    System.out.println("clientDetailsService:--------------------------> "+ (clientDetailsService!= null?clientDetailsService.toString():null));
+    clientDetails.setApiKeyServiceUrl(apiKeyServiceurl);
     return clientDetails;
   }
 

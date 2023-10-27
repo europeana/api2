@@ -51,10 +51,6 @@ public class AppConfig {
     @Value("${apikey.validate.url:}")
     private String apikeyValidateUrl;
 
-
-    @Value("${apikey.service.url:}")
-    private String apikeyServiceUrl;
-
     @Value("${apiGateway.baseUrl:}")
     private String apiGatewayBaseUrl;
 
@@ -200,11 +196,5 @@ public class AppConfig {
     }
 
 
-   @Bean(name ="searchClientDetails")
-    public EuropeanaClientDetailsService getClientDetailsService() {
-        EuropeanaClientDetailsService clientDetailsService = new EuropeanaClientDetailsService();
-        clientDetailsService.setApiKeyServiceUrl(apikeyServiceUrl);
-        return clientDetailsService;
-    }
 
 }
