@@ -10,7 +10,6 @@ import org.apache.logging.log4j.LogManager;
 
 import java.util.Map;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Value;
 
 import static eu.europeana.api2.model.utils.RouteMatcher.getEntryForRoute;
 
@@ -26,25 +25,21 @@ public class Api2UrlService {
 
     public static final String API_BASEURL  = "https://api.europeana.eu";
 
-    private final String apikeyValidateUrl;
+    private final String apikeyServiceUrl;
 
     private final String defaultPortalBaseUrl;
     private final String defaultApi2BaseUrl;
     private final String defaultApiGatewayBaseUrl;
 
 
-    @Value("${apikey.service.url}")
-    private String apiKeyServiceurl;
-
-
     private final Map<String, BaseUrlWrapper> routeBaseUrlMap;
 
-    public Api2UrlService(Map<String, BaseUrlWrapper> routeBaseUrlMap, String portalBaseUrl, String api2BaseUrl, String apikeyValidateUrl, String apiGatewayBaseUrl) {
+    public Api2UrlService(Map<String, BaseUrlWrapper> routeBaseUrlMap, String portalBaseUrl, String api2BaseUrl, String apikeyServiceUrl, String apiGatewayBaseUrl) {
         this.routeBaseUrlMap = routeBaseUrlMap;
         this.defaultPortalBaseUrl = StringUtils.isNotBlank(portalBaseUrl) ? portalBaseUrl : EuropeanaStaticUrl.EUROPEANA_PORTAL_URL;
         this.defaultApi2BaseUrl = StringUtils.isNotBlank(api2BaseUrl) ? api2BaseUrl : API_BASEURL;
-        this.apikeyValidateUrl = apikeyValidateUrl;
-        if (apikeyValidateUrl.isBlank()) {
+        this.apikeyServiceUrl = apikeyServiceUrl;
+        if (apikeyServiceUrl.isBlank()) {
             LogManager.getLogger(Api2UrlService.class).warn("No API key services defined. API key validation is disabled!");
         }
         this.defaultApiGatewayBaseUrl = StringUtils.isNotBlank(apiGatewayBaseUrl) ? apiGatewayBaseUrl : EuropeanaStaticUrl.API_GATEWAY_URL;
@@ -88,8 +83,8 @@ public class Api2UrlService {
     /**
      * @return the defined apikey service URL or null if not defined
      */
-    public String getApikeyValidateUrl() {
-        return apikeyValidateUrl;
+    public String getApikeyServiceUrl() {
+        return apikeyServiceUrl;
     }
 
     /**
@@ -216,7 +211,4 @@ public class Api2UrlService {
         return url.toString();
     }
 
-    public String getApiKeyServiceurl() {
-        return apiKeyServiceurl;
-    }
 }

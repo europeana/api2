@@ -18,6 +18,7 @@ import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.RecordTranslateService;
+import eu.europeana.api2.v2.utils.ApiConstants;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
@@ -93,7 +94,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @Import(RecordTranslateService.class) // to enable title and description translation
 public class ObjectController {
 
-    public static final String X_API_KEY = "X-Api-Key";
+
     private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
     private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
@@ -486,7 +487,9 @@ public class ObjectController {
         } catch (IOException e) {
             LOG.error("Error generating schema.org data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.servletRequest.getHeader(X_API_KEY),e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+            ApiError errorDetails = new ApiError(data.servletRequest.getHeader(ApiConstants.X_API_KEY),
+                e.getClass().getSimpleName() + ": " + e.getMessage());
+            return JsonUtils.toJson(errorDetails, data.callback);
         }
     }
 
@@ -509,7 +512,9 @@ public class ObjectController {
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.servletRequest.getHeader("X-Api-Key"),e.getClass().getSimpleName()+": "+e.getMessage()),data.callback);
+            ApiError errorDetails = new ApiError(data.servletRequest.getHeader(ApiConstants.X_API_KEY),
+                e.getClass().getSimpleName() + ": " + e.getMessage());
+            return JsonUtils.toJson(errorDetails,data.callback);
         }
     }
 
@@ -532,7 +537,7 @@ public class ObjectController {
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing Turtle data for record {}", bean.getAbout(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.servletRequest.getHeader("X-Api-Key"),e.getClass().getSimpleName()+": "+e.getMessage()),data.callback);
+            return JsonUtils.toJson(new ApiError(data.servletRequest.getHeader(ApiConstants.X_API_KEY),e.getClass().getSimpleName()+": "+e.getMessage()),data.callback);
         }
     }
 
