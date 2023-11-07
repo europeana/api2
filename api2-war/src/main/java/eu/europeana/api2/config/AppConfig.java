@@ -8,7 +8,6 @@ import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.service.ApiAuthorizationService;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.*;
-import eu.europeana.api2.v2.utils.ApiConstants;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import java.util.Arrays;
@@ -24,6 +23,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
+import static eu.europeana.api2.v2.utils.ApiConstants.API_KEY_SERVICE_CLIENT_DETAILS;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -143,7 +143,7 @@ public class AppConfig {
         // log default baseUrls used for requests without a matching route in the config
         LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl(""));
         LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl(""));
-        LogManager.getLogger(Api2UrlService.class).info("Apikey validate url = {}", urlService.getApikeyServiceUrl());
+        LogManager.getLogger(Api2UrlService.class).info("Apikey service url = {}", urlService.getApikeyServiceUrl());
         LogManager.getLogger(Api2UrlService.class).info("Api gateway base url = {}", urlService.getApiGatewayBaseUrl(""));
         return urlService;
     }
@@ -193,9 +193,7 @@ public class AppConfig {
         return new RouteDataService();
     }
 
-
-
-    @Bean(name = ApiConstants.API_KEY_SERVICE_CLIENT_DETAILS)
+    @Bean(name = API_KEY_SERVICE_CLIENT_DETAILS)
     public EuropeanaClientDetailsService getApiKeyClientDetailsService(){
         EuropeanaClientDetailsService clientDetails = new EuropeanaClientDetailsService();
         clientDetails.setApiKeyServiceUrl(apikeyServiceUrl);

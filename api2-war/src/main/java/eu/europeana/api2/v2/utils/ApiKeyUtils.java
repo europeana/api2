@@ -16,6 +16,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
+import static eu.europeana.api2.v2.utils.ApiConstants.WSKEY;
 
 /**
  * Utility class for checking API client keys
@@ -57,12 +59,12 @@ public class ApiKeyUtils{
         }
     }
 
-    /** Method uses authentication from api-commons for validating the read access to the API.
+    /**
+     * Method uses authentication from api-commons for validating the read access to the API.
      * @param servletRequest Request Object
      * @throws ApiKeyException exception if not authorised
      */
-    public void authorizeReadAccess(HttpServletRequest servletRequest)
-        throws  ApiKeyException {
+    public void authorizeReadAccess(HttpServletRequest servletRequest) throws  ApiKeyException {
         long startTime = System.currentTimeMillis();
         try {
             if (StringUtils.isBlank(extractApiKeyFromRequest(servletRequest))) {
@@ -75,13 +77,12 @@ public class ApiKeyUtils{
             }
             int statusCode = e.getStatus() != null ? e.getStatus().value() : HttpStatus.SC_UNAUTHORIZED;
              throw new ApiKeyException(ProblemType.APIKEY_DOES_NOT_EXIST, servletRequest.getHeader(
-                 ApiConstants.X_API_KEY),statusCode);
-        }finally {
+                 X_API_KEY),statusCode);
+        } finally {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Validation of apiKey took {} ms", (System.currentTimeMillis() - startTime));
             }
         }
-
     }
 
     private void performReadAccessAuthorization(HttpServletRequest servletRequest)
@@ -99,9 +100,8 @@ public class ApiKeyUtils{
      * @return apikey String
      */
     public static String extractApiKeyFromRequest(HttpServletRequest request){
-      return (request.getHeader(ApiConstants.X_API_KEY) != null ? request.getHeader(ApiConstants.X_API_KEY)
-          : request.getParameter(ApiConstants.WSKEY));
+      return (request.getHeader(X_API_KEY) != null ? request.getHeader(X_API_KEY)
+          : request.getParameter(WSKEY));
     }
-
 
 }

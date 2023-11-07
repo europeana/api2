@@ -76,6 +76,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
+import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
 
 /**
  * Provides record information in all kinds of formats; json, json-ld and rdf
@@ -355,7 +356,7 @@ public class ObjectController {
                 model.put("error", "Non-existing record identifier");
                 result = new ModelAndView("rdf", model);
             } else {
-                result = JsonUtils.toJson(new ApiError(data.servletRequest.getHeader("X-Api-Key"), "Invalid record identifier: "
+                result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: "
                         + data.europeanaId), data.callback);
             }
             return result;
@@ -462,7 +463,7 @@ public class ObjectController {
 
 
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
-        ObjectResult objectResult = new ObjectResult(data.servletRequest.getHeader("X-Api-Key"));
+        ObjectResult objectResult = new ObjectResult(data.wskey);
         // add schemaOrg in the response if profile = schemaOrg
         if (data.profiles.contains(Profile.SCHEMAORG)) {
             try {
@@ -487,7 +488,7 @@ public class ObjectController {
         } catch (IOException e) {
             LOG.error("Error generating schema.org data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            ApiError errorDetails = new ApiError(data.servletRequest.getHeader(ApiConstants.X_API_KEY),
+            ApiError errorDetails = new ApiError(data.servletRequest.getHeader(X_API_KEY),
                 e.getClass().getSimpleName() + ": " + e.getMessage());
             return JsonUtils.toJson(errorDetails, data.callback);
         }
@@ -512,8 +513,7 @@ public class ObjectController {
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            ApiError errorDetails = new ApiError(data.servletRequest.getHeader(ApiConstants.X_API_KEY),
-                e.getClass().getSimpleName() + ": " + e.getMessage());
+            ApiError errorDetails = new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage());
             return JsonUtils.toJson(errorDetails,data.callback);
         }
     }
@@ -537,7 +537,7 @@ public class ObjectController {
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing Turtle data for record {}", bean.getAbout(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.servletRequest.getHeader(ApiConstants.X_API_KEY),e.getClass().getSimpleName()+": "+e.getMessage()),data.callback);
+            return JsonUtils.toJson(new ApiError(data.wskey,e.getClass().getSimpleName()+": "+e.getMessage()),data.callback);
         }
     }
 
@@ -587,9 +587,9 @@ public class ObjectController {
     /**
      * Helper class to pass all data around in 1 object
      */
-    private static class RequestData{
+    private static class RequestData {
         String             europeanaId;
-
+        String             wskey;
         String             profile;
         Set<Profile>       profiles;
         String             lang;
@@ -600,7 +600,7 @@ public class ObjectController {
         RequestData(String collectionId, String recordId, String profile, String lang, String callback,
                     HttpServletRequest servletRequest) {
             this.europeanaId    = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
-
+            this.wskey         = ApiKeyUtils.extractApiKeyFromRequest(servletRequest); // the key will be passed either as request param or in header
             this.profile        = profile; // profile string passed in the request
             this.profiles       = ProfileUtils.getProfiles(profile); // processed profiles from the profile string
             this.lang           = lang;
