@@ -59,10 +59,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -490,20 +487,20 @@ public class ObjectController {
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
-        try (InputStream rdfInput = IOUtils.toInputStream(rdf, StandardCharsets.UTF_8);
-             OutputStream outputStream = new ByteArrayOutputStream()) {
-                 RiotRdfUtils.disableErrorForSpaceURI();
-                 Model  modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
-                 DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
-                 JsonLDWriteContext ctx = new JsonLDWriteContext();
-                 ctx.setJsonLDContext(ObjectController.jsonldContext);
-                 RDFWriterBuilder writerBuilder = RDFWriter.create();
-                 RDFWriter writer = writerBuilder.source(graph).format(RDFFormat.JSONLD10_FLAT).context(ctx).build();
-                 writer.output(outputStream);
-                 // Jena model sorts the data with it's own logic. We can not manipulate the order there.
-                // Hence, we will sort the hasView with JsonObject that is created by RDFWriter.
-                String orderedJsonLd = ModelUtils.sortHasViews(bean, outputStream.toString());
-                return JsonUtils.toJsonLd(orderedJsonLd, data.callback);
+        try (StringReader reader = new StringReader(rdf);
+            StringWriter writer = new StringWriter()) {
+            RiotRdfUtils.disableErrorForSpaceURI();
+            Model modelResult = ModelFactory.createDefaultModel().read(reader, "RDF/XML");
+            DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
+            JsonLDWriteContext ctx = new JsonLDWriteContext();
+            ctx.setJsonLDContext(ObjectController.jsonldContext);
+            RDFWriterBuilder writerBuilder = RDFWriter.create();
+            RDFWriter rdfWriter = writerBuilder.source(graph).format(RDFFormat.JSONLD10_FLAT).context(ctx).build();
+            rdfWriter.output(writer);
+            // Jena model sorts the data with it's own logic. We can not manipulate the order there.
+            // Hence, we will sort the hasView with JsonObject that is created by RDFWriter.
+            String orderedJsonLd = ModelUtils.sortHasViews(bean, writer.toString());
+            return JsonUtils.toJsonLd(orderedJsonLd, data.callback);
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
