@@ -6,12 +6,15 @@ import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.utils.ComparatorUtils;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Helper class for sending translation request
@@ -24,12 +27,16 @@ public final class TranslationUtils {
     /**
      * Added to a field value when it's truncated
      */
+    private static String getPharseOrNewLine = "^.*?(?=[.|?|!|\\n])";
+
     public static final String TRUNCATED_INDICATOR = "...";
 
     public static final String FIELD_NAME_INDEX_SEPARATOR = ".";
     public static final String FIELD_NAME_INDEX_REGEX = "\\.";
 
     private static final Logger LOG = LogManager.getLogger(TranslationUtils.class);
+
+    private  static final Pattern getValuesBeforePhraseOrNewLinePattern = Pattern.compile(getPharseOrNewLine);
 
 
     private TranslationUtils() {
@@ -144,7 +151,7 @@ public final class TranslationUtils {
      * @return null if nothing was found
      */
     public static List<String> getValuesToTranslateFromMultilingualMap(Map<String, List<String>> map, String lang,
-                                                                       Integer truncateAfter, Integer truncateHardLimit) {
+                                                                       Integer translationCharLimit, Integer translationCharTolerance) {
         List<String> valuesToTranslate = map.get(lang);
         if (valuesToTranslate == null || valuesToTranslate.isEmpty()) {
             valuesToTranslate = map.entrySet().stream()
@@ -155,12 +162,11 @@ public final class TranslationUtils {
         if (valuesToTranslate == null) {
             return null;
         }
-        // truncate values if necessary
-        List<String> truncatedValues = new ArrayList<>();
-        for (String valueToTranslate : valuesToTranslate) {
-            truncatedValues.add(truncateFieldValue(valueToTranslate, truncateAfter, truncateHardLimit));
+        // truncate if neccesary
+        if (translationCharLimit != null) {
+            return truncate(valuesToTranslate, translationCharLimit, translationCharTolerance);
         }
-        return truncatedValues;
+        return valuesToTranslate;
     }
 
     /**
@@ -227,5 +233,36 @@ public final class TranslationUtils {
             return fieldValue;
         }
         return WordUtils.abbreviate(fieldValue, truncateAfter, truncateHardLimit, TRUNCATED_INDICATOR);
+    }
+
+    public static List<String> truncate(List<String> valuesToTranslate , Integer translationCharLimit, Integer translationCharTolerance) {
+        List<String> truncatedValues = new ArrayList<>();
+        boolean noFurtherLooking = false;
+        Integer charAccumulated = 0;
+        for (String value : valuesToTranslate) {
+            // check if the value exceeded the limit.
+            if ((charAccumulated + value.length()) >= translationCharLimit) {
+                // get exceeded String value
+                Integer charLimitIndex = translationCharLimit - charAccumulated;
+                String valueAfterLimit = StringUtils.substring(value, charLimitIndex, value.length());
+
+                //  check if the string has a phrase or new line
+                Matcher m = getValuesBeforePhraseOrNewLinePattern.matcher(valueAfterLimit);
+                if (m.find()) {
+                    truncatedValues.add(StringUtils.substring(value, 0,  charLimitIndex) + m.group(0) + TRUNCATED_INDICATOR) ;
+                } else {
+                    // abbreviate the value till the tolerance or if the end of the value is reached
+                    truncatedValues.add(WordUtils.abbreviate(
+                            value, charLimitIndex,translationCharLimit+ translationCharTolerance, TRUNCATED_INDICATOR));
+                }
+                noFurtherLooking = true;
+            } else {
+                truncatedValues.add(value);
+            }
+            charAccumulated +=value.length();
+            // ignore any other value after limit is reached
+            if(noFurtherLooking) break;
+        }
+        return truncatedValues;
     }
 }

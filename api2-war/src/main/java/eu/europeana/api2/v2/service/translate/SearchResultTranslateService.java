@@ -32,10 +32,11 @@ public class SearchResultTranslateService {
 
     private final TranslationService translationService;
 
-    @Value("#{europeanaProperties['translation.truncate.after']}")
-    private Integer truncateFieldAfter;
-    @Value("#{europeanaProperties['translation.truncate.hardlimit']}")
-    private Integer truncateFieldHardLimit;
+    @Value("#{europeanaProperties['translation.char.limit']}")
+    private Integer translationCharLimit;
+
+    @Value("#{europeanaProperties['translation.char.tolerance']}")
+    private Integer translationCharTolerance;
 
     /**
      * Create a new service for translating search results
@@ -185,7 +186,7 @@ public class SearchResultTranslateService {
         FieldValuesLanguageMap result = null;
         if (lang != null) {
             List<String> values = filterOutUris(
-                    TranslationUtils.getValuesToTranslateFromMultilingualMap(map, lang, truncateFieldAfter, truncateFieldHardLimit));
+                    TranslationUtils.getValuesToTranslateFromMultilingualMap(map, lang, translationCharLimit, translationCharTolerance));
             if (values != null && !values.isEmpty()) {
                 result = new FieldValuesLanguageMap(lang, fieldName, values);
             }
@@ -194,7 +195,7 @@ public class SearchResultTranslateService {
             for (String key : map.keySet()) {
                 if (Language.isSupported(key)) {
                     List<String> values = filterOutUris(
-                            TranslationUtils.getValuesToTranslateFromMultilingualMap(map, key, truncateFieldAfter, truncateFieldHardLimit));
+                            TranslationUtils.getValuesToTranslateFromMultilingualMap(map, key, translationCharLimit, translationCharTolerance));
                     result = new FieldValuesLanguageMap(Language.getLanguage(key).name().toLowerCase(Locale.ROOT), fieldName, values);
                     if (result != null) {
                         break;
