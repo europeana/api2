@@ -2,8 +2,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: search-api-ingress
-  annotations:
-    ${K8S_INGRESS_ANNOTATIONS}
 spec:
   ingressClassName: public-iks-k8s-nginx
   rules:
@@ -110,6 +108,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: search-api-ingress2
+  annotations:
+    ${K8S_INGRESS2_ANNOTATIONS}
 spec:
   ingressClassName: public-iks-k8s-nginx
   tls:

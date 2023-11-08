@@ -232,4 +232,61 @@
         <packageUrl regex="true">^pkg:maven/org\.apache\.bcel/bcel@.*$</packageUrl>
         <cve>CVE-2022-42920</cve>
     </suppress>
+
+
+    <!---Zookeeper -->
+    <suppress>
+        <notes><![CDATA[
+   file name: zookeeper-3.6.2.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org.apache.zookeeper/zookeeper@.*$</packageUrl>
+        <cve>CVE-2023-44981</cve>
+    </suppress>
+
+
+    <suppress>
+        <notes><![CDATA[
+   file name: zookeeper-jute-3.6.2.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org.apache.zookeeper/zookeeper-jute@.*$</packageUrl>
+        <cve>CVE-2023-44981</cve>
+    </suppress>
+
+    <!---Spring Security -->
+    <suppress>
+        <notes><![CDATA[
+   file name: spring-security-config-4.2.20.RELEASE.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org.springframework.security/spring-security-web@.*$</packageUrl>
+        <cve>CVE-2021-22112</cve>
+        <cve>CVE-2022-22978</cve>
+    </suppress>
+
+    <suppress>
+        <notes><![CDATA[
+   file name: spring-security-config-4.2.20.RELEASE.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org.springframework.security/spring-security-config.*$</packageUrl>
+        <cve>CVE-2021-22112</cve>
+        <cve>CVE-2022-22978</cve>
+    </suppress>
+
+
+    <suppress>
+        <notes><![CDATA[
+   file name: spring-security-core-4.2.20.RELEASE.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org.springframework.security/spring-security-core@.*$</packageUrl>
+        <cve>CVE-2021-22112</cve>
+        <cve>CVE-2022-22978</cve>
+    </suppress>
+
+
 </suppressions>
+
+
+
+
+
+
+

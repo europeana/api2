@@ -1,5 +1,8 @@
 package eu.europeana.api2.v2.web.controller;
 
+import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
+import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
+
 import eu.europeana.api.commons.utils.RiotRdfUtils;
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api2.config.SwaggerConfig;
@@ -14,8 +17,14 @@ import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.service.translate.RecordTranslateService;
+import eu.europeana.api2.v2.utils.ApiConstants;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
+import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.utils.HttpCacheUtils;
+import eu.europeana.api2.v2.utils.LanguageFilter;
+import eu.europeana.api2.v2.utils.ModelUtils;
+import eu.europeana.api2.v2.utils.ProfileUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -32,6 +41,19 @@ import eu.europeana.corelib.web.utils.RequestUtils;
 import eu.europeana.metis.mongo.dao.RecordDao;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.DatasetFactory;
@@ -63,6 +85,8 @@ import java.util.*;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 
+import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
+
 /**
  * Provides record information in all kinds of formats; json, json-ld and rdf
  *
@@ -80,6 +104,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 @Import(RecordTranslateService.class) // to enable title and description translation
 public class ObjectController {
 
+
     private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
     private static final String MEDIA_TYPE_JSONLD_UTF8  = "application/ld+json; charset=UTF-8";
@@ -94,6 +119,10 @@ public class ObjectController {
     private RecordTranslateService translateFilterService;
     private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
+
+
+
+
 
     /**
      * Create a static Object for JSONLD Context. This will read the file once during initialization
@@ -133,7 +162,6 @@ public class ObjectController {
      *
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param apikey         formerly known as 'wskey'
      * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
      * @param lang           language in which record data should be displayed
      * @param callback       repeats whatever you supply
@@ -146,13 +174,12 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ModelAndView record(@PathVariable String collectionId,
                                @PathVariable String recordId,
-                               @RequestParam(value = "wskey") String apikey,
                                @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                @RequestParam(value = "lang", required = false) String lang,
                                @RequestParam(value = "callback", required = false) String callback,
                                @ApiIgnore HttpServletRequest request,
                                @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, callback, request);
+        RequestData data = new RequestData(collectionId, recordId,profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSON, data, response);
     }
 
@@ -172,7 +199,6 @@ public class ObjectController {
      *
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param apikey         formerly known as 'wskey'
      * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
      * @param lang           language in which record data should be displayed
      * @param callback       repeats whatever you supply
@@ -185,20 +211,18 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = { MEDIA_TYPE_JSONLD_UTF8, MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordJSONLD2(@PathVariable String collectionId,
                                       @PathVariable String recordId,
-                                      @RequestParam(value = "wskey") String apikey,
                                       @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                       @RequestParam(value = "lang", required = false) String lang,
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @ApiIgnore HttpServletRequest request,
                                       @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        return recordJSONLD(collectionId, recordId, apikey, profile, lang, callback, request, response);
+        return recordJSONLD(collectionId, recordId, profile, lang, callback, request, response);
     }
 
     /***
      * Retrieve a record in JSON-LD format.
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param apikey         formerly known as 'wskey'
      * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
      * @param lang           language in which record data should be displayed
      * @param callback       repeats whatever you supply
@@ -211,13 +235,12 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
-                                     @RequestParam(value = "wskey") String apikey,
                                      @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                      @RequestParam(value = "lang", required = false) String lang,
                                      @RequestParam(value = "callback", required = false) String callback,
                                      @ApiIgnore HttpServletRequest request,
                                      @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, callback, request);
+        RequestData data = new RequestData(collectionId, recordId, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
     }
 
@@ -225,7 +248,6 @@ public class ObjectController {
      * Retrieve a record in Schema.org JSON-LD format.
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param apikey         formerly known as 'wskey'
      * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
      * @param lang           language in which record data should be displayed
      * @param callback       repeats whatever you supply
@@ -238,13 +260,12 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
-                                        @RequestParam(value = "wskey", required = true) String apikey,
                                         @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                         @RequestParam(value = "lang", required = false) String lang,
                                         @RequestParam(value = "callback", required = false) String callback,
                                         @ApiIgnore HttpServletRequest request,
                                         @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, callback, request);
+        RequestData data = new RequestData(collectionId, recordId, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
     }
 
@@ -253,7 +274,6 @@ public class ObjectController {
      *
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param apikey         formerly known as 'wskey'
      * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
      * @param lang           language in which record data should be displayed
      * @param request        incoming request
@@ -265,12 +285,11 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.rdf", produces = MEDIA_TYPE_RDF_UTF8)
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
-                                  @RequestParam(value = "wskey") String apikey,
                                   @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                   @RequestParam(value = "lang", required = false) String lang,
                                   @ApiIgnore HttpServletRequest request,
                                   @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, apikey, profile, lang, null, request);
+        RequestData data = new RequestData(collectionId, recordId, profile, lang, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
     }
 
@@ -279,7 +298,6 @@ public class ObjectController {
      *
      * @param collectionId   ID of data collection or data set
      * @param recordId       ID of record, item - a.k.a. 'localId'
-     * @param wskey          pre-api term for 'apikey'
      * @param profile        one or more profile values to enhance the record (see also RecordProfile class)
      * @param lang           language in which record data should be displayed
      * @param request        incoming request
@@ -291,12 +309,11 @@ public class ObjectController {
     @GetMapping(value = "/{collectionId}/{recordId}.ttl", produces = {MEDIA_TYPE_TURTLE, MEDIA_TYPE_TURTLE_TEXT, MEDIA_TYPE_TURTLE_X})
     public ModelAndView recordTurtle(@PathVariable String collectionId,
                              @PathVariable String recordId,
-                             @RequestParam(value = "wskey") String wskey,
                              @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                              @RequestParam(value = "lang", required = false) String lang,
                              @ApiIgnore HttpServletRequest request,
                              @ApiIgnore HttpServletResponse response) throws EuropeanaException {
-        RequestData data = new RequestData(collectionId, recordId, wskey, profile, lang, null, request);
+        RequestData data = new RequestData(collectionId, recordId,  profile, lang, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
     }
 
@@ -305,7 +322,7 @@ public class ObjectController {
      * functionality like setting CORS headers, checking API key, retrieving the record for mongo and setting 301 or 404 if necessary
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
-            throws EuropeanaException {
+        throws EuropeanaException {
         long startTime = System.currentTimeMillis();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Retrieving record with id {}, type = {}", data.europeanaId, recordType);
@@ -319,7 +336,8 @@ public class ObjectController {
         }
 
         // 2) check API key & routing
-        apiKeyUtils.validateApiKey(data.wskey);
+        apiKeyUtils.authorizeReadAccess(data.servletRequest);
+
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
         if (dataSource.isEmpty() || dataSource.get().getRecordDao().isEmpty()) {
             LOG.error("Error while retrieving record id {}, type= {}. No record server configured for route {}", 
@@ -451,6 +469,8 @@ public class ObjectController {
         return output;
     }
 
+
+
     private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
         ObjectResult objectResult = new ObjectResult(data.wskey);
         // add schemaOrg in the response if profile = schemaOrg
@@ -477,7 +497,9 @@ public class ObjectController {
         } catch (IOException e) {
             LOG.error("Error generating schema.org data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+            ApiError errorDetails = new ApiError(data.servletRequest.getHeader(X_API_KEY),
+                e.getClass().getSimpleName() + ": " + e.getMessage());
+            return JsonUtils.toJson(errorDetails, data.callback);
         }
     }
 
@@ -500,7 +522,8 @@ public class ObjectController {
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+            ApiError errorDetails = new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage());
+            return JsonUtils.toJson(errorDetails,data.callback);
         }
     }
 
@@ -523,7 +546,7 @@ public class ObjectController {
         } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing Turtle data for record {}", bean.getAbout(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return JsonUtils.toJson(new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage()), data.callback);
+            return JsonUtils.toJson(new ApiError(data.wskey,e.getClass().getSimpleName()+": "+e.getMessage()),data.callback);
         }
     }
 
@@ -573,7 +596,7 @@ public class ObjectController {
     /**
      * Helper class to pass all data around in 1 object
      */
-    private static class RequestData{
+    private static class RequestData {
         String             europeanaId;
         String             wskey;
         String             profile;
@@ -583,10 +606,10 @@ public class ObjectController {
         String             callback;
         HttpServletRequest servletRequest;
 
-        RequestData(String collectionId, String recordId, String wskey, String profile, String lang, String callback,
+        RequestData(String collectionId, String recordId, String profile, String lang, String callback,
                     HttpServletRequest servletRequest) {
             this.europeanaId    = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
-            this.wskey          = wskey;
+            this.wskey         = ApiKeyUtils.extractApiKeyFromRequest(servletRequest); // the key will be passed either as request param or in header
             this.profile        = profile; // profile string passed in the request
             this.profiles       = ProfileUtils.getProfiles(profile); // processed profiles from the profile string
             this.lang           = lang;

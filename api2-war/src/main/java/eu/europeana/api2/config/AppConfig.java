@@ -1,12 +1,17 @@
 package eu.europeana.api2.config;
 
+
+import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.translate.QueryTranslator;
+import eu.europeana.api2.v2.service.ApiAuthorizationService;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.*;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
+import java.util.Arrays;
+import javax.annotation.PostConstruct;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +23,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
-
-import javax.annotation.PostConstruct;
-import java.util.Arrays;
+import static eu.europeana.api2.v2.utils.ApiConstants.API_KEY_SERVICE_CLIENT_DETAILS;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -43,8 +46,8 @@ public class AppConfig {
     @Value("${api2.baseUrl:}")
     private String api2BaseUrl;
 
-    @Value("${apikey.validate.url:}")
-    private String apikeyValidateUrl;
+    @Value("${apikey.service.url:}")
+    private String apikeyServiceUrl;
 
     @Value("${apiGateway.baseUrl:}")
     private String apiGatewayBaseUrl;
@@ -72,13 +75,13 @@ public class AppConfig {
         }
 
         // Make sure apikey url is okay
-        if (apikeyValidateUrl != null) {
-            this.apikeyValidateUrl = apikeyValidateUrl.trim();
-            if (apikeyValidateUrl.isEmpty()) {
+        if (apikeyServiceUrl != null) {
+            this.apikeyServiceUrl = apikeyServiceUrl.trim();
+            if (apikeyServiceUrl.isEmpty()) {
                 LOG.warn("No API key service host defined!");
-            } else if (!apikeyValidateUrl.startsWith("http")) {
+            } else if (!apikeyServiceUrl.startsWith("http")) {
                 LOG.warn("No protocol defined for API key service host! Using http://");
-                this.apikeyValidateUrl = apikeyValidateUrl + "http://";
+                this.apikeyServiceUrl = apikeyServiceUrl + "http://";
             }
         }
 
@@ -136,11 +139,11 @@ public class AppConfig {
     @Bean
     public Api2UrlService api2UrlService() {
         Api2UrlService urlService = new Api2UrlService(routeConfigLoader().getRouteBaseUrlMap(), portalBaseUrl,
-                api2BaseUrl, apikeyValidateUrl, apiGatewayBaseUrl);
+                api2BaseUrl, apikeyServiceUrl, apiGatewayBaseUrl);
         // log default baseUrls used for requests without a matching route in the config
         LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl(""));
         LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl(""));
-        LogManager.getLogger(Api2UrlService.class).info("Apikey validate url = {}", urlService.getApikeyValidateUrl());
+        LogManager.getLogger(Api2UrlService.class).info("Apikey service url = {}", urlService.getApikeyServiceUrl());
         LogManager.getLogger(Api2UrlService.class).info("Api gateway base url = {}", urlService.getApiGatewayBaseUrl(""));
         return urlService;
     }
@@ -190,4 +193,15 @@ public class AppConfig {
         return new RouteDataService();
     }
 
+    @Bean(name = API_KEY_SERVICE_CLIENT_DETAILS)
+    public EuropeanaClientDetailsService getApiKeyClientDetailsService(){
+        EuropeanaClientDetailsService clientDetails = new EuropeanaClientDetailsService();
+        clientDetails.setApiKeyServiceUrl(apikeyServiceUrl);
+        return clientDetails;
+    }
+
+     @Bean
+     public ApiAuthorizationService getAuthorizarionService(){
+         return new ApiAuthorizationService();
+     }
 }

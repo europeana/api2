@@ -32,19 +32,17 @@ public class UsageStatsController extends BaseController {
         super(routeService);
     }
 
+
     /**
-     * Method to generate metric for search api
-     *
-     * @param wskey
      * @param request
      * @return
+     * @throws EuropeanaException
      */
     @ApiOperation(value = "Generate Stats", nickname = "generateStats", response = java.lang.Void.class)
     @GetMapping(value = "/record/stats", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> generateUsageStats(
-            @RequestParam(value = "wskey") String wskey,
             HttpServletRequest request) throws EuropeanaException {
-        apiKeyUtils.validateApiKey(wskey);
+        apiKeyUtils.authorizeReadAccess(request);
         return getSearchMetric(request);
     }
 
