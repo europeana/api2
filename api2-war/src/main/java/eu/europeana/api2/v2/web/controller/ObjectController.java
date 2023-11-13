@@ -5,6 +5,8 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 
 import eu.europeana.api.commons.utils.RiotRdfUtils;
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
+import eu.europeana.api.commons.web.exception.ApplicationAuthenticationException;
+import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
@@ -102,7 +104,7 @@ import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
 })
 @SwaggerSelect
 @Import(RecordTranslateService.class) // to enable title and description translation
-public class ObjectController {
+public class ObjectController extends BaseController {
 
 
     private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
@@ -149,7 +151,8 @@ public class ObjectController {
      */
     @Autowired
     public ObjectController(RouteDataService routeService, RecordService recordService, RecordTranslateService tfService,
-                            ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
+                             HttpCacheUtils httpCacheUtils) {
+        super(routeService);
         this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;
         this.routeService = routeService;
@@ -178,7 +181,8 @@ public class ObjectController {
                                @RequestParam(value = "lang", required = false) String lang,
                                @RequestParam(value = "callback", required = false) String callback,
                                @ApiIgnore HttpServletRequest request,
-                               @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                               @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(collectionId, recordId,profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSON, data, response);
     }
@@ -215,7 +219,8 @@ public class ObjectController {
                                       @RequestParam(value = "lang", required = false) String lang,
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @ApiIgnore HttpServletRequest request,
-                                      @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                                      @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         return recordJSONLD(collectionId, recordId, profile, lang, callback, request, response);
     }
 
@@ -239,7 +244,8 @@ public class ObjectController {
                                      @RequestParam(value = "lang", required = false) String lang,
                                      @RequestParam(value = "callback", required = false) String callback,
                                      @ApiIgnore HttpServletRequest request,
-                                     @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                                     @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(collectionId, recordId, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
     }
@@ -264,7 +270,8 @@ public class ObjectController {
                                         @RequestParam(value = "lang", required = false) String lang,
                                         @RequestParam(value = "callback", required = false) String callback,
                                         @ApiIgnore HttpServletRequest request,
-                                        @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                                        @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(collectionId, recordId, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
     }
@@ -288,7 +295,8 @@ public class ObjectController {
                                   @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                   @RequestParam(value = "lang", required = false) String lang,
                                   @ApiIgnore HttpServletRequest request,
-                                  @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                                  @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(collectionId, recordId, profile, lang, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
     }
@@ -312,7 +320,8 @@ public class ObjectController {
                              @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                              @RequestParam(value = "lang", required = false) String lang,
                              @ApiIgnore HttpServletRequest request,
-                             @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                             @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(collectionId, recordId,  profile, lang, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
     }
@@ -322,7 +331,7 @@ public class ObjectController {
      * functionality like setting CORS headers, checking API key, retrieving the record for mongo and setting 301 or 404 if necessary
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
-        throws EuropeanaException {
+        throws EuropeanaException, HttpException {
         long startTime = System.currentTimeMillis();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Retrieving record with id {}, type = {}", data.europeanaId, recordType);
@@ -336,7 +345,7 @@ public class ObjectController {
         }
 
         // 2) check API key & routing
-        apiKeyUtils.authorizeReadAccess(data.servletRequest);
+        verifyReadAccess(data.servletRequest);
 
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
         if (dataSource.isEmpty() || dataSource.get().getRecordDao().isEmpty()) {

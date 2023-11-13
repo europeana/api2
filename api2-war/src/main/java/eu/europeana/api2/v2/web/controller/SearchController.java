@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api.commons.oauth2.utils.OAuthUtils;
+import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
@@ -144,7 +144,8 @@ public class SearchController extends BaseController {
     public ModelAndView searchJsonPost(
                                        @RequestBody SearchRequest searchRequest,
                                        HttpServletRequest request,
-                                       HttpServletResponse response) throws EuropeanaException {
+                                       HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         return searchJsonGet(
                              searchRequest.getQuery(),
                              searchRequest.getQf(),
@@ -207,9 +208,10 @@ public class SearchController extends BaseController {
                                       @RequestParam(value = "lang", required = false) String lang,
                                       @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
-                                      HttpServletResponse response) throws EuropeanaException {
+                                      HttpServletResponse response)
+        throws EuropeanaException, HttpException {
 
-        apiKeyUtils.authorizeReadAccess(request);
+        verifyReadAccess(request);
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
@@ -981,9 +983,10 @@ public class SearchController extends BaseController {
                                  @RequestParam(value = "qf", required = false) String[] refinementArray,
                                  @RequestParam(value = "start", required = false, defaultValue = "1") int start,
                                  HttpServletRequest request,
-                                 HttpServletResponse response) throws EuropeanaException {
+                                 HttpServletResponse response)
+        throws EuropeanaException, HttpException {
 
-        apiKeyUtils.authorizeReadAccess(request);
+        verifyReadAccess(request);
         SolrClient solrClient = getSolrClient(request.getServerName());
 
         String[] qfArray = request.getParameterMap().get("qf");

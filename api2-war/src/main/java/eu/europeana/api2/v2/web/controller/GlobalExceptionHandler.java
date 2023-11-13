@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api.commons.web.exception.EuropeanaGlobalExceptionHandler;
 import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
@@ -44,7 +45,7 @@ import java.util.regex.Pattern;
  */
 
 @ControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
 
     private static final Logger LOG = LogManager.getLogger(GlobalExceptionHandler.class);
 
