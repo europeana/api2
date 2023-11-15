@@ -109,40 +109,7 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
         return result;
     }
 
-    /**
-     * Handles all required parameter missing problems (e.g. APIkey missing)
-     * @param request
-     * @param response
-     * @param ex
-     * @return
-     */
-    @ExceptionHandler(value = {MissingServletRequestParameterException.class})
-    public ModelAndView missingParameterErrorHandler (HttpServletRequest request, HttpServletResponse response,
-                                                      MissingServletRequestParameterException ex) {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        String errorMsg;
-        if (API_KEY_PARAM.equalsIgnoreCase(ex.getParameterName())) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            errorMsg = "No API key provided";
-        } else {
-            errorMsg = "Required parameter '" + ex.getParameterName() + "' missing";
-        }
-        return generateErrorResponse(request, response, errorMsg, null, null);
-    }
 
-    /**
-     * Handles HttpMediaTypeNotAcceptableExceptions
-     * @param request
-     * @param response
-     * @return
-     */
-    @ExceptionHandler(value = {HttpMediaTypeNotAcceptableException.class})
-    public ModelAndView mediaTypeNotAcceptableHandler(HttpServletRequest request, HttpServletResponse response) {
-        response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
-        String requestedMediaType = ControllerUtils.getRequestedMediaType(request);
-        String errorMsg = "The resource identified by this request cannot generate a response of type " + requestedMediaType;
-        return generateErrorResponse(request, response, errorMsg, null, null);
-    }
 
     /**
      * Handles HttpMediaTypeNotSupportedExceptions
@@ -165,49 +132,13 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
      * @param e
      * @return
      */
-    @ExceptionHandler(value = {HttpMessageNotReadableException.class, MethodArgumentNotValidException.class,
+    @ExceptionHandler(value = {HttpMessageNotReadableException.class,
             MissingServletRequestPartException.class, TypeMismatchException.class})
     public ModelAndView badRequestHandler(HttpServletRequest request, HttpServletResponse response, Exception e){
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         return generateErrorResponse(request, response, e.getMessage(), null, null);
     }
 
-    /**
-     * Handles HttpMediaTypeNotSupportedExceptions
-     * @param request
-     * @param response
-     * @return
-     */
-    @ExceptionHandler(value = {HttpRequestMethodNotSupportedException.class})
-    public ModelAndView unsupportedMethodHandler(HttpServletRequest request, HttpServletResponse response){
-        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-        String errorMsg = "Request method '" + request.getMethod() + "' is not allowed for the requested resource";
-        return generateErrorResponse(request, response, errorMsg, null, null);
-    }
-
-
-    /**
-     * General error handler. This handler is used when there are no more specific handlers for the error in question.
-     * The drawback of using this is that we cannot supply the requestNumber in the error message
-     * @param request
-     * @param response
-     *
-     * @param e
-     * @return ModelAndView with error message
-     */
-    @ExceptionHandler(value = {Exception.class})
-    public ModelAndView defaultExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e)  {
-        try {
-            LOG.error("Caught unexpected exception", e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            String errorMsg = "Internal server error";
-            String errorDetails = e.getMessage();
-            return generateErrorResponse(request, response, errorMsg, errorDetails, null);
-        } catch (Exception ex) {
-            LOG.error("Error while generating error response", ex);
-            throw ex;
-        }
-    }
 
     private ModelAndView generateErrorResponse(HttpServletRequest request, HttpServletResponse response,
                                               String errorMsg, String errorDetails, String errorCode) {
