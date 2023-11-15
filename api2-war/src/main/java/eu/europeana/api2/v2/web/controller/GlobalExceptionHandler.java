@@ -15,32 +15,26 @@ import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.edm.exceptions.SolrQueryException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
-
 
 /**
  * This class functions as a global uncaught exception handler
- *
  * Created by luthien on 17/08/15.
  */
 
@@ -113,9 +107,9 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
 
     /**
      * Handles HttpMediaTypeNotSupportedExceptions
-     * @param request
-     * @param response
-     * @return
+     * @param request  HttpServletRequest
+     * @param response HttpServletResponse
+     * @return ModelAndView
      */
     @ExceptionHandler(value = {HttpMediaTypeNotSupportedException.class})
     public ModelAndView mediaTypeNotSupportedHandler(HttpServletRequest request, HttpServletResponse response) {
@@ -128,9 +122,9 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
     /**
      * Handles "Bad Requests" causing HttpMessageNotReadableException, MethodArgumentNotValidException,
      * MissingServletRequestParameterException, MissingServletRequestPartException & TypeMismatchException
-     * @param response
-     * @param e
-     * @return
+     * @param  request HttpServletRequest
+     * @param  response HttpServletResponse
+     * @return  ModelAndView
      */
     @ExceptionHandler(value = {HttpMessageNotReadableException.class,
             MissingServletRequestPartException.class, TypeMismatchException.class})
