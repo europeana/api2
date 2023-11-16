@@ -120,8 +120,8 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
     }
 
     /**
-     * Handles "Bad Requests" causing HttpMessageNotReadableException, MethodArgumentNotValidException,
-     * MissingServletRequestParameterException, MissingServletRequestPartException & TypeMismatchException
+     * Handles "Bad Requests" causing HttpMessageNotReadableException,
+     * MissingServletRequestParameterException, TypeMismatchException
      * @param  request HttpServletRequest
      * @param  response HttpServletResponse
      * @return  ModelAndView
