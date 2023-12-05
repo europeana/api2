@@ -2,7 +2,7 @@ version: "2"
 
 services:
   appserver:
-    image: library/tomcat:9.0-jdk11
+    image: library/tomcat:9.0-jdk17
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: /usr/local/tomcat/webapps/ROOT/WEB-INF/classes/google_cloud_credentials.json
       #Memory monitoring (JConsole connection possible via localhost:1099)
