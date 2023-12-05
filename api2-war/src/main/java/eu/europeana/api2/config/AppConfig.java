@@ -2,6 +2,11 @@ package eu.europeana.api2.config;
 
 
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
+import eu.europeana.api.translation.client.TranslationApiClient;
+import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
+import eu.europeana.api.translation.client.service.MetadataChosenLanguageService;
+import eu.europeana.api.translation.client.service.MetadataLangDetectionService;
+import eu.europeana.api.translation.client.service.MetadataTranslationService;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.translate.QueryTranslator;
@@ -203,5 +208,20 @@ public class AppConfig {
      @Bean
      public ApiAuthorizationService getAuthorizarionService(){
          return new ApiAuthorizationService();
+     }
+
+     @Bean
+    public TranslationApiClient getTranslationApiClient() {
+        return new TranslationApiClient(new TranslationClientConfiguration());
+     }
+
+     @Bean
+    public MetadataTranslationService getMetadataTranslationService() {
+        return  new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService());
+     }
+
+     @Bean
+    public MetadataLangDetectionService getMetadataLangDetectionService() {
+        return  new MetadataLangDetectionService(getTranslationApiClient());
      }
 }

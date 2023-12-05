@@ -231,6 +231,12 @@
             <version>5.2.4.Final</version>
         </dependency>
 
+        <dependency>
+            <groupId>eu.europeana.api</groupId>
+            <artifactId>translation-client</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
