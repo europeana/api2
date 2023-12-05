@@ -27,7 +27,7 @@ public final class TranslationUtils {
     /**
      * Added to a field value when it's truncated
      */
-    private static String getPharseOrNewLine = "^.*?(?=[.|?|!|\\n])";
+    private static String getPharse = "^.*?(?=[.|?|!])";
 
     public static final String TRUNCATED_INDICATOR = "...";
 
@@ -36,7 +36,7 @@ public final class TranslationUtils {
 
     private static final Logger LOG = LogManager.getLogger(TranslationUtils.class);
 
-    private  static final Pattern getValuesBeforePhraseOrNewLinePattern = Pattern.compile(getPharseOrNewLine);
+    private  static final Pattern getValuesBeforePhrasePattern = Pattern.compile(getPharse);
 
 
     private TranslationUtils() {
@@ -247,7 +247,7 @@ public final class TranslationUtils {
                 String valueAfterLimit = StringUtils.substring(value, charLimitIndex, value.length());
 
                 //  check if the string has a phrase or new line
-                Matcher m = getValuesBeforePhraseOrNewLinePattern.matcher(valueAfterLimit);
+                Matcher m = getValuesBeforePhrasePattern.matcher(valueAfterLimit);
                 if (m.find()) {
                     truncatedValues.add(StringUtils.substring(value, 0,  charLimitIndex) + m.group(0) + TRUNCATED_INDICATOR) ;
                 } else {
