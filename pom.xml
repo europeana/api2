@@ -27,24 +27,24 @@
     </scm>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <corelib.version>2.16.6</corelib.version>
+        <corelib.version>2.16.7-SNAPSHOT</corelib.version>
         <metis.version>6</metis.version>
         <apicommons.version>0.3.20</apicommons.version>
 
         <httpclient.version>4.5.13</httpclient.version>
-        <jackson.version>2.14.1</jackson.version>
+        <jackson.version>2.16.0</jackson.version>
         <jodatime.version>2.9.2</jodatime.version>
         <servletJstl.version>1.2</servletJstl.version>
         <swagger.version>2.9.2</swagger.version>
         <log4j2.version>2.19.0</log4j2.version>
         <junit.version>4.12</junit.version>
-        <mockito.version>1.10.19</mockito.version>
+        <mockito.version>3.2.0</mockito.version>
 
         <!-- Note that SpringBoot and SpringCore are also dependencies in Corelib
              so versions have to match -->

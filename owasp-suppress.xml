@@ -282,6 +282,15 @@
     </suppress>
 
 
+    <suppress>
+        <notes><![CDATA[
+   file name: spring-webflux-5.3.16.jar
+   ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org.springframework/spring-webflux@.*$</packageUrl>
+        <cve>CVE-2022-22965</cve>
+    </suppress>
+
+
 </suppressions>
 
 

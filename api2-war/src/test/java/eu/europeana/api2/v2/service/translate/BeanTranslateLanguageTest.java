@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.util.ReflectionUtils;
 
@@ -123,7 +124,7 @@ public class BeanTranslateLanguageTest {
     @Before
     public void setup() throws TranslationException {
         when(translationService.translate(anyList(), eq(TARGET_LANG), (Language) eq(null))).thenReturn(MOCK_TRANSLATION_FROM_DEF);
-        when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG_DEF))).thenReturn(MOCK_TRANSLATION_FROM_DEF);
+        Mockito.lenient().when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG_DEF))).thenReturn(MOCK_TRANSLATION_FROM_DEF);
         // dctermsAlternative is only available in German
         when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG_DE))).thenReturn(MOCK_TRANSLATION_FROM_DE);
         // dcType is only available in English
