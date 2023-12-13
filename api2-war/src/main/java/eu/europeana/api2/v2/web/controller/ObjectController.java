@@ -336,7 +336,7 @@ public class ObjectController {
         }
 
         // 2) check API key & routing
-        apiKeyUtils.authorizeReadAccess(data.servletRequest);
+        //apiKeyUtils.authorizeReadAccess(data.servletRequest);
 
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
         if (dataSource.isEmpty() || dataSource.get().getRecordDao().isEmpty()) {
@@ -413,7 +413,7 @@ public class ObjectController {
         RecordDao recordDao = dataSource.get().getRecordDao().get();
 
         BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
-        bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
+        //bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
 
         // 8) When translation profile is active, do translation
         if (data.profiles.contains(Profile.TRANSLATE)) {
