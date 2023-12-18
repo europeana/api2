@@ -4,13 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import eu.europeana.api.commons.service.authorization.AuthorizationService;
 import eu.europeana.api.commons.web.controller.BaseRestController;
-import eu.europeana.api.commons.web.exception.ApplicationAuthenticationException;
-import eu.europeana.api2.ApiKeyException;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.exceptions.JsonSerializationException;
 import eu.europeana.api2.v2.service.ApiAuthorizationService;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.corelib.edm.exceptions.SolrIOException;
 import eu.europeana.corelib.search.SearchService;
 import eu.europeana.corelib.web.exception.ProblemType;
@@ -18,8 +15,6 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Optional;
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -51,7 +46,7 @@ public abstract class BaseController extends BaseRestController {
      *
      * @param route request route
      * @return Solr client
-     * @throws SolrIOException if no SolrClient is configured for route
+     * @throws InvalidConfigurationException if no SolrClient is configured for route
      */
     protected SolrClient getSolrClient(String route) throws InvalidConfigurationException {
         Optional<SolrClient> solrClient = routeService.getSolrClientForRequest(route);
@@ -65,9 +60,9 @@ public abstract class BaseController extends BaseRestController {
 
     /**
      * Serialises the object to json
-     * @param object
-     * @return
-     * @throws JsonSerializationException
+     * @param object to be serialized
+     * @return serialized string
+     * @throws JsonSerializationException if serialization failed
      */
     protected String serializeToJson(Object object) throws JsonSerializationException {
         SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);

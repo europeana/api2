@@ -24,7 +24,7 @@ public class ObjectControllerTest {
     private static RouteDataService routeDataService;
     private static RecordService recordService;
     private static RecordTranslateService tfService;
-    private static ApiKeyUtils apiKeyUtils;
+
     private static HttpCacheUtils httpCacheUtils;
 
     private static MockMvc objectControllerMock;
@@ -34,11 +34,12 @@ public class ObjectControllerTest {
     public void setup() {
         routeDataService = mock(RouteDataService.class);
         recordService = mock(RecordService.class);
+
         tfService = mock(RecordTranslateService.class);
         httpCacheUtils = mock(HttpCacheUtils.class);
 
 
-        objectController = spy(new ObjectController(routeDataService, recordService, tfService, httpCacheUtils));
+        objectController = spy(new ObjectController(routeDataService, recordService, tfService,httpCacheUtils));
 
         objectControllerMock = MockMvcBuilders
                 .standaloneSetup(objectController)

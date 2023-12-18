@@ -53,7 +53,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -63,12 +62,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.URI;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -211,7 +208,10 @@ public class SearchController extends BaseController {
                                       HttpServletResponse response)
         throws EuropeanaException, HttpException {
 
-        verifyReadAccess(request);
+
+        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
+
+
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
@@ -469,7 +469,7 @@ public class SearchController extends BaseController {
             query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
         }
 
-        SearchResults<? extends IdBean> result = createResults( profiles, query, clazz, request.getServerName(),
+        SearchResults<? extends IdBean> result = createResults( apiKey,profiles, query, clazz, request.getServerName(),
                 translateTargetLang, filterLanguages, request, response);
 
         if (profiles.contains(Profile.PARAMS)) {
@@ -873,6 +873,7 @@ public class SearchController extends BaseController {
 
     @SuppressWarnings("unchecked")
     private <T extends IdBean> SearchResults<T> createResults(
+                                                              String apiKey,
                                                               Set<Profile> profiles,
                                                               Query query,
                                                               Class<T> clazz,
@@ -881,7 +882,7 @@ public class SearchController extends BaseController {
                                                               List<Language> filterLanguages,
                                                               HttpServletRequest servletRequest,
                                                               HttpServletResponse servletResponse) throws EuropeanaException {
-        String apiKey=ApiKeyUtils.extractApiKeyFromRequest(servletRequest);
+
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
 
