@@ -1,8 +1,8 @@
 package eu.europeana.api2.v2.service.translate;
 
+import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
+import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
-import eu.europeana.api2.v2.model.translate.Language;
-import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.junit.Test;
 
 import java.util.List;
@@ -18,24 +18,24 @@ import static org.junit.Assert.*;
 public class LanguageTest {
 
     @Test
-    public void testSingleLanguageValid() throws EuropeanaException {
+    public void testSingleLanguageValid() throws InvalidLanguageException {
         Language lang = Language.validateSingle("en");
         assertNotNull(lang);
         assertEquals(Language.EN, lang);
     }
 
-    @Test(expected = InvalidParamValueException.class)
-    public void testSingleLanguageEmpty() throws EuropeanaException {
+    @Test(expected = InvalidLanguageException.class)
+    public void testSingleLanguageEmpty() throws InvalidLanguageException {
         Language.validateSingle("");
     }
 
-    @Test(expected = InvalidParamValueException.class)
-    public void testSingleLanguageInvalid() throws EuropeanaException {
+    @Test(expected = InvalidLanguageException.class)
+    public void testSingleLanguageInvalid() throws InvalidLanguageException {
         Language.validateSingle("dk");
     }
 
     @Test
-    public void testMultipleLanguageValid()  throws EuropeanaException {
+    public void testMultipleLanguageValid() throws InvalidLanguageException {
         List<Language> langs = Language.validateMultiple("fr, De , NL");
         assertNotNull(langs);
         assertEquals(3, langs.size());
@@ -44,18 +44,18 @@ public class LanguageTest {
         assertEquals(Language.NL, langs.get(2));
     }
 
-    @Test(expected = InvalidParamValueException.class)
-    public void testMultipleLanguageEmpty()  throws EuropeanaException {
+    @Test(expected = InvalidLanguageException.class)
+    public void testMultipleLanguageEmpty()  throws InvalidLanguageException {
         Language.validateMultiple(null);
     }
 
-    @Test(expected = InvalidParamValueException.class)
-    public void testMultipleLanguageInvalid()  throws EuropeanaException {
+    @Test(expected = InvalidLanguageException.class)
+    public void testMultipleLanguageInvalid()  throws InvalidLanguageException {
         Language.validateMultiple("es,it,xx");
     }
 
-    @Test(expected = InvalidParamValueException.class)
-    public void testMultipleLanguageInvalid2()  throws EuropeanaException {
+    @Test(expected = InvalidLanguageException.class)
+    public void testMultipleLanguageInvalid2()  throws InvalidLanguageException {
         Language.validateMultiple(",");
     }
 

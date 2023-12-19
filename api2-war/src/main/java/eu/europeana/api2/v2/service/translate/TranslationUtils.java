@@ -1,9 +1,9 @@
 package eu.europeana.api2.v2.service.translate;
 
 import com.google.api.gax.rpc.ResourceExhaustedException;
+import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
-import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.corelib.utils.ComparatorUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
  * @author P. Ehlert
  * Created 22 jul 2021
  */
+@Deprecated
 public final class TranslationUtils {
 
     /**

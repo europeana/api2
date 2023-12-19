@@ -1,7 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
+import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.v2.exceptions.TranslationException;
-import eu.europeana.api2.v2.model.translate.Language;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

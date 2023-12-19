@@ -1,8 +1,8 @@
 package eu.europeana.api2.v2.service.translate;
 
 import com.auth0.jwt.JWT;
+import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.v2.exceptions.TranslationException;
-import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.utils.MetadataTranslationUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
@@ -41,6 +41,7 @@ import java.util.Locale;
 @Service
 @PropertySource("classpath:europeana.properties")
 @PropertySource(value = "classpath:europeana.user.properties", ignoreResourceNotFound = true)
+@Deprecated
 public class PangeanicTranslationService implements TranslationService {
 
     private static final Logger LOG = LogManager.getLogger(PangeanicTranslationService.class);

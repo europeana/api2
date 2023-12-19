@@ -3,8 +3,9 @@ package eu.europeana.api2.v2.service.translate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
+import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.v2.exceptions.TranslationException;
-import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.utils.MockBeanConstants;
 import eu.europeana.api2.v2.utils.MockFullBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -155,7 +156,7 @@ public class BeanTranslateLanguageTest {
      * value should be removed)
      */
     @Test
-    public void testNoStaticTranslation() throws JsonProcessingException, EuropeanaException {
+    public void testNoStaticTranslation() throws JsonProcessingException, EuropeanaException, InvalidLanguageException {
         FullBean bean = MockFullBean.mock();
         ObjectMapper mapper = new ObjectMapper();
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Original fullbean = {}",
@@ -216,7 +217,7 @@ public class BeanTranslateLanguageTest {
     }
 
     @Test
-    public void testStaticTranslation() throws JsonProcessingException, EuropeanaException {
+    public void testStaticTranslation() throws JsonProcessingException, EuropeanaException, InvalidLanguageException {
         FullBean bean = MockFullBean.mock();
         RecordTranslateService translateService = new RecordTranslateService(translationService);
 
@@ -282,7 +283,7 @@ public class BeanTranslateLanguageTest {
     }
 
     @Test
-    public void testNonStaticTranslationWithLocales() throws JsonProcessingException, EuropeanaException {
+    public void testNonStaticTranslationWithLocales() throws JsonProcessingException, EuropeanaException, InvalidLanguageException {
         FullBean bean = MockFullBean.mock();
         ObjectMapper mapper = new ObjectMapper();
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Original fullbean = {}",

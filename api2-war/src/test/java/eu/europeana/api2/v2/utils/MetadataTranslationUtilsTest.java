@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api2.v2.model.translate.Language;
+import eu.europeana.api.translation.definitions.language.Language;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.Assert;

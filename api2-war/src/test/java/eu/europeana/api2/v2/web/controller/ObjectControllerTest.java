@@ -2,6 +2,7 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.RecordTranslateService;
+import eu.europeana.api2.v2.service.translate.RecordTranslations;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.corelib.record.RecordService;
@@ -23,7 +24,7 @@ public class ObjectControllerTest {
     private static ObjectController objectController;
     private static RouteDataService routeDataService;
     private static RecordService recordService;
-    private static RecordTranslateService tfService;
+    private static RecordTranslations recordTranslations;
     private static ApiKeyUtils apiKeyUtils;
     private static HttpCacheUtils httpCacheUtils;
 
@@ -35,11 +36,11 @@ public class ObjectControllerTest {
         routeDataService = mock(RouteDataService.class);
         recordService = mock(RecordService.class);
         apiKeyUtils = mock(ApiKeyUtils.class);
-        tfService = mock(RecordTranslateService.class);
+        recordTranslations = mock(RecordTranslations.class);
         httpCacheUtils = mock(HttpCacheUtils.class);
 
 
-        objectController = spy(new ObjectController(routeDataService, recordService, tfService, apiKeyUtils, httpCacheUtils));
+        objectController = spy(new ObjectController(routeDataService, recordService, recordTranslations, apiKeyUtils, httpCacheUtils));
 
         objectControllerMock = MockMvcBuilders
                 .standaloneSetup(objectController)

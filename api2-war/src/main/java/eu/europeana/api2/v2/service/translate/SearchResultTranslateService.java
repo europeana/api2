@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api2.v2.model.translate.Language;
+import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
@@ -132,8 +132,8 @@ public class SearchResultTranslateService {
         }
 
         // 2. Check if there's a English value (if target is not English)
-        if (!Language.ENGLISH.equals(targetLang)) {
-            result = getFieldValuesForLang(resultItem, index, field, Language.ENGLISH);
+        if (!Language.PIVOT.equals(targetLang)) {
+            result = getFieldValuesForLang(resultItem, index, field, Language.PIVOT);
         }
 
         // 3. Check if there are non-uri def values

@@ -27,7 +27,6 @@ import static springfox.documentation.builders.RequestHandlerSelectors.withMetho
  */
 @EnableSwagger2 //Loads the spring beans required by the framework
 @PropertySource("classpath:swagger.properties")
-
 public class SwaggerConfig {
 
     public static final String SEARCH_TAG = "Search";

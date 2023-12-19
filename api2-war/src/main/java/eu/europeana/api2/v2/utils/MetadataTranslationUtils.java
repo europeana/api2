@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api2.v2.model.translate.Language;
+import eu.europeana.api.translation.definitions.language.Language;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -155,12 +155,12 @@ public class MetadataTranslationUtils {
     public static boolean noTranslationRequired(String lang) {
         return (StringUtils.equals(lang, Language.NO_LINGUISTIC_CONTENT)
                 || StringUtils.equals(lang, Language.DEF)
-                || StringUtils.equals(lang, Language.ENGLISH));
+                || StringUtils.equals(lang, Language.PIVOT));
     }
 
     public static boolean nonTranslatedDataExists(List<String> detectedLanguages) {
         return (detectedLanguages.contains(Language.NO_LINGUISTIC_CONTENT)
                 || detectedLanguages.contains(Language.DEF)
-                || detectedLanguages.contains(Language.ENGLISH));
+                || detectedLanguages.contains(Language.PIVOT));
     }
 }

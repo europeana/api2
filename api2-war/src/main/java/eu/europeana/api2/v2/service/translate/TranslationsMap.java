@@ -1,9 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api2.v2.model.translate.Language;
+import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.corelib.web.exception.EuropeanaException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -17,6 +15,7 @@ import java.util.Map;
  * @author P. Ehlert
  * Created jul - aug 2021
  */
+@Deprecated
 public class TranslationsMap extends LinkedHashMap<String, FieldValuesLanguageMap> {
 
 //    private static final Logger LOG = LogManager.getLogger(TranslationsMap.class);

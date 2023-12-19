@@ -4,9 +4,9 @@ package eu.europeana.api2.config;
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api.translation.client.TranslationApiClient;
 import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
-import eu.europeana.api.translation.client.service.MetadataChosenLanguageService;
-import eu.europeana.api.translation.client.service.MetadataLangDetectionService;
-import eu.europeana.api.translation.client.service.MetadataTranslationService;
+import eu.europeana.api.translation.record.service.MetadataChosenLanguageService;
+import eu.europeana.api.translation.record.service.MetadataLangDetectionService;
+import eu.europeana.api.translation.record.service.MetadataTranslationService;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.translate.QueryTranslator;
@@ -153,6 +153,7 @@ public class AppConfig {
         return urlService;
     }
 
+    // TODO will clean up in search logic - EA-3637
     /**
      * Make sure the correct translation service is initialized and available for components that need it
      * @return translation service or null if none is configured.
@@ -168,11 +169,9 @@ public class AppConfig {
      * @return query generator bean or null
      */
     @Bean
-    MultilingualQueryGenerator multilingualQueryGenerator() {
-        if (translationSearchQuery && this.translationService != null) {
-            return new MultilingualQueryGenerator(new QueryTranslator(this.translationService));
-        }
-        return null;
+    public MultilingualQueryGenerator multilingualQueryGenerator() {
+        return new MultilingualQueryGenerator(new QueryTranslator(this.translationService));
+
     }
 
     /**
@@ -181,11 +180,9 @@ public class AppConfig {
      * @return search result translation service bean or null
      */
     @Bean
-    SearchResultTranslateService searchResultTranslationService() {
-        if (translationSearchResults && this.translationService != null) {
-            return new SearchResultTranslateService(this.translationService);
-        }
-        return null;
+    public SearchResultTranslateService searchResultTranslationService() {
+        return new SearchResultTranslateService(this.translationService);
+
     }
 
     @Bean
@@ -216,12 +213,8 @@ public class AppConfig {
      }
 
      @Bean
-    public MetadataTranslationService getMetadataTranslationService() {
-        return  new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService());
-     }
-
-     @Bean
-    public MetadataLangDetectionService getMetadataLangDetectionService() {
-        return  new MetadataLangDetectionService(getTranslationApiClient());
+     public RecordTranslations recordTranslations() {
+        return new RecordTranslations(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService()),
+                new MetadataLangDetectionService(getTranslationApiClient()));
      }
 }

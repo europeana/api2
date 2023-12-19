@@ -14,6 +14,7 @@ import java.util.*;
  * @author P. Ehlert
  * Created 22 jul 2021
  */
+@Deprecated
 public class FieldValuesLanguageMap extends LinkedHashMap<String, List<String>> {
 
     private static final long serialVersionUID = 7857857025275959529L;

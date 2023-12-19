@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api.commons.oauth2.utils.OAuthUtils;
+import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
+import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
@@ -13,7 +14,6 @@ import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.RichView;
-import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
@@ -53,7 +53,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -63,12 +62,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.URI;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -144,7 +141,7 @@ public class SearchController extends BaseController {
     public ModelAndView searchJsonPost(
                                        @RequestBody SearchRequest searchRequest,
                                        HttpServletRequest request,
-                                       HttpServletResponse response) throws EuropeanaException {
+                                       HttpServletResponse response) throws EuropeanaException, InvalidLanguageException {
         return searchJsonGet(
                              searchRequest.getQuery(),
                              searchRequest.getQf(),
@@ -207,7 +204,7 @@ public class SearchController extends BaseController {
                                       @RequestParam(value = "lang", required = false) String lang,
                                       @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
-                                      HttpServletResponse response) throws EuropeanaException {
+                                      HttpServletResponse response) throws EuropeanaException, InvalidLanguageException {
 
         apiKeyUtils.authorizeReadAccess(request);
         // get the profiles
@@ -485,7 +482,7 @@ public class SearchController extends BaseController {
     /**
      * @return targetLanguage
      */
-    private Language validateQueryTranslateParams(String querySourceLang, String queryTargetLang) throws EuropeanaException {
+    private Language validateQueryTranslateParams(String querySourceLang, String queryTargetLang) throws EuropeanaException, InvalidLanguageException {
         Language result = null;
         if (queryTargetLang != null) {
             result = Language.validateSingle(queryTargetLang);

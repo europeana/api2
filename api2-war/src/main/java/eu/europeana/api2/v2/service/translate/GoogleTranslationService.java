@@ -3,8 +3,7 @@ package eu.europeana.api2.v2.service.translate;
 import com.google.api.gax.rpc.TransportChannelProvider;
 import com.google.cloud.tasks.v2.stub.CloudTasksStubSettings;
 import com.google.cloud.translate.v3.*;
-import eu.europeana.api2.v2.exceptions.TranslationException;
-import eu.europeana.api2.v2.model.translate.Language;
+import eu.europeana.api.translation.definitions.language.Language;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +22,7 @@ import java.util.List;
 //@Service
 @PropertySource("classpath:europeana.properties")
 @PropertySource(value = "classpath:europeana.user.properties", ignoreResourceNotFound = true)
+@Deprecated
 public class GoogleTranslationService implements TranslationService {
 
     private static final Logger LOG = LogManager.getLogger(GoogleTranslationService.class);
