@@ -93,15 +93,15 @@ import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@Api(tags = {SwaggerConfig.RECORD_TAG})
+//@Api(tags = {SwaggerConfig.RECORD_TAG})
 @RequestMapping(value = {
         "/api/v2/record",
         "/v2/record",
         "/record/v2",
         "/record",
 })
-@SwaggerSelect
-@Import(RecordTranslateService.class) // to enable title and description translation
+//@SwaggerSelect
+//@Import(RecordTranslateService.class) // to enable title and description translation
 public class ObjectController {
 
 
@@ -116,9 +116,9 @@ public class ObjectController {
 
     private RouteDataService        routeService;
     private RecordService           recordService;
-    private RecordTranslateService translateFilterService;
-    private ApiKeyUtils             apiKeyUtils;
-    private HttpCacheUtils          httpCacheUtils;
+    //private RecordTranslateService translateFilterService;
+    //private ApiKeyUtils             apiKeyUtils;
+    //private HttpCacheUtils          httpCacheUtils;
 
 
 
@@ -143,18 +143,16 @@ public class ObjectController {
      * Create a new ObjectController
      * @param routeService for
      * @param recordService for retrieving data from Mongo
-     * @param tfService for translating data
-     * @param apiKeyUtils for api key validation
-     * @param httpCacheUtils for request caching
+
      */
     @Autowired
-    public ObjectController(RouteDataService routeService, RecordService recordService, RecordTranslateService tfService,
-                            ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
+    public ObjectController(RouteDataService routeService, RecordService recordService) { //RecordTranslateService tfService,
+                            //ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
         this.recordService = recordService;
-        this.apiKeyUtils = apiKeyUtils;
+        //this.apiKeyUtils = apiKeyUtils;
         this.routeService = routeService;
-        this.httpCacheUtils = httpCacheUtils;
-        this.translateFilterService = tfService;
+        //this.httpCacheUtils = httpCacheUtils;
+        //this.translateFilterService = tfService;
     }
 
     /**
@@ -346,12 +344,12 @@ public class ObjectController {
         }
 
         // 3) validate other common params
-        if (!translateFilterService.isEnabled() && data.profiles.contains(Profile.TRANSLATE)) {
-            throw new TranslationServiceDisabledException();
-        }
-        if (data.lang != null) {
-            data.setLanguages(Language.validateMultiple(data.lang));
-        }
+//        if (!translateFilterService.isEnabled() && data.profiles.contains(Profile.TRANSLATE)) {
+//            throw new TranslationServiceDisabledException();
+//        }
+//        if (data.lang != null) {
+//            data.setLanguages(Language.validateMultiple(data.lang));
+//        }
 
         // 4) get the fullbean
         FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true);
@@ -383,30 +381,30 @@ public class ObjectController {
 
         // 6) Handle caching
         // ETag is created from timestamp + api version.
-        String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
-        String eTag      = httpCacheUtils.generateETag(data.europeanaId +tsUpdated, true, true);
-
-        // If If-None-Match is present: check if it contains a matching eTag OR == '*"
-        // Yes: return HTTP 304 + cache headers. Ignore If-Modified-Since (RFC 7232)
-        if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFNONEMATCH))){
-            if (httpCacheUtils.doesAnyIfNoneMatch(data.servletRequest, eTag)) {
-                response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
-                response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-                return null;
-            }
-            // If If-Match is present: check if it contains a matching eTag OR == '*"
-            // Yes: proceed. No: return HTTP 412, no cache headers
-        } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))) {
-            if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
-                response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
-                return null;
-            }
-            // check if If-Modified-Since is present and on or after timestamp_updated
-            // yes: return HTTP 304 no: continue
-        } else if (httpCacheUtils.isNotModifiedSince(data.servletRequest, bean.getTimestampUpdated())){
-            response.setStatus(HttpServletResponse.SC_NOT_MODIFIED); // no cache headers
-            return null;
-        }
+//        String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
+//        String eTag      = httpCacheUtils.generateETag(data.europeanaId +tsUpdated, true, true);
+//
+//        // If If-None-Match is present: check if it contains a matching eTag OR == '*"
+//        // Yes: return HTTP 304 + cache headers. Ignore If-Modified-Since (RFC 7232)
+//        if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFNONEMATCH))){
+//            if (httpCacheUtils.doesAnyIfNoneMatch(data.servletRequest, eTag)) {
+//                response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
+//                response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+//                return null;
+//            }
+//            // If If-Match is present: check if it contains a matching eTag OR == '*"
+//            // Yes: proceed. No: return HTTP 412, no cache headers
+//        } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))) {
+//            if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
+//                response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
+//                return null;
+//            }
+//            // check if If-Modified-Since is present and on or after timestamp_updated
+//            // yes: return HTTP 304 no: continue
+//        } else if (httpCacheUtils.isNotModifiedSince(data.servletRequest, bean.getTimestampUpdated())){
+//            response.setStatus(HttpServletResponse.SC_NOT_MODIFIED); // no cache headers
+//            return null;
+//        }
 
         // 7) Process bean further (adding webresource meta info, set proper urls)
         // cannot be null here, as method has already checked for record dao
@@ -416,22 +414,22 @@ public class ObjectController {
         //bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
 
         // 8) When translation profile is active, do translation
-        if (data.profiles.contains(Profile.TRANSLATE)) {
-            if (data.languages == null || data.languages.isEmpty()) {
-                // Get the edm:language for default translation and filtering (if we find a default language)
-                data.setLanguages(translateFilterService.getDefaultTranslationLanguage(bean));
-            }
-            if (data.languages != null && !data.languages.isEmpty()) {
-                try {
-                    bean = translateFilterService.translateProxyFields(bean, data.languages);
-                } catch (TranslationServiceLimitException e) {
-                    // EA-3463 - return 307 redirect without profile param and Keep the Error Response
-                    // Body indicating the reason for troubleshooting
-                    ControllerUtils.redirectForTranslationsLimitException(data.servletRequest, response, data.profiles);
-                    throw new TranslationServiceLimitException(e);
-                }
-            }
-        }
+//        if (data.profiles.contains(Profile.TRANSLATE)) {
+//            if (data.languages == null || data.languages.isEmpty()) {
+//                // Get the edm:language for default translation and filtering (if we find a default language)
+//                data.setLanguages(translateFilterService.getDefaultTranslationLanguage(bean));
+//            }
+//            if (data.languages != null && !data.languages.isEmpty()) {
+//                try {
+//                    bean = translateFilterService.translateProxyFields(bean, data.languages);
+//                } catch (TranslationServiceLimitException e) {
+//                    // EA-3463 - return 307 redirect without profile param and Keep the Error Response
+//                    // Body indicating the reason for troubleshooting
+//                    ControllerUtils.redirectForTranslationsLimitException(data.servletRequest, response, data.profiles);
+//                    throw new TranslationServiceLimitException(e);
+//                }
+//            }
+//        }
 
         // 9) When lang profile is provided, do filtering
         if (data.languages != null && !data.languages.isEmpty()) {
@@ -440,7 +438,7 @@ public class ObjectController {
 
         // 10) Generate output
         // add headers, except Content-Type (that differs per recordType)
-        response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
+        //response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
 
         Object output;
         switch (recordType) {
