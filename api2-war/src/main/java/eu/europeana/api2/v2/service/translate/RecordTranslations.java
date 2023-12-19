@@ -29,8 +29,7 @@ public class RecordTranslations {
 
     private static final Logger LOG = LogManager.getLogger(RecordTranslations.class);
 
-    private MetadataTranslationService metadataTranslationService;
-
+    MetadataTranslationService metadataTranslationService;
     MetadataLangDetectionService metadataLangDetectionService;
 
     @Autowired
@@ -46,7 +45,7 @@ public class RecordTranslations {
             // check if the record was translated during ingestion
             List<Boolean> translatedDuringIngestion = new ArrayList<>();
             ReflectionUtils.doWithFields(europeanaProxy.getClass(), field ->
-                translatedDuringIngestion.add(pivotLanguageTaggedValueIsPresent(europeanaProxy, field)), proxyFieldFilter);
+                translatedDuringIngestion.add(languageTaggedValueIsPresent(europeanaProxy, field)), proxyFieldFilter);
 
             if (translatedDuringIngestion.contains(Boolean.TRUE)) {
                 LOG.debug("Record was translated during the ingestion.. ");
@@ -61,6 +60,9 @@ public class RecordTranslations {
                 return metadataTranslationService.translationWorkflow(metadataLangDetectionService.detectLanguageForProxy(bean), targetLanguage);
             }
         } catch (TranslationApiException e) {
+            // For 502 status , Client throws ExternalServiceException.
+            // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
+            // Hence we need to check for the message as well as we have a redirect functionality based on it.
             if (e instanceof ExternalServiceException && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
                 throw new TranslationServiceLimitException(e);
             }
@@ -71,12 +73,12 @@ public class RecordTranslations {
     }
 
     /**
-     * Returns true if Pivot language tagged ("en") value is present for the field.
+     * Returns true if Language tagged literals are present
      * @param proxy
      * @param field
      * @return
      */
-    private boolean pivotLanguageTaggedValueIsPresent(Proxy proxy, Field field) {
+    private boolean languageTaggedValueIsPresent(Proxy proxy, Field field) {
         HashMap<String, List<String>> origFieldData = (HashMap<String, List<String>>) getValueOfTheField(proxy, false).apply(field.getName());
         if (origFieldData != null && !origFieldData.isEmpty()) {
             boolean hasLangTaggedLiterals = false;
@@ -86,6 +88,7 @@ public class RecordTranslations {
                     break;
                 }
             }
+            // don't check further if found a lang tagged literal
             if (hasLangTaggedLiterals) {
                 return true;
             }
