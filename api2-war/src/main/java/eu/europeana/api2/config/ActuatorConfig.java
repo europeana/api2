@@ -24,12 +24,12 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource(value = "classpath:build.properties", ignoreResourceNotFound = true)
 @Import({ EndpointAutoConfiguration.class, PublicMetricsAutoConfiguration.class })
 public class ActuatorConfig {
-
-    @Bean
-    @Autowired
-    public EndpointHandlerMapping endpointHandlerMapping(Collection<? extends MvcEndpoint> endpoints) {
-        return new EndpointHandlerMapping(endpoints);
-    }
+//
+//    @Bean
+//    @Autowired
+//    public EndpointHandlerMapping endpointHandlerMapping(Collection<? extends MvcEndpoint> endpoints) {
+//        return new EndpointHandlerMapping(endpoints);
+//    }
 
     @Bean
     @Autowired

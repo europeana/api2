@@ -101,7 +101,6 @@ import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
         "/record",
 })
 @SwaggerSelect
-@Import(RecordTranslateService.class) // to enable title and description translation
 public class ObjectController {
 
 
