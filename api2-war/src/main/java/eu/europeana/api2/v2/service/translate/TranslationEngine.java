@@ -9,6 +9,7 @@ import java.util.Locale;
  *
  * @author Patrick Ehlert
  */
+@Deprecated
 public enum TranslationEngine {
 
     GOOGLE, PANGEANIC, PANGEANIC2, NONE;

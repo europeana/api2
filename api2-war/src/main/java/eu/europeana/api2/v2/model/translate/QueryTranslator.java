@@ -1,17 +1,18 @@
 package eu.europeana.api2.v2.model.translate;
 
-import com.google.api.gax.rpc.ResourceExhaustedException;
-import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api.translation.client.TranslationApiClient;
+import eu.europeana.api.translation.client.exception.ExternalServiceException;
+import eu.europeana.api.translation.client.exception.TranslationApiException;
+import eu.europeana.api.translation.record.service.BaseService;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
-import eu.europeana.api2.v2.service.translate.TranslationService;
 import eu.europeana.corelib.web.exception.EuropeanaException;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,12 +24,12 @@ public class QueryTranslator {
     private static final String FIRST_WORD_REGEX = "^\\s*\\S+";
     private static final Pattern FIRST_WORD_PATTERN = Pattern.compile(FIRST_WORD_REGEX);
 
-    private TranslationService translationService;
+    private TranslationApiClient translationClient;
 
     @Autowired
-    public QueryTranslator(TranslationService translationService) {
-        this.translationService = translationService;
-        LOG.info("QueryTranslator initialised with {} service", translationService);
+    public QueryTranslator(TranslationApiClient translationClient) {
+        this.translationClient = translationClient;
+        LOG.info("QueryTranslator initialised with Translation Api client");
     }
 
     private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose) throws TranslationException, TranslationServiceLimitException {
@@ -38,17 +39,18 @@ public class QueryTranslator {
             String translation;
             long start = System.nanoTime(); //DEBUG
             try {
-                if (sourceLanguage == null) {
-                    translation = this.translationService.translate(List.of(toTranslate), targetLanguage, (Language) null).get(0);
-                } else {
-                    translation = this.translationService.translate(List.of(toTranslate), targetLanguage, sourceLanguage).get(0);
+                translation = this.translationClient.translate(
+                        BaseService.createTranslationRequest(List.of(toTranslate), targetLanguage, sourceLanguage))
+                        .getTranslations().get(0);
+            } catch(TranslationApiException e) {
+                // For 502 status , Client throws ExternalServiceException.
+                // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
+                // Hence we need to check for the message as well as we have a redirect functionality based on it.
+                if (e instanceof ExternalServiceException && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
+                    throw new TranslationServiceLimitException(e);
                 }
-            } catch (ResourceExhaustedException e) {
-                // catch Google StatusRuntimeException: RESOURCE_EXHAUSTED exception
-                // this will be thrown if the limit for the day is exceeded
-                throw new TranslationServiceLimitException(e);
-            } catch (RuntimeException e) {
-                // Catch Google Translate issues and wrap in our own exception
+                // keep in mind once we have token being passed that should be valid for
+                // translation api as well and we will never receive Unauthorised error here as it is validated in the beginning.
                 throw new TranslationException(e);
             }
             if (LOG.isDebugEnabled()) {
@@ -103,14 +105,7 @@ public class QueryTranslator {
      * @return true if there is a translation engine configured
      */
     public boolean isServiceConfigured() {
-        return translationService != null;
-    }
-
-    @PreDestroy
-    public void close() {
-        if (this.translationService != null) {
-            this.translationService.close();
-        }
+        return translationClient != null;
     }
 
 }

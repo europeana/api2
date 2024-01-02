@@ -7,6 +7,7 @@ import eu.europeana.api.translation.record.service.MetadataTranslationService;
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
+import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
@@ -23,7 +24,7 @@ import java.util.*;
 
 import static eu.europeana.api.translation.record.service.BaseService.*;
 
-// TODO rename to RecordTranslationService once we have tested everything and deleted the previous code
+// TODO rename to TranslationService once we have tested everything and deleted the previous code
 @Service
 public class RecordTranslations {
 
@@ -36,6 +37,22 @@ public class RecordTranslations {
     public RecordTranslations(MetadataTranslationService metadataTranslationService, MetadataLangDetectionService metadataLangDetectionService) {
         this.metadataLangDetectionService = metadataLangDetectionService;
         this.metadataTranslationService = metadataTranslationService;
+    }
+
+    public List<BriefBean> translate(List<BriefBean> beans, String targetLanguage) throws EuropeanaException {
+        try {
+            return metadataTranslationService.searchResultsTranslations(metadataLangDetectionService.detectLanguageForSearchResults(beans), targetLanguage);
+        } catch(TranslationApiException e) {
+            // For 502 status , Client throws ExternalServiceException.
+            // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
+            // Hence we need to check for the message as well as we have a redirect functionality based on it.
+            if (e instanceof ExternalServiceException && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
+                throw new TranslationServiceLimitException(e);
+            }
+            // keep in mind once we have token being passed that should be valid for
+            // translation api as well and we will never receive Unauthorised error here as it is validated in the beginning.
+            throw new TranslationException(e);
+        }
     }
 
     public FullBean translate(FullBean bean, String targetLanguage) throws EuropeanaException {
@@ -53,11 +70,11 @@ public class RecordTranslations {
                     return bean; // do nothing
                 } else {
                     // call translation workflow
-                    return metadataTranslationService.translationWorkflow(bean, targetLanguage);
+                    return metadataTranslationService.proxyTranslation(bean, targetLanguage);
                 }
             } else {
                 // if not translated during ingestion - apply detection + translation
-                return metadataTranslationService.translationWorkflow(metadataLangDetectionService.detectLanguageForProxy(bean), targetLanguage);
+                return metadataTranslationService.proxyTranslation(metadataLangDetectionService.detectLanguageForProxy(bean), targetLanguage);
             }
         } catch (TranslationApiException e) {
             // For 502 status , Client throws ExternalServiceException.

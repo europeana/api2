@@ -170,7 +170,7 @@ public class AppConfig {
      */
     @Bean
     public MultilingualQueryGenerator multilingualQueryGenerator() {
-        return new MultilingualQueryGenerator(new QueryTranslator(this.translationService));
+        return new MultilingualQueryGenerator(new QueryTranslator(getTranslationApiClient()));
 
     }
 

@@ -22,6 +22,7 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
+import eu.europeana.api2.v2.service.translate.RecordTranslations;
 import eu.europeana.api2.v2.service.translate.SearchResultTranslateService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
@@ -111,14 +112,14 @@ public class SearchController extends BaseController {
     private Boolean resultsTranslationEnabled;
 
     private MultilingualQueryGenerator queryGenerator;
-    private SearchResultTranslateService resultTranslator;
+    private RecordTranslations searchResultTranslator;
 
     @Autowired
     public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator,
-                            SearchResultTranslateService resultTranslator) {
+                            RecordTranslations searchResultTranslator) {
         super(routeService);
         this.queryGenerator = queryGenerator;
-        this.resultTranslator = resultTranslator;
+        this.searchResultTranslator = searchResultTranslator;
         if (queryTranslationEnabled == null) {
             queryTranslationEnabled = false;
         }
@@ -229,7 +230,7 @@ public class SearchController extends BaseController {
         // note that we'll ignore when query translations or results translations is disabled
         if (isTranslateProfileActive && (
                 (queryTranslationEnabled && queryGenerator == null) ||
-                (resultsTranslationEnabled && resultTranslator == null))) {
+                (resultsTranslationEnabled && !searchResultTranslator.isEnabled()))) {
             throw new TranslationServiceDisabledException();
         }
         queryString = queryString.trim();
@@ -901,8 +902,7 @@ public class SearchController extends BaseController {
         // Note that translateTargetLang is only set when minimal profile is enabled (so we are sure we get BriefBeans)
         if (translateTargetLang != null) {
             try {
-                resultTranslator.translateSearchResults((List<BriefBean>)
-                        resultSet.getResults(), translateTargetLang);
+                searchResultTranslator.translate((List<BriefBean>) resultSet.getResults(), translateTargetLang);
             } catch (TranslationServiceLimitException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
                 // Body indicating the reason for troubleshooting

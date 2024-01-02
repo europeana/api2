@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
  * @author Patrick Ehlert
  * Created June 2022
  */
+@Deprecated
 @Service
 public class SearchResultTranslateService {
 
@@ -71,6 +72,7 @@ public class SearchResultTranslateService {
             LOG.debug("Translate results - Gathering data took {} ms", (System.currentTimeMillis() - startTime));
         }
 
+        System.out.println("textsToTranslate  " + textsToTranslate);
         // actual translation
         long startTimeTranslate = System.currentTimeMillis();
         FieldValuesLanguageMap translations = textsToTranslate.translate(translationService, targetLang, null);
