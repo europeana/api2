@@ -67,6 +67,13 @@ public class AppConfig {
     @Value("${translation.search.results:false}")
     private Boolean translationSearchResults;
 
+    @Value("${translation.char.limit}")
+    private Integer translationCharLimit;
+
+    @Value("${translation.char.tolerance}")
+    private Integer translationCharTolerance;
+
+
     @Autowired
     private Environment env;
 
@@ -214,7 +221,7 @@ public class AppConfig {
 
      @Bean
      public RecordTranslations recordTranslations() {
-        return new RecordTranslations(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService()),
+        return new RecordTranslations(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(), translationCharLimit, translationCharTolerance),
                 new MetadataLangDetectionService(getTranslationApiClient()));
      }
 }

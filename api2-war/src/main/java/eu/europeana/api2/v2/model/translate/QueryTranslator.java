@@ -3,7 +3,7 @@ package eu.europeana.api2.v2.model.translate;
 import eu.europeana.api.translation.client.TranslationApiClient;
 import eu.europeana.api.translation.client.exception.ExternalServiceException;
 import eu.europeana.api.translation.client.exception.TranslationApiException;
-import eu.europeana.api.translation.record.service.BaseService;
+import eu.europeana.api.translation.record.utils.TranslationUtils;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.corelib.web.exception.EuropeanaException;
@@ -40,7 +40,7 @@ public class QueryTranslator {
             long start = System.nanoTime(); //DEBUG
             try {
                 translation = this.translationClient.translate(
-                        BaseService.createTranslationRequest(List.of(toTranslate), targetLanguage, sourceLanguage))
+                        TranslationUtils.createTranslationRequest(List.of(toTranslate), targetLanguage, sourceLanguage))
                         .getTranslations().get(0);
             } catch(TranslationApiException e) {
                 // For 502 status , Client throws ExternalServiceException.
