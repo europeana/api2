@@ -1,12 +1,12 @@
 package eu.europeana.api2.config;
 
 import java.util.Collection;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.PublicMetricsAutoConfiguration;
 import org.springframework.boot.actuate.endpoint.InfoEndpoint;
-import org.springframework.boot.actuate.endpoint.mvc.EndpointHandlerMapping;
 import org.springframework.boot.actuate.endpoint.mvc.EndpointMvcAdapter;
 import org.springframework.boot.actuate.endpoint.mvc.MvcEndpoint;
 import org.springframework.context.annotation.Bean;
@@ -24,17 +24,20 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource(value = "classpath:build.properties", ignoreResourceNotFound = true)
 @Import({ EndpointAutoConfiguration.class, PublicMetricsAutoConfiguration.class })
 public class ActuatorConfig {
-//
-//    @Bean
-//    @Autowired
-//    public EndpointHandlerMapping endpointHandlerMapping(Collection<? extends MvcEndpoint> endpoints) {
-//        return new EndpointHandlerMapping(endpoints);
-//    }
+
+    Logger LOG = LogManager.getLogger(ActuatorConfig.class);
+    @Bean
+    @Autowired
+    public EndpointHandlerMappingCustom endpointHandlerMapping(Collection<? extends MvcEndpoint> endpoints) {
+        return new EndpointHandlerMappingCustom(endpoints);
+    }
 
     @Bean
     @Autowired
     public EndpointMvcAdapter activateInfoEndPoint(InfoEndpoint delegate) {
+        LOG.info("InfoEndpoint bean activation : " + delegate.getId() + " --" +delegate);
         return new EndpointMvcAdapter(delegate);
     }
+
 
 }
