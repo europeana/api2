@@ -1,8 +1,6 @@
 package eu.europeana.api2.config;
 
 import java.util.Collection;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.PublicMetricsAutoConfiguration;
@@ -25,7 +23,6 @@ import org.springframework.context.annotation.PropertySource;
 @Import({ EndpointAutoConfiguration.class, PublicMetricsAutoConfiguration.class })
 public class ActuatorConfig {
 
-    Logger LOG = LogManager.getLogger(ActuatorConfig.class);
     @Bean
     @Autowired
     public EndpointHandlerMappingCustom endpointHandlerMapping(Collection<? extends MvcEndpoint> endpoints) {
@@ -35,7 +32,6 @@ public class ActuatorConfig {
     @Bean
     @Autowired
     public EndpointMvcAdapter activateInfoEndPoint(InfoEndpoint delegate) {
-        LOG.info("InfoEndpoint bean activation : " + delegate.getId() + " --" +delegate);
         return new EndpointMvcAdapter(delegate);
     }
 

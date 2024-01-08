@@ -32,7 +32,7 @@ public class EndpointHandlerMappingCustom extends RequestMappingHandlerMapping {
   private final String prefix;
   private boolean disabled;
 
-  private   MvcEndpoint  handler;
+  private MvcEndpoint  handler;
 
   public EndpointHandlerMappingCustom(Collection<? extends MvcEndpoint> endpoints) {
     this(endpoints, null);
@@ -44,7 +44,6 @@ public class EndpointHandlerMappingCustom extends RequestMappingHandlerMapping {
     this.endpoints = new HashSet<>(endpoints);
     this.corsConfiguration = corsConfiguration;
     this.setOrder(-100);
-    this.setUseSuffixPatternMatch(false);
   }
 
 
@@ -72,24 +71,32 @@ public class EndpointHandlerMappingCustom extends RequestMappingHandlerMapping {
     super.afterPropertiesSet();
     if (!this.disabled) {
       Iterator<MvcEndpoint> endpoint = this.endpoints.iterator();
-      while(endpoint.hasNext()) {
+      while (endpoint.hasNext()) {
         handler = endpoint.next();
         log.info("Registering handler mapping for : {}",handler.getPath());
         this.detectHandlerMethods(handler);
-
       }
     }
   }
 
-
+  /** To get endpoints URL same as pre spring-mvc version upgrade **/
+  @Override
+  protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
+    RequestMappingInfo mapping =  super.getMappingForMethod(method,handlerType);
+    if (mapping != null) {
+      String[] patterns = this.getPatterns(handler, mapping);
+      return this.withNewPatterns(mapping, patterns);
+    }
+    return null;
+  }
 
   private String[] getPatterns(Object handler, RequestMappingInfo mapping) {
     String path = this.getPath(handler);
     String prefixVal = StringUtils.hasText(this.prefix) ? this.prefix + path : path;
 
     PatternsRequestCondition patternsCondition = mapping.getPatternsCondition();
-    Set<String> defaultPatterns =patternsCondition != null? patternsCondition.getPatterns():new HashSet<>();
-    if ( defaultPatterns.isEmpty()) {
+    Set<String> defaultPatterns = patternsCondition != null ? patternsCondition.getPatterns() : new HashSet<>();
+    if (defaultPatterns.isEmpty()) {
       return new String[]{prefixVal, prefixVal + ".json"};
     } else {
       List<String> patterns = new ArrayList<>(defaultPatterns);
@@ -102,28 +109,21 @@ public class EndpointHandlerMappingCustom extends RequestMappingHandlerMapping {
 
   private String getPath(Object handler) {
     ApplicationContext applicationContext = this.getApplicationContext();
-    if (handler instanceof String && applicationContext != null) {
+    if (applicationContext != null && handler instanceof String) {
       handler = applicationContext.getBean((String)handler);
     }
     return handler instanceof MvcEndpoint ? ((MvcEndpoint)handler).getPath() : "";
   }
 
   private RequestMappingInfo withNewPatterns(RequestMappingInfo mapping, String[] patternStrings) {
-    PatternsRequestCondition patterns = new PatternsRequestCondition(patternStrings, null, null, this.useSuffixPatternMatch(), this.useTrailingSlashMatch(), null);
-    return new RequestMappingInfo(patterns, mapping.getMethodsCondition(), mapping.getParamsCondition(), mapping.getHeadersCondition(), mapping.getConsumesCondition(), mapping.getProducesCondition(), mapping.getCustomCondition());
+    PatternsRequestCondition patterns = new PatternsRequestCondition(patternStrings, null, null, this.useSuffixPatternMatch(),
+            this.useTrailingSlashMatch(), null);
+    return new RequestMappingInfo(patterns,
+            mapping.getMethodsCondition(),
+            mapping.getParamsCondition(),
+            mapping.getHeadersCondition(),
+            mapping.getConsumesCondition(),
+            mapping.getProducesCondition(),
+            mapping.getCustomCondition());
   }
-
-  /** To get endpoints URL same as pre spring-mvc version upgrade **/
-  @Override
-  protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
-    RequestMappingInfo mapping =  super.getMappingForMethod(method,handlerType);
-    if (mapping != null) {
-      String[] patterns = this.getPatterns(handler, mapping);
-      return this.withNewPatterns(mapping, patterns);
-
-    }
-    return null;
-  }
-
-
 }
