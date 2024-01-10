@@ -16,7 +16,7 @@ import eu.europeana.api2.v2.model.enums.Profile;
 import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.RecordTranslations;
+import eu.europeana.api2.v2.service.translate.TranslationService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
@@ -106,7 +106,7 @@ public class ObjectController {
 
     private RouteDataService        routeService;
     private RecordService           recordService;
-    private RecordTranslations recordTranslations;
+    private TranslationService recordTranslations;
     private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
 
@@ -138,7 +138,7 @@ public class ObjectController {
      * @param httpCacheUtils for request caching
      */
     @Autowired
-    public ObjectController(RouteDataService routeService, RecordService recordService, RecordTranslations recordTranslations,
+    public ObjectController(RouteDataService routeService, RecordService recordService, TranslationService recordTranslations,
                             ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
         this.recordService = recordService;
         this.apiKeyUtils = apiKeyUtils;

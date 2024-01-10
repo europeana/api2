@@ -4,9 +4,6 @@ package eu.europeana.api2.config;
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api.translation.client.TranslationApiClient;
 import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
-import eu.europeana.api.translation.record.service.MetadataChosenLanguageService;
-import eu.europeana.api.translation.record.service.MetadataLangDetectionService;
-import eu.europeana.api.translation.record.service.MetadataTranslationService;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.translate.QueryTranslator;
@@ -57,10 +54,6 @@ public class AppConfig {
     @Value("${apiGateway.baseUrl:}")
     private String apiGatewayBaseUrl;
 
-    @Value("${translation.engine:NONE}") // should be either PANGEANIC, GOOGLE or NONE
-    private String translationEngineString;
-    private TranslationService translationService;
-
     @Value("${translation.search.query:false}")
     private Boolean translationSearchQuery;
 
@@ -96,17 +89,6 @@ public class AppConfig {
                 this.apikeyServiceUrl = apikeyServiceUrl + "http://";
             }
         }
-
-        // Make sure the correct translation service is initialized and available for components that need it
-        TranslationEngine engine = TranslationEngine.fromString(translationEngineString);
-        if (TranslationEngine.PANGEANIC.equals(engine)) {
-            this.translationService = new PangeanicTranslationService();
-        } else if (TranslationEngine.GOOGLE.equals(engine)) {
-            this.translationService = new GoogleTranslationService();
-        } else if (TranslationEngine.PANGEANIC2.equals(engine)) {
-            this.translationService = new PangeanicV2TranslationService();
-        }
-        LOG.info("No translation engine available.");
     }
 
     /**
@@ -160,16 +142,6 @@ public class AppConfig {
         return urlService;
     }
 
-    // TODO will clean up in search logic - EA-3637
-    /**
-     * Make sure the correct translation service is initialized and available for components that need it
-     * @return translation service or null if none is configured.
-     */
-    @Bean
-    public TranslationService translationService() {
-        return this.translationService;
-    }
-
     /**
      * Initialize the multil lingual search query generator if the option is enabled and there's a translation engein
      * configured
@@ -178,17 +150,6 @@ public class AppConfig {
     @Bean
     public MultilingualQueryGenerator multilingualQueryGenerator() {
         return new MultilingualQueryGenerator(new QueryTranslator(getTranslationApiClient()));
-
-    }
-
-    /**
-     * Initialize the search result translation service if the option is enabled and there's a translation engine
-     * configured
-     * @return search result translation service bean or null
-     */
-    @Bean
-    public SearchResultTranslateService searchResultTranslationService() {
-        return new SearchResultTranslateService(this.translationService);
 
     }
 
@@ -220,8 +181,8 @@ public class AppConfig {
      }
 
      @Bean
-     public RecordTranslations recordTranslations() {
-        return new RecordTranslations(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(), translationCharLimit, translationCharTolerance),
+     public TranslationService recordTranslations() {
+        return new TranslationService(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(), translationCharLimit, translationCharTolerance),
                 new MetadataLangDetectionService(getTranslationApiClient()));
      }
 }

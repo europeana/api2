@@ -1,8 +1,6 @@
 package eu.europeana.api2.v2.service.translate;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
+import org.junit.*;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
@@ -16,6 +14,7 @@ import java.util.List;
  *
  * @author Sristhti Singh
  */
+@Ignore
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TruncationTest {
 

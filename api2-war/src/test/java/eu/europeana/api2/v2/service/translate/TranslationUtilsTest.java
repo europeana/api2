@@ -1,120 +1,99 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api.translation.definitions.language.Language;
-import eu.europeana.api2.v2.exceptions.TranslationException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
+import eu.europeana.api.translation.definitions.model.TranslationRequest;
+import eu.europeana.api2.v2.utils.MockFullBean;
+import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.when;
-
+/**
+ * Test the TranslationUtils
+ *
+ * @author Srishti singh
+ * Created 9 Jan 2024
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class TranslationUtilsTest {
 
-    @Mock
-    private TranslationService translationService;
+    private static final Map<String, List<String>> map = new HashMap<>();
+    private static final FullBean bean = MockFullBean.mock();
 
     private static final String TARGET_LANG = "nl";
-    private static final String SOURCE_LANG = "en";
 
-    private static final String KEY1 = "key1";
-    private static final String KEY2 = "key2";
-    private static final String KEY3 = "key3";
+    private static final String KEY1 = "de";
+    private static final String KEY2 = "no";
+    private static final String KEY3 = "fr";
 
-    private static final List<String> ORIGINAL_MAP_1 = Arrays.asList("Calamatta, Luigi   (1801 - 1869)", "Leonardo da Vinci (1452 - 1519)","graveur","voetbal");
-    private static final List<String> ORIGINAL_MAP_2 = Arrays.asList("TvB G 3674", "Paris Hilton", "voetbal");
-    private static final List<String> ORIGINAL_MAP_3 = Arrays.asList("cheetah", "bread", "umbrella", "rain");
+    private static final List<String> VALUES_1 = Arrays.asList("Calamatta, Luigi (1801 - 1869)", "Leonardo da Vinci (1452 - 1519)",
+                                                            "graveur","voetbal", "http://data.europeana.eu/agent/base/6", "?");
 
-    private static final List<String> TRANSLATED_MAP_TRIM_SPACES = Arrays.asList("Calamatta, Luigi (1801-1869)", "Leonardo da Vinci (1452-1519)","graveur","voetbal");
-    private static final List<String> TRANSLATED_MAP_PARTIAL = Arrays.asList("TvB G 3674", "Парис Хилтон", "fútbol");
-    private static final List<String> TRANSLATED_MAP = Arrays.asList("leopardo", "pan de molde", "paraguas", "lluvia");
+    private static final List<String> VALUES_2 = Arrays.asList("TvB G 3674", "Paris Hilton", "voetbal", "http://data.europeana.eu/concept/base/190", "Paris Hilton");
 
-    private static final FieldValuesLanguageMap MAP_TO_TRANSLATE = new FieldValuesLanguageMap(SOURCE_LANG) {{
-        put(KEY1, List.of("There is a theory which states that if ever anyone discovers exactly what the Universe is for and why it is here, it will instantly disappear and be replaced by something even more bizarre and inexplicable. There is another theory which states that this has already happened."));
-        put(KEY2, List.of(
-                "",
-                "This is just a text.  ",
-                " ",
-                "  And here's a second line"));
-    }};
+    private static final List<String> VALUES_FOR_TRANSLATION_1 = Arrays.asList("Calamatta, Luigi (1801 - 1869)", "Leonardo da Vinci (1452 - 1519)",
+            "graveur","voetbal");
+    private static final List<String> VALUES_FOR_TRANSLATION_2 = Arrays.asList("TvB G 3674", "Paris Hilton", "voetbal", "Landbruk");
 
-    private static final List<String> TRANSLATION1 = List.of("Er is een theorie die stelt dat als iemand ooit ontdekt waar het heelal precies voor dient en waarom het hier is, het onmiddellijk zal verdwijnen en vervangen zal worden door iets dat nog bizarder en onverklaarbaarder is. Er is een andere theorie die stelt dat dit al is gebeurd.");
-    private static final List<String> TRANSLATION2 = List.of(
-            "",
-            "Dit is maar een tekst.",
-            "",
-            "  En hier is een tweede regel ");
-
-    private static final FieldValuesLanguageMap EXPECTED_MAP_WITH_TRANSLATION = new FieldValuesLanguageMap(TARGET_LANG) {{
-        put(KEY1, TRANSLATION1);
-        put(KEY2, TRANSLATION2);
-    }};
-
-    private static final FieldValuesLanguageMap DEF_MAP = new FieldValuesLanguageMap(Language.DEF) {{
-        put(KEY1, ORIGINAL_MAP_1);
-        put(KEY2, ORIGINAL_MAP_2);
-        put(KEY3, ORIGINAL_MAP_3);
-    }};
-
-    private static final FieldValuesLanguageMap TRANSLATED_DEF_MAP = new FieldValuesLanguageMap(Language.DEF) {{
-        put(KEY1, TRANSLATED_MAP_TRIM_SPACES);
-        put(KEY2, TRANSLATED_MAP_PARTIAL);
-        put(KEY3, TRANSLATED_MAP);
-    }};
-
-    /**
-     * Test if sending a translationmap and putting pack all results under the appropriate keys is working
-     */
-    @Test
-    public void testTranslateMap() throws TranslationException, TranslationServiceLimitException {
-        when(translationService.translate(anyList(), eq(TARGET_LANG), eq(SOURCE_LANG))).thenReturn(new ArrayList<>(){{
-            addAll(TRANSLATION1);
-            addAll(TRANSLATION2);
-        }});
-
-        FieldValuesLanguageMap translation = TranslationUtils.translate(translationService, MAP_TO_TRANSLATE, TARGET_LANG, null);
-
-        assertEqual(EXPECTED_MAP_WITH_TRANSLATION, translation);
+    @Before
+    public void setup() {
+        map.put(KEY1, VALUES_1);
+        map.put(KEY2, VALUES_2);
     }
 
     @Test
-    public void removeIfOriginalIsSameAsTranslated() {
-        //1. final map should be null as translated and original map are identical
-       assertNull(TranslationUtils.removeIfOriginalIsSameAsTranslated(DEF_MAP, DEF_MAP));
+    public void Test_ifValuesShouldBePickedForTranslation() {
+        Map<String,  List<String>> map = new HashMap<>();
 
-       FieldValuesLanguageMap finalMap = TranslationUtils.removeIfOriginalIsSameAsTranslated(TRANSLATED_DEF_MAP, DEF_MAP);
-       assertEquals(Language.DEF, finalMap.getSourceLanguage());
-       assertNull(finalMap.get(KEY1));
-       // only two as 'TvB G 3674' is same
-       assertFalse(finalMap.get(KEY2).contains("TvB G 3674"));
-       assertEquals(Arrays.asList("Парис Хилтон", "fútbol"), finalMap.get(KEY2));
-       assertEquals(TRANSLATED_MAP, finalMap.get(KEY3)); // all translation present
+        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "nl")); // map is empty
+
+        map.put("nl", Arrays.asList("Hallo", "Nederlands"));
+        map.put("fr", Arrays.asList("Bonjour", "France"));
+        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "nl"));
+        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "fr"));
+        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de")); // doesn't contain this lang
+
+        // add region codes
+        map.put("de-NL", Arrays.asList("region codes test", "test"));
+        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de"));
+
+        // add pivot language
+        map.put("en", Arrays.asList("english value present already"));
+        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de")); // en already present in the map
+
     }
 
     @Test
-    public void testValueTruncation() {
-        String test = "This is a test string of length 34";
-        assertEquals(test, TranslationUtils.truncateFieldValue(test,100, 110));
-        assertEquals("This is a test string of length...", TranslationUtils.truncateFieldValue(test, 30, 40));
-        assertEquals("This is a test str...", TranslationUtils.truncateFieldValue(test, 17, 18));
-
+    public void Test_createTranslationRequest() {
+        List<String> text = Arrays.asList("Hallo", "Nederlands");
+        TranslationRequest request = TranslationUtils.createTranslationRequest(text, "nl", "en");
+        Assert.assertEquals("en", request.getSource());
+        Assert.assertEquals("nl", request.getTarget());
+        Assert.assertEquals(2 , request.getText().size());
     }
 
-    /**
-     * To pinpoint problems faster we rely on our own check here instead of simply doing an equals
-     */
-    private void assertEqual(FieldValuesLanguageMap expected, FieldValuesLanguageMap actual) {
-        assertEquals(expected.getSourceLanguage(), actual.getSourceLanguage());
-        assertEquals(expected.size(), actual.size());
-        for (String key : expected.keySet()) {
-            assertEquals(expected.get(key), actual.get(key));
-        }
+    @Test
+    public void Test_getValuesToTranslate_Key1() {
+        // will eliminate "?" and the preflabel for agent already has en tag value
+        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY1, bean, false, null, null);
+        Assert.assertEquals(4, valuesToTranslate.size());
+        Assert.assertEquals(VALUES_FOR_TRANSLATION_1, valuesToTranslate);
+    }
+
+    @Test
+    public void Test_getValuesToTranslate_Key2() {
+        // will eliminate duplicate value and add the preflabel for concept
+        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY2, bean, false, null, null);
+        Assert.assertEquals(4, valuesToTranslate.size());
+        Assert.assertEquals(VALUES_FOR_TRANSLATION_2, valuesToTranslate);
+
+        // only literals
+        valuesToTranslate.clear();
+        valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY2, bean, true, null, null);
+        Assert.assertEquals(3, valuesToTranslate.size());
+        Assert.assertFalse(valuesToTranslate.contains("Landbruk"));
     }
 }

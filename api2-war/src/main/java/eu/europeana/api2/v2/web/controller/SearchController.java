@@ -22,8 +22,7 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.RecordTranslations;
-import eu.europeana.api2.v2.service.translate.SearchResultTranslateService;
+import eu.europeana.api2.v2.service.translate.TranslationService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
@@ -112,11 +111,11 @@ public class SearchController extends BaseController {
     private Boolean resultsTranslationEnabled;
 
     private MultilingualQueryGenerator queryGenerator;
-    private RecordTranslations searchResultTranslator;
+    private TranslationService searchResultTranslator;
 
     @Autowired
     public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator,
-                            RecordTranslations searchResultTranslator) {
+                            TranslationService searchResultTranslator) {
         super(routeService);
         this.queryGenerator = queryGenerator;
         this.searchResultTranslator = searchResultTranslator;
