@@ -157,6 +157,11 @@ public class AppConfig {
         return this.translationService;
     }
 
+    @Bean
+    public RecordTranslateService recordTranslateService() {
+       return new RecordTranslateService(translationService());
+    }
+
     /**
      * Initialize the multil lingual search query generator if the option is enabled and there's a translation engein
      * configured
@@ -164,10 +169,7 @@ public class AppConfig {
      */
     @Bean
     MultilingualQueryGenerator multilingualQueryGenerator() {
-        if (translationSearchQuery && this.translationService != null) {
-            return new MultilingualQueryGenerator(new QueryTranslator(this.translationService));
-        }
-        return null;
+        return new MultilingualQueryGenerator(new QueryTranslator(this.translationService));
     }
 
     /**
@@ -177,10 +179,7 @@ public class AppConfig {
      */
     @Bean
     SearchResultTranslateService searchResultTranslationService() {
-        if (translationSearchResults && this.translationService != null) {
-            return new SearchResultTranslateService(this.translationService);
-        }
-        return null;
+        return new SearchResultTranslateService(this.translationService);
     }
 
     @Bean

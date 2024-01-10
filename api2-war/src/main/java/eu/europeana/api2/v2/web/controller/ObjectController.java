@@ -93,8 +93,8 @@ import springfox.documentation.annotations.ApiIgnore;
         "/record",
 })
 @SwaggerSelect
-@Import(RecordTranslateService.class) // to enable title and description translation
-public class ObjectController extends BaseController {
+
+public class ObjectController {
 
 
     private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
