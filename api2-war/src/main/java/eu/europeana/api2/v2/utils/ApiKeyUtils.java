@@ -9,9 +9,10 @@ import org.springframework.security.core.Authentication;
  * Utility class for checking API client keys
  *
  * @author Patrick Ehlert on 13-6-17.
+ * @Refractored Shweta on 18 december 2023
  */
 public class ApiKeyUtils{
-    private static final Logger LOG                = LogManager.getLogger(ApiKeyUtils.class);
+    private static final Logger LOG = LogManager.getLogger(ApiKeyUtils.class);
 
     /** Method to fetch ApiKey from authentication token
      * @param authentication Authentication object

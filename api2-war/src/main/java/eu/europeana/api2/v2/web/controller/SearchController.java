@@ -469,7 +469,7 @@ public class SearchController extends BaseController {
             query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
         }
 
-        SearchResults<? extends IdBean> result = createResults( apiKey,profiles, query, clazz, request.getServerName(),
+        SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
                 translateTargetLang, filterLanguages, request, response);
 
         if (profiles.contains(Profile.PARAMS)) {

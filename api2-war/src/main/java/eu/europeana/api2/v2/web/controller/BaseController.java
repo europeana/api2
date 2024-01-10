@@ -30,7 +30,6 @@ public abstract class BaseController extends BaseRestController {
     @Resource
     ApiAuthorizationService authorizationService;
 
-
     protected RouteDataService routeService;
 
     protected ObjectMapper mapper = new ObjectMapper();

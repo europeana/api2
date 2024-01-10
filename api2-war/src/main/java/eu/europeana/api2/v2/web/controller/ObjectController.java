@@ -112,9 +112,6 @@ public class ObjectController extends BaseController {
     private HttpCacheUtils          httpCacheUtils;
 
 
-
-
-
     /**
      * Create a static Object for JSONLD Context. This will read the file once during initialization
      *
