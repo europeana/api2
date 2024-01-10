@@ -2,3 +2,4 @@
 **
 !/api2-war/target/api/
 **/*.user.properties
+**/*.credentials.json

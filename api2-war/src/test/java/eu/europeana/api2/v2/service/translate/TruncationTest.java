@@ -110,18 +110,18 @@ public class TruncationTest {
     @Test
     public void test_G() {
         List<String> truncatedValues = TranslationUtils.truncate(valuesForTesting, translationCharLimit, translationCharTolerance);
-        // G test results - the fourth value has new line, so value until new line is added
+        // G test results - the fourth value has new line, but we don't consider that
         // translationCharLimit = 240 ; length of third value - 97
-        expectedResult.add("Landfills as anthropogenic landforms in ...");
+        expectedResult.add("Landfills...");
         check(expectedResult, truncatedValues);
     }
 
     @Test
     public void test_H() {
         List<String> truncatedValues = TranslationUtils.truncate(valuesForTesting, translationCharLimit, translationCharTolerance);
-        // H test results - the fourth value has new line, so value until new line is added
+        // H test results - the fourth value has new line
         // translationCharLimit = 260 ; length of third value - 97
-        expectedResult.add("Landfills as anthropogenic landforms in ...");
+        expectedResult.add("Landfills as anthropogenic landforms...");
         check(expectedResult, truncatedValues);
     }
 
