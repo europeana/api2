@@ -93,7 +93,9 @@ import springfox.documentation.annotations.ApiIgnore;
         "/record",
 })
 @SwaggerSelect
-public class ObjectController extends BaseController {
+
+public class ObjectController {
+
 
     private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
