@@ -1,10 +1,12 @@
 package eu.europeana.api2.v2.web.controller;
 
+import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
 import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 
 import eu.europeana.api.commons.utils.RiotRdfUtils;
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
+import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
@@ -18,7 +20,6 @@ import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.RecordTranslateService;
-import eu.europeana.api2.v2.utils.ApiConstants;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
@@ -45,7 +46,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,16 +79,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-import java.util.*;
-
-import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
-import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
-
-import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
-
 /**
  * Provides record information in all kinds of formats; json, json-ld and rdf
  *
@@ -101,8 +93,7 @@ import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
         "/record",
 })
 @SwaggerSelect
-public class ObjectController {
-
+public class ObjectController extends BaseController {
 
     private static final Logger LOG                     = LogManager.getLogger(ObjectController.class);
     private static final String MEDIA_TYPE_RDF_UTF8     = "application/rdf+xml; charset=UTF-8";
@@ -113,14 +104,10 @@ public class ObjectController {
 
     private static Object       jsonldContext           = new Object();
 
-    private RouteDataService        routeService;
+    //private RouteDataService        routeService;
     private RecordService           recordService;
     private RecordTranslateService translateFilterService;
-    private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
-
-
-
 
 
     /**
@@ -143,18 +130,18 @@ public class ObjectController {
      * @param routeService for
      * @param recordService for retrieving data from Mongo
      * @param tfService for translating data
-     * @param apiKeyUtils for api key validation
      * @param httpCacheUtils for request caching
      */
     @Autowired
     public ObjectController(RouteDataService routeService, RecordService recordService, RecordTranslateService tfService,
-                            ApiKeyUtils apiKeyUtils, HttpCacheUtils httpCacheUtils) {
+                             HttpCacheUtils httpCacheUtils) {
+        super(routeService);
         this.recordService = recordService;
-        this.apiKeyUtils = apiKeyUtils;
-        this.routeService = routeService;
         this.httpCacheUtils = httpCacheUtils;
         this.translateFilterService = tfService;
     }
+
+
 
     /**
      * Handles record.json GET requests. Each request should consists of at least a collectionId, a recordId and an api-key (wskey)
@@ -177,7 +164,8 @@ public class ObjectController {
                                @RequestParam(value = "lang", required = false) String lang,
                                @RequestParam(value = "callback", required = false) String callback,
                                @ApiIgnore HttpServletRequest request,
-                               @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                               @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(collectionId, recordId,profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSON, data, response);
     }
@@ -214,7 +202,8 @@ public class ObjectController {
                                       @RequestParam(value = "lang", required = false) String lang,
                                       @RequestParam(value = "callback", required = false) String callback,
                                       @ApiIgnore HttpServletRequest request,
-                                      @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                                      @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         return recordJSONLD(collectionId, recordId, profile, lang, callback, request, response);
     }
 
@@ -238,7 +227,8 @@ public class ObjectController {
                                      @RequestParam(value = "lang", required = false) String lang,
                                      @RequestParam(value = "callback", required = false) String callback,
                                      @ApiIgnore HttpServletRequest request,
-                                     @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                                     @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(collectionId, recordId, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
     }
@@ -263,7 +253,8 @@ public class ObjectController {
                                         @RequestParam(value = "lang", required = false) String lang,
                                         @RequestParam(value = "callback", required = false) String callback,
                                         @ApiIgnore HttpServletRequest request,
-                                        @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                                        @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(collectionId, recordId, profile, lang, callback, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
     }
@@ -287,7 +278,8 @@ public class ObjectController {
                                   @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                   @RequestParam(value = "lang", required = false) String lang,
                                   @ApiIgnore HttpServletRequest request,
-                                  @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                                  @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(collectionId, recordId, profile, lang, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
     }
@@ -311,7 +303,8 @@ public class ObjectController {
                              @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                              @RequestParam(value = "lang", required = false) String lang,
                              @ApiIgnore HttpServletRequest request,
-                             @ApiIgnore HttpServletResponse response) throws EuropeanaException {
+                             @ApiIgnore HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(collectionId, recordId,  profile, lang, null, request);
         return (ModelAndView) handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
     }
@@ -321,7 +314,7 @@ public class ObjectController {
      * functionality like setting CORS headers, checking API key, retrieving the record for mongo and setting 301 or 404 if necessary
      */
     private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
-        throws EuropeanaException {
+        throws EuropeanaException, HttpException {
         long startTime = System.currentTimeMillis();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Retrieving record with id {}, type = {}", data.europeanaId, recordType);
@@ -335,7 +328,7 @@ public class ObjectController {
         }
 
         // 2) check API key & routing
-        apiKeyUtils.authorizeReadAccess(data.servletRequest);
+        data.wskey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(data.servletRequest));
 
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
         if (dataSource.isEmpty() || dataSource.get().getRecordDao().isEmpty()) {
@@ -608,7 +601,6 @@ public class ObjectController {
         RequestData(String collectionId, String recordId, String profile, String lang, String callback,
                     HttpServletRequest servletRequest) {
             this.europeanaId    = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
-            this.wskey         = ApiKeyUtils.extractApiKeyFromRequest(servletRequest); // the key will be passed either as request param or in header
             this.profile        = profile; // profile string passed in the request
             this.profiles       = ProfileUtils.getProfiles(profile); // processed profiles from the profile string
             this.lang           = lang;

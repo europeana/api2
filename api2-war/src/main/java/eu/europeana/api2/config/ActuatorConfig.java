@@ -35,5 +35,4 @@ public class ActuatorConfig {
         return new EndpointMvcAdapter(delegate);
     }
 
-
 }
