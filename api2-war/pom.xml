@@ -319,9 +319,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!--        Caused by: java.lang.ClassNotFoundException: org.springframework.http.client.reactive.ClientHttpConnector-->
-
-
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.6.0</version>
+        </dependency>
     </dependencies>
 
     <build>

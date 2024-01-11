@@ -4,24 +4,23 @@ import eu.europeana.api.commons.definitions.statistics.UsageStatsFields;
 import eu.europeana.api.commons.definitions.statistics.entity.EntityStats;
 import eu.europeana.api.commons.definitions.statistics.search.HighQualityMetric;
 import eu.europeana.api.commons.definitions.statistics.search.SearchMetric;
+import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.utils.UsageStatsUtils;
+import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import java.util.Date;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.solr.client.solrj.SolrClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
 
 @Controller
 @Api(tags = "Usage Statistics API")
@@ -41,8 +40,9 @@ public class UsageStatsController extends BaseController {
     @ApiOperation(value = "Generate Stats", nickname = "generateStats", response = java.lang.Void.class)
     @GetMapping(value = "/record/stats", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> generateUsageStats(
-            HttpServletRequest request) throws EuropeanaException {
-        apiKeyUtils.authorizeReadAccess(request);
+            HttpServletRequest request)
+        throws EuropeanaException, HttpException {
+        verifyReadAccess(request);
         return getSearchMetric(request);
     }
 

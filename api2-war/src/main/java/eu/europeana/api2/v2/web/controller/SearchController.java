@@ -2,6 +2,7 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
 import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
@@ -141,7 +142,8 @@ public class SearchController extends BaseController {
     public ModelAndView searchJsonPost(
                                        @RequestBody SearchRequest searchRequest,
                                        HttpServletRequest request,
-                                       HttpServletResponse response) throws EuropeanaException, InvalidLanguageException {
+                                       HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         return searchJsonGet(
                              searchRequest.getQuery(),
                              searchRequest.getQf(),
@@ -204,9 +206,13 @@ public class SearchController extends BaseController {
                                       @RequestParam(value = "lang", required = false) String lang,
                                       @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
-                                      HttpServletResponse response) throws EuropeanaException, InvalidLanguageException {
+                                      HttpServletResponse response)
+        throws EuropeanaException, HttpException {
 
-        apiKeyUtils.authorizeReadAccess(request);
+
+        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
+
+
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
@@ -464,7 +470,7 @@ public class SearchController extends BaseController {
             query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
         }
 
-        SearchResults<? extends IdBean> result = createResults( profiles, query, clazz, request.getServerName(),
+        SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
                 translateTargetLang, filterLanguages, request, response);
 
         if (profiles.contains(Profile.PARAMS)) {
@@ -868,6 +874,7 @@ public class SearchController extends BaseController {
 
     @SuppressWarnings("unchecked")
     private <T extends IdBean> SearchResults<T> createResults(
+                                                              String apiKey,
                                                               Set<Profile> profiles,
                                                               Query query,
                                                               Class<T> clazz,
@@ -876,7 +883,7 @@ public class SearchController extends BaseController {
                                                               List<Language> filterLanguages,
                                                               HttpServletRequest servletRequest,
                                                               HttpServletResponse servletResponse) throws EuropeanaException {
-        String apiKey=ApiKeyUtils.extractApiKeyFromRequest(servletRequest);
+
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
 
@@ -977,9 +984,10 @@ public class SearchController extends BaseController {
                                  @RequestParam(value = "qf", required = false) String[] refinementArray,
                                  @RequestParam(value = "start", required = false, defaultValue = "1") int start,
                                  HttpServletRequest request,
-                                 HttpServletResponse response) throws EuropeanaException {
+                                 HttpServletResponse response)
+        throws EuropeanaException, HttpException {
 
-        apiKeyUtils.authorizeReadAccess(request);
+        verifyReadAccess(request);
         SolrClient solrClient = getSolrClient(request.getServerName());
 
         String[] qfArray = request.getParameterMap().get("qf");

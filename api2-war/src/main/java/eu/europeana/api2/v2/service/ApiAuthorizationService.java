@@ -4,6 +4,7 @@ import eu.europeana.api.commons.definitions.vocabulary.Role;
 import eu.europeana.api.commons.nosql.service.ApiWriteLockService;
 import eu.europeana.api.commons.service.authorization.BaseAuthorizationService;
 import javax.annotation.Resource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.stereotype.Service;
 import static eu.europeana.api2.v2.utils.ApiConstants.API_KEY_SERVICE_CLIENT_DETAILS;
@@ -17,6 +18,14 @@ public class ApiAuthorizationService extends BaseAuthorizationService {
   @Resource(name = API_KEY_SERVICE_CLIENT_DETAILS)
   ClientDetailsService clientService;
 
+
+  @Value("#{europeanaProperties['europeana.apikey.jwttoken.siganturekey']}")
+  String jwtSignatureKey;
+
+  @Value("#{europeanaProperties['authorization.api.name']}")
+  String authorizationApiName;
+
+
   @Override
   protected ApiWriteLockService getApiWriteLockService() {
     return null;
@@ -29,7 +38,7 @@ public class ApiAuthorizationService extends BaseAuthorizationService {
 
   @Override
   protected String getSignatureKey() {
-    return null;
+    return jwtSignatureKey;
   }
 
   @Override
@@ -39,6 +48,6 @@ public class ApiAuthorizationService extends BaseAuthorizationService {
 
   @Override
   protected String getApiName() {
-    return null;
+    return authorizationApiName;
   }
 }

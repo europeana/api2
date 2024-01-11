@@ -3,6 +3,7 @@ package eu.europeana.api2.v2.web.controller;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.TranslationService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
+import eu.europeana.api2.v2.service.translate.RecordTranslateService;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import eu.europeana.corelib.record.RecordService;
 import org.junit.Before;
@@ -40,6 +41,7 @@ public class ObjectControllerTest {
 
 
         objectController = spy(new ObjectController(routeDataService, recordService, recordTranslations, apiKeyUtils, httpCacheUtils));
+
 
         objectControllerMock = MockMvcBuilders
                 .standaloneSetup(objectController)
