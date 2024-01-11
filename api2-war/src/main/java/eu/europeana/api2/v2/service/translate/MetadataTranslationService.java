@@ -1,10 +1,9 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api.commons.error.EuropeanaApiException;
 import eu.europeana.api.translation.client.TranslationApiClient;
-import eu.europeana.api.translation.client.exception.TranslationApiException;
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.translation.definitions.model.TranslationResponse;
+import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.model.translate.TranslationMap;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -51,9 +50,8 @@ public class MetadataTranslationService extends BaseService {
      * @param beans
      * @param targetLanguage
      * @return
-     * @throws TranslationApiException
      */
-    public List<BriefBean> searchResultsTranslations(List<BriefBean> beans, String targetLanguage) throws TranslationApiException {
+    public List<BriefBean> searchResultsTranslations(List<BriefBean> beans, String targetLanguage) {
         long start = System.currentTimeMillis();
 
         String chosenLanguage = metadataChosenLanguageService.getMostRepresentativeLanguageForSearch(beans, targetLanguage);
@@ -131,7 +129,7 @@ public class MetadataTranslationService extends BaseService {
      *
      *
      */
-    public FullBean proxyTranslation(FullBean bean, String targetLanguage) throws TranslationApiException {
+    public FullBean proxyTranslation(FullBean bean, String targetLanguage) throws TranslationException {
         long start = System.currentTimeMillis();
         List<Proxy> proxies = new ArrayList<>(bean.getProxies()); // make sure we clone first so we can edit the list to our needs.
 
@@ -240,7 +238,7 @@ public class MetadataTranslationService extends BaseService {
         Map<String, List<String>> fieldData = EdmUtils.cloneMap(origFieldData);
         // Get the value only if there is NO "en" language tag already present for the field and there is value present for the sourceLang
         if (TranslationUtils.ifValuesShouldBePickedForTranslation(fieldData, sourceLang)) {
-            List<String> valuesToTranslateForField = getValuesToTranslate((HashMap<String, List<String>>) fieldData, sourceLang, null, true,
+            List<String> valuesToTranslateForField = getValuesToTranslate(fieldData, sourceLang, null, true,
                     translationCharLimit, translationCharTolerance);
             if (!valuesToTranslateForField.isEmpty()) {
                 map.add(index + FIELD_SEPARATOR + field.getName(), valuesToTranslateForField);
@@ -269,9 +267,8 @@ public class MetadataTranslationService extends BaseService {
      *
      * @param targetLanguage       language in which values are to be translated
      * @return translation map with target language and translations
-     * @throws EuropeanaApiException thrown from the client
      */
-    private TranslationMap translate(TranslationMap map, String targetLanguage) throws TranslationApiException {
+    private TranslationMap translate(TranslationMap map, String targetLanguage) {
         // save the field name and size per field (number of values associated with it)
         // to retain the order using LinkedHashmap and get all the texts for translations
         Map<String, Integer> textsPerField = new LinkedHashMap<>();

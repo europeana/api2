@@ -64,6 +64,7 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -110,9 +111,8 @@ public class ObjectController {
     private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
 
-
-
-
+    @Value("#{europeanaProperties['translation.record']}")
+    private Boolean recordTranslationEnabled;
 
     /**
      * Create a static Object for JSONLD Context. This will read the file once during initialization
@@ -145,6 +145,10 @@ public class ObjectController {
         this.routeService = routeService;
         this.httpCacheUtils = httpCacheUtils;
         this.recordTranslations = recordTranslations;
+        // default the value
+        if(recordTranslationEnabled == null) {
+            recordTranslationEnabled = false;
+        }
     }
 
     /**
@@ -336,7 +340,7 @@ public class ObjectController {
         }
 
         // 3) validate other common params
-        if (!recordTranslations.isEnabled() && data.profiles.contains(Profile.TRANSLATE)) {
+        if (data.profiles.contains(Profile.TRANSLATE) && (recordTranslationEnabled && !recordTranslations.isEnabled())) {
             throw new TranslationServiceDisabledException();
         }
         if (data.lang != null) {
@@ -409,8 +413,8 @@ public class ObjectController {
         BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
         bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
 
-        // 8) When translation profile is active, do translation
-        if (data.profiles.contains(Profile.TRANSLATE)) {
+        // 8) When record translation is set to true and translation profile is active, do translation
+        if (recordTranslationEnabled && data.profiles.contains(Profile.TRANSLATE)) {
             if (data.languages == null || data.languages.isEmpty()) {
                 // Get the edm:language for default translation and filtering (if we find a default language)
                 data.setLanguages(recordTranslations.getDefaultTranslationLanguage(bean));

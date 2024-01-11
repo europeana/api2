@@ -1,9 +1,9 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.client.TranslationApiClient;
-import eu.europeana.api.translation.client.exception.TranslationApiException;
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.translation.definitions.model.LangDetectRequest;
+import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.model.translate.LanguageValueFieldMap;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -60,7 +60,7 @@ public class MetadataLangDetectionService extends BaseService {
      * @param briefBeans
      * @return
      */
-    public List<BriefBean> detectLanguageForSearchResults(List<BriefBean> briefBeans) throws TranslationApiException {
+    public List<BriefBean> detectLanguageForSearchResults(List<BriefBean> briefBeans) throws TranslationException {
         long start = System.currentTimeMillis();
 
         int index = 0;
@@ -96,9 +96,9 @@ public class MetadataLangDetectionService extends BaseService {
      * Add all corrected language attributes to the Europeana Proxy (duplicating the value and assigning the new language attribute)
      *
      * @param bean
-     * @throws TranslationApiException
+     * @throws TranslationException
      */
-    public FullBean detectLanguageForProxy(FullBean bean) throws TranslationApiException {
+    public FullBean detectLanguageForProxy(FullBean bean) throws TranslationException {
         long start = System.currentTimeMillis();
         List<Proxy> proxies = new ArrayList<>(bean.getProxies()); // make sure we clone first so we can edit the list to our needs.
 
@@ -134,7 +134,7 @@ public class MetadataLangDetectionService extends BaseService {
     }
 
     private <T extends IdBean> void detectLanguageAndUpdate(List<LanguageValueFieldMap> langValueFieldMapForDetection, T bean,
-                                                            String langHint, boolean searchResults, long start) throws TranslationApiException{
+                                                            String langHint, boolean searchResults, long start) throws TranslationException {
         Map<String, Integer> textsPerField = new LinkedHashMap<>(); // to maintain the order of the fields
         List<String> textsForDetection = new ArrayList<>();
 

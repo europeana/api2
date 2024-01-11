@@ -1,7 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.client.TranslationApiClient;
-import eu.europeana.api.translation.client.exception.TranslationApiException;
+import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
@@ -51,14 +51,14 @@ public class BaseService {
      * @param proxies
      * @param recordId
      * @return
-     * @throws TranslationApiException
+     * @throws TranslationException
      */
-    public static Proxy getEuropeanaProxy(List<? extends Proxy> proxies, String recordId) throws TranslationApiException {
+    public static Proxy getEuropeanaProxy(List<? extends Proxy> proxies, String recordId) throws TranslationException {
         Optional<? extends Proxy> europeanaProxy = proxies.stream().filter(Proxy :: isEuropeanaProxy).findFirst();
         if (europeanaProxy.isPresent()) {
             return europeanaProxy.get();
         } else {
-            throw new TranslationApiException("Unexpected data - Europeana proxy not present! Record id - " +recordId);
+            throw new TranslationException("Unexpected data - Europeana proxy not present! Record id - " +recordId);
         }
     }
 

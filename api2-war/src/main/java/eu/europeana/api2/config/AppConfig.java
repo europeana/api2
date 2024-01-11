@@ -54,12 +54,6 @@ public class AppConfig {
     @Value("${apiGateway.baseUrl:}")
     private String apiGatewayBaseUrl;
 
-    @Value("${translation.search.query:false}")
-    private Boolean translationSearchQuery;
-
-    @Value("${translation.search.results:false}")
-    private Boolean translationSearchResults;
-
     @Value("${translation.char.limit}")
     private Integer translationCharLimit;
 
@@ -181,7 +175,7 @@ public class AppConfig {
      }
 
      @Bean
-     public TranslationService recordTranslations() {
+     public TranslationService translationService() {
         return new TranslationService(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(), translationCharLimit, translationCharTolerance),
                 new MetadataLangDetectionService(getTranslationApiClient()));
      }
