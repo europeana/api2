@@ -143,7 +143,7 @@ public class SearchController extends BaseController {
                                        @RequestBody SearchRequest searchRequest,
                                        HttpServletRequest request,
                                        HttpServletResponse response)
-        throws EuropeanaException, HttpException {
+            throws EuropeanaException, HttpException, InvalidLanguageException {
         return searchJsonGet(
                              searchRequest.getQuery(),
                              searchRequest.getQf(),
@@ -207,8 +207,7 @@ public class SearchController extends BaseController {
                                       @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
                                       HttpServletResponse response)
-        throws EuropeanaException, HttpException {
-
+            throws EuropeanaException, HttpException, InvalidLanguageException {
 
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
 

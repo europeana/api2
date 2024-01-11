@@ -108,10 +108,8 @@ public class ObjectController extends BaseController {
 
     private static Object       jsonldContext           = new Object();
 
-    //private RouteDataService        routeService;
     private RecordService           recordService;
     private TranslationService recordTranslations;
-    private ApiKeyUtils             apiKeyUtils;
     private HttpCacheUtils          httpCacheUtils;
 
     @Value("#{europeanaProperties['translation.record']}")
@@ -138,14 +136,11 @@ public class ObjectController extends BaseController {
      * @param routeService for
      * @param recordService for retrieving data from Mongo
      * @param recordTranslations for translating data
-     * @param apiKeyUtils for api key validation
      * @param httpCacheUtils for request caching
-   
-      * @param tfService for translating data
      * @param httpCacheUtils for request caching
      */
     @Autowired
-    public ObjectController(RouteDataService routeService, RecordService recordService, RecordTranslateService tfService,
+    public ObjectController(RouteDataService routeService, RecordService recordService, TranslationService recordTranslations,
                              HttpCacheUtils httpCacheUtils) {
         super(routeService);
         this.recordService = recordService;
