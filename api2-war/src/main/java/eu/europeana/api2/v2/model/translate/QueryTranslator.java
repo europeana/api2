@@ -32,7 +32,7 @@ public class QueryTranslator {
         LOG.info("QueryTranslator initialised with Translation Api client");
     }
 
-    private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose) throws TranslationException, TranslationServiceLimitException {
+    private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose, String authToken) throws TranslationException, TranslationServiceLimitException {
         StringBuilder sb =  new StringBuilder();
         String toTranslate = text.trim();
         if (!toTranslate.isEmpty()) {
@@ -40,7 +40,7 @@ public class QueryTranslator {
             long start = System.nanoTime(); //DEBUG
             try {
                 translation = this.translationClient.translate(
-                        TranslationUtils.createTranslationRequest(List.of(toTranslate), targetLanguage, sourceLanguage))
+                        TranslationUtils.createTranslationRequest(List.of(toTranslate), targetLanguage, sourceLanguage), authToken)
                         .getTranslations().get(0);
             } catch(TranslationApiException e) {
                 // For 502 status , Client throws ExternalServiceException.
@@ -73,7 +73,7 @@ public class QueryTranslator {
         return sb.toString();
     }
 
-    public String translate(Query query, String targetLanguage, String sourceLanguage) throws EuropeanaException {
+    public String translate(Query query, String targetLanguage, String sourceLanguage, String authToken) throws EuropeanaException {
         QueryPartType previous = null;
         StringBuilder outputQuery = new StringBuilder();
         for (QueryPart queryPart : query.getQueryPartList()) {
@@ -84,15 +84,15 @@ public class QueryTranslator {
                 Matcher matcher = FIRST_WORD_PATTERN.matcher(originalText);
                 if (matcher.find()) {
                     String firstWord = originalText.substring(0,matcher.end());
-                    outputQuery.append(translate(firstWord, targetLanguage, sourceLanguage, true)); //translation first word unary operator in brackets
+                    outputQuery.append(translate(firstWord, targetLanguage, sourceLanguage, true, authToken)); //translation first word unary operator in brackets
                     String rest = originalText.substring(matcher.end());
-                    outputQuery.append(translate(rest, targetLanguage, sourceLanguage,false));
+                    outputQuery.append(translate(rest, targetLanguage, sourceLanguage,false, authToken));
                 } else {
-                    outputQuery.append(translate(originalText, targetLanguage, sourceLanguage,false));
+                    outputQuery.append(translate(originalText, targetLanguage, sourceLanguage,false, authToken));
                 }
 
             } else if (type == QueryPartType.QUOTED || type == QueryPartType.TEXT) {
-                outputQuery.append(translate(originalText, targetLanguage, sourceLanguage,false));
+                outputQuery.append(translate(originalText, targetLanguage, sourceLanguage,false, authToken));
             } else {
                 outputQuery.append(originalText);
             }

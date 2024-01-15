@@ -256,7 +256,7 @@ public class SearchController extends BaseController {
             // generate multi-lingual search query
             try {
                 queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
-                        querySourceLang);
+                        querySourceLang, getAuthorizationHeader(request));
                 LOG.debug("TRANSLATED QUERY: |{}|", queryString);
             } catch (TranslationServiceLimitException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
@@ -907,7 +907,7 @@ public class SearchController extends BaseController {
         // Note that translateTargetLang is only set when minimal profile is enabled (so we are sure we get BriefBeans)
         if (translateTargetLang != null) {
             try {
-                searchResultTranslator.translate((List<BriefBean>) resultSet.getResults(), translateTargetLang);
+                searchResultTranslator.translate((List<BriefBean>) resultSet.getResults(), translateTargetLang, getAuthorizationHeader(servletRequest));
             } catch (TranslationServiceLimitException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
                 // Body indicating the reason for troubleshooting

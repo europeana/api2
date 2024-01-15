@@ -54,10 +54,10 @@ public class TranslationService {
      * @return
      * @throws EuropeanaException
      */
-    public List<BriefBean> translate(List<BriefBean> beans, String targetLanguage) throws EuropeanaException {
+    public List<BriefBean> translate(List<BriefBean> beans, String targetLanguage, String authToken) throws EuropeanaException {
         try {
-            return metadataTranslationService.searchResultsTranslations(metadataLangDetectionService.detectLanguageForSearchResults(beans), targetLanguage);
-        } catch(TranslationApiException e) {
+            return metadataTranslationService.searchResultsTranslations(metadataLangDetectionService.detectLanguageForSearchResults(beans, authToken), targetLanguage, authToken);
+        } catch (TranslationApiException e) {
             // For 502 status , Client throws ExternalServiceException.
             // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
             // Hence we need to check for the message as well as we have a redirect functionality based on it.
@@ -87,7 +87,7 @@ public class TranslationService {
      * @return
      * @throws EuropeanaException
      */
-    public FullBean translate(FullBean bean, String targetLanguage) throws EuropeanaException {
+    public FullBean translate(FullBean bean, String targetLanguage, String authToken) throws EuropeanaException {
         try {
             Proxy europeanaProxy = getEuropeanaProxy(bean.getProxies(), bean.getAbout());
 
@@ -102,11 +102,11 @@ public class TranslationService {
                     return bean; // do nothing
                 } else {
                     // call translation workflow
-                    return metadataTranslationService.proxyTranslation(bean, targetLanguage);
+                    return metadataTranslationService.proxyTranslation(bean, targetLanguage, authToken);
                 }
             } else {
                 // if not translated during ingestion - apply detection + translation
-                return metadataTranslationService.proxyTranslation(metadataLangDetectionService.detectLanguageForProxy(bean), targetLanguage);
+                return metadataTranslationService.proxyTranslation(metadataLangDetectionService.detectLanguageForProxy(bean, authToken), targetLanguage, authToken);
             }
         } catch (TranslationApiException e) {
             // For 502 status , Client throws ExternalServiceException.

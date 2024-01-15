@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.client.TranslationApiClient;
+import eu.europeana.api.translation.client.exception.TranslationApiException;
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.translation.definitions.model.LangDetectRequest;
 import eu.europeana.api2.v2.exceptions.TranslationException;
@@ -60,7 +61,7 @@ public class MetadataLangDetectionService extends BaseService {
      * @param briefBeans
      * @return
      */
-    public List<BriefBean> detectLanguageForSearchResults(List<BriefBean> briefBeans) throws TranslationException {
+    public List<BriefBean> detectLanguageForSearchResults(List<BriefBean> briefBeans, String authToken) throws TranslationException, TranslationApiException {
         long start = System.currentTimeMillis();
 
         int index = 0;
@@ -77,7 +78,7 @@ public class MetadataLangDetectionService extends BaseService {
 
             if (!langValueFieldMapForDetection.isEmpty()) {
                 String langHint = getHintForLanguageDetect(bean, true);
-                detectLanguageAndUpdate(langValueFieldMapForDetection, bean, langHint, true, start);
+                detectLanguageAndUpdate(langValueFieldMapForDetection, bean, langHint, true, start, authToken);
             }
             index++;
         }
@@ -98,7 +99,7 @@ public class MetadataLangDetectionService extends BaseService {
      * @param bean
      * @throws TranslationException
      */
-    public FullBean detectLanguageForProxy(FullBean bean) throws TranslationException {
+    public FullBean detectLanguageForProxy(FullBean bean, String authToken) throws TranslationException, TranslationApiException {
         long start = System.currentTimeMillis();
         List<Proxy> proxies = new ArrayList<>(bean.getProxies()); // make sure we clone first so we can edit the list to our needs.
 
@@ -127,14 +128,14 @@ public class MetadataLangDetectionService extends BaseService {
 
             if (!langValueFieldMapForDetection.isEmpty()) {
                 LOG.debug("For record {} gathered {} fields non-language tagged values for detection. ", bean.getAbout(), langValueFieldMapForDetection.size());
-                detectLanguageAndUpdate(langValueFieldMapForDetection, bean, langHint, false, start);
+                detectLanguageAndUpdate(langValueFieldMapForDetection, bean, langHint, false, start, authToken);
             }
         }
         return bean;
     }
 
     private <T extends IdBean> void detectLanguageAndUpdate(List<LanguageValueFieldMap> langValueFieldMapForDetection, T bean,
-                                                            String langHint, boolean searchResults, long start) throws TranslationException {
+                                                            String langHint, boolean searchResults, long start, String authToken) throws TranslationException, TranslationApiException {
         Map<String, Integer> textsPerField = new LinkedHashMap<>(); // to maintain the order of the fields
         List<String> textsForDetection = new ArrayList<>();
 
@@ -145,7 +146,7 @@ public class MetadataLangDetectionService extends BaseService {
                 (System.currentTimeMillis() - start));
 
         // 4. send lang-detect request
-        List<String> detectedLanguages = getTranslationApiClient().detectLang(createLangDetectRequest(textsForDetection, langHint)).getLangs();
+        List<String> detectedLanguages = getTranslationApiClient().detectLang(createLangDetectRequest(textsForDetection, langHint), authToken).getLangs();
         LOG.debug("Detected languages - {} ", detectedLanguages);
 
         // if only nulls , nothing is detected. no need to process further.

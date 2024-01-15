@@ -430,7 +430,7 @@ public class ObjectController extends BaseController {
             }
             if (data.languages != null && !data.languages.isEmpty()) {
                 try {
-                    bean = recordTranslations.translate(bean, data.languages.get(0).name().toLowerCase(Locale.ROOT));
+                    bean = recordTranslations.translate(bean, data.languages.get(0).name().toLowerCase(Locale.ROOT), getAuthorizationHeader(data.servletRequest));
                 } catch (TranslationServiceLimitException e) {
                     // EA-3463 - return 307 redirect without profile param and Keep the Error Response
                     // Body indicating the reason for troubleshooting

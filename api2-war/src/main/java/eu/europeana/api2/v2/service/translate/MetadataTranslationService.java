@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.client.TranslationApiClient;
+import eu.europeana.api.translation.client.exception.TranslationApiException;
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.translation.definitions.model.TranslationResponse;
 import eu.europeana.api2.v2.exceptions.TranslationException;
@@ -51,7 +52,7 @@ public class MetadataTranslationService extends BaseService {
      * @param targetLanguage
      * @return
      */
-    public List<BriefBean> searchResultsTranslations(List<BriefBean> beans, String targetLanguage) {
+    public List<BriefBean> searchResultsTranslations(List<BriefBean> beans, String targetLanguage, String authToken) throws TranslationApiException {
         long start = System.currentTimeMillis();
 
         String chosenLanguage = metadataChosenLanguageService.getMostRepresentativeLanguageForSearch(beans, targetLanguage);
@@ -82,7 +83,7 @@ public class MetadataTranslationService extends BaseService {
         LOG.debug("Text to translate - {}", textToTranslate);
 
         // get the translation in the target language
-        TranslationMap translations = translate(textToTranslate, targetLanguage);
+        TranslationMap translations = translate(textToTranslate, targetLanguage, authToken);
         if (translations.isEmpty()) {
             LOG.debug("Empty or null translation returned by the Translation API Client");
             return beans;
@@ -129,7 +130,7 @@ public class MetadataTranslationService extends BaseService {
      *
      *
      */
-    public FullBean proxyTranslation(FullBean bean, String targetLanguage) throws TranslationException {
+    public FullBean proxyTranslation(FullBean bean, String targetLanguage, String authToken) throws TranslationException, TranslationApiException {
         long start = System.currentTimeMillis();
         List<Proxy> proxies = new ArrayList<>(bean.getProxies()); // make sure we clone first so we can edit the list to our needs.
 
@@ -168,7 +169,7 @@ public class MetadataTranslationService extends BaseService {
         }
 
         // get the translation in the target language
-        TranslationMap translations = translate(textToTranslate, targetLanguage);
+        TranslationMap translations = translate(textToTranslate, targetLanguage, authToken);
         if (translations.isEmpty()) {
             LOG.debug("Empty or null translation returned by the Translation API Client");
             return bean;
@@ -268,7 +269,7 @@ public class MetadataTranslationService extends BaseService {
      * @param targetLanguage       language in which values are to be translated
      * @return translation map with target language and translations
      */
-    private TranslationMap translate(TranslationMap map, String targetLanguage) {
+    private TranslationMap translate(TranslationMap map, String targetLanguage, String authToken) throws TranslationApiException {
         // save the field name and size per field (number of values associated with it)
         // to retain the order using LinkedHashmap and get all the texts for translations
         Map<String, Integer> textsPerField = new LinkedHashMap<>();
@@ -277,7 +278,7 @@ public class MetadataTranslationService extends BaseService {
 
         // send request for translation
         LOG.debug("Sending translate request with target language - {} and source language - {}", targetLanguage, map.getSourceLanguage());
-        TranslationResponse response = getTranslationApiClient().translate(createTranslationRequest(textsToTranslate, targetLanguage, map.getSourceLanguage()));
+        TranslationResponse response = getTranslationApiClient().translate(createTranslationRequest(textsToTranslate, targetLanguage, map.getSourceLanguage()), authToken);
         List<String> translations = response.getTranslations();
         LOG.debug("Translation API service used for translations - {} ", response.getService());
 

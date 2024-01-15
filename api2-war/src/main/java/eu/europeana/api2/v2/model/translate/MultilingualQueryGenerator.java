@@ -36,15 +36,15 @@ public class MultilingualQueryGenerator {
      * @param sourceLanguage optional, if null Google Translate will try and detect the language
      * @return
      */
-    public String getMultilingualQuery(String queryString, String targetLanguage, String sourceLanguage) throws EuropeanaException {
-        return getMultilingualQuery(new eu.europeana.api2.v2.model.translate.Query(queryString), targetLanguage, sourceLanguage);
+    public String getMultilingualQuery(String queryString, String targetLanguage, String sourceLanguage, String authToken) throws EuropeanaException {
+        return getMultilingualQuery(new eu.europeana.api2.v2.model.translate.Query(queryString), targetLanguage, sourceLanguage, authToken);
     }
 
-    private String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage) throws EuropeanaException, IndexOutOfBoundsException {
+    private String getMultilingualQuery(Query query, String targetLanguage, String sourceLanguage, String authToken) throws EuropeanaException, IndexOutOfBoundsException {
         LOG.debug("target language {}, source language {}", targetLanguage, sourceLanguage);
         QueryParser qParser = new QueryParser();
         query = qParser.parse(query);
-        String translation = queryTranslator.translate(query, targetLanguage, sourceLanguage);
+        String translation = queryTranslator.translate(query, targetLanguage, sourceLanguage, authToken);
         /**
          * if translation is not blank, check if the translation and original query are same
          *       if Yes : return the original
