@@ -2,6 +2,8 @@ package eu.europeana.api2.config;
 
 
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
+import eu.europeana.api.translation.client.TranslationApiClient;
+import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.translate.QueryTranslator;
@@ -52,15 +54,12 @@ public class AppConfig {
     @Value("${apiGateway.baseUrl:}")
     private String apiGatewayBaseUrl;
 
-    @Value("${translation.engine:NONE}") // should be either PANGEANIC, GOOGLE or NONE
-    private String translationEngineString;
-    private TranslationService translationService;
+    @Value("${translation.char.limit}")
+    private Integer translationCharLimit;
 
-    @Value("${translation.search.query:false}")
-    private Boolean translationSearchQuery;
+    @Value("${translation.char.tolerance}")
+    private Integer translationCharTolerance;
 
-    @Value("${translation.search.results:false}")
-    private Boolean translationSearchResults;
 
     @Autowired
     private Environment env;
@@ -84,17 +83,6 @@ public class AppConfig {
                 this.apikeyServiceUrl = apikeyServiceUrl + "http://";
             }
         }
-
-        // Make sure the correct translation service is initialized and available for components that need it
-        TranslationEngine engine = TranslationEngine.fromString(translationEngineString);
-        if (TranslationEngine.PANGEANIC.equals(engine)) {
-            this.translationService = new PangeanicTranslationService();
-        } else if (TranslationEngine.GOOGLE.equals(engine)) {
-            this.translationService = new GoogleTranslationService();
-        } else if (TranslationEngine.PANGEANIC2.equals(engine)) {
-            this.translationService = new PangeanicV2TranslationService();
-        }
-        LOG.info("No translation engine available.");
     }
 
     /**
@@ -149,37 +137,14 @@ public class AppConfig {
     }
 
     /**
-     * Make sure the correct translation service is initialized and available for components that need it
-     * @return translation service or null if none is configured.
-     */
-    @Bean
-    public TranslationService translationService() {
-        return this.translationService;
-    }
-
-    @Bean
-    public RecordTranslateService recordTranslateService() {
-       return new RecordTranslateService(translationService());
-    }
-
-    /**
      * Initialize the multil lingual search query generator if the option is enabled and there's a translation engein
      * configured
      * @return query generator bean or null
      */
     @Bean
-    MultilingualQueryGenerator multilingualQueryGenerator() {
-        return new MultilingualQueryGenerator(new QueryTranslator(this.translationService));
-    }
+    public MultilingualQueryGenerator multilingualQueryGenerator() {
+        return new MultilingualQueryGenerator(new QueryTranslator(getTranslationApiClient()));
 
-    /**
-     * Initialize the search result translation service if the option is enabled and there's a translation engine
-     * configured
-     * @return search result translation service bean or null
-     */
-    @Bean
-    SearchResultTranslateService searchResultTranslationService() {
-        return new SearchResultTranslateService(this.translationService);
     }
 
     @Bean
@@ -202,5 +167,16 @@ public class AppConfig {
      @Bean
      public ApiAuthorizationService getAuthorizarionService(){
          return new ApiAuthorizationService();
+     }
+
+     @Bean
+    public TranslationApiClient getTranslationApiClient() {
+        return new TranslationApiClient(new TranslationClientConfiguration());
+     }
+
+     @Bean
+     public TranslationService translationService() {
+        return new TranslationService(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(), translationCharLimit, translationCharTolerance),
+                new MetadataLangDetectionService(getTranslationApiClient()));
      }
 }

@@ -14,10 +14,13 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Optional;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 
 public abstract class BaseController extends BaseRestController {
 
@@ -70,6 +73,10 @@ public abstract class BaseController extends BaseRestController {
         } catch (JsonProcessingException e) {
             throw new JsonSerializationException(e);
         }
+    }
+
+    protected String getAuthorizationHeader(HttpServletRequest request) {
+        return request.getHeader(HttpHeaders.AUTHORIZATION);
     }
 
     @Override

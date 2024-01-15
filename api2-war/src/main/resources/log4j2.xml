@@ -25,16 +25,13 @@
     <Logger name="eu.europeana.api2.v2.utils.LanguageFilter" level="INFO"/>
 
     <!-- Set to DEBUG to see which record fields are or are not chosen to be translated + see how long the entire process took -->
-    <Logger name="eu.europeana.api2.v2.service.translate.RecordTranslateService" level="INFO"/>
-
-    <!-- Set to DEBUG to see which search result fields are or are not chosen to be translated + see how long the entire process took \
-         use TRACE to see details which values are selected for translations -->
-    <Logger name="eu.europeana.api2.v2.service.translate.SearchResultTranslateService" level="INFO"/>
-
-    <!-- Set to DEBUG to see which translation requests are sent, or TRACE to see request contents -->
-    <Logger name="eu.europeana.api2.v2.service.translate.TranslationUtils" level="INFO"/>
+    <Logger name="eu.europeana.api2.v2.service.translate.MetadataTranslationService" level="DEBUG"/>
 
     <!-- Set to DEBUG to see which record fields are or are not chosen to be translated + see how long the entire process took -->
-    <Logger name="eu.europeana.api2.v2.service.translate.PangeanicV2TranslationService" level="INFO"/>
+    <Logger name="eu.europeana.api2.v2.service.translate.MetadataLangDetectionService" level="DEBUG"/>
+
+    <!-- Set to DEBUG to see which record fields are or are not chosen to be translated + see how long the entire process took -->
+    <Logger name="eu.europeana.api2.v2.service.translate.TranslationService" level="INFO"/>
+
   </Loggers>
 </Configuration>

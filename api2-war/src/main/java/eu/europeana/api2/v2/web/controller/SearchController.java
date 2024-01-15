@@ -1,5 +1,7 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
+import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
@@ -13,7 +15,6 @@ import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.RichView;
-import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
@@ -22,7 +23,7 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.SearchResultTranslateService;
+import eu.europeana.api2.v2.service.translate.TranslationService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
@@ -111,14 +112,14 @@ public class SearchController extends BaseController {
     private Boolean resultsTranslationEnabled;
 
     private MultilingualQueryGenerator queryGenerator;
-    private SearchResultTranslateService resultTranslator;
+    private TranslationService searchResultTranslator;
 
     @Autowired
     public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator,
-                            SearchResultTranslateService resultTranslator) {
+                            TranslationService searchResultTranslator) {
         super(routeService);
         this.queryGenerator = queryGenerator;
-        this.resultTranslator = resultTranslator;
+        this.searchResultTranslator = searchResultTranslator;
         if (queryTranslationEnabled == null) {
             queryTranslationEnabled = false;
         }
@@ -142,7 +143,7 @@ public class SearchController extends BaseController {
                                        @RequestBody SearchRequest searchRequest,
                                        HttpServletRequest request,
                                        HttpServletResponse response)
-        throws EuropeanaException, HttpException {
+            throws EuropeanaException, HttpException, InvalidLanguageException {
         return searchJsonGet(
                              searchRequest.getQuery(),
                              searchRequest.getQf(),
@@ -206,8 +207,7 @@ public class SearchController extends BaseController {
                                       @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
                                       HttpServletResponse response)
-        throws EuropeanaException, HttpException {
-
+            throws EuropeanaException, HttpException, InvalidLanguageException {
 
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
 
@@ -234,7 +234,7 @@ public class SearchController extends BaseController {
         // note that we'll ignore when query translations or results translations is disabled
         if (isTranslateProfileActive && (
                 (queryTranslationEnabled && queryGenerator == null) ||
-                (resultsTranslationEnabled && resultTranslator == null))) {
+                (resultsTranslationEnabled && !searchResultTranslator.isEnabled()))) {
             throw new TranslationServiceDisabledException();
         }
         queryString = queryString.trim();
@@ -256,7 +256,7 @@ public class SearchController extends BaseController {
             // generate multi-lingual search query
             try {
                 queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
-                        querySourceLang);
+                        querySourceLang, getAuthorizationHeader(request));
                 LOG.debug("TRANSLATED QUERY: |{}|", queryString);
             } catch (TranslationServiceLimitException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
@@ -487,7 +487,7 @@ public class SearchController extends BaseController {
     /**
      * @return targetLanguage
      */
-    private Language validateQueryTranslateParams(String querySourceLang, String queryTargetLang) throws EuropeanaException {
+    private Language validateQueryTranslateParams(String querySourceLang, String queryTargetLang) throws EuropeanaException, InvalidLanguageException {
         Language result = null;
         if (queryTargetLang != null) {
             result = Language.validateSingle(queryTargetLang);
@@ -907,8 +907,7 @@ public class SearchController extends BaseController {
         // Note that translateTargetLang is only set when minimal profile is enabled (so we are sure we get BriefBeans)
         if (translateTargetLang != null) {
             try {
-                resultTranslator.translateSearchResults((List<BriefBean>)
-                        resultSet.getResults(), translateTargetLang);
+                searchResultTranslator.translate((List<BriefBean>) resultSet.getResults(), translateTargetLang, getAuthorizationHeader(servletRequest));
             } catch (TranslationServiceLimitException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
                 // Body indicating the reason for troubleshooting
