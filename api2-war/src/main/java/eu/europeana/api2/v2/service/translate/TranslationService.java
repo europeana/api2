@@ -97,7 +97,7 @@ public class TranslationService {
                 translatedDuringIngestion.add(languageTaggedValueIsPresent(europeanaProxy, field)), proxyFieldFilter);
 
             if (translatedDuringIngestion.contains(Boolean.TRUE)) {
-                LOG.debug("Record was translated during the ingestion.. ");
+                LOG.info("Record was translated during the ingestion.. ");
                 if (StringUtils.equals(targetLanguage, Language.PIVOT)) {
                     return bean; // do nothing
                 } else {

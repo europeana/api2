@@ -107,15 +107,6 @@ public class AppConfig {
         return propertySourcesPlaceholderConfigurer;
     }
 
-//    /**
-//     * Utility for validating api keys
-//     * @return ApiKeyUtils bean
-//     */
-//    @Bean
-//    public ApiKeyUtils apiKeyUtils() {
-//        return new ApiKeyUtils();
-//    }
-
     /**
      * Utility methods to help HTTP caching processing
      * @return HttpCacheUtils bean

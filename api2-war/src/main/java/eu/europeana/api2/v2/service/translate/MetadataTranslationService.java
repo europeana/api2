@@ -54,36 +54,44 @@ public class MetadataTranslationService extends BaseService {
      */
     public List<BriefBean> searchResultsTranslations(List<BriefBean> beans, String targetLanguage, String authToken) throws TranslationApiException {
         long start = System.currentTimeMillis();
-
-        String chosenLanguage = metadataChosenLanguageService.getMostRepresentativeLanguageForSearch(beans, targetLanguage);
-        LOG.debug("Most representative language chosen for translations is  {}", chosenLanguage);
-
-        // if there is no chosen language stop the translation workflow OR
-        // If the chosen language matches target language then do nothing (stop the workflow)
-        // keep in mind during Ingestion we always translate the record to english. So target language is always en
-        if (chosenLanguage == null || StringUtils.equals(chosenLanguage, targetLanguage)) {
-            LOG.debug("Stop the translation workflow for search results ..." );
-            return beans;
-        }
-        TranslationMap textToTranslate = new TranslationMap(chosenLanguage);
+        List<TranslationMap> textsToTranslate = new ArrayList<>();
 
         int index = 0;
         for (BriefBean bean : beans) {
             LOG.debug("Check search result {}...", index);
             int finalIndex = index;
-            ReflectionUtils.doWithFields(bean.getClass(), field ->  getSearchValueToTranslateForField(bean, field, chosenLanguage, textToTranslate, finalIndex), BaseService.searchFieldFilter);
+            String chosenLanguage = metadataChosenLanguageService.getMostRepresentativeLanguage(bean, targetLanguage, true);
+            LOG.debug("Most representative language chosen for {} search result is  {}", index, chosenLanguage);
+
+            // if there is no chosen language stop the translation workflow OR
+            // If the chosen language matches target language then do nothing
+            if (chosenLanguage == null || StringUtils.equals(chosenLanguage, targetLanguage)) {
+            LOG.debug("Stop the translation workflow for search result {} ...", index );
+            } else {
+                // gather texts for translations
+                TranslationMap gatheredTextForTranslation= new TranslationMap(chosenLanguage);
+                ReflectionUtils.doWithFields(bean.getClass(), field ->  getSearchValueToTranslateForField(bean, field, chosenLanguage, gatheredTextForTranslation, finalIndex), BaseService.searchFieldFilter);
+                addGatheredTranslations(gatheredTextForTranslation, textsToTranslate, chosenLanguage);
+            }
             index++;
         }
 
         // if no translation gathered return
-        if (textToTranslate.isEmpty()) {
+        if (textsToTranslate.isEmpty()) {
             LOG.debug("No values gathered for translations. Stopping the translation workflow for search results");
             return beans;
         }
-        LOG.debug("Text to translate - {}", textToTranslate);
+        LOG.debug("Text to translate - {}", textsToTranslate);
 
         // get the translation in the target language
-        TranslationMap translations = translate(textToTranslate, targetLanguage, authToken);
+        TranslationMap translations = new TranslationMap(targetLanguage); // only need one map as translation have same target language
+        for (TranslationMap map : textsToTranslate) {
+            TranslationMap translation = translate(map, targetLanguage, authToken);
+            if (!translation.isEmpty()) {
+                translations.add(translation);
+            }
+        }
+
         if (translations.isEmpty()) {
             LOG.debug("Empty or null translation returned by the Translation API Client");
             return beans;
@@ -100,6 +108,29 @@ public class MetadataTranslationService extends BaseService {
 
         LOG.debug("Translating search results took {} ms", (System.currentTimeMillis() - start));
         return beans;
+    }
+
+    /**
+     * if there is already and existing TranslationMap in the  textsToTranslate list for the chosen language, then add the values in the existing map.
+     * Otherwise add a new TranslationMap in the list with new chosen language
+     * this is to send one request per language to the translation engine
+     *
+     * @param gatheredTextForTranslation gathered values for translations in the chosen language
+     * @param textsToTranslate list of TranslationMap per language. Contain texts for translations per chosen language
+     * @param chosenLanguage source language to be sent for translations
+     */
+    private void addGatheredTranslations(TranslationMap gatheredTextForTranslation, List<TranslationMap> textsToTranslate, String chosenLanguage) {
+        if (!gatheredTextForTranslation.isEmpty()) {
+            Optional<TranslationMap> existingTranslationMapForChosenLang = textsToTranslate.stream()
+                    .filter(v -> StringUtils.equals(v.getSourceLanguage(), chosenLanguage))
+                    .findFirst();
+
+            if (existingTranslationMapForChosenLang.isPresent()) {
+                existingTranslationMapForChosenLang.get().add(gatheredTextForTranslation);
+            } else {
+                textsToTranslate.add(gatheredTextForTranslation);
+            }
+        }
     }
 
     /**
@@ -134,7 +165,7 @@ public class MetadataTranslationService extends BaseService {
         long start = System.currentTimeMillis();
         List<Proxy> proxies = new ArrayList<>(bean.getProxies()); // make sure we clone first so we can edit the list to our needs.
 
-        String chosenLanguage = metadataChosenLanguageService.getMostRepresentativeLanguageForProxy(bean, targetLanguage);
+        String chosenLanguage = metadataChosenLanguageService.getMostRepresentativeLanguage(bean, targetLanguage, false);
         LOG.debug("Most representative language chosen for translations is  {}", chosenLanguage);
 
         // if there is no chosen language stop the translation workflow OR
