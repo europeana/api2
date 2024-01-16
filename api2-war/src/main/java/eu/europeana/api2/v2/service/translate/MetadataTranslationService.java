@@ -37,13 +37,16 @@ public class MetadataTranslationService extends BaseService {
     // Truncation values per field. Should be configured in the API that calls the MetadataTranslationService workflow
     private final Integer translationCharLimit;
     private final Integer translationCharTolerance;
+    private final boolean ingestionProcess;
 
     public MetadataTranslationService(TranslationApiClient translationApiClient, MetadataChosenLanguageService metadataChosenLanguageService,
-                                      Integer translationCharLimit, Integer translationCharTolerance) {
+                                      Integer translationCharLimit, Integer translationCharTolerance, boolean ingestionProcess) {
         super(translationApiClient);
         this.metadataChosenLanguageService = metadataChosenLanguageService;
         this.translationCharLimit = translationCharLimit;
         this.translationCharTolerance = translationCharTolerance;
+        this.ingestionProcess = ingestionProcess;
+
     }
 
     /**
@@ -185,12 +188,14 @@ public class MetadataTranslationService extends BaseService {
             ReflectionUtils.doWithFields(proxy.getClass(), field -> getProxyValuesToTranslateForField(proxy, field, chosenLanguage, bean, textToTranslate, otherProxyFieldsWithEnglishValues), BaseService.proxyFieldFilter);
         }
 
-        // remove the fields whose "en" values are present in other proxies
-        otherProxyFieldsWithEnglishValues.stream().forEach(field -> {
-            if (textToTranslate.containsKey(field)) {
-                textToTranslate.remove(field);
-            }
-        });
+        // remove the fields whose "en" values are present in other proxies. only applied during ingestion
+        if (ingestionProcess) {
+            otherProxyFieldsWithEnglishValues.stream().forEach(field -> {
+                if (textToTranslate.containsKey(field)) {
+                    textToTranslate.remove(field);
+                }
+            });
+        }
 
         // if no translation gathered return
         if (textToTranslate.isEmpty()) {
@@ -228,8 +233,7 @@ public class MetadataTranslationService extends BaseService {
     }
 
     /**
-     * Returns the language qualified values matching the chosen language
-     * If there is already a English value for a property then skip this property (do not select any value from it)
+     * Returns the language qualified values matching the chosen/source language
      * For contextual entities, consider only the value from the skos:prefLabel
      *
      * @param origFieldData field lang value map
@@ -240,16 +244,19 @@ public class MetadataTranslationService extends BaseService {
      */
     public void getValueFromLanguageMap(HashMap<String, List<String>> origFieldData, Field field, String sourceLang, FullBean bean,
                                                TranslationMap map, Set<String> otherProxyFieldsWithEnglishValues) {
-        // Get the value only if there is NO "en" language tag already present for the field in any proxy and there is value present for the sourceLang
-        if (TranslationUtils.ifValuesShouldBePickedForTranslation(origFieldData, sourceLang)) {
+        // Get the value if present for the sourceLang
+        if (TranslationUtils.ifValuesShouldBePickedForTranslation(origFieldData, sourceLang, ingestionProcess)) {
             List<String> valuesToTranslateForField = getValuesToTranslate(origFieldData, sourceLang, bean, false, translationCharLimit, translationCharTolerance);
             if (!valuesToTranslateForField.isEmpty()) {
                 map.add(field.getName(),valuesToTranslateForField);
             }
         }
-        // if contains english add it in the list
-        if (origFieldData != null && !origFieldData.isEmpty()  && origFieldData.containsKey(Language.PIVOT)) {
-            otherProxyFieldsWithEnglishValues.add(field.getName());
+
+        // only applied during ingestion. if contains english add it in the list
+        if (ingestionProcess) {
+            if (origFieldData != null && !origFieldData.isEmpty() && origFieldData.containsKey(Language.PIVOT)) {
+                otherProxyFieldsWithEnglishValues.add(field.getName());
+            }
         }
     }
 
@@ -267,8 +274,8 @@ public class MetadataTranslationService extends BaseService {
     private void getSearchValueToTranslateForField(BriefBean bean, Field field, String sourceLang, TranslationMap map, int index) {
         HashMap<String, List<String>> origFieldData = (HashMap<String, List<String>>) BaseService.getValueOfTheField(bean, false).apply(field.getName());
         Map<String, List<String>> fieldData = EdmUtils.cloneMap(origFieldData);
-        // Get the value only if there is NO "en" language tag already present for the field and there is value present for the sourceLang
-        if (TranslationUtils.ifValuesShouldBePickedForTranslation(fieldData, sourceLang)) {
+        // Get the value in the source language if present
+        if (TranslationUtils.ifValuesShouldBePickedForTranslation(fieldData, sourceLang, ingestionProcess)) {
             List<String> valuesToTranslateForField = getValuesToTranslate(fieldData, sourceLang, null, true,
                     translationCharLimit, translationCharTolerance);
             if (!valuesToTranslateForField.isEmpty()) {

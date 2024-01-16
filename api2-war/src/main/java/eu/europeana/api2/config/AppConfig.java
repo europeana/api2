@@ -177,7 +177,9 @@ public class AppConfig {
 
     @Bean
     public TranslationService translationService() throws InvalidConfigurationException {
-        return new TranslationService(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(), translationCharLimit, translationCharTolerance),
+        return new TranslationService(
+                new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(),
+                        translationCharLimit, translationCharTolerance, false),
                 new MetadataLangDetectionService(getTranslationApiClient()));
     }
 

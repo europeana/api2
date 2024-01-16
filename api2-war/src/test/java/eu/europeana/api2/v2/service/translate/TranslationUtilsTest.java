@@ -48,22 +48,22 @@ public class TranslationUtilsTest {
     public void Test_ifValuesShouldBePickedForTranslation() {
         Map<String,  List<String>> map = new HashMap<>();
 
-        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "nl")); // map is empty
+        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "nl", false)); // map is empty
 
         map.put("nl", Arrays.asList("Hallo", "Nederlands"));
         map.put("fr", Arrays.asList("Bonjour", "France"));
-        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "nl"));
-        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "fr"));
-        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de")); // doesn't contain this lang
+        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "nl", false));
+        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "fr", false));
+        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de", false)); // doesn't contain this lang
 
         // add region codes
         map.put("de-NL", Arrays.asList("region codes test", "test"));
-        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de"));
+        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de", false));
 
         // add pivot language
         map.put("en", Arrays.asList("english value present already"));
-        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de")); // en already present in the map
-
+        // en already present in the map but this not a ingestion process, hence the value in source language is picked up
+        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de", false));
     }
 
     @Test
