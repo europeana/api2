@@ -5,6 +5,7 @@ import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsServic
 import eu.europeana.api.translation.client.TranslationApiClient;
 import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
 import eu.europeana.api2.model.utils.Api2UrlService;
+import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.service.ApiAuthorizationService;
@@ -13,7 +14,10 @@ import eu.europeana.api2.v2.service.translate.*;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import java.util.Arrays;
+import java.util.Properties;
 import javax.annotation.PostConstruct;
+
+import eu.europeana.corelib.web.exception.ProblemType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,9 +64,11 @@ public class AppConfig {
     @Value("${translation.char.tolerance}")
     private Integer translationCharTolerance;
 
-
     @Autowired
     private Environment env;
+
+    @Value("${translation.api.endpoint}")
+    private String translationApiEndpoint;
 
     @PostConstruct
     public void logConfiguration() {
@@ -101,14 +107,14 @@ public class AppConfig {
         return propertySourcesPlaceholderConfigurer;
     }
 
-    /**
-     * Utility for validating api keys
-     * @return ApiKeyUtils bean
-     */
-    @Bean
-    public ApiKeyUtils apiKeyUtils() {
-        return new ApiKeyUtils();
-    }
+//    /**
+//     * Utility for validating api keys
+//     * @return ApiKeyUtils bean
+//     */
+//    @Bean
+//    public ApiKeyUtils apiKeyUtils() {
+//        return new ApiKeyUtils();
+//    }
 
     /**
      * Utility methods to help HTTP caching processing
@@ -142,7 +148,7 @@ public class AppConfig {
      * @return query generator bean or null
      */
     @Bean
-    public MultilingualQueryGenerator multilingualQueryGenerator() {
+    public MultilingualQueryGenerator multilingualQueryGenerator() throws InvalidConfigurationException {
         return new MultilingualQueryGenerator(new QueryTranslator(getTranslationApiClient()));
 
     }
@@ -164,19 +170,29 @@ public class AppConfig {
         return clientDetails;
     }
 
-     @Bean
-     public ApiAuthorizationService getAuthorizarionService(){
-         return new ApiAuthorizationService();
-     }
+    @Bean
+    public ApiAuthorizationService getAuthorizarionService(){
+        return new ApiAuthorizationService();
+    }
 
-     @Bean
-    public TranslationApiClient getTranslationApiClient() {
-        return new TranslationApiClient(new TranslationClientConfiguration());
-     }
+    @Bean
+    public TranslationApiClient getTranslationApiClient() throws InvalidConfigurationException {
+        TranslationClientConfiguration configuration = new TranslationClientConfiguration(loadProperties());
+        if (configuration.getTranslationApiUrl() == null) {
+            throw new InvalidConfigurationException(ProblemType.TRANSLATION_API_URL_ERROR);
+        }
+        return new TranslationApiClient(configuration);
+    }
 
-     @Bean
-     public TranslationService translationService() {
+    @Bean
+    public TranslationService translationService() throws InvalidConfigurationException {
         return new TranslationService(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(), translationCharLimit, translationCharTolerance),
                 new MetadataLangDetectionService(getTranslationApiClient()));
-     }
+    }
+
+    private Properties loadProperties() {
+        Properties properties = new Properties();
+        properties.put(TranslationClientConfiguration.TRANSLATION_API_URL, translationApiEndpoint);
+        return properties;
+    }
 }
