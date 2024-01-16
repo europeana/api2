@@ -56,6 +56,7 @@ public class MetadataTranslationService extends BaseService {
         long start = System.currentTimeMillis();
 
         String chosenLanguage = metadataChosenLanguageService.getMostRepresentativeLanguageForSearch(beans, targetLanguage);
+        LOG.debug("Most representative language chosen for translations is  {}", chosenLanguage);
 
         // if there is no chosen language stop the translation workflow OR
         // If the chosen language matches target language then do nothing (stop the workflow)
@@ -64,7 +65,6 @@ public class MetadataTranslationService extends BaseService {
             LOG.debug("Stop the translation workflow for search results ..." );
             return beans;
         }
-        LOG.debug("Most representative language chosen for translations is  {}", chosenLanguage);
         TranslationMap textToTranslate = new TranslationMap(chosenLanguage);
 
         int index = 0;
@@ -135,6 +135,7 @@ public class MetadataTranslationService extends BaseService {
         List<Proxy> proxies = new ArrayList<>(bean.getProxies()); // make sure we clone first so we can edit the list to our needs.
 
         String chosenLanguage = metadataChosenLanguageService.getMostRepresentativeLanguageForProxy(bean, targetLanguage);
+        LOG.debug("Most representative language chosen for translations is  {}", chosenLanguage);
 
         // if there is no chosen language stop the translation workflow OR
         // If the chosen language matches target language then do nothing (stop the workflow)
@@ -143,8 +144,6 @@ public class MetadataTranslationService extends BaseService {
             LOG.debug("Stop the translation workflow for record {}", bean.getAbout());
             return bean;
         }
-
-        LOG.debug("Most representative language chosen for translations is  {}", chosenLanguage);
 
         TranslationMap textToTranslate = new TranslationMap(chosenLanguage);
 
