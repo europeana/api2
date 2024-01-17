@@ -40,12 +40,13 @@ public class TranslationUtils {
      * @param sourceLang
      * @return
      */
-    public static boolean ifValuesShouldBePickedForTranslation(Map<String, List<String>> map, String sourceLang, boolean ingestionProcess) {
+    public static boolean ifValuesShouldBePickedForTranslation(Map<String, List<String>> map, String sourceLang, String targetLang, boolean ingestionProcess) {
         if (ingestionProcess) {
             return map != null && !map.isEmpty()  && !map.containsKey(Language.PIVOT) && containsLangOrRegionLang(map, sourceLang);
         }
-        return map != null && !map.isEmpty() && containsLangOrRegionLang(map, sourceLang);
+        return map != null && !map.isEmpty() && !map.containsKey(targetLang) && containsLangOrRegionLang(map, sourceLang);
     }
+
 
     /**
      * Return true if the map contains source language or a region code that starts with the source language
