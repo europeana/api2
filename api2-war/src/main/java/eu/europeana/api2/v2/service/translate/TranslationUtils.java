@@ -30,16 +30,23 @@ public class TranslationUtils {
 
 
     /**
-     * For translations only fetch the value from the map if there
-     * is NO "en" language tag already present for the field and there is value present for the sourceLang
+     * During ingestion -
+     *     For translations only fetch the value from the map if there
+     *     is NO "en" language tag already present for the field and there is value present for the sourceLang
+     *
+     * For other API's translations , fetch the value in the source language if present
      *
      * @param map
      * @param sourceLang
      * @return
      */
-    public static boolean ifValuesShouldBePickedForTranslation(Map<String, List<String>> map, String sourceLang) {
-        return map != null && !map.isEmpty()  && !map.containsKey(Language.PIVOT) && containsLangOrRegionLang(map, sourceLang);
+    public static boolean ifValuesShouldBePickedForTranslation(Map<String, List<String>> map, String sourceLang, String targetLang, boolean ingestionProcess) {
+        if (ingestionProcess) {
+            return map != null && !map.isEmpty()  && !map.containsKey(Language.PIVOT) && containsLangOrRegionLang(map, sourceLang);
+        }
+        return map != null && !map.isEmpty() && !map.containsKey(targetLang) && containsLangOrRegionLang(map, sourceLang);
     }
+
 
     /**
      * Return true if the map contains source language or a region code that starts with the source language

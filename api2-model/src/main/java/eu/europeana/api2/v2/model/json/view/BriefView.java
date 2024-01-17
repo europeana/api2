@@ -91,9 +91,9 @@ public class BriefView extends IdBeanImpl implements BriefBean {
 
     @Override
     public String[] getLanguage() {
-        if (profiles.contains(Profile.MINIMAL)) {
-            return new String[0];
-        }
+//        if (profiles.contains(Profile.MINIMAL)) {
+//            return new String[0];
+//        }
         return bean.getLanguage();
     }
 

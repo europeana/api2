@@ -1,8 +1,8 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.definitions.language.Language;
-import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
+import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
 import eu.europeana.corelib.edm.utils.EdmUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -18,30 +18,20 @@ public class MetadataChosenLanguageService {
 
     private static final Logger LOG = LogManager.getLogger(MetadataChosenLanguageService.class);
 
-    public String getMostRepresentativeLanguageForSearch(List<BriefBean> beans, String targetLanguage) {
+    public <T extends IdBean> String getMostRepresentativeLanguage(T bean, String targetLanguage, boolean searchResults) {
         Map<String, Integer> langCountMap = new HashMap<>();
-        for (BriefBean bean : beans) {
-            ReflectionUtils.doWithFields(bean.getClass(), field -> getLanguageAndCount(bean, field, langCountMap, targetLanguage, true), BaseService.searchFieldFilter);
+        if (searchResults) {
+            ReflectionUtils.doWithFields(bean.getClass(), field -> getLanguageAndCount(bean, field, langCountMap, targetLanguage, searchResults), BaseService.searchFieldFilter);
+        } else  {
+            List<? extends Proxy> proxies = ((FullBean)bean).getProxies();
+            for (Proxy proxy : proxies) {
+                ReflectionUtils.doWithFields(proxy.getClass(), field -> getLanguageAndCount(proxy, field, langCountMap, targetLanguage, searchResults), BaseService.proxyFieldFilter);
+            }
         }
         // if there is no language available for translation workflow, do nothing
         if (langCountMap.isEmpty()) {
             LOG.error("Most representative languages NOT present for search results. " +
                     "Languages present are either zxx or def or not-supported by the translation engine");
-            return null;
-        }
-        return getMostRepresentativeLanguage(langCountMap);
-    }
-
-    public String getMostRepresentativeLanguageForProxy(FullBean bean, String targetLanguage) {
-        Map<String, Integer> langCountMap = new HashMap<>();
-        List<? extends Proxy> proxies = bean.getProxies();
-        for (Proxy proxy : proxies) {
-            ReflectionUtils.doWithFields(proxy.getClass(), field -> getLanguageAndCount(proxy, field, langCountMap, targetLanguage, false), BaseService.proxyFieldFilter);
-        }
-        // if there is no language available for translation workflow, do nothing
-        if (langCountMap.isEmpty()) {
-            LOG.error("Most representative languages NOT present for record {}. " +
-                    "Languages present are either zxx or def or not-supported by the translation engine", bean.getAbout());
             return null;
         }
         return getMostRepresentativeLanguage(langCountMap);

@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import javax.validation.constraints.NotNull;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TranslationMap extends LinkedHashMap<String, List<String>> {
 
@@ -40,6 +41,17 @@ public class TranslationMap extends LinkedHashMap<String, List<String>> {
             }
         }
     }
+
+    /**
+     * Adds the map values to the Translation Map
+     * @param map
+     */
+    public void add(Map<String, List<String>> map) {
+        for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+            add(entry.getKey(), entry.getValue());
+        }
+    }
+
 
     @NotNull
     public String getSourceLanguage() {
