@@ -1,14 +1,10 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api.commons.web.exception.EuropeanaGlobalExceptionHandler;
-import eu.europeana.api2.ApiKeyException;
+import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
-import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
-import eu.europeana.api2.v2.exceptions.MissingParamException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
+import eu.europeana.api2.v2.exceptions.*;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.utils.ControllerUtils;
@@ -39,7 +35,7 @@ import org.springframework.web.servlet.ModelAndView;
  */
 
 @ControllerAdvice
-public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
+public class GlobalExceptionHandler {
 
     private static final Logger LOG = LogManager.getLogger(GlobalExceptionHandler.class);
 
@@ -65,6 +61,14 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
         }
     }
 
+    @ExceptionHandler(value = {HttpException.class})
+    public ModelAndView httpExceptionHandler(HttpServletRequest request, HttpServletResponse response, HttpException ee) {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        return generateErrorResponse(request, response, "Unauthorized",
+                I18nErrorMessageKeys.getMessageForKey(ee.getI18nKey()), StringUtils.substringAfter(ee.getI18nKey(), "."));
+    }
+
+
     private void logOrIgnoreError(String route, String apiKey, EuropeanaException ee) {
         switch (ee.getAction()) {
             case IGNORE: break;
@@ -84,13 +88,7 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
         }
         // set status depending on type of exception
         int result = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-        if (ee instanceof ApiKeyException) {
-            if (((ApiKeyException) ee).getHttpStatus() > 0){
-                result = ((ApiKeyException) ee).getHttpStatus();
-            } else {
-                result = HttpServletResponse.SC_UNAUTHORIZED;
-            }
-        } else if (ee instanceof SolrQueryException ||
+            if (ee instanceof SolrQueryException ||
                    ee instanceof InvalidParamValueException ||
                    ee instanceof MissingParamException ||
                    ee instanceof TranslationServiceDisabledException) {
@@ -99,7 +97,9 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
             result = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
         } else if (ee instanceof TranslationServiceLimitException) {
             result = HttpServletResponse.SC_BAD_GATEWAY;
-        }
+        } else if ( ee instanceof InvalidAuthorizationException) {
+                result = HttpServletResponse.SC_FORBIDDEN;
+            }
         return result;
     }
 

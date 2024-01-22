@@ -87,23 +87,6 @@
             </exclusions>
         </dependency>
 
-        <!-- Query translation -->
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-translate</artifactId>
-        </dependency>
-        <!-- Configure gRPC to by-pass socks proxy -->
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-tasks</artifactId>
-        </dependency>
-        <!-- For decoding JWT tokens (Pangeanic API) -->
-        <dependency>
-            <groupId>com.auth0</groupId>
-            <artifactId>java-jwt</artifactId>
-            <version>3.10.3</version>
-        </dependency>
-
         <!-- OTHER -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

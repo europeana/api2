@@ -1,6 +1,5 @@
 package eu.europeana.api2.config;
 
-
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api.translation.client.TranslationApiClient;
 import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
@@ -12,7 +11,6 @@ import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.service.ApiAuthorizationService;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.*;
-import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import java.util.Arrays;
 import java.util.Properties;

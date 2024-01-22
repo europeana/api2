@@ -78,7 +78,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.io.*;
 import java.util.*;
 
 import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
@@ -336,6 +335,10 @@ public class ObjectController extends BaseController {
                 !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
             response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
             return null;
+        }
+
+        if (data.profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(data.servletRequest) == null) {
+            throw new InvalidAuthorizationException();
         }
 
         // 2) check API key & routing
