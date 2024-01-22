@@ -22,7 +22,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
@@ -103,7 +106,36 @@ public class GlobalExceptionHandler {
         return result;
     }
 
+    /**
+     * Handles all required parameter missing problems
+     * Don't need apikey missing handling here anymore, will be handled in HttpException
+     *
+     * @param request
+     * @param response
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(value = {MissingServletRequestParameterException.class})
+    public ModelAndView missingParameterErrorHandler (HttpServletRequest request, HttpServletResponse response,
+                                                      MissingServletRequestParameterException ex) {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        String errorMsg = "Required parameter '" + ex.getParameterName() + "' missing";
+        return generateErrorResponse(request, response, errorMsg, null, null);
+    }
 
+    /**
+     * Handles HttpMediaTypeNotAcceptableExceptions
+     * @param request
+     * @param response
+     * @return
+     */
+    @ExceptionHandler(value = {HttpMediaTypeNotAcceptableException.class})
+    public ModelAndView mediaTypeNotAcceptableHandler(HttpServletRequest request, HttpServletResponse response) {
+        response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+        String requestedMediaType = ControllerUtils.getRequestedMediaType(request);
+        String errorMsg = "The resource identified by this request cannot generate a response of type " + requestedMediaType;
+        return generateErrorResponse(request, response, errorMsg, null, null);
+    }
 
     /**
      * Handles HttpMediaTypeNotSupportedExceptions
@@ -131,6 +163,44 @@ public class GlobalExceptionHandler {
     public ModelAndView badRequestHandler(HttpServletRequest request, HttpServletResponse response, Exception e){
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         return generateErrorResponse(request, response, e.getMessage(), null, null);
+    }
+
+
+    /**
+     * Handles HttpMediaTypeNotSupportedExceptions
+     * @param request
+     * @param response
+     * @return
+     */
+    @ExceptionHandler(value = {HttpRequestMethodNotSupportedException.class})
+    public ModelAndView unsupportedMethodHandler(HttpServletRequest request, HttpServletResponse response){
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        String errorMsg = "Request method '" + request.getMethod() + "' is not allowed for the requested resource";
+        return generateErrorResponse(request, response, errorMsg, null, null);
+    }
+
+
+    /**
+     * General error handler. This handler is used when there are no more specific handlers for the error in question.
+     * The drawback of using this is that we cannot supply the requestNumber in the error message
+     * @param request
+     * @param response
+     *
+     * @param e
+     * @return ModelAndView with error message
+     */
+    @ExceptionHandler(value = {Exception.class})
+    public ModelAndView defaultExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e)  {
+        try {
+            LOG.error("Caught unexpected exception", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            String errorMsg = "Internal server error";
+            String errorDetails = e.getMessage();
+            return generateErrorResponse(request, response, errorMsg, errorDetails, null);
+        } catch (Exception ex) {
+            LOG.error("Error while generating error response", ex);
+            throw ex;
+        }
     }
 
 
@@ -192,5 +262,6 @@ public class GlobalExceptionHandler {
         }
         return errorMsg;
     }
+
 
 }
