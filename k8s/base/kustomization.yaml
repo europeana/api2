@@ -9,7 +9,3 @@ secretGenerator:
   - name: search-api-secret-props
     files:
       - europeana.user.properties
-
-  - name: search-api-secret-google
-    files:
-      - google_cloud_credentials.json

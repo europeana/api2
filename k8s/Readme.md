@@ -20,7 +20,6 @@ The files below are required for deployment:
   │    ├── deployment.yaml
   │    ├── kustomization.yaml
   │    ├── europeana.user.properties#
-  │    └── google_cloud_credentials.json#
   └── overlays
        ├── cloud
        │     ├── deployment_patch.properties.yaml#
@@ -63,7 +62,6 @@ For both environments:
   . Ensure at
   least [one route](https://github.com/europeana/api2/blob/6b0a64770f07a6a45a65f3c17b18bdcbea9010f4/api2-war/src/main/resources/europeana.properties#L5)
   matches the URL hostname through which the app will be accessed.
-- Copy `google_cloud_credentials.json` to the `base` directory.
 
 ### Local Deployment
 

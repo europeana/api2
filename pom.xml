@@ -65,7 +65,7 @@
                 <version>8.3.1</version>
                 <configuration>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
-                    <failBuildOnCVSS>10</failBuildOnCVSS>
+                    <failBuildOnCVSS>9</failBuildOnCVSS>
                     <suppressionFiles>
                         <suppressionFile>owasp-suppress.xml</suppressionFile>
                     </suppressionFiles>

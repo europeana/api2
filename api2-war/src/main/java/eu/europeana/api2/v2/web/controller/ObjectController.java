@@ -70,6 +70,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -140,7 +141,7 @@ public class ObjectController extends BaseController {
      * @param httpCacheUtils for request caching
      */
     @Autowired
-    public ObjectController(RouteDataService routeService, RecordService recordService, TranslationService recordTranslations,
+    public ObjectController(RouteDataService routeService, RecordService recordService, @Nullable TranslationService recordTranslations,
                              HttpCacheUtils httpCacheUtils) {
         super(routeService);
         this.recordService = recordService;

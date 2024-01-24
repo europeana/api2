@@ -64,6 +64,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.annotation.Nullable;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -116,7 +117,7 @@ public class SearchController extends BaseController {
 
     @Autowired
     public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator,
-                            TranslationService searchResultTranslator) {
+                            @Nullable TranslationService searchResultTranslator) {
         super(routeService);
         this.queryGenerator = queryGenerator;
         this.searchResultTranslator = searchResultTranslator;
