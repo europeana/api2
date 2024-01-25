@@ -38,7 +38,7 @@
          Moving forward we do need to upgrade to JDK 21 if we continue to use metis dependencies and want to upgrade them-->
         <metis.version>11</metis.version>
         <apicommons.version>0.3.22-SNAPSHOT</apicommons.version>
-        <translation.api.client.version>0.0.1-SNAPSHOT</translation.api.client.version>
+        <translation.api.client.version>0.1</translation.api.client.version>
 
         <httpclient.version>4.5.13</httpclient.version>
         <jackson.version>2.16.0</jackson.version>
@@ -67,7 +67,7 @@
                 <version>8.3.1</version>
                 <configuration>
                     <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
-                    <failBuildOnCVSS>10</failBuildOnCVSS>
+                    <failBuildOnCVSS>9</failBuildOnCVSS>
                     <suppressionFiles>
                         <suppressionFile>owasp-suppress.xml</suppressionFile>
                     </suppressionFiles>

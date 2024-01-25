@@ -12,7 +12,6 @@ import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.service.ApiAuthorizationService;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.*;
-import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import java.util.Arrays;
 import java.util.Properties;
@@ -59,23 +58,26 @@ public class AppConfig {
     @Value("${apiGateway.baseUrl:}")
     private String apiGatewayBaseUrl;
 
-    @Value("${translation.char.limit}")
-    private Integer translationCharLimit;
-
-    @Value("${translation.char.tolerance}")
-    private Integer translationCharTolerance;
-
     @Autowired
     private Environment env;
 
-    @Value("${translation.api.endpoint}")
+    @Value("${translation.record:false}")
+    private Boolean translationRecord;
+    @Value("${translation.search.query:false}")
+    private Boolean translationSearchQuery;
+    @Value("${translation.search.results:false}")
+    private Boolean translationSearchResults;
+    @Value("${translation.api.endpoint:}")
     private String translationApiEndpoint;
+    @Value("${translation.char.limit:}")
+    private Integer translationCharLimit;
+    @Value("${translation.char.tolerance:}")
+    private Integer translationCharTolerance;
+
 
     @PostConstruct
     public void logConfiguration() {
         if (LOG.isInfoEnabled()) {
-            LOG.info("CF_INSTANCE_INDEX  = {}, CF_INSTANCE_GUID = {}, CF_INSTANCE_IP  = {}",
-                    System.getenv("CF_INSTANCE_INDEX"), System.getenv("CF_INSTANCE_GUID"), System.getenv("CF_INSTANCE_IP"));
             LOG.info("Active Spring profiles: {}", Arrays.toString(env.getActiveProfiles()));
             LOG.info("Default Spring profiles: {}", Arrays.toString(env.getDefaultProfiles()));
         }
@@ -163,26 +165,32 @@ public class AppConfig {
     }
 
     @Bean
-    public ApiAuthorizationService getAuthorizarionService(){
+    public ApiAuthorizationService getAuthorizationService(){
         return new ApiAuthorizationService();
     }
 
     @Bean
     public TranslationApiClient getTranslationApiClient() throws InvalidConfigurationException {
-        TranslationClientConfiguration configuration = new TranslationClientConfiguration(loadProperties());
         try {
+            if (translationRecord || translationSearchQuery || translationSearchResults) {
+            TranslationClientConfiguration configuration = new TranslationClientConfiguration(loadProperties());
             return new TranslationApiClient(configuration);
+            }
         } catch (TranslationApiException e) {
             throw new InvalidConfigurationException(ProblemType.TRANSLATION_API_URL_ERROR);
         }
+        return null;
+
     }
 
     @Bean
     public TranslationService translationService() throws InvalidConfigurationException {
-        return new TranslationService(
-                new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(),
-                        translationCharLimit, translationCharTolerance, false),
-                new MetadataLangDetectionService(getTranslationApiClient()));
+        if (translationRecord || translationSearchQuery || translationSearchResults) {
+            return new TranslationService(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(),
+                    translationCharLimit, translationCharTolerance, false),
+                    new MetadataLangDetectionService(getTranslationApiClient()));
+        }
+        return null;
     }
 
     private Properties loadProperties() {

@@ -23,23 +23,12 @@ spec:
               path: /info
             initialDelaySeconds: 120
             periodSeconds: 30
-          env:
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              # matches volume mount path for json file
-              value: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/google_cloud_credentials.json"
           volumeMounts:
             - name: secret-props
               mountPath: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/europeana.user.properties"
               readOnly: true
               subPath: europeana.user.properties
-            - name: secret-google
-              mountPath: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/google_cloud_credentials.json"
-              subPath: google_cloud_credentials.json
-              readOnly: true
       volumes:
         - name: secret-props
           secret:
             secretName: search-api-secret-props
-        - name: secret-google
-          secret:
-            secretName: search-api-secret-google
