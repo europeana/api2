@@ -186,12 +186,11 @@ public class AppConfig {
     @Bean
     public TranslationService translationService() throws InvalidConfigurationException {
         if (translationRecord || translationSearchQuery || translationSearchResults) {
-            return new TranslationService(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(), translationCharLimit, translationCharTolerance),
+            return new TranslationService(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(),
+                    translationCharLimit, translationCharTolerance, false),
                     new MetadataLangDetectionService(getTranslationApiClient()));
         }
         return null;
-
-
     }
 
     private Properties loadProperties() {
