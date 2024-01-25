@@ -4,6 +4,7 @@ package eu.europeana.api2.config;
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api.translation.client.TranslationApiClient;
 import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
+import eu.europeana.api.translation.client.exception.TranslationApiException;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
@@ -179,12 +180,13 @@ public class AppConfig {
 
     @Bean
     public TranslationApiClient getTranslationApiClient() throws InvalidConfigurationException {
-        if (translationRecord || translationSearchQuery || translationSearchResults) {
+        try {
+            if (translationRecord || translationSearchQuery || translationSearchResults) {
             TranslationClientConfiguration configuration = new TranslationClientConfiguration(loadProperties());
-            if (configuration.getTranslationApiUrl() == null) {
-                throw new InvalidConfigurationException(ProblemType.TRANSLATION_API_URL_ERROR);
-            }
             return new TranslationApiClient(configuration);
+            }
+        } catch (TranslationApiException e) {
+            throw new InvalidConfigurationException(ProblemType.TRANSLATION_API_URL_ERROR);
         }
         return null;
     }
