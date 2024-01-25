@@ -2,7 +2,11 @@ package eu.europeana.api2.config;
 
 
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
+import eu.europeana.api.translation.client.TranslationApiClient;
+import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
+import eu.europeana.api.translation.client.exception.TranslationApiException;
 import eu.europeana.api2.model.utils.Api2UrlService;
+import eu.europeana.api2.v2.exceptions.InvalidConfigurationException;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.translate.QueryTranslator;
 import eu.europeana.api2.v2.service.ApiAuthorizationService;
@@ -11,7 +15,10 @@ import eu.europeana.api2.v2.service.translate.*;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
 import java.util.Arrays;
+import java.util.Properties;
 import javax.annotation.PostConstruct;
+
+import eu.europeana.corelib.web.exception.ProblemType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,18 +59,17 @@ public class AppConfig {
     @Value("${apiGateway.baseUrl:}")
     private String apiGatewayBaseUrl;
 
-    @Value("${translation.engine:NONE}") // should be either PANGEANIC, GOOGLE or NONE
-    private String translationEngineString;
-    private TranslationService translationService;
+    @Value("${translation.char.limit}")
+    private Integer translationCharLimit;
 
-    @Value("${translation.search.query:false}")
-    private Boolean translationSearchQuery;
-
-    @Value("${translation.search.results:false}")
-    private Boolean translationSearchResults;
+    @Value("${translation.char.tolerance}")
+    private Integer translationCharTolerance;
 
     @Autowired
     private Environment env;
+
+    @Value("${translation.api.endpoint}")
+    private String translationApiEndpoint;
 
     @PostConstruct
     public void logConfiguration() {
@@ -84,17 +90,6 @@ public class AppConfig {
                 this.apikeyServiceUrl = apikeyServiceUrl + "http://";
             }
         }
-
-        // Make sure the correct translation service is initialized and available for components that need it
-        TranslationEngine engine = TranslationEngine.fromString(translationEngineString);
-        if (TranslationEngine.PANGEANIC.equals(engine)) {
-            this.translationService = new PangeanicTranslationService();
-        } else if (TranslationEngine.GOOGLE.equals(engine)) {
-            this.translationService = new GoogleTranslationService();
-        } else if (TranslationEngine.PANGEANIC2.equals(engine)) {
-            this.translationService = new PangeanicV2TranslationService();
-        }
-        LOG.info("No translation engine available.");
     }
 
     /**
@@ -111,15 +106,6 @@ public class AppConfig {
         propertySourcesPlaceholderConfigurer.setLocalOverride(true);
         propertySourcesPlaceholderConfigurer.setLocations(new ClassPathResource("europeana.properties"), new ClassPathResource("europeana.user.properties"));
         return propertySourcesPlaceholderConfigurer;
-    }
-
-    /**
-     * Utility for validating api keys
-     * @return ApiKeyUtils bean
-     */
-    @Bean
-    public ApiKeyUtils apiKeyUtils() {
-        return new ApiKeyUtils();
     }
 
     /**
@@ -149,38 +135,14 @@ public class AppConfig {
     }
 
     /**
-     * Make sure the correct translation service is initialized and available for components that need it
-     * @return translation service or null if none is configured.
-     */
-    @Bean
-    public TranslationService translationService() {
-        return this.translationService;
-    }
-
-    /**
      * Initialize the multil lingual search query generator if the option is enabled and there's a translation engein
      * configured
      * @return query generator bean or null
      */
     @Bean
-    MultilingualQueryGenerator multilingualQueryGenerator() {
-        if (translationSearchQuery && this.translationService != null) {
-            return new MultilingualQueryGenerator(new QueryTranslator(this.translationService));
-        }
-        return null;
-    }
+    public MultilingualQueryGenerator multilingualQueryGenerator() throws InvalidConfigurationException {
+        return new MultilingualQueryGenerator(new QueryTranslator(getTranslationApiClient()));
 
-    /**
-     * Initialize the search result translation service if the option is enabled and there's a translation engine
-     * configured
-     * @return search result translation service bean or null
-     */
-    @Bean
-    SearchResultTranslateService searchResultTranslationService() {
-        if (translationSearchResults && this.translationService != null) {
-            return new SearchResultTranslateService(this.translationService);
-        }
-        return null;
     }
 
     @Bean
@@ -200,8 +162,32 @@ public class AppConfig {
         return clientDetails;
     }
 
-     @Bean
-     public ApiAuthorizationService getAuthorizarionService(){
-         return new ApiAuthorizationService();
-     }
+    @Bean
+    public ApiAuthorizationService getAuthorizarionService(){
+        return new ApiAuthorizationService();
+    }
+
+    @Bean
+    public TranslationApiClient getTranslationApiClient() throws InvalidConfigurationException {
+        TranslationClientConfiguration configuration = new TranslationClientConfiguration(loadProperties());
+        try {
+            return new TranslationApiClient(configuration);
+        } catch (TranslationApiException e) {
+            throw new InvalidConfigurationException(ProblemType.TRANSLATION_API_URL_ERROR);
+        }
+    }
+
+    @Bean
+    public TranslationService translationService() throws InvalidConfigurationException {
+        return new TranslationService(
+                new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(),
+                        translationCharLimit, translationCharTolerance, false),
+                new MetadataLangDetectionService(getTranslationApiClient()));
+    }
+
+    private Properties loadProperties() {
+        Properties properties = new Properties();
+        properties.put(TranslationClientConfiguration.TRANSLATION_API_URL, translationApiEndpoint);
+        return properties;
+    }
 }

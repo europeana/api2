@@ -1,6 +1,8 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api.commons.oauth2.utils.OAuthUtils;
+import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
+import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
@@ -13,7 +15,6 @@ import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.RichView;
-import eu.europeana.api2.v2.model.translate.Language;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
@@ -22,7 +23,7 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
-import eu.europeana.api2.v2.service.translate.SearchResultTranslateService;
+import eu.europeana.api2.v2.service.translate.TranslationService;
 import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
@@ -53,7 +54,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -63,12 +63,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.URI;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -114,14 +112,14 @@ public class SearchController extends BaseController {
     private Boolean resultsTranslationEnabled;
 
     private MultilingualQueryGenerator queryGenerator;
-    private SearchResultTranslateService resultTranslator;
+    private TranslationService searchResultTranslator;
 
     @Autowired
     public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator,
-                            SearchResultTranslateService resultTranslator) {
+                            TranslationService searchResultTranslator) {
         super(routeService);
         this.queryGenerator = queryGenerator;
-        this.resultTranslator = resultTranslator;
+        this.searchResultTranslator = searchResultTranslator;
         if (queryTranslationEnabled == null) {
             queryTranslationEnabled = false;
         }
@@ -144,7 +142,8 @@ public class SearchController extends BaseController {
     public ModelAndView searchJsonPost(
                                        @RequestBody SearchRequest searchRequest,
                                        HttpServletRequest request,
-                                       HttpServletResponse response) throws EuropeanaException {
+                                       HttpServletResponse response)
+            throws EuropeanaException, HttpException, InvalidLanguageException {
         return searchJsonGet(
                              searchRequest.getQuery(),
                              searchRequest.getQf(),
@@ -207,9 +206,12 @@ public class SearchController extends BaseController {
                                       @RequestParam(value = "lang", required = false) String lang,
                                       @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
-                                      HttpServletResponse response) throws EuropeanaException {
+                                      HttpServletResponse response)
+            throws EuropeanaException, HttpException {
 
-        apiKeyUtils.authorizeReadAccess(request);
+        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
+
+
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
@@ -224,7 +226,12 @@ public class SearchController extends BaseController {
         // validate provided languages
         List<Language> filterLanguages = null;
         if (lang != null) {
-             filterLanguages = Language.validateMultiple(lang);
+            try {
+                filterLanguages = Language.validateMultiple(lang);
+            } catch(InvalidLanguageException e) {
+                throw new InvalidParamValueException(e.getMessage());
+
+            }
         }
 
         boolean isTranslateProfileActive = profiles.contains(Profile.TRANSLATE);
@@ -232,7 +239,7 @@ public class SearchController extends BaseController {
         // note that we'll ignore when query translations or results translations is disabled
         if (isTranslateProfileActive && (
                 (queryTranslationEnabled && queryGenerator == null) ||
-                (resultsTranslationEnabled && resultTranslator == null))) {
+                (resultsTranslationEnabled && !searchResultTranslator.isEnabled()))) {
             throw new TranslationServiceDisabledException();
         }
         queryString = queryString.trim();
@@ -254,7 +261,7 @@ public class SearchController extends BaseController {
             // generate multi-lingual search query
             try {
                 queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
-                        querySourceLang);
+                        querySourceLang, getAuthorizationHeader(request));
                 LOG.debug("TRANSLATED QUERY: |{}|", queryString);
             } catch (TranslationServiceLimitException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
@@ -270,7 +277,11 @@ public class SearchController extends BaseController {
         String translateTargetLang = null;
         if (resultsTranslationEnabled && isTranslateProfileActive && isMinimalProfileActive) {
             if (filterLanguages == null || filterLanguages.isEmpty()) {
-                Language.validateSingle(null); // let that method throw appropriate error
+                try {
+                    Language.validateSingle(null); // let that method throw appropriate error
+                } catch (InvalidLanguageException e) {
+                    throw new InvalidParamValueException(e.getMessage());
+                }
             }
             translateTargetLang = filterLanguages.get(0).name().toLowerCase(Locale.ROOT); // only use first provided language for translations
         }
@@ -467,7 +478,7 @@ public class SearchController extends BaseController {
             query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
         }
 
-        SearchResults<? extends IdBean> result = createResults( profiles, query, clazz, request.getServerName(),
+        SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
                 translateTargetLang, filterLanguages, request, response);
 
         if (profiles.contains(Profile.PARAMS)) {
@@ -487,16 +498,20 @@ public class SearchController extends BaseController {
      */
     private Language validateQueryTranslateParams(String querySourceLang, String queryTargetLang) throws EuropeanaException {
         Language result = null;
-        if (queryTargetLang != null) {
-            result = Language.validateSingle(queryTargetLang);
-        }
-        if (querySourceLang != null) {
-            Language.validateSingle(querySourceLang);
-            // if a source language is provided, then we must also have a target language
-            if (queryTargetLang == null) {
-                throw new MissingParamException(
-                        "Parameter q.target is required when q.source is specified");
+        try {
+            if (queryTargetLang != null) {
+                result = Language.validateSingle(queryTargetLang);
             }
+            if (querySourceLang != null) {
+                Language.validateSingle(querySourceLang);
+                // if a source language is provided, then we must also have a target language
+                if (queryTargetLang == null) {
+                    throw new MissingParamException(
+                            "Parameter q.target is required when q.source is specified");
+                }
+            }
+        } catch (InvalidLanguageException e) {
+            throw new InvalidParamValueException(e.getMessage());
         }
         return result;
     }
@@ -871,6 +886,7 @@ public class SearchController extends BaseController {
 
     @SuppressWarnings("unchecked")
     private <T extends IdBean> SearchResults<T> createResults(
+                                                              String apiKey,
                                                               Set<Profile> profiles,
                                                               Query query,
                                                               Class<T> clazz,
@@ -879,7 +895,7 @@ public class SearchController extends BaseController {
                                                               List<Language> filterLanguages,
                                                               HttpServletRequest servletRequest,
                                                               HttpServletResponse servletResponse) throws EuropeanaException {
-        String apiKey=ApiKeyUtils.extractApiKeyFromRequest(servletRequest);
+
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
 
@@ -904,8 +920,7 @@ public class SearchController extends BaseController {
         // Note that translateTargetLang is only set when minimal profile is enabled (so we are sure we get BriefBeans)
         if (translateTargetLang != null) {
             try {
-                resultTranslator.translateSearchResults((List<BriefBean>)
-                        resultSet.getResults(), translateTargetLang);
+                searchResultTranslator.translate((List<BriefBean>) resultSet.getResults(), translateTargetLang, getAuthorizationHeader(servletRequest));
             } catch (TranslationServiceLimitException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
                 // Body indicating the reason for troubleshooting
@@ -981,9 +996,10 @@ public class SearchController extends BaseController {
                                  @RequestParam(value = "qf", required = false) String[] refinementArray,
                                  @RequestParam(value = "start", required = false, defaultValue = "1") int start,
                                  HttpServletRequest request,
-                                 HttpServletResponse response) throws EuropeanaException {
+                                 HttpServletResponse response)
+        throws EuropeanaException, HttpException {
 
-        apiKeyUtils.authorizeReadAccess(request);
+        verifyReadAccess(request);
         SolrClient solrClient = getSolrClient(request.getServerName());
 
         String[] qfArray = request.getParameterMap().get("qf");

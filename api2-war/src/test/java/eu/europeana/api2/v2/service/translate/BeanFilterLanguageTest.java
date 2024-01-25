@@ -2,7 +2,7 @@ package eu.europeana.api2.v2.service.translate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europeana.api2.v2.model.translate.Language;
+import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.v2.utils.LanguageFilter;
 import eu.europeana.api2.v2.utils.MockBeanConstants;
 import eu.europeana.api2.v2.utils.MockFullBean;
