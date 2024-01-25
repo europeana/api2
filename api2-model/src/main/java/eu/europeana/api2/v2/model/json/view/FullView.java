@@ -5,9 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.*;
+import eu.europeana.corelib.solr.entity.AggregationImpl;
 import eu.europeana.corelib.utils.DateUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -117,12 +120,24 @@ public class FullView implements FullBean {
     @Override
     public List<? extends Aggregation> getAggregations() {
         if (bean.getAggregations() != null) {
-            List<Aggregation> items = (List<Aggregation>) bean.getAggregations();
+            List<? extends Aggregation> items =  bean.getAggregations();
             for (Aggregation item : items) {
-                item.setId(null);
+                AggregationImpl aggregation = (AggregationImpl) item;
+
+                // Add quality annotations in json response
+                if (bean.getQualityAnnotations() != null) {
+                    List<QualityAnnotation> qualityAnnotations = new ArrayList<>();
+                    bean.getQualityAnnotations().stream().forEach(anno -> {
+                                if (StringUtils.equals(aggregation.getAbout(), anno.getTarget()[0])) {
+                                    anno.setAbout(null); // remove about field
+                                    qualityAnnotations.add(anno);
+                                }});
+                    aggregation.setDqvHasQualityAnnotation(qualityAnnotations);
+                }
+                aggregation.setId(null);
                 // also remove webresources IDs
                 for (int j = 0, lw = item.getWebResources().size(); j < lw; j++) {
-                    item.getWebResources().get(j).setId(null);
+                    aggregation.getWebResources().get(j).setId(null);
                 }
             }
             return items;
@@ -252,7 +267,9 @@ public class FullView implements FullBean {
 
     @Override
     public List<? extends QualityAnnotation> getQualityAnnotations() {
-        return bean.getQualityAnnotations();
+        // EA-3652 remove quality annotations from the response. will be added in aggregation
+        return  null;
+       // return bean.getQualityAnnotations();
     }
 
     // unwanted setters
