@@ -110,15 +110,6 @@ public class AppConfig {
         return propertySourcesPlaceholderConfigurer;
     }
 
-//    /**
-//     * Utility for validating api keys
-//     * @return ApiKeyUtils bean
-//     */
-//    @Bean
-//    public ApiKeyUtils apiKeyUtils() {
-//        return new ApiKeyUtils();
-//    }
-
     /**
      * Utility methods to help HTTP caching processing
      * @return HttpCacheUtils bean
@@ -189,6 +180,7 @@ public class AppConfig {
             throw new InvalidConfigurationException(ProblemType.TRANSLATION_API_URL_ERROR);
         }
         return null;
+
     }
 
     @Bean
@@ -198,6 +190,8 @@ public class AppConfig {
                     new MetadataLangDetectionService(getTranslationApiClient()));
         }
         return null;
+
+
     }
 
     private Properties loadProperties() {

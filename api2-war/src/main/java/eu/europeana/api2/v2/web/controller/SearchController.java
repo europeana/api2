@@ -208,7 +208,7 @@ public class SearchController extends BaseController {
                                       @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
                                       HttpServletResponse response)
-            throws EuropeanaException, HttpException, InvalidLanguageException {
+            throws EuropeanaException, HttpException {
 
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
 
@@ -227,7 +227,12 @@ public class SearchController extends BaseController {
         // validate provided languages
         List<Language> filterLanguages = null;
         if (lang != null) {
-             filterLanguages = Language.validateMultiple(lang);
+            try {
+                filterLanguages = Language.validateMultiple(lang);
+            } catch(InvalidLanguageException e) {
+                throw new InvalidParamValueException(e.getMessage());
+
+            }
         }
 
         boolean isTranslateProfileActive = profiles.contains(Profile.TRANSLATE);
@@ -273,7 +278,11 @@ public class SearchController extends BaseController {
         String translateTargetLang = null;
         if (resultsTranslationEnabled && isTranslateProfileActive && isMinimalProfileActive) {
             if (filterLanguages == null || filterLanguages.isEmpty()) {
-                Language.validateSingle(null); // let that method throw appropriate error
+                try {
+                    Language.validateSingle(null); // let that method throw appropriate error
+                } catch (InvalidLanguageException e) {
+                    throw new InvalidParamValueException(e.getMessage());
+                }
             }
             translateTargetLang = filterLanguages.get(0).name().toLowerCase(Locale.ROOT); // only use first provided language for translations
         }
@@ -488,18 +497,22 @@ public class SearchController extends BaseController {
     /**
      * @return targetLanguage
      */
-    private Language validateQueryTranslateParams(String querySourceLang, String queryTargetLang) throws EuropeanaException, InvalidLanguageException {
+    private Language validateQueryTranslateParams(String querySourceLang, String queryTargetLang) throws EuropeanaException {
         Language result = null;
-        if (queryTargetLang != null) {
-            result = Language.validateSingle(queryTargetLang);
-        }
-        if (querySourceLang != null) {
-            Language.validateSingle(querySourceLang);
-            // if a source language is provided, then we must also have a target language
-            if (queryTargetLang == null) {
-                throw new MissingParamException(
-                        "Parameter q.target is required when q.source is specified");
+        try {
+            if (queryTargetLang != null) {
+                result = Language.validateSingle(queryTargetLang);
             }
+            if (querySourceLang != null) {
+                Language.validateSingle(querySourceLang);
+                // if a source language is provided, then we must also have a target language
+                if (queryTargetLang == null) {
+                    throw new MissingParamException(
+                            "Parameter q.target is required when q.source is specified");
+                }
+            }
+        } catch (InvalidLanguageException e) {
+            throw new InvalidParamValueException(e.getMessage());
         }
         return result;
     }
