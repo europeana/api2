@@ -37,7 +37,7 @@
         <!-- metis-framework 11 and metis.schema 9-SNAPSHOT uses JDK 17.
          Moving forward we do need to upgrade to JDK 21 if we continue to use metis dependencies and want to upgrade them-->
         <metis.version>11</metis.version>
-        <apicommons.version>0.3.22-SNAPSHOT</apicommons.version>
+        <apicommons.version>0.3.23-SNAPSHOT</apicommons.version>
         <translation.api.client.version>0.1</translation.api.client.version>
 
         <httpclient.version>4.5.13</httpclient.version>
