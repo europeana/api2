@@ -72,7 +72,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import eu.europeana.api2.v2.service.parser.SearchExpressionParser;
+import eu.europeana.api2.v2.service.parser.ParseException;
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
+
 
 /**
  * Controller that handles all search requests (search.json, opensearch.rss, search.rss, and search.kml)
@@ -148,6 +151,7 @@ public class SearchController extends BaseController {
         return searchJsonGet(
                              searchRequest.getQuery(),
                              searchRequest.getQf(),
+                             searchRequest.getNqf(),
                              searchRequest.getReusability(),
                              StringUtils.join(searchRequest.getProfile(), ","),
                              searchRequest.getStart(),
@@ -184,6 +188,8 @@ public class SearchController extends BaseController {
     public ModelAndView searchJsonGet(
                                       @SolrEscape @RequestParam(value = "query") String queryString,
                                       @RequestParam(value = "qf", required = false) String[] refinementArray,
+                                      @RequestParam(value = "nqf", required = false) String[] newRefinementArray,
+
                                       @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
                                       @RequestParam(value = "profile", required = false, defaultValue = "standard")
                                               String profile,
@@ -212,6 +218,7 @@ public class SearchController extends BaseController {
 
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
 
+        parsenqfparam(newRefinementArray);
 
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
@@ -492,6 +499,19 @@ public class SearchController extends BaseController {
         response.setCharacterEncoding(UTF8);
         response.addHeader("Allow", ControllerUtils.ALLOWED_GET_HEAD_POST);
         return JsonUtils.toJson(result, callback);
+    }
+
+    private static void parsenqfparam(String[] newRefinementArray)
+        throws  SolrQueryException {
+        try {
+            SearchExpressionParser parser = new SearchExpressionParser(new java.io.StringReader(
+                newRefinementArray[0]));
+            parser.parse();
+        }
+        catch (ParseException e){
+            LOG.error(e.getStackTrace());
+            throw new SolrQueryException(ProblemType.SEARCH_QUERY_INVALID);
+        }
     }
 
     /**
