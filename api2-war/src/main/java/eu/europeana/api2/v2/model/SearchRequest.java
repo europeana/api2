@@ -1,12 +1,11 @@
 package eu.europeana.api2.v2.model;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import eu.europeana.api2.utils.SolrEscapeDeserializer;
 import io.swagger.annotations.ApiModelProperty;
-
-
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 
 /**
  * Model class for search requests
@@ -25,7 +24,7 @@ public class SearchRequest {
     private String query;
 
     private String[] qf;
-    private String[] nqf;
+    private String nqf;
     private String[] reusability;
     private String[] profile = {"standard"};
     private int start = 1;
@@ -188,7 +187,7 @@ public class SearchRequest {
 
     public void setBoost(String boost) { this.boost = boost;}
 
-    public String[] getNqf() { return nqf; }
+    public String getNqf() { return nqf; }
 
-    public void setNqf(String[] nqf) { this.nqf = nqf; }
+    public void setNqf(String nqf) { this.nqf = nqf; }
 }

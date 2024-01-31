@@ -1,5 +1,6 @@
 options {
     IGNORE_CASE = false;
+    STATIC = false;
 }
 
 PARSER_BEGIN(SearchExpressionParser)

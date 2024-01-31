@@ -1,13 +1,20 @@
 package eu.europeana.api2.v2.web.controller;
 
+import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
+
+import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
 import eu.europeana.api.translation.definitions.language.Language;
-import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
-import eu.europeana.api2.v2.exceptions.*;
+import eu.europeana.api2.v2.exceptions.DateMathParseException;
+import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
+import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
+import eu.europeana.api2.v2.exceptions.MissingParamException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.model.GeoDistance;
 import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.enums.Profile;
@@ -24,7 +31,14 @@ import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.TranslationService;
-import eu.europeana.api2.v2.utils.*;
+import eu.europeana.api2.v2.utils.ApiKeyUtils;
+import eu.europeana.api2.v2.utils.BoostParamUtils;
+import eu.europeana.api2.v2.utils.ControllerUtils;
+import eu.europeana.api2.v2.utils.FacetParameterUtils;
+import eu.europeana.api2.v2.utils.LanguageFilter;
+import eu.europeana.api2.v2.utils.ModelUtils;
+import eu.europeana.api2.v2.utils.ProfileUtils;
+import eu.europeana.api2.v2.utils.TagUtils;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
@@ -46,10 +60,33 @@ import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import eu.europeana.indexing.solr.facet.FacetEncoder;
-import eu.europeana.indexing.solr.facet.value.*;
+import eu.europeana.indexing.solr.facet.value.AudioDuration;
+import eu.europeana.indexing.solr.facet.value.AudioQuality;
+import eu.europeana.indexing.solr.facet.value.ImageAspectRatio;
+import eu.europeana.indexing.solr.facet.value.ImageColorEncoding;
+import eu.europeana.indexing.solr.facet.value.ImageColorSpace;
+import eu.europeana.indexing.solr.facet.value.ImageSize;
+import eu.europeana.indexing.solr.facet.value.MimeTypeEncoding;
+import eu.europeana.indexing.solr.facet.value.VideoDuration;
+import eu.europeana.indexing.solr.facet.value.VideoQuality;
 import eu.europeana.metis.schema.model.MediaType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nullable;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -61,20 +98,16 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-
-import javax.annotation.Nullable;
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import eu.europeana.api2.v2.service.parser.SearchExpressionParser;
 import eu.europeana.api2.v2.service.parser.ParseException;
-import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
+
 
 
 /**
@@ -188,7 +221,7 @@ public class SearchController extends BaseController {
     public ModelAndView searchJsonGet(
                                       @SolrEscape @RequestParam(value = "query") String queryString,
                                       @RequestParam(value = "qf", required = false) String[] refinementArray,
-                                      @RequestParam(value = "nqf", required = false) String[] newRefinementArray,
+                                      @RequestParam(value = "nqf", required = false) String  newRefinementArray,
 
                                       @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
                                       @RequestParam(value = "profile", required = false, defaultValue = "standard")
@@ -218,7 +251,8 @@ public class SearchController extends BaseController {
 
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
 
-        parsenqfparam(newRefinementArray);
+        LOG.info(newRefinementArray);
+        parseFilterParameter(newRefinementArray);
 
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
@@ -501,15 +535,18 @@ public class SearchController extends BaseController {
         return JsonUtils.toJson(result, callback);
     }
 
-    private static void parsenqfparam(String[] newRefinementArray)
+    private static void parseFilterParameter(String  newRefinementQuery)
         throws  SolrQueryException {
         try {
-            SearchExpressionParser parser = new SearchExpressionParser(new java.io.StringReader(
-                newRefinementArray[0]));
-            parser.parse();
+            if (StringUtils.isNotBlank(newRefinementQuery)) {
+                SearchExpressionParser parser = new SearchExpressionParser(new java.io.StringReader(
+                    newRefinementQuery));
+                parser.parse();
+                LOG.info("### Syntax check passed for filter query ! Parsing completed !####");
+            }
         }
         catch (ParseException e){
-            LOG.error(e.getStackTrace());
+            e.printStackTrace();
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_INVALID);
         }
     }
