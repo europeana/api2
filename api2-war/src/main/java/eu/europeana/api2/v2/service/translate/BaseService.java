@@ -29,6 +29,9 @@ public class BaseService {
 
     private static final Set<String> SEARCH_FIELDS_TO_TRANSLATE = Set.of("dcTitleLangAware", "dcDescriptionLangAware", "dcCreatorLangAware");
 
+    // The non-language aware fields that should disappear
+    private static final Set<String> SEARCH_FIELDS_TO_FILTER = Set.of("dcTitle", "dcDescription", "dcCreator");
+
     private static final List<String> ENTITIES = List.of("agents", "concepts", "places", "timespans");
 
     public static final ReflectionUtils.FieldFilter proxyFieldFilter = field -> field.getType().isAssignableFrom(Map.class) &&
@@ -36,6 +39,9 @@ public class BaseService {
 
     public static final ReflectionUtils.FieldFilter searchFieldFilter = field -> field.getType().isAssignableFrom(Map.class) &&
             SEARCH_FIELDS_TO_TRANSLATE.contains(field.getName());
+
+    public static final ReflectionUtils.FieldFilter searchFieldRemovalFilter = field -> field.getType().isAssignableFrom(String[].class) &&
+            SEARCH_FIELDS_TO_FILTER.contains(field.getName());
 
     public BaseService(TranslationApiClient translationApiClient) {
         this.translationApiClient = translationApiClient;
