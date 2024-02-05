@@ -210,11 +210,14 @@ public class SearchController extends BaseController {
                                       HttpServletResponse response)
             throws EuropeanaException, HttpException {
 
-        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
-
-
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
+
+        if (profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(request) == null) {
+            throw new InvalidAuthorizationException();
+        }
+
+        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {

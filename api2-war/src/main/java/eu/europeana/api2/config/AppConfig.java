@@ -1,6 +1,5 @@
 package eu.europeana.api2.config;
 
-
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api.translation.client.TranslationApiClient;
 import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
