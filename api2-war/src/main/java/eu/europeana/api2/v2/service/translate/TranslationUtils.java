@@ -30,7 +30,7 @@ public class TranslationUtils {
 
 
     /**
-     * During ingestion -
+     * During ingestion - target language is "en"
      *     For translations only fetch the value from the map if there
      *     is NO "en" language tag already present for the field and there is value present for the sourceLang
      *
@@ -40,10 +40,7 @@ public class TranslationUtils {
      * @param sourceLang
      * @return
      */
-    public static boolean ifValuesShouldBePickedForTranslation(Map<String, List<String>> map, String sourceLang, String targetLang, boolean ingestionProcess) {
-        if (ingestionProcess) {
-            return map != null && !map.isEmpty()  && !map.containsKey(Language.PIVOT) && containsLangOrRegionLang(map, sourceLang);
-        }
+    public static boolean ifValuesShouldBePickedForTranslation(Map<String, List<String>> map, String sourceLang, String targetLang) {
         return map != null && !map.isEmpty() && !map.containsKey(targetLang) && containsLangOrRegionLang(map, sourceLang);
     }
 
@@ -84,13 +81,14 @@ public class TranslationUtils {
     /**
      * Returns list of values to be translated.
      * Looks for Contextual entities, if found fetches the prefLabel of the entity in the source language
+     *  only if there is no lang-tagged value in the target language.
      *
      * @param origFieldData field lang value map
      * @param sourceLang    the language chosen for translation
      * @param bean          record
      * @return
      */
-    public static List<String> getValuesToTranslate(Map<String, List<String>> origFieldData, String sourceLang, FullBean bean, boolean onlyLiterals,
+    public static List<String> getValuesToTranslate(Map<String, List<String>> origFieldData, String sourceLang, String targetLang, FullBean bean, boolean onlyLiterals,
                                                     Integer translationCharLimit, Integer translationCharTolerance) {
         List<String> valuesToTranslate = new ArrayList<>();
         // for search translations we only need literal values
@@ -98,13 +96,16 @@ public class TranslationUtils {
             valuesToTranslate = LanguageDetectionUtils.filterOutUris(getValueFromMultiLingualMap(origFieldData, sourceLang));
         } else {
             for (String value : getValueFromMultiLingualMap(origFieldData, sourceLang)) {
-                // if the value is a URI get the contextual entity pref label in source lang.
+                // if the value is a URI get the contextual entity pref label should be picked for translation in source lang
+                // only if there is no lang-tagged value in the target language.
                 // Also, ignore the other uri values whose entity doesn't exist
                 if (EuropeanaUriUtils.isUri(value)) {
                     ContextualClass entity = BaseService.entityExistsWithUrl(bean, value);
-                    if (entity != null && entity.getPrefLabel() != null && containsLangOrRegionLang(entity.getPrefLabel(), sourceLang)) {
+                    if (ifValuesShouldBePickedForTranslation(entity.getPrefLabel(), sourceLang, targetLang)) {
                         LOG.debug("Entity {} has preflabel in chosen language {} for translation  ", value, sourceLang);
                         valuesToTranslate.addAll(getValueFromMultiLingualMap(entity.getPrefLabel(), sourceLang));
+                    } else {
+                        LOG.debug("Entity {} already has value in target language {}", entity.getAbout(), targetLang);
                     }
                 } else {
                     valuesToTranslate.add(value); // add non uri values

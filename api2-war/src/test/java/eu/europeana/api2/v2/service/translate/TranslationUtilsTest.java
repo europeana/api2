@@ -48,22 +48,22 @@ public class TranslationUtilsTest {
     public void Test_ifValuesShouldBePickedForTranslation() {
         Map<String,  List<String>> map = new HashMap<>();
 
-        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "nl", "en", false)); // map is empty
+        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "nl", "en")); // map is empty
 
         map.put("nl", Arrays.asList("Hallo", "Nederlands"));
         map.put("fr", Arrays.asList("Bonjour", "France"));
-        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "nl", "en", false));
-        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "fr", "en", false));
-        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de", "en", false)); // doesn't contain this lang
+        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "nl", "en"));
+        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "fr", "en"));
+        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de", "en")); // doesn't contain this lang
 
         // add region codes
         map.put("de-NL", Arrays.asList("region codes test", "test"));
-        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de", "en", false));
+        Assert.assertTrue(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de", "en"));
 
         // add pivot language
         map.put("en", Arrays.asList("english value present already"));
         // en already present in the map but this not a ingestion process, But there is already value in target lang
-        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de", "en", false));
+        Assert.assertFalse(TranslationUtils.ifValuesShouldBePickedForTranslation(map, "de", "en"));
     }
 
     @Test
@@ -78,7 +78,7 @@ public class TranslationUtilsTest {
     @Test
     public void Test_getValuesToTranslate_Key1() {
         // will eliminate "?" and the preflabel for agent already has en tag value
-        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY1, bean, false, null, null);
+        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY1, TARGET_LANG,  bean, false, null, null);
         Assert.assertEquals(4, valuesToTranslate.size());
         Assert.assertEquals(VALUES_FOR_TRANSLATION_1, valuesToTranslate);
     }
@@ -86,13 +86,13 @@ public class TranslationUtilsTest {
     @Test
     public void Test_getValuesToTranslate_Key2() {
         // will eliminate duplicate value and add the preflabel for concept
-        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY2, bean, false, null, null);
+        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY2, TARGET_LANG,  bean, false, null, null);
         Assert.assertEquals(4, valuesToTranslate.size());
         Assert.assertEquals(VALUES_FOR_TRANSLATION_2, valuesToTranslate);
 
         // only literals
         valuesToTranslate.clear();
-        valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY2, bean, true, null, null);
+        valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY2, TARGET_LANG, bean, true, null, null);
         Assert.assertEquals(3, valuesToTranslate.size());
         Assert.assertFalse(valuesToTranslate.contains("Landbruk"));
     }

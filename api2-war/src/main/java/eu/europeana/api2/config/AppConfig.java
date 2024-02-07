@@ -186,7 +186,7 @@ public class AppConfig {
     public TranslationService translationService() throws InvalidConfigurationException {
         if (translationRecord || translationSearchQuery || translationSearchResults) {
             return new TranslationService(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(),
-                    translationCharLimit, translationCharTolerance, false),
+                    translationCharLimit, translationCharTolerance),
                     new MetadataLangDetectionService(getTranslationApiClient()));
         }
         return null;
