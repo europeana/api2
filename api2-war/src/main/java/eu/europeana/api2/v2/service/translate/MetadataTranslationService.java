@@ -81,8 +81,9 @@ public class MetadataTranslationService extends BaseService {
             return beans;
         }
 
-        textsToTranslate.stream().forEach(value -> LOG.debug("Text to translate - {} : {}", value.getSourceLanguage(), value));
-        //LOG.debug("Text to translate - {}", textsToTranslate);
+        if (LOG.isDebugEnabled()) {
+            textsToTranslate.stream().forEach(value -> LOG.debug("Text to translate - {} : {}", value.getSourceLanguage(), value));
+        }
 
         // get the translation in the target language
         TranslationMap translations = new TranslationMap(targetLanguage); // only need one map as translation have same target language
