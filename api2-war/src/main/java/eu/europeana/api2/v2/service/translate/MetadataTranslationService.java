@@ -105,7 +105,7 @@ public class MetadataTranslationService extends BaseService {
             String fieldName = parts[1];
             LOG.trace("Updating {} index result for field {} ...", i, fieldName);
 
-            addTranslationToObject(beans.get(i), fieldName, value.getValue(), translations.getSourceLanguage());
+            addTranslationToObject(null, beans.get(i), fieldName, value.getValue(), translations.getSourceLanguage());
         });
 
         LOG.debug("Translating search results took {} ms", (System.currentTimeMillis() - start));
@@ -200,6 +200,9 @@ public class MetadataTranslationService extends BaseService {
             return bean;
         }
 
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Text to translate - {}", textToTranslate);
+        }
         // get the translation in the target language
         TranslationMap translations = translate(textToTranslate, targetLanguage, authToken);
         if (translations.isEmpty()) {
@@ -209,7 +212,7 @@ public class MetadataTranslationService extends BaseService {
 
         // add all the translated data to Europeana proxy
         Proxy europeanaProxy = BaseService.getEuropeanaProxy(bean.getProxies(), bean.getAbout());
-        translations.entrySet().stream().forEach(value -> addTranslationToObject(europeanaProxy, value.getKey(), value.getValue(), translations.getSourceLanguage()));
+        translations.entrySet().stream().forEach(value -> addTranslationToObject(bean, europeanaProxy, value.getKey(), value.getValue(), translations.getSourceLanguage()));
 
         LOG.debug("Translating record {} took {} ms", bean.getAbout(), (System.currentTimeMillis() - start));
         return bean;
@@ -284,11 +287,20 @@ public class MetadataTranslationService extends BaseService {
      * @param translatedValues list of translated values to be added
      * @param targetLanguage language for the translated values
      */
-    private void addTranslationToObject(Object object, String fieldName, List<String> translatedValues, String targetLanguage) {
+    private void addTranslationToObject(FullBean bean, Object object, String fieldName, List<String> translatedValues, String targetLanguage) {
         Map<String, List<String>> existingMap = BaseService.getValueOfTheField(object, true).apply(fieldName);
-        List<String> targetLangValues = existingMap.getOrDefault(targetLanguage, new ArrayList<>());
-        targetLangValues.addAll(translatedValues);
-        existingMap.compute(targetLanguage, (key, val)-> targetLangValues);
+        if (bean!= null) {
+            eliminateDuplicatesForLangQualifiedValuesAndPreflabels(bean, existingMap, translatedValues, targetLanguage);
+        } else {
+            eliminateDuplicatesForLangQualifiedValues(existingMap, translatedValues);
+        }
+        if (!translatedValues.isEmpty()) {
+            List<String> targetLangValues = existingMap.getOrDefault(targetLanguage, new ArrayList<>());
+            targetLangValues.addAll(translatedValues);
+            existingMap.compute(targetLanguage, (key, val) -> targetLangValues);
+        } else {
+            LOG.debug("No translations added for {}. Translated values already present", fieldName);
+        }
     }
 
     /**
