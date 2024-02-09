@@ -339,7 +339,7 @@
                 <artifactId>javacc-maven-plugin</artifactId>
                 <version>3.0.1</version>
                 <configuration>
-                    <sourceDirectory>${project.basedir}/src/main/java/eu/europeana/api2/v2/service/parser</sourceDirectory>
+                    <sourceDirectory>${project.basedir}/src/main/java/eu/europeana/api2/v2/service/search/syntax/parser</sourceDirectory>
                 </configuration>
                 <executions>
                     <execution>

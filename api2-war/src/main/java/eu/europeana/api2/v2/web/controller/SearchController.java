@@ -30,6 +30,9 @@ import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
+import eu.europeana.api2.v2.service.search.syntax.converter.ConverterContext;
+import eu.europeana.api2.v2.service.search.syntax.model.SyntaxExpression;
+import eu.europeana.api2.v2.service.search.syntax.parser.SearchExpressionParser;
 import eu.europeana.api2.v2.service.translate.TranslationService;
 import eu.europeana.api2.v2.utils.ApiKeyUtils;
 import eu.europeana.api2.v2.utils.BoostParamUtils;
@@ -104,9 +107,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-
-import eu.europeana.api2.v2.service.parser.SearchExpressionParser;
-import eu.europeana.api2.v2.service.parser.ParseException;
 
 
 
@@ -535,17 +535,19 @@ public class SearchController extends BaseController {
         return JsonUtils.toJson(result, callback);
     }
 
-    private static void parseFilterParameter(String  newRefinementQuery)
+    public static void  parseFilterParameter(String newRefinementQuery)
         throws  SolrQueryException {
         try {
             if (StringUtils.isNotBlank(newRefinementQuery)) {
                 SearchExpressionParser parser = new SearchExpressionParser(new java.io.StringReader(
                     newRefinementQuery));
-                parser.parse();
+                SyntaxExpression solrsyntax = parser.parse();
                 LOG.info("### Syntax check passed for filter query ! Parsing completed !####");
+                LOG.info("Solr query:"+   solrsyntax.toSolr(new ConverterContext()));
+
             }
         }
-        catch (ParseException e){
+        catch (Exception e){
             e.printStackTrace();
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_INVALID);
         }
