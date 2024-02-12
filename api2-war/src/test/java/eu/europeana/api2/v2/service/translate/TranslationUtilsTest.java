@@ -79,7 +79,7 @@ public class TranslationUtilsTest {
     @Test
     public void Test_getValuesToTranslate_Key1() {
         // the preflabel for agent already has en tag value
-        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY1, bean, false, null, null);
+        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY1, TARGET_LANG, bean, false, null, null);
         Assert.assertEquals(5, valuesToTranslate.size());
         Assert.assertEquals(VALUES_FOR_TRANSLATION_1, valuesToTranslate);
     }

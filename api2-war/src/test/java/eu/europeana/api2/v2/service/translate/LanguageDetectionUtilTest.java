@@ -129,7 +129,7 @@ public class LanguageDetectionUtilTest {
         // will resolve http://data.europeana.eu/agent/base/6 from bean but there are already lang-tagged values present in preflabel
         // so nothing is picked
         Assert.assertFalse(result.isEmpty());
-        Assert.assertEquals(2, result.get(DEF).size());
+        Assert.assertEquals(3, result.get(DEF).size());
 
 
         // now let's remove lang-tagged preflabel from agent and add only def preflabel
@@ -145,7 +145,7 @@ public class LanguageDetectionUtilTest {
         // will remove graveur","voetbal" as they are present in lang-tagged values
         // will resolve http://data.europeana.eu/agent/base/6 from bean and will pick the def tagged value
         Assert.assertFalse(result.isEmpty());
-        Assert.assertEquals(3, result.get(DEF).size());
+        Assert.assertEquals(4, result.get(DEF).size());
         Assert.assertTrue(result.get(DEF).contains(DEF_PREF_LABEL));
 
 
@@ -156,7 +156,7 @@ public class LanguageDetectionUtilTest {
         result = LanguageDetectionUtils.getValueFromLanguageMap(map, "dcDescription", bean, false);
         // will resolve http://data.europeana.eu/agent/base/6 from bean and will pick the def tagged value
         Assert.assertFalse(result.isEmpty());
-        Assert.assertEquals(DEF_VALUES.size() -1 , result.get(DEF).size());
+        Assert.assertEquals(DEF_VALUES.size() , result.get(DEF).size());
     }
 
     @Test
@@ -212,6 +212,4 @@ public class LanguageDetectionUtilTest {
         values = LanguageDetectionUtils.filterOutUris(new ArrayList<>());
         Assert.assertTrue(values.isEmpty());
     }
-
-
 }
