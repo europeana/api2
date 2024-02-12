@@ -71,7 +71,7 @@ public class TestSearchParser {
     Assert.assertEquals("(_query_:\"{!field f=created_date op=Contains} 1950\" OR _query_:\"{!field f=created_date op=Contains} 1960\")",
         ParserUtils.parseQueryFilter("date(created,1950) OR date(created,1960)"));
 
-    Assert.assertEquals("(_query_:\"{!field f=created_date op=Contains} 1950\" OR _query_:\"{!field f=created_date op=Contains} 1960\")",
+    Assert.assertEquals("(_query_:\"{!field f=created_date op=Contains} [1950 TO 1960]\" OR _query_:\"{!field f=created_date op=Contains} [1970 TO 1980]\")",
         ParserUtils.parseQueryFilter("date(created,interval(1950,1960)) OR date(created,interval(1970,1980))"));
 
     Assert.assertEquals("issued_date:1950",ParserUtils.parseQueryFilter("issued:1950"));
