@@ -182,11 +182,8 @@ public class LanguageDetectionUtils {
         // For record - resolve the uri's and if contextual entity present get the preflabel
         List<String> resolvedNonLangTaggedValues = onlyLiterals ? filterOutUris(defValues) : checkForUrisAndGetPrefLabel((FullBean) bean, defValues);
 
-        //  Check if the value contains at least 1 unicode letter or number (otherwise ignore)
-        List<String> cleanDefValues = filterValuesWithAtleastOneUnicodeOrNumber(resolvedNonLangTaggedValues);
-
-        if (!cleanDefValues.isEmpty()) {
-            return new LanguageValueFieldMap(fieldName, Language.DEF, cleanDefValues);
+        if (!resolvedNonLangTaggedValues.isEmpty()) {
+            return new LanguageValueFieldMap(fieldName, Language.DEF, resolvedNonLangTaggedValues);
         }
         return null;
     }
@@ -196,10 +193,6 @@ public class LanguageDetectionUtils {
             return values.stream().filter(v -> !EuropeanaUriUtils.isUri(v)).collect(Collectors.toList());
         }
         return Collections.emptyList();
-    }
-
-    public static List<String> filterValuesWithAtleastOneUnicodeOrNumber(List<String> valuesToFilter) {
-        return valuesToFilter.stream().filter(value -> unicodeNumberPattern.matcher(value).find()).collect(Collectors.toList());
     }
 
     private static List<String> checkForUrisAndGetPrefLabel(FullBean bean, List<String> nonLanguageTaggedValues) {

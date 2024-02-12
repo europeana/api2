@@ -115,8 +115,9 @@ public class TranslationUtils {
                 }
             }
         }
-        // remove duplicate values and also filter values with atleast 1 unicode or number
-        List<String> cleanValues = LanguageDetectionUtils.filterValuesWithAtleastOneUnicodeOrNumber(ComparatorUtils.removeDuplicates(valuesToTranslate));
+
+        // remove duplicate values
+       List<String> cleanValues = ComparatorUtils.removeDuplicates(valuesToTranslate);
 
         // truncate if neccesary
         if (translationCharLimit != null && translationCharTolerance != null) {

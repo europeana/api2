@@ -29,13 +29,14 @@ public class TranslationUtilsTest {
     private static final String KEY2 = "no";
     private static final String KEY3 = "fr";
 
+    // non -eligible case scenario for value "?", is now handled by Translation API
     private static final List<String> VALUES_1 = Arrays.asList("Calamatta, Luigi (1801 - 1869)", "Leonardo da Vinci (1452 - 1519)",
                                                             "graveur","voetbal", "http://data.europeana.eu/agent/base/6", "?");
 
     private static final List<String> VALUES_2 = Arrays.asList("TvB G 3674", "Paris Hilton", "voetbal", "http://data.europeana.eu/concept/base/190", "Paris Hilton");
 
     private static final List<String> VALUES_FOR_TRANSLATION_1 = Arrays.asList("Calamatta, Luigi (1801 - 1869)", "Leonardo da Vinci (1452 - 1519)",
-            "graveur","voetbal");
+            "graveur","voetbal", "?");
     private static final List<String> VALUES_FOR_TRANSLATION_2 = Arrays.asList("TvB G 3674", "Paris Hilton", "voetbal", "Landbruk");
 
     @Before
@@ -77,9 +78,9 @@ public class TranslationUtilsTest {
 
     @Test
     public void Test_getValuesToTranslate_Key1() {
-        // will eliminate "?" and the preflabel for agent already has en tag value
-        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY1, TARGET_LANG,  bean, false, null, null);
-        Assert.assertEquals(4, valuesToTranslate.size());
+        // the preflabel for agent already has en tag value
+        List<String> valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY1, bean, false, null, null);
+        Assert.assertEquals(5, valuesToTranslate.size());
         Assert.assertEquals(VALUES_FOR_TRANSLATION_1, valuesToTranslate);
     }
 
