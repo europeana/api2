@@ -282,6 +282,7 @@ public class MetadataTranslationService extends BaseService {
 
     /**
      * Updates the object with translations results
+     * @param bean To fetch the linked contextual entities. This is only used for record translations
      * @param object object to be updated
      * @param fieldName field to be updated in the object
      * @param translatedValues list of translated values to be added
@@ -289,6 +290,7 @@ public class MetadataTranslationService extends BaseService {
      */
     private void addTranslationToObject(FullBean bean, Object object, String fieldName, List<String> translatedValues, String targetLanguage) {
         Map<String, List<String>> existingMap = BaseService.getValueOfTheField(object, true).apply(fieldName);
+        // we check contextual entities only for record translations, hence only if FullBean is available
         if (bean!= null) {
             eliminateDuplicatesForLangQualifiedValuesAndPreflabels(bean, existingMap, translatedValues, targetLanguage);
         } else {
