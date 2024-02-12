@@ -61,10 +61,10 @@ public class TranslationService {
         try {
             return metadataTranslationService.searchResultsTranslations(metadataLangDetectionService.detectLanguageForSearchResults(beans, authToken), targetLanguage, authToken);
         } catch (LanguageDetectionException | eu.europeana.api.translation.service.exception.TranslationException e) {
-            // Client throws Generic exceptions but with status 502 and 500
-            // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
+            // Client throws Generic exceptions but with status 504 and 500
+            // Translation api client throws 504 status for google exhuasted exception or if the external service had some issue.
             // Hence we need to check for the message as well as we have a redirect functionality based on it.
-            if (getRemoteStatusCode(e) == HttpStatus.SC_BAD_GATEWAY && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
+            if (getRemoteStatusCode(e) == HttpStatus.SC_GATEWAY_TIMEOUT && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
                 throw new TranslationServiceLimitException(e);
             }
             // keep in mind once we have token being passed that should be valid for
@@ -112,10 +112,10 @@ public class TranslationService {
                 return metadataTranslationService.proxyTranslation(metadataLangDetectionService.detectLanguageForProxy(bean, authToken), targetLanguage, authToken);
             }
         } catch (LanguageDetectionException | eu.europeana.api.translation.service.exception.TranslationException e) {
-            // Client throws Generic exceptions but with status 502 and 500
-            // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
+            // Client throws Generic exceptions but with status 504 and 500
+            // Translation api client throws 504 status for google exhuasted exception or if the external service had some issue.
             // Hence we need to check for the message as well as we have a redirect functionality based on it.
-            if (getRemoteStatusCode(e) == HttpStatus.SC_BAD_GATEWAY && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
+            if (getRemoteStatusCode(e) == HttpStatus.SC_GATEWAY_TIMEOUT && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
                 throw new TranslationServiceLimitException(e);
             }
             // keep in mind once we have token being passed that should be valid for

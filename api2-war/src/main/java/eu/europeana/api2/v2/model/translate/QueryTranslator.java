@@ -44,10 +44,10 @@ public class QueryTranslator {
                 this.translationClient.getTranslationService().translate(translationObjs);
                 translation =    translationObjs.get(0).getTranslation();
             } catch (eu.europeana.api.translation.service.exception.TranslationException e) {
-                // Client throws Generic exceptions but with status 502 and 500
-                // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
+                // Client throws Generic exceptions but with status 504 and 500
+                // Translation api client throws 504 status for google exhuasted exception or if the external service had some issue.
                 // Hence we need to check for the message as well as we have a redirect functionality based on it.
-                if (e.getRemoteStatusCode() == HttpStatus.SC_BAD_GATEWAY && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
+                if (e.getRemoteStatusCode() == HttpStatus.SC_GATEWAY_TIMEOUT && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
                     throw new TranslationServiceLimitException(e);
                 }
                 // keep in mind once we have token being passed that should be valid for
