@@ -29,8 +29,9 @@ public class BaseService {
 
     private static final Set<String> SEARCH_FIELDS_TO_TRANSLATE = Set.of("dcTitleLangAware", "dcDescriptionLangAware", "dcCreatorLangAware");
 
-    // The non-language aware fields that should disappear
-    private static final Set<String> SEARCH_FIELDS_TO_FILTER = Set.of("title", "dcDescription", "dcCreator");
+    // The non-language aware fields that should disappear. For title -> the values are picked from title, proxyDcTitle and dcDescription
+    // hence we need remove "title" and "proxyDcTitle" to remove title field. @see eu.europeana.corelib.solr.bean.impl.BriefBeanImpl#getTitle()
+    private static final Set<String> SEARCH_FIELDS_TO_FILTER = Set.of("title", "proxyDcTitle", "dcDescription", "dcCreator");
 
     private static final List<String> ENTITIES = List.of("agents", "concepts", "places", "timespans");
 
