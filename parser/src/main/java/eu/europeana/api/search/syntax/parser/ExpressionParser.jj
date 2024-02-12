@@ -1,0 +1,131 @@
+options {
+    IGNORE_CASE = false;
+    STATIC = false;
+}
+
+PARSER_BEGIN(SearchExpressionParser)
+
+package eu.europeana.api.search.syntax.parser;
+
+import eu.europeana.api.search.syntax.converter.*;
+import eu.europeana.api.search.syntax.field.*;
+import eu.europeana.api.search.syntax.function.*;
+import eu.europeana.api.search.syntax.model.*;
+import java.util.List;
+import java.util.ArrayList;
+
+public class SearchExpressionParser{}
+
+PARSER_END(SearchExpressionParser)
+
+SKIP:  {   " "|  "\t" | "\n" | "\r" }
+
+TOKEN: {
+ <AND: "AND">
+|<OR: "OR">
+|<NOT: "NOT">
+|<LPAR :"(">
+|<RPAR :")">
+|<COMMA: ",">
+|<COLON: ":">
+}
+TOKEN: {<VALUE: ["a"-"z","A"-"Z","0"-"9","-","*"] (["a"-"z","A"-"Z","0"-"9","-"])*>}
+
+SyntaxExpression parse():{
+ SyntaxExpression top;}
+{
+ top= TopExpression(){return top;} <EOF>
+}
+
+TopLevelExpression TopExpression():{
+  TopLevelExpression top=null;
+  TopLevelExpression binaryExpression=null;
+  TopLevelExpression negationExpression=null;
+  }
+{
+  (["("  top=TopExpression() ")" |
+   <NOT> top=TopExpression(){if(top!=null){top = new NotExpression(top);}}|
+         top=IndividualExpressions()
+   ]
+   binaryExpression=BinaryExpression(top){ if(binaryExpression != null ){top=binaryExpression;}
+    }) {return top; }
+}
+
+BinaryArgumentExpression BinaryExpression(TopLevelExpression left):{
+ TopLevelExpression right =null;
+ }{
+(<OR> right=TopExpression()){return new OrExpression(left,right);} | (<AND> right=TopExpression(){return new AndExpression(left,right);}) |{}{return null;}
+}
+
+TopLevelExpression IndividualExpressions():{
+  TopLevelExpression exp;
+ } {
+    ( LOOKAHEAD(2)exp=FunctionExpression()
+    |  LOOKAHEAD(2)exp=FieldQueryExpression()
+    |  LOOKAHEAD(2)exp=ValueExpression()
+    )
+    {return exp;}
+
+}
+
+FunctionExpression FunctionExpression():{
+  String functionName="";
+  List<ArgumentExpression> paramList = new ArrayList<ArgumentExpression>();
+  ArgumentExpression argExpr=null;
+  }{
+  (functionName=FunctionName()<LPAR>
+    (argExpr=ArgumentExpressionProduction(){paramList.add(argExpr);}
+    (<COMMA> argExpr=ArgumentExpressionProduction(){paramList.add(argExpr);})*)
+   <RPAR>)
+
+
+{return new FunctionExpression(FunctionRegistry.INSTANCE.getFunction(functionName),paramList);}
+}
+String FunctionName():{ Token t;}{
+t=<VALUE> {return t.image;}
+}
+
+ArgumentExpression ArgumentExpressionProduction():{
+ ArgumentExpression argExpr=null;
+ }{
+(LOOKAHEAD(2)argExpr=FunctionExpression()|argExpr=ValueExpression() | {} )
+ {return argExpr;}
+}
+
+FieldQueryExpression FieldQueryExpression():{
+  String fieldName="";
+  FieldArgumentExpression fieldArgExpr=null;
+  }{
+(fieldName=FieldName() <COLON> fieldArgExpr=FieldValueExpression())
+{
+//System.out.println("    Field name : - "+fieldName);
+//System.out.println("    Field name from registry :- " + FieldRegistry.INSTANCE.getField(fieldName).getName());
+//System.out.println("    Field value :- " + fieldArgExpr.toString());
+return new FieldQueryExpression(FieldRegistry.INSTANCE.getField(fieldName),fieldArgExpr);}
+}
+
+String FieldName():{
+  Token t;
+  }{
+  t=<VALUE> {return t.image;}
+  }
+
+FieldArgumentExpression FieldValueExpression():{ ValueExpression val ;}{
+ val = ValueExpression()  {return val;}
+}
+
+ValueExpression ValueExpression():{Token t;}{
+("\"" t=<VALUE> "\"" |  "\'" t=<VALUE> "\'" |  t=<VALUE>)
+{ return new ValueExpression(t.image);}
+}
+
+
+
+
+
+
+
+
+
+
+
