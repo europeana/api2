@@ -17,6 +17,7 @@
     <modules>
         <module>api2-model</module>
         <module>api2-war</module>
+        <module>parser</module>
     </modules>
 
     <scm>
