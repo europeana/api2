@@ -1,20 +1,17 @@
-package eu.europeana.api2.v2.service.search.parser;
+package eu.europeana.api.search.syntax;
 
-import eu.europeana.api2.v2.service.search.syntax.converter.*;
-import eu.europeana.api2.v2.service.search.syntax.field.*;
-import eu.europeana.api2.v2.service.search.syntax.function.*;
-import eu.europeana.api2.v2.service.search.syntax.model.*;
+import eu.europeana.api.search.syntax.converter.*;
+import eu.europeana.api.search.syntax.field.*;
+import eu.europeana.api.search.syntax.function.*;
+import eu.europeana.api.search.syntax.model.*;
 
 
 
 public class TestSyntaxConversion {
-
-
   static {
     loadFieldRegistry();
     loadFunctionRegistry();
   }
-
   private static void loadFieldRegistry() {
     FieldRegistry registry = FieldRegistry.INSTANCE;
     registry.addField(new FieldDeclaration("issued", "issued_date", "issued_date", "issued_date_begin", "issued_date_end"));
@@ -94,10 +91,10 @@ public class TestSyntaxConversion {
    */
 
   public static final void main(String[] args) {
-  //  run(test1());
-   // run(test2());
-   // run(test3());
-   // run(test4());
+    run(test1());
+    run(test2());
+    run(test3());
+    run(test4());
     run(test5());
   }
 }
