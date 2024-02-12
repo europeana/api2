@@ -104,7 +104,7 @@ public class TranslationUtils {
                 // Also, ignore the other uri values whose entity doesn't exist
                 if (EuropeanaUriUtils.isUri(value)) {
                     ContextualClass entity = BaseService.entityExistsWithUrl(bean, value);
-                    if (ifValuesShouldBePickedForTranslation(entity.getPrefLabel(), sourceLang, targetLang)) {
+                    if (entity != null && ifValuesShouldBePickedForTranslation(entity.getPrefLabel(), sourceLang, targetLang)) {
                         LOG.debug("Entity {} has preflabel in chosen language {} for translation  ", value, sourceLang);
                         valuesToTranslate.addAll(getValueFromMultiLingualMap(entity.getPrefLabel(), sourceLang));
                     } else {
@@ -230,7 +230,7 @@ public class TranslationUtils {
      */
     private static void removePrefLabelValuesFromTranslated(FullBean bean, String uri, String targetLang, List<String> translatedValues) {
         ContextualClass entity = BaseService.entityExistsWithUrl(bean, uri);
-        if (entity.getPrefLabel() != null && !entity.getPrefLabel().isEmpty() && entity.getPrefLabel().containsKey(targetLang)) {
+        if (entity != null && entity.getPrefLabel() != null && !entity.getPrefLabel().isEmpty() && entity.getPrefLabel().containsKey(targetLang)) {
             List<String> prefLabelsInTargetLang = entity.getPrefLabel().get(targetLang);
             boolean removed = translatedValues.removeAll(prefLabelsInTargetLang);
             if (removed) {
