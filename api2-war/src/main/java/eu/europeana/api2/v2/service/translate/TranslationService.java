@@ -1,8 +1,10 @@
 package eu.europeana.api2.v2.service.translate;
 
+import eu.europeana.api.commons.error.EuropeanaI18nApiException;
 import eu.europeana.api.translation.client.exception.ExternalServiceException;
 import eu.europeana.api.translation.client.exception.TranslationApiException;
 import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api.translation.service.exception.LanguageDetectionException;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -11,6 +13,7 @@ import eu.europeana.corelib.definitions.edm.entity.Proxy;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,11 +60,11 @@ public class TranslationService {
     public List<BriefBean> translate(List<BriefBean> beans, String targetLanguage, String authToken) throws EuropeanaException {
         try {
             return metadataTranslationService.searchResultsTranslations(metadataLangDetectionService.detectLanguageForSearchResults(beans, authToken), targetLanguage, authToken);
-        } catch (TranslationApiException e) {
-            // For 502 status , Client throws ExternalServiceException.
+        } catch (LanguageDetectionException | eu.europeana.api.translation.service.exception.TranslationException e) {
+            // Client throws Generic exceptions but with status 502 and 500
             // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
             // Hence we need to check for the message as well as we have a redirect functionality based on it.
-            if (e instanceof ExternalServiceException && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
+            if (getRemoteStatusCode(e) == HttpStatus.SC_BAD_GATEWAY && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
                 throw new TranslationServiceLimitException(e);
             }
             // keep in mind once we have token being passed that should be valid for
@@ -108,11 +111,11 @@ public class TranslationService {
                 // if not translated during ingestion - apply detection + translation
                 return metadataTranslationService.proxyTranslation(metadataLangDetectionService.detectLanguageForProxy(bean, authToken), targetLanguage, authToken);
             }
-        } catch (TranslationApiException e) {
-            // For 502 status , Client throws ExternalServiceException.
+        } catch (LanguageDetectionException | eu.europeana.api.translation.service.exception.TranslationException e) {
+            // Client throws Generic exceptions but with status 502 and 500
             // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
             // Hence we need to check for the message as well as we have a redirect functionality based on it.
-            if (e instanceof ExternalServiceException && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
+            if (getRemoteStatusCode(e) == HttpStatus.SC_BAD_GATEWAY && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
                 throw new TranslationServiceLimitException(e);
             }
             // keep in mind once we have token being passed that should be valid for
@@ -185,5 +188,16 @@ public class TranslationService {
             LOG.debug("Default translation and filtering applied for language : {} ", lang);
         }
         return lang;
+    }
+
+    protected int getRemoteStatusCode(Exception e) {
+        if (e.getClass().isAssignableFrom(LanguageDetectionException.class)) {
+            return ((LanguageDetectionException) e).getRemoteStatusCode();
+        }
+
+        if (e.getClass().isAssignableFrom(eu.europeana.api.translation.service.exception.TranslationException.class)) {
+            return ((eu.europeana.api.translation.service.exception.TranslationException) e).getRemoteStatusCode();
+        }
+        return 0;
     }
 }

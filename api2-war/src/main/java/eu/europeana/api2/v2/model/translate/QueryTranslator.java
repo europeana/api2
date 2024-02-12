@@ -1,13 +1,13 @@
 package eu.europeana.api2.v2.model.translate;
 
 import eu.europeana.api.translation.client.TranslationApiClient;
-import eu.europeana.api.translation.client.exception.ExternalServiceException;
-import eu.europeana.api.translation.client.exception.TranslationApiException;
+import eu.europeana.api.translation.definitions.model.TranslationObj;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
 import eu.europeana.api2.v2.service.translate.TranslationUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,14 +39,15 @@ public class QueryTranslator {
             String translation;
             long start = System.nanoTime(); //DEBUG
             try {
-                translation = this.translationClient.translate(
-                        TranslationUtils.createTranslationRequest(List.of(toTranslate), targetLanguage, sourceLanguage), authToken)
-                        .getTranslations().get(0);
-            } catch(TranslationApiException e) {
-                // For 502 status , Client throws ExternalServiceException.
+                this.translationClient.setAuthToken(authToken);
+                List<TranslationObj> translationObjs =  TranslationUtils.createTranslationRequest(List.of(toTranslate), targetLanguage, sourceLanguage);
+                this.translationClient.getTranslationService().translate(translationObjs);
+                translation =    translationObjs.get(0).getTranslation();
+            } catch (eu.europeana.api.translation.service.exception.TranslationException e) {
+                // Client throws Generic exceptions but with status 502 and 500
                 // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
                 // Hence we need to check for the message as well as we have a redirect functionality based on it.
-                if (e instanceof ExternalServiceException && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
+                if (e.getRemoteStatusCode() == HttpStatus.SC_BAD_GATEWAY && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
                     throw new TranslationServiceLimitException(e);
                 }
                 // keep in mind once we have token being passed that should be valid for

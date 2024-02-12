@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api.translation.definitions.model.TranslationObj;
 import eu.europeana.api.translation.definitions.model.TranslationRequest;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
@@ -71,14 +72,16 @@ public class TranslationUtils {
      * @param sourceLanguage
      * @return
      */
-    public static TranslationRequest createTranslationRequest(List<String> textsToTranslate, String targetLanguage, String sourceLanguage) {
-        TranslationRequest translationRequest = new TranslationRequest();
-        translationRequest.setText(textsToTranslate);
-        translationRequest.setSource(sourceLanguage);
-        translationRequest.setTarget(targetLanguage);
-        // TODO remove , don't commit this. only for testing
-        translationRequest.setService("GOOGLE");
-        return translationRequest;
+    public static List<TranslationObj> createTranslationRequest(List<String> textsToTranslate, String targetLanguage, String sourceLanguage) {
+        List<TranslationObj> translationObjs = new ArrayList<>(textsToTranslate.size());
+        for(String text : textsToTranslate) {
+            TranslationObj translationObj = new TranslationObj();
+            translationObj.setText(text);
+            translationObj.setSourceLang(sourceLanguage);
+            translationObj.setTargetLang(targetLanguage);
+            translationObjs.add(translationObj);
+        }
+        return translationObjs;
     }
 
     /**
