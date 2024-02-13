@@ -41,7 +41,7 @@ public class MetadataLangDetectionService extends BaseService {
         List<Language> edmLanguages = LanguageDetectionUtils.getEdmLanguage(bean, searchResults);
         if (!edmLanguages.isEmpty()) {
             String edmLang = edmLanguages.get(0).name().toLowerCase(Locale.ROOT);
-            if (getTranslationApiClient().isSupported(edmLang)) {
+            if (getTranslationApiClient().getLanguageDetectionService().isSupported(edmLang)) {
                 LOG.debug("For record {}, hint for lang-detection is {} ", searchResults ? bean.getId() : ((FullBean) bean).getAbout(), edmLang);
                 return edmLang;
             } else {

@@ -116,7 +116,7 @@ public class MetadataChosenLanguageService extends BaseService {
 
     private boolean languageToBeChosen(String lang, String targetLanguage) {
         return !(StringUtils.equals(lang, Language.NO_LINGUISTIC_CONTENT) || StringUtils.equals(lang, Language.DEF))
-                && getTranslationApiClient().isSupported(lang, targetLanguage);
+                && getTranslationApiClient().getTranslationService().isSupported(lang, targetLanguage);
     }
 
 }
