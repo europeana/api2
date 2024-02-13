@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.service.translate;
 
+import eu.europeana.api.translation.client.TranslationApiClient;
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
@@ -14,9 +15,13 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MetadataChosenLanguageService {
+public class MetadataChosenLanguageService extends BaseService {
 
     private static final Logger LOG = LogManager.getLogger(MetadataChosenLanguageService.class);
+
+    public MetadataChosenLanguageService(TranslationApiClient translationApiClient) {
+        super(translationApiClient);
+    }
 
     public <T extends IdBean> String getMostRepresentativeLanguage(T bean, String targetLanguage, boolean searchResults) {
         Map<String, Integer> langCountMap = new HashMap<>();
@@ -110,9 +115,8 @@ public class MetadataChosenLanguageService {
      */
 
     private boolean languageToBeChosen(String lang, String targetLanguage) {
-        return !(StringUtils.equals(lang, Language.NO_LINGUISTIC_CONTENT) || StringUtils.equals(lang, Language.DEF));
-                // TODO figure out how to get supported language
-              //  && translationService.isSupported(lang, targetLanguage);
+        return !(StringUtils.equals(lang, Language.NO_LINGUISTIC_CONTENT) || StringUtils.equals(lang, Language.DEF))
+                && getTranslationApiClient().isSupported(lang, targetLanguage);
     }
 
 }

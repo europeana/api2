@@ -48,12 +48,12 @@ public class BeanFilterLanguageTest {
         assertEquals(MockBeanConstants.AGENT1_BIRTH_PLACE_EN,
                 bean.getAgents().get(0).getRdaGr2PlaceOfBirth().get(MockBeanConstants.EN).get(0));
 
-        // places.altlabel shouldn't have any languages so be removed entirely
-        assertNull(bean.getPlaces().get(0).getAltLabel());
+        // places.altlabel shouldn't have any languages so everything will be displayed
+        assertNotNull(bean.getPlaces().get(0).getAltLabel());
 
-        // concepts preflabels and notes should all be gone
-        assertNull(bean.getConcepts().get(0).getPrefLabel());
-        assertNull(bean.getConcepts().get(0).getNote());
+        // concepts preflabels and note all values present
+        assertNotNull(bean.getConcepts().get(0).getPrefLabel());
+        assertNotNull(bean.getConcepts().get(0).getNote());
 
         // dcDate has non-linguistic content, so should not be translated and still be present in provider proxy
         assertNull(bean.getProxies().get(0).getDcDate());
