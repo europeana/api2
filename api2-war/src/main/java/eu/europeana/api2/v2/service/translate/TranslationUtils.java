@@ -34,7 +34,7 @@ public class TranslationUtils {
     /**
      * During ingestion - target language is "en"
      * For translations only fetch the value from the map if there
-     * is NO "en" language tag already present for the field and there is value present for the sourceLang
+     * is NO target language tag already present for the field and there is value present for the sourceLang
      * <p>
      * For other API's translations , fetch the value in the source language if present
      *
@@ -43,7 +43,7 @@ public class TranslationUtils {
      * @return
      */
     public static boolean ifValuesShouldBePickedForTranslation(Map<String, List<String>> map, String sourceLang, String targetLang) {
-        return map != null && !map.isEmpty() && !map.containsKey(targetLang) && containsLangOrRegionLang(map, sourceLang);
+        return map != null && !map.isEmpty() && !containsLangOrRegionLang(map, targetLang) && containsLangOrRegionLang(map, sourceLang);
     }
 
 
