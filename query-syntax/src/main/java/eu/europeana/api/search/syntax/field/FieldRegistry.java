@@ -6,6 +6,8 @@ package eu.europeana.api.search.syntax.field;
 import java.util.HashMap;
 import java.util.Map;
 
+import eu.europeana.api.search.syntax.validation.SyntaxErrorUtils;
+
 /**
  * @author Hugo
  * @since 7 Feb 2024

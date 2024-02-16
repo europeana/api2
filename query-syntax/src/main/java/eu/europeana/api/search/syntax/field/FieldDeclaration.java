@@ -12,12 +12,15 @@ import java.util.Map;
  */
 public class FieldDeclaration
 {
-    private String name;
+    private String                name;
+    private FieldType             type;
     private Map<FieldMode,String> field_map;
 
-    public FieldDeclaration(String name, String f_search, String f_facet
+    public FieldDeclaration(String name, FieldType type
+                          , String f_search, String f_facet
                           , String f_sort_asc, String f_sort_desc) {
-        this.name        = name;
+        this.name = name;
+        this.type = type;
 
         field_map = new LinkedHashMap();
         field_map.put(FieldMode.search   , f_search);
@@ -28,6 +31,10 @@ public class FieldDeclaration
 
     public String getName() {
         return name;
+    }
+
+    public FieldType getType() {
+        return type;
     }
 
     public String getField(FieldMode mode) {

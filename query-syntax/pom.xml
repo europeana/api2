@@ -10,7 +10,7 @@
   </parent>
 
   <groupId>eu.europeana.api</groupId>
-  <artifactId>parser</artifactId>
+  <artifactId>query-syntax</artifactId>
   <name>Europeana Record, Search and QueryTranslate API parser</name>
 
   <url>http://www.europeana.eu</url>
@@ -52,7 +52,7 @@
   </dependencies>
 
   <build>
-    <finalName>api</finalName>
+<!--    <finalName>api</finalName>-->
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

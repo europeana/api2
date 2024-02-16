@@ -1,6 +1,9 @@
 package eu.europeana.api.search.syntax.model;
 
+import static eu.europeana.api.search.syntax.validation.SyntaxErrorUtils.newMissingFunctionArg;
+
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import eu.europeana.api.search.syntax.converter.ConverterContext;
@@ -10,6 +13,11 @@ public class FunctionExpression implements TopLevelExpression ,ArgumentExpressio
 
     private FunctionClass            function;
     private List<ArgumentExpression> paramList;
+
+    public FunctionExpression(FunctionClass function) {
+        this.function  = function;
+        this.paramList = Collections.EMPTY_LIST;
+    }
 
     public FunctionExpression(FunctionClass function
                             , List<ArgumentExpression> params) {
@@ -40,9 +48,19 @@ public class FunctionExpression implements TopLevelExpression ,ArgumentExpressio
     public String toSolr(ConverterContext context) {
         context.push(this);
         try {
+            validateArgs();
             return function.toSolr(this, context);
         }
         finally { context.pop(); }
+    }
+
+    public void validateArgs() {
+        List<ArgumentExpression> params = paramList;
+        int size = params.size();
+        int args = function.getArgumentNr();
+        if(size < args) {
+            newMissingFunctionArg(function.getName(), args, size);
+        }
     }
 
     @Override
@@ -52,4 +70,5 @@ public class FunctionExpression implements TopLevelExpression ,ArgumentExpressio
             ", paramList=" + paramList +
             '}';
     }
+
 }

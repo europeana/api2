@@ -1,6 +1,5 @@
 package eu.europeana.api.search.syntax.model;
 
-
 import eu.europeana.api.search.syntax.converter.ConverterContext;
 import eu.europeana.api.search.syntax.field.FieldDeclaration;
 import eu.europeana.api.search.syntax.field.FieldMode;

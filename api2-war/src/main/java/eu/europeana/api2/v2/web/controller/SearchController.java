@@ -3,6 +3,9 @@ package eu.europeana.api2.v2.web.controller;
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 import eu.europeana.api.commons.web.exception.HttpException;
+import eu.europeana.api.search.syntax.converter.ConverterContext;
+import eu.europeana.api.search.syntax.model.SyntaxExpression;
+import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.model.utils.Api2UrlService;
@@ -249,6 +252,7 @@ public class SearchController extends BaseController {
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
 
         LOG.info(newRefinementArray);
+
         parseFilterParameter(newRefinementArray);
 
         // get the profiles
@@ -532,24 +536,33 @@ public class SearchController extends BaseController {
         return JsonUtils.toJson(result, callback);
     }
 
-    public static void  parseFilterParameter(String newRefinementQuery)
+    public static String  parseFilterParameter(String newRefinementQuery)
         throws  SolrQueryException {
-//        try {
-//            if (StringUtils.isNotBlank(newRefinementQuery)) {
-//                SearchExpressionParser parser = new SearchExpressionParser(new java.io.StringReader(
-//                    newRefinementQuery));
-//                SyntaxExpression solrsyntax = parser.parse();
-//                LOG.info("### Syntax check passed for filter query ! Parsing completed !####");
-//
-//                LOG.info("Object model:"+   solrsyntax.toString());
-//                LOG.info("Solr query:"+   solrsyntax.toSolr(new ConverterContext()));
-//
-//            }
-//        }
-//        catch (Exception e){
-//            e.printStackTrace();
-//            throw new SolrQueryException(ProblemType.SEARCH_QUERY_INVALID);
-//        }
+        try {
+            if (StringUtils.isNotBlank(newRefinementQuery)) {
+                SearchExpressionParser parser = new SearchExpressionParser(new java.io.StringReader(
+                    newRefinementQuery));
+                SyntaxExpression solrSyntax = parser.parse();
+                return getSolrQuery(solrSyntax);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new SolrQueryException(ProblemType.SEARCH_QUERY_INVALID);
+        }
+        return null;
+    }
+
+    private static String getSolrQuery(SyntaxExpression solrSyntax) {
+        String parsedQuery ="";
+        if(solrSyntax !=null) {
+            parsedQuery = solrSyntax.toSolr(new ConverterContext());
+
+            LOG.info("### Syntax check passed for filter query ! Parsing completed !####");
+
+            LOG.info("Object model: " + solrSyntax.toString());
+            LOG.info("Solr query: " + parsedQuery);
+        }
+        return parsedQuery;
     }
 
     /**

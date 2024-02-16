@@ -30,8 +30,14 @@ TOKEN: {
 |<RPAR :")">
 |<COMMA: ",">
 |<COLON: ":">
+|<D_QUOTES_START: "\""  > :S1
+|<S_QUOTES_START: "\'"> :S1
 }
-TOKEN: {<VALUE: ["a"-"z","A"-"Z","0"-"9","-","*"] (["a"-"z","A"-"Z","0"-"9","-"])*>}
+
+<S1> TOKEN : {< D_QUOTES_END: "\""> : DEFAULT }
+<S1> TOKEN : {< S_QUOTES_END: "\'"> : DEFAULT }
+
+TOKEN: { <LETTERS: ["a"-"z","A"-"Z","0"-"9","-","*",".","_"] (["a"-"z","A"-"Z","0"-"9","-",".","_"])*> }
 
 SyntaxExpression parse():{
  SyntaxExpression top;}
@@ -116,9 +122,17 @@ FieldArgumentExpression FieldValueExpression():{ ValueExpression val ;}{
  val = ValueExpression()  {return val;}
 }
 
-ValueExpression ValueExpression():{Token t;}{
-("\"" t=<VALUE> "\"" |  "\'" t=<VALUE> "\'" |  t=<VALUE>)
-{ return new ValueExpression(t.image);}
+ValueExpression ValueExpression():{Token t;Token q;}{
+//    ("\"" t=<VALUE>"\"" ) { return new ValueExpression("\""+ t.image +"\"");}
+// |  ( "\'" t=<VALUE> "\'" ) { return new ValueExpression("\'"+ t.image +"\'");}
+// |t=<VALUE> { return new ValueExpression(t.image); }
+
+
+ (<D_QUOTES_START> (t=<UNQUOTED_ANY_CHARS> |{})<D_QUOTES_END> ) { return new ValueExpression("\""+ t.image +"\"");}
+ |  (<S_QUOTES_START> (t=<UNQUOTED_ANY_CHARS>|{} )<S_QUOTES_END>) { return new ValueExpression("\'"+ t.image +"\'");}
+ |  (t=<LETTERS>) { return new ValueExpression(t.image); }
+
+
 }
 
 

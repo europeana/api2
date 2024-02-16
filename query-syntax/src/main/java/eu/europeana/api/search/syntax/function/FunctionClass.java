@@ -14,9 +14,9 @@ public interface FunctionClass {
 
     public String getName();
 
+    public int getArgumentNr();
+
     public void isValid(FunctionExpression expr);
 
     public String toSolr(FunctionExpression expr, ConverterContext context);
-
-
 }
