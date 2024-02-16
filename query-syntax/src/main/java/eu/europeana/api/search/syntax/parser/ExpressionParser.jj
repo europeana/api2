@@ -18,7 +18,9 @@ public class SearchExpressionParser{}
 
 PARSER_END(SearchExpressionParser)
 
-SKIP:  {   " "|  "\t" | "\n" | "\r" }
+<DEFAULT> SKIP:  { " "|"\t" | "\n" | "\r" }
+<S1>SKIP: {"\t" | "\n" | "\r"}
+<S1> TOKEN:{< UNQUOTED_ANY_CHARS:   (~["\"","\'"] )* > }
 
 TOKEN: {
  <AND: "AND">
@@ -82,7 +84,7 @@ FunctionExpression FunctionExpression():{
 {return new FunctionExpression(FunctionRegistry.INSTANCE.getFunction(functionName),paramList);}
 }
 String FunctionName():{ Token t;}{
-t=<VALUE> {return t.image;}
+t=<LETTERS> {return t.image;}
 }
 
 ArgumentExpression ArgumentExpressionProduction():{
@@ -107,7 +109,7 @@ return new FieldQueryExpression(FieldRegistry.INSTANCE.getField(fieldName),field
 String FieldName():{
   Token t;
   }{
-  t=<VALUE> {return t.image;}
+  t=<LETTERS> {return t.image;}
   }
 
 FieldArgumentExpression FieldValueExpression():{ ValueExpression val ;}{
