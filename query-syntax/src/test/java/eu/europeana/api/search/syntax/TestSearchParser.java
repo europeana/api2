@@ -74,7 +74,7 @@ public class TestSearchParser {
 
 
   public void testFieldSearchQuery_when_AND_OR_Operator() throws  ParseException {
-    Assert.assertEquals("issued_date:1950 AND issued_date:",ParserUtils.parseQueryFilter("issued:1950 AND issued_date:1950"));
+    Assert.assertEquals("issued_date:1950 AND issued_date:1950",ParserUtils.parseQueryFilter("issued:1950 AND issued_date:1950"));
 
   }
 
