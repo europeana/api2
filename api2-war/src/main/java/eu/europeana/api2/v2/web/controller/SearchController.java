@@ -6,6 +6,7 @@ import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api.search.syntax.converter.ConverterContext;
 import eu.europeana.api.search.syntax.model.SyntaxExpression;
 import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
+import eu.europeana.api.search.syntax.utils.ParserUtils;
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.model.utils.Api2UrlService;
@@ -221,7 +222,7 @@ public class SearchController extends BaseController {
     public ModelAndView searchJsonGet(
                                       @SolrEscape @RequestParam(value = "query") String queryString,
                                       @RequestParam(value = "qf", required = false) String[] refinementArray,
-                                      @RequestParam(value = "nqf", required = false) String  newRefinementArray,
+                                      @RequestParam(value = "newRefinementString", required = false) String newRefinementString,
 
                                       @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
                                       @RequestParam(value = "profile", required = false, defaultValue = "standard")
@@ -251,9 +252,7 @@ public class SearchController extends BaseController {
 
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
 
-        LOG.info(newRefinementArray);
 
-        parseFilterParameter(newRefinementArray);
 
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
@@ -428,6 +427,14 @@ public class SearchController extends BaseController {
             sort = org.apache.commons.lang3.RegExUtils.removePattern(sort, "distance\\s?(asc|desc)?(\\s|,)*");
         }
 
+        LOG.info("Search Query : "+ newRefinementString);
+        String parsedSolrQueryParameter = parseFilterParameter(newRefinementString);
+        LOG.info("Parsed Search Query  : "+ parsedSolrQueryParameter);
+        if (refinementArray == null) {
+            refinementArray = new String[1];
+            refinementArray[0] = parsedSolrQueryParameter;
+        }
+
         Class<? extends IdBean> clazz = selectBean(profile);
         Query query = new Query(SearchUtils.rewriteQueryFields(
                 SearchUtils.fixBuggySolrIndex(queryString)))
@@ -539,7 +546,11 @@ public class SearchController extends BaseController {
     public static String  parseFilterParameter(String newRefinementQuery)
         throws  SolrQueryException {
         try {
+
+
             if (StringUtils.isNotBlank(newRefinementQuery)) {
+                ParserUtils.loadFieldRegistry();
+                ParserUtils.loadFunctionRegistry();
                 SearchExpressionParser parser = new SearchExpressionParser(new java.io.StringReader(
                     newRefinementQuery));
                 SyntaxExpression solrSyntax = parser.parse();
