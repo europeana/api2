@@ -122,7 +122,7 @@ FieldArgumentExpression FieldValueExpression():{ ValueExpression val ;}{
  val = ValueExpression()  {return val;}
 }
 
-ValueExpression ValueExpression():{Token t;Token q;}{
+ValueExpression ValueExpression():{Token t=null;}{
 //    ("\"" t=<VALUE>"\"" ) { return new ValueExpression("\""+ t.image +"\"");}
 // |  ( "\'" t=<VALUE> "\'" ) { return new ValueExpression("\'"+ t.image +"\'");}
 // |t=<VALUE> { return new ValueExpression(t.image); }
