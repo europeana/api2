@@ -937,6 +937,8 @@ public class SearchController extends BaseController {
         if (filterLanguages != null) {
             for (IdBean result : resultSet.getResults()) {
                 LanguageFilter.filter(result, filterLanguages);
+                // The non-language aware fields should disappear (Title, dcCreator, dcDescription).
+                LanguageFilter.removeNonLanguageAwareFields(result);
             }
         }
 

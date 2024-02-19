@@ -232,6 +232,7 @@ public class LanguageDetectionUtils {
 
     /**
      * Remove the lang-tagged values from "def"
+     * NOTE : make sure to ot remove the uri's from the def values
      *
      * ex if map has values : {def=["paris", "budapest" , "venice"], en=["budapest"]}
      * then returns : ["paris", "venice"]
@@ -242,7 +243,7 @@ public class LanguageDetectionUtils {
         List<String> nonLangTaggedDefvalues = new ArrayList<>(map.get(Language.DEF));
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
             if (!entry.getKey().equals(Language.DEF)) {
-                nonLangTaggedDefvalues.removeAll(entry.getValue());
+                nonLangTaggedDefvalues.removeAll(filterOutUris(entry.getValue()));
             }
         }
         return nonLangTaggedDefvalues;
