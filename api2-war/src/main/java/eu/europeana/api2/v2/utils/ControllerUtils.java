@@ -152,4 +152,16 @@ public final class ControllerUtils {
         return query.replaceAll(PROFILE_PATTERN, "");
     }
 
+
+    /**
+     * Return true is status code is 5xx
+     * @param httpStatusCode
+     * @return
+     */
+    public static boolean is5xxError(int httpStatusCode) {
+        return (httpStatusCode == 500 || httpStatusCode == 501 ||
+                httpStatusCode == 502 || httpStatusCode == 503 ||
+                httpStatusCode == 504 || httpStatusCode == 505 ||
+                httpStatusCode == 507) ;
+    }
 }

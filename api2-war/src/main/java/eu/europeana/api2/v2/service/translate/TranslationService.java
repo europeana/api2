@@ -3,14 +3,13 @@ package eu.europeana.api2.v2.service.translate;
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.translation.service.exception.LanguageDetectionException;
 import eu.europeana.api2.v2.exceptions.TranslationException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceNotAvailableException;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 import static eu.europeana.api2.v2.service.translate.BaseService.*;
-
+import static eu.europeana.api2.v2.utils.ControllerUtils.is5xxError;
 @Service
 public class TranslationService {
 
@@ -58,11 +57,9 @@ public class TranslationService {
         try {
             return metadataTranslationService.searchResultsTranslations(metadataLangDetectionService.detectLanguageForSearchResults(beans, authToken), targetLanguage, authToken);
         } catch (LanguageDetectionException | eu.europeana.api.translation.service.exception.TranslationException e) {
-            // Client throws Generic exceptions but with status 504 and 500
-            // Translation api client throws 504 status for google exhuasted exception or if the external service had some issue.
-            // Hence we need to check for the message as well as we have a redirect functionality based on it.
-            if (getRemoteStatusCode(e) == HttpStatus.SC_GATEWAY_TIMEOUT && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
-                throw new TranslationServiceLimitException(e);
+            // For all 5xx error return a TranslationServiceNotAvailableException.
+            if (is5xxError(getRemoteStatusCode(e))) {
+                throw new TranslationServiceNotAvailableException(e.getMessage(), e);
             }
             // keep in mind once we have token being passed that should be valid for
             // translation api as well and we will never receive Unauthorised error here as it is validated in the beginning.
@@ -109,11 +106,9 @@ public class TranslationService {
                 return metadataTranslationService.proxyTranslation(metadataLangDetectionService.detectLanguageForProxy(bean, authToken), targetLanguage, authToken);
             }
         } catch (LanguageDetectionException | eu.europeana.api.translation.service.exception.TranslationException e) {
-            // Client throws Generic exceptions but with status 504 and 500
-            // Translation api client throws 504 status for google exhuasted exception or if the external service had some issue.
-            // Hence we need to check for the message as well as we have a redirect functionality based on it.
-            if (getRemoteStatusCode(e) == HttpStatus.SC_GATEWAY_TIMEOUT && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
-                throw new TranslationServiceLimitException(e);
+            // For all 5xx error return a TranslationServiceNotAvailableException.
+            if (is5xxError(getRemoteStatusCode(e))) {
+                throw new TranslationServiceNotAvailableException(e.getMessage(), e);
             }
             // keep in mind once we have token being passed that should be valid for
             // translation api as well and we will never receive Unauthorised error here as it is validated in the beginning.
@@ -191,7 +186,6 @@ public class TranslationService {
         if (e.getClass().isAssignableFrom(LanguageDetectionException.class)) {
             return ((LanguageDetectionException) e).getRemoteStatusCode();
         }
-
         if (e.getClass().isAssignableFrom(eu.europeana.api.translation.service.exception.TranslationException.class)) {
             return ((eu.europeana.api.translation.service.exception.TranslationException) e).getRemoteStatusCode();
         }

@@ -81,8 +81,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.*;
 
-import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
-
 /**
  * Provides record information in all kinds of formats; json, json-ld and rdf
  *
@@ -435,11 +433,12 @@ public class ObjectController extends BaseController {
             if (data.languages != null && !data.languages.isEmpty()) {
                 try {
                     bean = recordTranslations.translate(bean, data.languages.get(0).name().toLowerCase(Locale.ROOT), getAuthorizationHeader(data.servletRequest));
-                } catch (TranslationServiceLimitException e) {
+                } catch (TranslationServiceNotAvailableException e) {
                     // EA-3463 - return 307 redirect without profile param and Keep the Error Response
-                    // Body indicating the reason for troubleshooting
+                    // Body indicating the reason for troubleshooting.
                     ControllerUtils.redirectForTranslationsLimitException(data.servletRequest, response, data.profiles);
-                    throw new TranslationServiceLimitException(e);
+                    // throwing exception again overwrites the exception message with problem type message. Hence, fetch the original message from cause
+                    throw new TranslationServiceNotAvailableException(e.getCause().getMessage(), e);
                 }
             }
         }

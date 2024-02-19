@@ -57,6 +57,10 @@ public class GlobalExceptionHandler {
             String wskey = request.getParameter(API_KEY_PARAM);
             logOrIgnoreError(request.getServerName(), wskey, ee);
             response.setStatus(getHttpStatus(response, ee));
+            // for TranslationServiceNotAvailableException and "quota limit errors", throw with specific error details
+            if (ee instanceof TranslationServiceNotAvailableException && StringUtils.containsIgnoreCase(ee.getErrorDetails(), "quota limit reached")) {
+                return generateErrorResponse(request, response, ee.getMessage(), "No more translations available today. Resource is exhausted", ee.getErrorCode());
+            }
             return generateErrorResponse(request, response, ee.getMessage(), ee.getErrorDetails(), ee.getErrorCode());
         } catch (Exception ex) {
             LOG.error("Error while generating error response", ex);
@@ -98,7 +102,7 @@ public class GlobalExceptionHandler {
             result = HttpServletResponse.SC_BAD_REQUEST;
         } else if (ee instanceof SolrIOException) {
             result = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-        } else if (ee instanceof TranslationServiceLimitException) {
+        } else if (ee instanceof TranslationServiceNotAvailableException) {
             result = HttpServletResponse.SC_BAD_GATEWAY;
         } else if ( ee instanceof InvalidAuthorizationException) {
                 result = HttpServletResponse.SC_FORBIDDEN;
