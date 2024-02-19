@@ -1,8 +1,5 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api.commons.error.EuropeanaI18nApiException;
-import eu.europeana.api.translation.client.exception.ExternalServiceException;
-import eu.europeana.api.translation.client.exception.TranslationApiException;
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.translation.service.exception.LanguageDetectionException;
 import eu.europeana.api2.v2.exceptions.TranslationException;
