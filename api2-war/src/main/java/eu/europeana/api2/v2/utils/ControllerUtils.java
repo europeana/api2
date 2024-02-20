@@ -3,6 +3,7 @@ package eu.europeana.api2.v2.utils;
 import eu.europeana.api2.v2.model.enums.Profile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -159,9 +160,7 @@ public final class ControllerUtils {
      * @return
      */
     public static boolean is5xxError(int httpStatusCode) {
-        return (httpStatusCode == 500 || httpStatusCode == 501 ||
-                httpStatusCode == 502 || httpStatusCode == 503 ||
-                httpStatusCode == 504 || httpStatusCode == 505 ||
-                httpStatusCode == 507) ;
+        HttpStatus status = HttpStatus.valueOf(httpStatusCode);
+        return status.is5xxServerError();
     }
 }
