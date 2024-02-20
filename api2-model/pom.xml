@@ -11,7 +11,7 @@
 
     <groupId>eu.europeana.api2</groupId>
     <artifactId>api2-model</artifactId>
-    <name>Europeana Record, Search and QueryTranslate API data model</name>
+    <name>Search and Record API data model</name>
 
     <url>http://www.europeana.eu</url>
     <organization><name>Europeana Foundation</name></organization>

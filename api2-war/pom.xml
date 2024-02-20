@@ -12,7 +12,7 @@
     <groupId>eu.europeana.api2</groupId>
     <artifactId>api2-war</artifactId>
     <packaging>war</packaging>
-    <name>Europeana Record, Search and QueryTranslate API WAR</name>
+    <name>Search and Record API WAR</name>
 
     <url>http://www.europeana.eu</url>
     <organization><name>Europeana Foundation</name></organization>
