@@ -1,13 +1,11 @@
 package eu.europeana.api2.v2.model.translate;
 
 import eu.europeana.api.translation.client.TranslationApiClient;
-import eu.europeana.api.translation.client.exception.ExternalServiceException;
-import eu.europeana.api.translation.client.exception.TranslationApiException;
+import eu.europeana.api.translation.definitions.model.TranslationObj;
 import eu.europeana.api2.v2.exceptions.TranslationException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceNotAvailableException;
 import eu.europeana.api2.v2.service.translate.TranslationUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +14,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static eu.europeana.api2.v2.utils.ControllerUtils.is5xxError;
 
 @Component
 public class QueryTranslator {
@@ -32,22 +32,21 @@ public class QueryTranslator {
         LOG.info("QueryTranslator initialised with Translation Api client");
     }
 
-    private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose, String authToken) throws TranslationException, TranslationServiceLimitException {
+    private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose, String authToken) throws TranslationException, TranslationServiceNotAvailableException {
         StringBuilder sb =  new StringBuilder();
         String toTranslate = text.trim();
         if (!toTranslate.isEmpty()) {
             String translation;
             long start = System.nanoTime(); //DEBUG
             try {
-                translation = this.translationClient.translate(
-                        TranslationUtils.createTranslationRequest(List.of(toTranslate), targetLanguage, sourceLanguage), authToken)
-                        .getTranslations().get(0);
-            } catch(TranslationApiException e) {
-                // For 502 status , Client throws ExternalServiceException.
-                // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
-                // Hence we need to check for the message as well as we have a redirect functionality based on it.
-                if (e instanceof ExternalServiceException && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
-                    throw new TranslationServiceLimitException(e);
+                this.translationClient.setAuthToken(authToken);
+                List<TranslationObj> translationObjs =  TranslationUtils.createTranslationRequest(List.of(toTranslate), targetLanguage, sourceLanguage);
+                this.translationClient.getTranslationService().translate(translationObjs);
+                translation =    translationObjs.get(0).getTranslation();
+            } catch (eu.europeana.api.translation.service.exception.TranslationException e) {
+                // For all 5xx error return a TranslationServiceNotAvailableException.
+                if (is5xxError(e.getRemoteStatusCode())) {
+                    throw new TranslationServiceNotAvailableException(e.getMessage(), e);
                 }
                 // keep in mind once we have token being passed that should be valid for
                 // translation api as well and we will never receive Unauthorised error here as it is validated in the beginning.

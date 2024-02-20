@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api.translation.definitions.model.TranslationRequest;
+import eu.europeana.api.translation.definitions.model.TranslationObj;
 import eu.europeana.api2.v2.utils.MockFullBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import org.junit.Assert;
@@ -70,10 +70,10 @@ public class TranslationUtilsTest {
     @Test
     public void Test_createTranslationRequest() {
         List<String> text = Arrays.asList("Hallo", "Nederlands");
-        TranslationRequest request = TranslationUtils.createTranslationRequest(text, "nl", "en");
-        Assert.assertEquals("en", request.getSource());
-        Assert.assertEquals("nl", request.getTarget());
-        Assert.assertEquals(2 , request.getText().size());
+        List<TranslationObj> request = TranslationUtils.createTranslationRequest(text, "nl", "en");
+        Assert.assertEquals("en", request.get(0).getSourceLang());
+        Assert.assertEquals("nl", request.get(0).getTargetLang());
+        Assert.assertEquals(2 , request.size());
     }
 
     @Test

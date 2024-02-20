@@ -1,8 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.client.TranslationApiClient;
-import eu.europeana.api.translation.client.exception.TranslationApiException;
-import eu.europeana.api.translation.definitions.model.TranslationResponse;
+import eu.europeana.api.translation.definitions.model.TranslationObj;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.model.translate.TranslationMap;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -18,6 +17,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static eu.europeana.api2.v2.service.translate.TranslationUtils.*;
 
@@ -51,7 +51,7 @@ public class MetadataTranslationService extends BaseService {
      * @param targetLanguage
      * @return
      */
-    public List<BriefBean> searchResultsTranslations(List<BriefBean> beans, String targetLanguage, String authToken) throws TranslationApiException {
+    public List<BriefBean> searchResultsTranslations(List<BriefBean> beans, String targetLanguage, String authToken) throws eu.europeana.api.translation.service.exception.TranslationException {
         long start = System.currentTimeMillis();
         List<TranslationMap> textsToTranslate = new ArrayList<>();
 
@@ -163,7 +163,7 @@ public class MetadataTranslationService extends BaseService {
      *
      *
      */
-    public FullBean proxyTranslation(FullBean bean, String targetLanguage, String authToken) throws TranslationException, TranslationApiException {
+    public FullBean proxyTranslation(FullBean bean, String targetLanguage, String authToken) throws TranslationException, eu.europeana.api.translation.service.exception.TranslationException {
         long start = System.currentTimeMillis();
         List<Proxy> proxies = new ArrayList<>(bean.getProxies()); // make sure we clone first so we can edit the list to our needs.
 
@@ -313,7 +313,7 @@ public class MetadataTranslationService extends BaseService {
      * @param targetLanguage       language in which values are to be translated
      * @return translation map with target language and translations
      */
-    private TranslationMap translate(TranslationMap map, String targetLanguage, String authToken) throws TranslationApiException {
+    private TranslationMap translate(TranslationMap map, String targetLanguage, String authToken) throws eu.europeana.api.translation.service.exception.TranslationException {
         // save the field name and size per field (number of values associated with it)
         // to retain the order using LinkedHashmap and get all the texts for translations
         Map<String, Integer> textsPerField = new LinkedHashMap<>();
@@ -322,9 +322,10 @@ public class MetadataTranslationService extends BaseService {
 
         // send request for translation
         LOG.debug("Sending translate request with target language - {} and source language - {}", targetLanguage, map.getSourceLanguage());
-        TranslationResponse response = getTranslationApiClient().translate(createTranslationRequest(textsToTranslate, targetLanguage, map.getSourceLanguage()), authToken);
-        List<String> translations = response.getTranslations();
-        LOG.debug("Translation API service used for translations - {} ", response.getService());
+        getTranslationApiClient().setAuthToken(authToken);
+        List<TranslationObj> translationObjs = createTranslationRequest(textsToTranslate, targetLanguage, map.getSourceLanguage());
+        getTranslationApiClient().getTranslationService().translate(translationObjs);
+        List<String> translations = getResults(translationObjs);
 
         // fail safe check
         if (translations.size() != textsToTranslate.size()) {
@@ -370,5 +371,9 @@ public class MetadataTranslationService extends BaseService {
         translationsForField.removeIf(Objects::isNull);
         ComparatorUtils.removeDuplicates(translationsForField);
         return translationsForField;
+    }
+
+    private List<String> getResults(List<TranslationObj> translationObjs) {
+        return translationObjs.stream().map( obj -> (obj.getTranslation())).collect(Collectors.toList());
     }
 }

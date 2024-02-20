@@ -1,9 +1,9 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.client.TranslationApiClient;
-import eu.europeana.api.translation.client.exception.TranslationApiException;
 import eu.europeana.api.translation.definitions.language.Language;
-import eu.europeana.api.translation.definitions.model.LangDetectRequest;
+import eu.europeana.api.translation.definitions.model.LanguageDetectionObj;
+import eu.europeana.api.translation.service.exception.LanguageDetectionException;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.model.translate.LanguageValueFieldMap;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -19,6 +19,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MetadataLangDetectionService extends BaseService {
 
@@ -40,7 +41,7 @@ public class MetadataLangDetectionService extends BaseService {
         List<Language> edmLanguages = LanguageDetectionUtils.getEdmLanguage(bean, searchResults);
         if (!edmLanguages.isEmpty()) {
             String edmLang = edmLanguages.get(0).name().toLowerCase(Locale.ROOT);
-            if (getTranslationApiClient().isSupported(edmLang)) {
+            if (getTranslationApiClient().getLanguageDetectionService().isSupported(edmLang)) {
                 LOG.debug("For record {}, hint for lang-detection is {} ", searchResults ? bean.getId() : ((FullBean) bean).getAbout(), edmLang);
                 return edmLang;
             } else {
@@ -60,7 +61,7 @@ public class MetadataLangDetectionService extends BaseService {
      * @param briefBeans
      * @return
      */
-    public List<BriefBean> detectLanguageForSearchResults(List<BriefBean> briefBeans, String authToken) throws TranslationException, TranslationApiException {
+    public List<BriefBean> detectLanguageForSearchResults(List<BriefBean> briefBeans, String authToken) throws TranslationException, LanguageDetectionException {
         long start = System.currentTimeMillis();
 
         int index = 0;
@@ -98,7 +99,7 @@ public class MetadataLangDetectionService extends BaseService {
      * @param bean
      * @throws TranslationException
      */
-    public FullBean detectLanguageForProxy(FullBean bean, String authToken) throws TranslationException, TranslationApiException {
+    public FullBean detectLanguageForProxy(FullBean bean, String authToken) throws TranslationException, LanguageDetectionException {
         long start = System.currentTimeMillis();
         List<Proxy> proxies = new ArrayList<>(bean.getProxies()); // make sure we clone first so we can edit the list to our needs.
 
@@ -134,7 +135,7 @@ public class MetadataLangDetectionService extends BaseService {
     }
 
     private <T extends IdBean> void detectLanguageAndUpdate(List<LanguageValueFieldMap> langValueFieldMapForDetection, T bean,
-                                                            String langHint, boolean searchResults, long start, String authToken) throws TranslationException, TranslationApiException {
+                                                            String langHint, boolean searchResults, long start, String authToken) throws TranslationException, LanguageDetectionException {
         Map<String, Integer> textsPerField = new LinkedHashMap<>(); // to maintain the order of the fields
         List<String> textsForDetection = new ArrayList<>();
 
@@ -145,7 +146,10 @@ public class MetadataLangDetectionService extends BaseService {
                 (System.currentTimeMillis() - start));
 
         // 4. send lang-detect request
-        List<String> detectedLanguages = getTranslationApiClient().detectLang(createLangDetectRequest(textsForDetection, langHint), authToken).getLangs();
+        getTranslationApiClient().setAuthToken(authToken);
+        List<LanguageDetectionObj> objs = createLanguageDetectionObj(textsForDetection, langHint);
+        getTranslationApiClient().getLanguageDetectionService().detectLang(objs);
+        List<String> detectedLanguages = getResults(objs);
         LOG.debug("Detected languages - {} ", detectedLanguages);
 
         // if only nulls , nothing is detected. no need to process further.
@@ -193,11 +197,18 @@ public class MetadataLangDetectionService extends BaseService {
     }
 
 
-    private LangDetectRequest createLangDetectRequest(List<String> textsForDetection, String langHint) {
-        LangDetectRequest langDetectRequest = new LangDetectRequest();
-        langDetectRequest.setText(textsForDetection);
-        langDetectRequest.setLang(langHint);
-        return langDetectRequest;
+    private List<LanguageDetectionObj> createLanguageDetectionObj(List<String> textsForDetection, String langHint) {
+        List<LanguageDetectionObj> languageDetectionObjs = new ArrayList<>(textsForDetection.size());
+        for(String text : textsForDetection) {
+            LanguageDetectionObj obj = new LanguageDetectionObj();
+            obj.setHint(langHint);
+            obj.setText(text);
+        }
+        return languageDetectionObjs;
+    }
+
+    private List<String> getResults(List<LanguageDetectionObj> languageDetectionObjs) {
+        return languageDetectionObjs.stream().map( obj -> (obj.getDetectedLang())).collect(Collectors.toList());
     }
 
     /**

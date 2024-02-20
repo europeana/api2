@@ -1,10 +1,9 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api.translation.client.exception.ExternalServiceException;
-import eu.europeana.api.translation.client.exception.TranslationApiException;
 import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api.translation.service.exception.LanguageDetectionException;
 import eu.europeana.api2.v2.exceptions.TranslationException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceNotAvailableException;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
@@ -21,7 +20,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 import static eu.europeana.api2.v2.service.translate.BaseService.*;
-
+import static eu.europeana.api2.v2.utils.ControllerUtils.is5xxError;
 @Service
 public class TranslationService {
 
@@ -57,12 +56,10 @@ public class TranslationService {
     public List<BriefBean> translate(List<BriefBean> beans, String targetLanguage, String authToken) throws EuropeanaException {
         try {
             return metadataTranslationService.searchResultsTranslations(metadataLangDetectionService.detectLanguageForSearchResults(beans, authToken), targetLanguage, authToken);
-        } catch (TranslationApiException e) {
-            // For 502 status , Client throws ExternalServiceException.
-            // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
-            // Hence we need to check for the message as well as we have a redirect functionality based on it.
-            if (e instanceof ExternalServiceException && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
-                throw new TranslationServiceLimitException(e);
+        } catch (LanguageDetectionException | eu.europeana.api.translation.service.exception.TranslationException e) {
+            // For all 5xx error return a TranslationServiceNotAvailableException.
+            if (is5xxError(getRemoteStatusCode(e))) {
+                throw new TranslationServiceNotAvailableException(e.getMessage(), e);
             }
             // keep in mind once we have token being passed that should be valid for
             // translation api as well and we will never receive Unauthorised error here as it is validated in the beginning.
@@ -108,12 +105,10 @@ public class TranslationService {
                 // if not translated during ingestion - apply detection + translation
                 return metadataTranslationService.proxyTranslation(metadataLangDetectionService.detectLanguageForProxy(bean, authToken), targetLanguage, authToken);
             }
-        } catch (TranslationApiException e) {
-            // For 502 status , Client throws ExternalServiceException.
-            // Translation api throws 502 status for google exhuasted exception or if the external service had some issue.
-            // Hence we need to check for the message as well as we have a redirect functionality based on it.
-            if (e instanceof ExternalServiceException && StringUtils.containsIgnoreCase(e.getMessage(), "quota limit reached")) {
-                throw new TranslationServiceLimitException(e);
+        } catch (LanguageDetectionException | eu.europeana.api.translation.service.exception.TranslationException e) {
+            // For all 5xx error return a TranslationServiceNotAvailableException.
+            if (is5xxError(getRemoteStatusCode(e))) {
+                throw new TranslationServiceNotAvailableException(e.getMessage(), e);
             }
             // keep in mind once we have token being passed that should be valid for
             // translation api as well and we will never receive Unauthorised error here as it is validated in the beginning.
@@ -185,5 +180,15 @@ public class TranslationService {
             LOG.debug("Default translation and filtering applied for language : {} ", lang);
         }
         return lang;
+    }
+
+    protected int getRemoteStatusCode(Exception e) {
+        if (e.getClass().isAssignableFrom(LanguageDetectionException.class)) {
+            return ((LanguageDetectionException) e).getRemoteStatusCode();
+        }
+        if (e.getClass().isAssignableFrom(eu.europeana.api.translation.service.exception.TranslationException.class)) {
+            return ((eu.europeana.api.translation.service.exception.TranslationException) e).getRemoteStatusCode();
+        }
+        return 0;
     }
 }
