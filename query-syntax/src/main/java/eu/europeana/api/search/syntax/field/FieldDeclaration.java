@@ -22,7 +22,7 @@ public class FieldDeclaration
         this.name = name;
         this.type = type;
 
-        field_map = new LinkedHashMap();
+        field_map = new LinkedHashMap<>();
         field_map.put(FieldMode.search   , f_search);
         field_map.put(FieldMode.facet    , f_facet);
         field_map.put(FieldMode.sort_asc , f_sort_asc);

@@ -6,6 +6,7 @@ import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api.search.syntax.converter.ConverterContext;
 import eu.europeana.api.search.syntax.model.SyntaxExpression;
 import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
+import eu.europeana.api.search.syntax.utils.Constants;
 import eu.europeana.api.search.syntax.utils.ParserUtils;
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
 import eu.europeana.api.translation.definitions.language.Language;
@@ -222,7 +223,7 @@ public class SearchController extends BaseController {
     public ModelAndView searchJsonGet(
                                       @SolrEscape @RequestParam(value = "query") String queryString,
                                       @RequestParam(value = "qf", required = false) String[] refinementArray,
-                                      @RequestParam(value = "newRefinementString", required = false) String newRefinementString,
+                                      @RequestParam(value = "nqf", required = false) String newRefinementString,
 
                                       @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
                                       @RequestParam(value = "profile", required = false, defaultValue = "standard")
@@ -250,10 +251,6 @@ public class SearchController extends BaseController {
                                       HttpServletResponse response)
             throws EuropeanaException, HttpException {
 
-        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
-
-
-
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
@@ -264,7 +261,10 @@ public class SearchController extends BaseController {
 
         // validate boost Param
         BoostParamUtils.validateBoostParam(boostParam);
-        
+
+        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
+
+
         // validate provided languages
         List<Language> filterLanguages = null;
         if (lang != null) {
@@ -429,8 +429,7 @@ public class SearchController extends BaseController {
 
         LOG.info("Search Query : "+ newRefinementString);
         String parsedSolrQueryParameter = parseFilterParameter(newRefinementString);
-        LOG.info("Parsed Search Query  : "+ parsedSolrQueryParameter);
-        if (refinementArray == null) {
+        if (ArrayUtils.isEmpty(refinementArray)) {
             refinementArray = new String[1];
             refinementArray[0] = parsedSolrQueryParameter;
         }
@@ -546,8 +545,6 @@ public class SearchController extends BaseController {
     public static String  parseFilterParameter(String newRefinementQuery)
         throws  SolrQueryException {
         try {
-
-
             if (StringUtils.isNotBlank(newRefinementQuery)) {
                 ParserUtils.loadFieldRegistry();
                 ParserUtils.loadFunctionRegistry();
@@ -568,10 +565,11 @@ public class SearchController extends BaseController {
         if(solrSyntax !=null) {
             parsedQuery = solrSyntax.toSolr(new ConverterContext());
 
-            LOG.info("### Syntax check passed for filter query ! Parsing completed !####");
-
-            LOG.info("Object model: " + solrSyntax.toString());
-            LOG.info("Solr query: " + parsedQuery);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("### Syntax check passed for filter query ! Parsing completed !####");
+                LOG.debug("Object model: " + solrSyntax.toString());
+                LOG.debug("Solr query: " + parsedQuery);
+            }
         }
         return parsedQuery;
     }

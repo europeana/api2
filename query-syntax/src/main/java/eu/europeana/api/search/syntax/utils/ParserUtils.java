@@ -1,9 +1,10 @@
 package eu.europeana.api.search.syntax.utils;
 
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import eu.europeana.api.search.syntax.converter.ConverterContext;
-import eu.europeana.api.search.syntax.field.FieldDeclaration;
 import eu.europeana.api.search.syntax.field.FieldRegistry;
-import eu.europeana.api.search.syntax.field.FieldType;
 import eu.europeana.api.search.syntax.function.DateContainsFunction;
 import eu.europeana.api.search.syntax.function.DateFunction;
 import eu.europeana.api.search.syntax.function.DateIntersectsFunction;
@@ -13,15 +14,21 @@ import eu.europeana.api.search.syntax.function.IntervalFunction;
 import eu.europeana.api.search.syntax.model.SyntaxExpression;
 import eu.europeana.api.search.syntax.parser.ParseException;
 import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ParserUtils {
 
+  static Logger LOG = LogManager.getLogger(ParserUtils.class);
   private ParserUtils(){
   }
   public static String parseQueryFilter(String queryString) throws ParseException {
     SyntaxExpression expr = getParsedModel(queryString);
     String solrFormat = expr.toSolr(new ConverterContext());
-    System.out.println(queryString + " => " +solrFormat);
+    LOG.info(queryString + " => " +solrFormat);
     return solrFormat;
   }
 
@@ -31,16 +38,43 @@ public class ParserUtils {
   }
 
 
-  /** Temporary loading of field and function registry values
-   * To be updated /removed once registry loading logic in place
+  /**
+   * To load the mapping of valid field names to accept in search query and then to query solr.
    */
-  public static void loadFieldRegistry() {
-    FieldRegistry registry = FieldRegistry.INSTANCE;
-    registry.addField(new FieldDeclaration("issued", FieldType.date, "issued_date", "issued_date", "issued_date_begin", "issued_date_end"));
-    registry.addField(new FieldDeclaration("created", FieldType.date, "created_date", "created_date", "created_date_begin", "created_date_end"));
-    registry.addField(new FieldDeclaration("creator", FieldType.text, "creator", "creator", "creator", "creator"));
+  public static void loadFieldRegistry()  {
+    try {
+      File inputFile = getFileObjectFromResources(Constants.FIELD_REGISTRY_XML);
+      XmlMapper xmlMapper = getXmlMapper(FieldRegistry.class,new FieldInfoDeserializer());
+      xmlMapper.readValue(inputFile, FieldRegistry.class);
+    }
+    catch (IOException ex){
+      LOG.error("query-parser -> Error while loading fieldRegistry. "+ ex.getMessage());
+    }
   }
 
+  /**
+   * Load the mapper with appropriate deserializer.
+   * @param type Class for deserialization
+   * @param deserializer Custom deserializer
+   * @return XmlMapper Object
+   */
+  private static XmlMapper getXmlMapper(Class type, JsonDeserializer deserializer) {
+    JacksonXmlModule module = new JacksonXmlModule();
+    module.addDeserializer(type, deserializer);
+    XmlMapper xmlMapper = new XmlMapper(module);
+    xmlMapper.registerModule(module);
+    return xmlMapper;
+  }
+
+  private static File getFileObjectFromResources(String fileName) {
+    ClassLoader loader = ParserUtils.class.getClassLoader();
+    URL resource = loader.getResource(fileName);
+    return new File(resource.getFile());
+  }
+
+  /**
+   * To load the functions used during the parsing of Search queries.
+   */
   public static void loadFunctionRegistry() {
     FunctionRegistry registry = FunctionRegistry.INSTANCE;
     registry.addFunction(new DateFunction());
