@@ -183,14 +183,14 @@ public class MetadataTranslationService extends BaseService {
         // will store the preflabels(in target language) of contextual entities present in non-language tagged ("def") across proxy for each field
         // values will be added only if they are present in the target language
         // this is to optimise any duplicate translations across proxy for each field.
-        TranslationMap prefLabelsAcrossProxyInTargetLang = new TranslationMap(targetLanguage);
+        TranslationMap prefLabelsAcrossProxyInSourceLang = new TranslationMap(targetLanguage);
 
         // To store the fields if they have target language values across any proxy
         Set<String> otherProxyFieldsWithTargetValues = new HashSet<>();
 
         for (Proxy proxy : proxies) {
             ReflectionUtils.doWithFields(proxy.getClass(), field -> getProxyValuesToTranslateForField(proxy, field, chosenLanguage, targetLanguage, bean, textToTranslate,
-                    otherProxyFieldsWithTargetValues, prefLabelsAcrossProxyInTargetLang), BaseService.proxyFieldFilter);
+                    otherProxyFieldsWithTargetValues, prefLabelsAcrossProxyInSourceLang), BaseService.proxyFieldFilter);
         }
         // remove the fields whose target language values are already present in other proxies.
         otherProxyFieldsWithTargetValues.stream().forEach(field -> {
@@ -198,6 +198,11 @@ public class MetadataTranslationService extends BaseService {
                     textToTranslate.remove(field);
                 }
         });
+
+        // optimisation - if there are already preflabels across in source language
+        if (!prefLabelsAcrossProxyInSourceLang.isEmpty()) {
+            optimisation(prefLabelsAcrossProxyInSourceLang, textToTranslate);
+        }
 
         // if no translation gathered return
         if (textToTranslate.isEmpty()) {
@@ -214,9 +219,6 @@ public class MetadataTranslationService extends BaseService {
             LOG.debug("Empty or null translation returned by the Translation API Client");
             return bean;
         }
-
-        // optimisation
-        optimisation(prefLabelsAcrossProxyInTargetLang, translations);
 
         // add all the translated data to Europeana proxy
         Proxy europeanaProxy = BaseService.getEuropeanaProxy(bean.getProxies(), bean.getAbout());
@@ -266,7 +268,7 @@ public class MetadataTranslationService extends BaseService {
         }
 
         // For optimisation later after translations are fetched
-        getPrefLabelsAcrossProxyInTargetLang(bean, field, origFieldData, targetLang, prefLabelsAcrossProxyInTargetLang);
+        getPrefLabelsAcrossProxyInSourceLang(bean, field, origFieldData, sourceLang, targetLang, prefLabelsAcrossProxyInTargetLang);
     }
 
     /**

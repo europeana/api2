@@ -175,41 +175,57 @@ public class TranslationUtils {
     }
 
     /**
-     * Optimisation - if the translation received for the field already exists in the prefLabels of the entities,
-     * remove those translations
-     * @param prefLabelsAcrossProxyInTargetLang Translation Map to store preflabels across proxy for each field in target language
-     * @param translations translations
+     * Optimisation - If there is a language tagged value in the source language that matches a preferred label (language tagged in the source language or not language tagged)
+     *                of a contextual entity within this property, and if the contextual entity has a language tagged value in the target language, skip this value
+     *
+     *  prefLabelsAcrossProxyInSourceLang contains the prefLabels in source language to match with the text gathered for translations.
+     *  This way we can optimise the values gathered across proxy for entities which already have a preflabels
+     *
+     *  Remember the prefLabels are added in the map only if source and target both values were present
+     *
+     * @param prefLabelsAcrossProxyInSourceLang Translation Map to store preflabels across proxy for each field in source language
+     * @param textToTranslate text gathered for Translate
      */
-    public static void optimisation(TranslationMap prefLabelsAcrossProxyInTargetLang, TranslationMap translations) {
-        for (Map.Entry<String, List<String>> entry : prefLabelsAcrossProxyInTargetLang.entrySet()) {
-            if (translations.containsKey(entry.getKey())) {
-                boolean optimised = translations.get(entry.getKey()).removeAll(entry.getValue());
+    public static void optimisation(TranslationMap prefLabelsAcrossProxyInSourceLang, TranslationMap textToTranslate) {
+        for (Map.Entry<String, List<String>> entry : prefLabelsAcrossProxyInSourceLang.entrySet()) {
+            if (textToTranslate.containsKey(entry.getKey())) {
+                boolean optimised = textToTranslate.get(entry.getKey()).removeAll(entry.getValue());
                 if (optimised && LOG.isDebugEnabled()) {
-                    LOG.debug("Optimised translations for field {}.", entry.getKey());
+                    LOG.debug("Optimised translations for field {}. ", entry.getKey());
+                }
+                // remove the field if values are empty now
+                if (textToTranslate.get(entry.getKey()).isEmpty()) {
+                    textToTranslate.remove(entry.getKey());
                 }
             }
         }
     }
 
     /**
+     * Assumption - only def tags may have the unresolved contextual entities
+     *
      * If in the existing map we have a non-language tagged URI values for which contextual
      * entity exists and has a prefLabel in target language - Then add the values in the TranslationMap prefLabelsAcrossProxyInTargetLang
      *
      * @param bean             FullBean to fetch the contextual entities (This only applies for record translations)
      * @param existingMap      existing map of the field
      * @param targetLang       target language in which values are translated
-     * @param prefLabelsAcrossProxyInTargetLang Translation Map to store preflabels across proxy for each field in target language
+     * @param prefLabelsAcrossProxyInSourceLang Translation Map to store preflabels across proxy for each field in source language
      */
-    public static void getPrefLabelsAcrossProxyInTargetLang(FullBean bean, Field field, Map<String, List<String>> existingMap,
-                                                                             String targetLang, TranslationMap prefLabelsAcrossProxyInTargetLang) {
+    public static void getPrefLabelsAcrossProxyInSourceLang(FullBean bean, Field field, Map<String, List<String>> existingMap,
+                                                            String sourceLang, String targetLang, TranslationMap prefLabelsAcrossProxyInSourceLang) {
         if (existingMap != null && !existingMap.isEmpty() && existingMap.containsKey(Language.DEF)) {
             List<String> defValues = existingMap.get(Language.DEF);
             List<String> onlyUris = getUris(defValues);
             for (String value : onlyUris) {
                 if (EuropeanaUriUtils.isUri(value)) {
-                    List<String> prefLabels = getPrefLabelValuesInTargetLang(bean, value, targetLang);
+                    List<String> prefLabels = getPrefLabelValuesInSourceLang(bean, value, sourceLang, targetLang);
                     if (prefLabels != null && !prefLabels.isEmpty()) {
-                        prefLabelsAcrossProxyInTargetLang.add(field.getName(),prefLabels);
+                        // It's likely that we will have same prefLabel values from different entities. Remove duplicates before adding them
+                        if (prefLabelsAcrossProxyInSourceLang.containsKey(field.getName())) {
+                            prefLabels.removeAll(prefLabelsAcrossProxyInSourceLang.get(field.getName()));
+                        }
+                        prefLabelsAcrossProxyInSourceLang.add(field.getName(),prefLabels);
                     }
                 }
             }
@@ -217,16 +233,18 @@ public class TranslationUtils {
     }
 
     /**
-     * If Entity exists with the uri, fetch the prefLabel value in the traget language
+     * If Entity exists with the uri, fetch the prefLabel value in the source language
+     * Only if there is value present in source and target language
      *
      * @param bean
      * @param uri
      * @param targetLang
      */
-    private static List<String> getPrefLabelValuesInTargetLang(FullBean bean, String uri, String targetLang) {
+    private static List<String> getPrefLabelValuesInSourceLang(FullBean bean, String uri, String sourceLang, String targetLang) {
         ContextualClass entity = BaseService.entityExistsWithUrl(bean, uri);
-        if (entity != null && entity.getPrefLabel() != null && !entity.getPrefLabel().isEmpty() && containsLangOrRegionLang(entity.getPrefLabel(), targetLang)) {
-            return getValueFromMultiLingualMap(entity.getPrefLabel(), targetLang);
+        if (entity != null && entity.getPrefLabel() != null && !entity.getPrefLabel().isEmpty() &&
+                containsLangOrRegionLang(entity.getPrefLabel(), sourceLang) && containsLangOrRegionLang(entity.getPrefLabel(), targetLang)) {
+            return getValueFromMultiLingualMap(entity.getPrefLabel(), sourceLang);
         }
         return Collections.emptyList();
     }
