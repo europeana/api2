@@ -203,6 +203,7 @@ public class MetadataLangDetectionService extends BaseService {
             LanguageDetectionObj obj = new LanguageDetectionObj();
             obj.setHint(langHint);
             obj.setText(text);
+            languageDetectionObjs.add(obj);
         }
         return languageDetectionObjs;
     }
