@@ -3,6 +3,7 @@ package eu.europeana.api2.v2.utils;
 import eu.europeana.api2.v2.model.enums.Profile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -152,4 +153,14 @@ public final class ControllerUtils {
         return query.replaceAll(PROFILE_PATTERN, "");
     }
 
+
+    /**
+     * Return true is status code is 5xx
+     * @param httpStatusCode
+     * @return
+     */
+    public static boolean is5xxError(int httpStatusCode) {
+        HttpStatus status = HttpStatus.valueOf(httpStatusCode);
+        return status.is5xxServerError();
+    }
 }

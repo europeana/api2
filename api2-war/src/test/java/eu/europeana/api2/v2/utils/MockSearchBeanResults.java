@@ -10,6 +10,9 @@ import java.util.List;
 
 public class MockSearchBeanResults {
 
+    public static BriefBean mockForLang(String lang) {
+        return addBasicData("{\"contentTier\": \"4\",  \"language\" : [\"" +lang + "\"]}");
+    }
 
     public static List<BriefBean> mockSearchResults(boolean translations) {
         List<BriefBean> beans = new ArrayList<>();

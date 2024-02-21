@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api2.v2.service.translate.BaseService;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.entity.EuropeanaAggregation;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
@@ -96,7 +97,6 @@ public final class LanguageFilter {
         if (map == null) {
             return null;
         }
-
         LOG.debug("    Map {} has {} keys and {} values", fieldName, map.keySet().size(), map.values().size());
         Set<? extends Map.Entry<?,?>> set = map.entrySet();
         List<String> keysToRemove = new ArrayList<>();
@@ -105,7 +105,6 @@ public final class LanguageFilter {
             // Language keys of search results are compound and exist of <solrFieldName>.<lang>, so we need to filter
             // the language from the key name
             String keyLang = origKey.substring(origKey.indexOf(".") + 1);
-
             // keep all def keys and keep all uri values
             if ("def".equals(keyLang) || EuropeanaUriUtils.isUri(origKey)) {
                 LOG.debug("      Keeping key def, value {}", keyValue.getValue());
@@ -120,15 +119,38 @@ public final class LanguageFilter {
                 keysToRemove.add(origKey); // add the original key language for removal
             }
         }
-        // do actual removal
+        // If no value is returned (after filtering) for a given property, in which case,
+        // all language tagged values should be returned EA-3727
         if (map.keySet().size() == keysToRemove.size()) {
-            return null; // everything removed
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Keys to remove {}. Return all lang-tagged values", keysToRemove.size());
+            }
+            return map; // everything returned
         }
+        // do actual removal
         for (String keyToRemove : keysToRemove) {
             map.remove(keyToRemove);
         }
-
         return map;
+    }
+
+
+    /**
+     * Removes the non lang aware fields.
+     * See - {@link BaseService#searchFieldRemovalFilter}
+     * @param bean
+     * @return
+     */
+    public static IdBean removeNonLanguageAwareFields(IdBean bean) {
+        ReflectionUtils.doWithFields(bean.getClass(), field -> {
+            ReflectionUtils.makeAccessible(field);
+            Object fieldValue = field.get(bean);
+            if (fieldValue != null) {
+                ReflectionUtils.setField(field, bean, null);
+            }
+            }, BaseService.searchFieldRemovalFilter);
+
+        return bean;
     }
 
 }

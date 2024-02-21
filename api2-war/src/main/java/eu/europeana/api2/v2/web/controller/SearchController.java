@@ -254,6 +254,12 @@ public class SearchController extends BaseController {
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
+        if (profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(request) == null) {
+            throw new InvalidAuthorizationException();
+        }
+
+        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
+
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
@@ -305,11 +311,12 @@ public class SearchController extends BaseController {
                 queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
                         querySourceLang, getAuthorizationHeader(request));
                 LOG.debug("TRANSLATED QUERY: |{}|", queryString);
-            } catch (TranslationServiceLimitException e) {
+            } catch (TranslationServiceNotAvailableException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
                 // Body indicating the reason for troubleshooting
                 ControllerUtils.redirectForTranslationsLimitException(request, response, profiles);
-                throw new TranslationServiceLimitException(e);
+                // throwing exception again overwrites the exception message with problem type message. Hence, fetch the original message from cause
+                throw new TranslationServiceNotAvailableException(e.getCause().getMessage(), e);
             }
 
         }
@@ -1002,11 +1009,12 @@ public class SearchController extends BaseController {
         if (translateTargetLang != null) {
             try {
                 searchResultTranslator.translate((List<BriefBean>) resultSet.getResults(), translateTargetLang, getAuthorizationHeader(servletRequest));
-            } catch (TranslationServiceLimitException e) {
+            } catch (TranslationServiceNotAvailableException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
                 // Body indicating the reason for troubleshooting
                 ControllerUtils.redirectForTranslationsLimitException(servletRequest, servletResponse, profiles);
-                throw new TranslationServiceLimitException(e);
+                // throwing exception again overwrites the exception message with problem type message. Hence, fetch the original message from cause
+                throw new TranslationServiceNotAvailableException(e.getCause().getMessage(), e);
             }
 
         }
@@ -1014,6 +1022,8 @@ public class SearchController extends BaseController {
         if (filterLanguages != null) {
             for (IdBean result : resultSet.getResults()) {
                 LanguageFilter.filter(result, filterLanguages);
+                // The non-language aware fields should disappear (Title, dcCreator, dcDescription).
+                LanguageFilter.removeNonLanguageAwareFields(result);
             }
         }
 

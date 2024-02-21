@@ -1,14 +1,10 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api.commons.web.exception.EuropeanaGlobalExceptionHandler;
-import eu.europeana.api2.ApiKeyException;
+import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.XmlUtils;
-import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
-import eu.europeana.api2.v2.exceptions.MissingParamException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
+import eu.europeana.api2.v2.exceptions.*;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
 import eu.europeana.api2.v2.model.xml.rss.RssResponse;
 import eu.europeana.api2.v2.utils.ControllerUtils;
@@ -26,7 +22,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
@@ -39,7 +38,7 @@ import org.springframework.web.servlet.ModelAndView;
  */
 
 @ControllerAdvice
-public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
+public class GlobalExceptionHandler {
 
     private static final Logger LOG = LogManager.getLogger(GlobalExceptionHandler.class);
 
@@ -58,12 +57,24 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
             String wskey = request.getParameter(API_KEY_PARAM);
             logOrIgnoreError(request.getServerName(), wskey, ee);
             response.setStatus(getHttpStatus(response, ee));
+            // for TranslationServiceNotAvailableException and "quota limit errors", throw with specific error details
+            if (ee instanceof TranslationServiceNotAvailableException && StringUtils.containsIgnoreCase(ee.getErrorDetails(), "quota limit reached")) {
+                return generateErrorResponse(request, response, ee.getMessage(), "No more translations available today. Resource is exhausted", ee.getErrorCode());
+            }
             return generateErrorResponse(request, response, ee.getMessage(), ee.getErrorDetails(), ee.getErrorCode());
         } catch (Exception ex) {
             LOG.error("Error while generating error response", ex);
             throw ex;
         }
     }
+
+    @ExceptionHandler(value = {HttpException.class})
+    public ModelAndView httpExceptionHandler(HttpServletRequest request, HttpServletResponse response, HttpException ee) {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        return generateErrorResponse(request, response, "Unauthorized",
+                I18nErrorMessageKeys.getMessageForKey(ee.getI18nKey()), StringUtils.substringAfter(ee.getI18nKey(), "."));
+    }
+
 
     private void logOrIgnoreError(String route, String apiKey, EuropeanaException ee) {
         switch (ee.getAction()) {
@@ -84,26 +95,51 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
         }
         // set status depending on type of exception
         int result = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-        if (ee instanceof ApiKeyException) {
-            if (((ApiKeyException) ee).getHttpStatus() > 0){
-                result = ((ApiKeyException) ee).getHttpStatus();
-            } else {
-                result = HttpServletResponse.SC_UNAUTHORIZED;
-            }
-        } else if (ee instanceof SolrQueryException ||
+            if (ee instanceof SolrQueryException ||
                    ee instanceof InvalidParamValueException ||
                    ee instanceof MissingParamException ||
                    ee instanceof TranslationServiceDisabledException) {
             result = HttpServletResponse.SC_BAD_REQUEST;
         } else if (ee instanceof SolrIOException) {
             result = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-        } else if (ee instanceof TranslationServiceLimitException) {
+        } else if (ee instanceof TranslationServiceNotAvailableException) {
             result = HttpServletResponse.SC_BAD_GATEWAY;
-        }
+        } else if ( ee instanceof InvalidAuthorizationException) {
+                result = HttpServletResponse.SC_FORBIDDEN;
+            }
         return result;
     }
 
+    /**
+     * Handles all required parameter missing problems
+     * Don't need apikey missing handling here anymore, will be handled in HttpException
+     *
+     * @param request
+     * @param response
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler(value = {MissingServletRequestParameterException.class})
+    public ModelAndView missingParameterErrorHandler (HttpServletRequest request, HttpServletResponse response,
+                                                      MissingServletRequestParameterException ex) {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        String errorMsg = "Required parameter '" + ex.getParameterName() + "' missing";
+        return generateErrorResponse(request, response, errorMsg, null, null);
+    }
 
+    /**
+     * Handles HttpMediaTypeNotAcceptableExceptions
+     * @param request
+     * @param response
+     * @return
+     */
+    @ExceptionHandler(value = {HttpMediaTypeNotAcceptableException.class})
+    public ModelAndView mediaTypeNotAcceptableHandler(HttpServletRequest request, HttpServletResponse response) {
+        response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+        String requestedMediaType = ControllerUtils.getRequestedMediaType(request);
+        String errorMsg = "The resource identified by this request cannot generate a response of type " + requestedMediaType;
+        return generateErrorResponse(request, response, errorMsg, null, null);
+    }
 
     /**
      * Handles HttpMediaTypeNotSupportedExceptions
@@ -131,6 +167,44 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
     public ModelAndView badRequestHandler(HttpServletRequest request, HttpServletResponse response, Exception e){
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         return generateErrorResponse(request, response, e.getMessage(), null, null);
+    }
+
+
+    /**
+     * Handles HttpMediaTypeNotSupportedExceptions
+     * @param request
+     * @param response
+     * @return
+     */
+    @ExceptionHandler(value = {HttpRequestMethodNotSupportedException.class})
+    public ModelAndView unsupportedMethodHandler(HttpServletRequest request, HttpServletResponse response){
+        response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        String errorMsg = "Request method '" + request.getMethod() + "' is not allowed for the requested resource";
+        return generateErrorResponse(request, response, errorMsg, null, null);
+    }
+
+
+    /**
+     * General error handler. This handler is used when there are no more specific handlers for the error in question.
+     * The drawback of using this is that we cannot supply the requestNumber in the error message
+     * @param request
+     * @param response
+     *
+     * @param e
+     * @return ModelAndView with error message
+     */
+    @ExceptionHandler(value = {Exception.class})
+    public ModelAndView defaultExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e)  {
+        try {
+            LOG.error("Caught unexpected exception", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            String errorMsg = "Internal server error";
+            String errorDetails = e.getMessage();
+            return generateErrorResponse(request, response, errorMsg, errorDetails, null);
+        } catch (Exception ex) {
+            LOG.error("Error while generating error response", ex);
+            throw ex;
+        }
     }
 
 
@@ -192,5 +266,6 @@ public class GlobalExceptionHandler extends EuropeanaGlobalExceptionHandler {
         }
         return errorMsg;
     }
+
 
 }
