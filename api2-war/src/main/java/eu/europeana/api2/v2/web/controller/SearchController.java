@@ -6,7 +6,6 @@ import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api.search.syntax.converter.ConverterContext;
 import eu.europeana.api.search.syntax.model.SyntaxExpression;
 import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
-import eu.europeana.api.search.syntax.utils.Constants;
 import eu.europeana.api.search.syntax.utils.ParserUtils;
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
 import eu.europeana.api.translation.definitions.language.Language;
@@ -15,11 +14,12 @@ import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
+import eu.europeana.api2.v2.exceptions.InvalidAuthorizationException;
 import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
 import eu.europeana.api2.v2.exceptions.MissingParamException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceLimitException;
+import eu.europeana.api2.v2.exceptions.TranslationServiceNotAvailableException;
 import eu.europeana.api2.v2.model.GeoDistance;
 import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.enums.Profile;
@@ -257,9 +257,6 @@ public class SearchController extends BaseController {
         if (profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(request) == null) {
             throw new InvalidAuthorizationException();
         }
-
-        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
-
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
