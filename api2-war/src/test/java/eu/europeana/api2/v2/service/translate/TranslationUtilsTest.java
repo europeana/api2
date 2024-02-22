@@ -111,7 +111,7 @@ public class TranslationUtilsTest {
         textToTranslate.add("dcDescription", new ArrayList<>(Arrays.asList("Wochenschau mit Artikeln über England während des Ersten Weltkriegs")));
         textToTranslate.add("dcSubject", new ArrayList<>(Arrays.asList("Großbritannien", "London", "Kricket", "Monarchie")));
         textToTranslate.add("dcTitle", new ArrayList<>(Arrays.asList("Wochenschau mit Artikeln über England während des Ersten Weltkriegs")));
-        textToTranslate.add("dctermsSpatial", new ArrayList<>(Arrays.asList("Großbritannien", "London")));
+        textToTranslate.add("dctermsSpatial", new ArrayList<>(Arrays.asList("großbritannien", "london", "cricket"))); // case sensitive values
 
         TranslationUtils.optimisation(prefLabelAcrossProxy, textToTranslate);
 

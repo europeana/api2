@@ -33,6 +33,8 @@ public class LanguageDetectionUtilTest {
     private static final String DEF = "def";
     private static final String DE = "de";
     private static final String FR = "fr";
+    private static final String EN = "en"; // case sensitive values
+
     private static final String DEF_PREF_LABEL = "Cultural Heritage & History";
 
     private static final List<String> DEF_VALUES = Arrays.asList("Calamatta, Luigi (1801 - 1869)", "Leonardo da Vinci (1452 - 1519)",
@@ -41,6 +43,7 @@ public class LanguageDetectionUtilTest {
     private static final List<String> DE_VALUES = Arrays.asList("TvB G 3674", "Paris Hilton", "voetbal", "http://data.europeana.eu/agent/base/6", "Paris Hilton");
 
     private static final List<String> FR_VALUES = Arrays.asList("graveur");
+    private static final List<String> EN_VALUES = Arrays.asList("GrAveur", "paris hilton", "VoetBal", "calamatta, luigi (1801 - 1869)");
 
 
     @Before
@@ -171,6 +174,13 @@ public class LanguageDetectionUtilTest {
         values = LanguageDetectionUtils.removeLangTaggedValuesFromDef(map);
         Assert.assertFalse(values.isEmpty());
         Assert.assertEquals(DEF_VALUES.size() - 2, values.size()); // will remove "voetbal" and "graveur" as it present in DE and FR tag
+    }
+
+    @Test
+    public void Test_removeLangTaggedValuesFromDef_CaseSensistive() {
+        map.put(EN, EN_VALUES);
+        List<String> values = LanguageDetectionUtils.removeLangTaggedValuesFromDef(map);
+        Assert.assertFalse(values.isEmpty());
     }
 
     @Test

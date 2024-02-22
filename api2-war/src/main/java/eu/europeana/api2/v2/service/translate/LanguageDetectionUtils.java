@@ -231,10 +231,10 @@ public class LanguageDetectionUtils {
     }
 
     /**
-     * Remove the lang-tagged values from "def"
+     * Remove the case-sensitive lang-tagged values from "def"
      * NOTE : make sure to ot remove the uri's from the def values
      *
-     * ex if map has values : {def=["paris", "budapest" , "venice"], en=["budapest"]}
+     * ex if map has values : {def=["paris", "budapest" , "venice", "india"], en=["BUDAPEST", "India"]}
      * then returns : ["paris", "venice"]
      * @param map
      * @return
@@ -243,7 +243,7 @@ public class LanguageDetectionUtils {
         List<String> nonLangTaggedDefvalues = new ArrayList<>(map.get(Language.DEF));
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
             if (!entry.getKey().equals(Language.DEF)) {
-                nonLangTaggedDefvalues.removeAll(filterOutUris(entry.getValue()));
+               removeCaseSensitiveValuesFromList(nonLangTaggedDefvalues, filterOutUris(entry.getValue()));
             }
         }
         return nonLangTaggedDefvalues;
@@ -251,5 +251,25 @@ public class LanguageDetectionUtils {
 
     public static boolean onlyNulls(List<String> values) {
         return values.stream().noneMatch(Objects::nonNull);
+    }
+
+    /**
+     * Remove the case-sensitive duplicate value present in list from another list
+     * @param listForOptimisation list with values. May already contains values present in another list
+     * @param valuesToCheck values to check to remove duplicates
+     * @return List of values removed
+     */
+    protected static List<String> removeCaseSensitiveValuesFromList(List<String> listForOptimisation, List<String> valuesToCheck) {
+        List<String> valuesTobeRemoved = new ArrayList<>();
+        valuesToCheck.stream().forEach(literal -> {
+            Optional<String> duplicateValue = listForOptimisation.stream().filter(literal :: equalsIgnoreCase).findFirst();
+            if (duplicateValue.isPresent()) {
+                valuesTobeRemoved.add(duplicateValue.get());
+            }
+
+        });
+        // remove now
+        listForOptimisation.removeAll(valuesTobeRemoved);
+        return valuesTobeRemoved; // this for logging purpose if we want to log the values removed
     }
 }

@@ -189,9 +189,9 @@ public class TranslationUtils {
     public static void optimisation(TranslationMap prefLabelsAcrossProxyInSourceLang, TranslationMap textToTranslate) {
         for (Map.Entry<String, List<String>> entry : prefLabelsAcrossProxyInSourceLang.entrySet()) {
             if (textToTranslate.containsKey(entry.getKey())) {
-                boolean optimised = textToTranslate.get(entry.getKey()).removeAll(entry.getValue());
-                if (optimised && LOG.isDebugEnabled()) {
-                    LOG.debug("Optimised translations for field {}. ", entry.getKey());
+                List<String> valuesRemoved = LanguageDetectionUtils.removeCaseSensitiveValuesFromList(textToTranslate.get(entry.getKey()), entry.getValue());
+                if (!valuesRemoved.isEmpty() && LOG.isDebugEnabled()) {
+                    LOG.debug("Optimisation performed for field {} with values - {}", entry.getKey(), valuesRemoved);
                 }
                 // remove the field if values are empty now
                 if (textToTranslate.get(entry.getKey()).isEmpty()) {
