@@ -8,7 +8,7 @@ PARSER_BEGIN(SearchExpressionParser)
 package eu.europeana.api.search.syntax.parser;
 
 import eu.europeana.api.search.syntax.converter.*;
-import eu.europeana.api.search.syntax.field.*;
+import eu.europeana.api.search.syntax.exception.QuerySyntaxException;import eu.europeana.api.search.syntax.field.*;
 import eu.europeana.api.search.syntax.function.*;
 import eu.europeana.api.search.syntax.model.*;
 import java.util.List;
@@ -106,10 +106,11 @@ FieldQueryExpression FieldQueryExpression():{
   }{
 (fieldName=FieldName() <COLON> fieldArgExpr=FieldValueExpression())
 {
-//System.out.println("    Field name : - "+fieldName);
-//System.out.println("    Field name from registry :- " + FieldRegistry.INSTANCE.getField(fieldName).getName());
-//System.out.println("    Field value :- " + fieldArgExpr.toString());
-return new FieldQueryExpression(FieldRegistry.INSTANCE.getField(fieldName),fieldArgExpr);}
+FieldDeclaration field = FieldRegistry.INSTANCE.getField(fieldName);
+if(field==null){
+  //throw new QuerySyntaxException("No matching field found in registry for field "+fieldName);
+}
+return new FieldQueryExpression(field,fieldArgExpr);}
 }
 
 String FieldName():{
@@ -123,11 +124,6 @@ FieldArgumentExpression FieldValueExpression():{ ValueExpression val ;}{
 }
 
 ValueExpression ValueExpression():{Token t=null;}{
-//    ("\"" t=<VALUE>"\"" ) { return new ValueExpression("\""+ t.image +"\"");}
-// |  ( "\'" t=<VALUE> "\'" ) { return new ValueExpression("\'"+ t.image +"\'");}
-// |t=<VALUE> { return new ValueExpression(t.image); }
-
-
  (<D_QUOTES_START> (t=<UNQUOTED_ANY_CHARS> |{})<D_QUOTES_END> ) { return new ValueExpression("\""+ t.image +"\"");}
  |  (<S_QUOTES_START> (t=<UNQUOTED_ANY_CHARS>|{} )<S_QUOTES_END>) { return new ValueExpression("\'"+ t.image +"\'");}
  |  (t=<LETTERS>) { return new ValueExpression(t.image); }

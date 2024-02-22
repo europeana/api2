@@ -25,40 +25,45 @@ public class TestSearchParser {
 
   @Test
   public void testDateSearchQuery_when_simple_dateFunction() throws  ParseException {
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Contains} 1950\"",
+    Assert.assertEquals("_query_:\"{!field f=created_date op=Contains}1950\"",
         ParserUtils.parseQueryFilter("date(created,1950)"));
  }
 
   @Test
   public void testDateSearchQuery_when_including_interval_dateFunction() throws  ParseException {
 
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Contains} [1950 TO 1960]\"" ,
+    Assert.assertEquals("_query_:\"{!field f=created_date op=Contains}[1950 TO 1960]\"" ,
         ParserUtils.parseQueryFilter("date(created,interval(1950,1960))"));
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Intersects} [1952-01-01 TO 1953-12-31]\"",
+    Assert.assertEquals("_query_:\"{!field f=created_date op=Intersects}[1952-01-01 TO 1953-12-31]\"",
         ParserUtils.parseQueryFilter("dateIntersects(created,interval(1952-01-01,1953-12-31))"));
 
     //Test interval with no upper/lower limit
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Intersects} [1952-01-01 TO *]\"",
+    Assert.assertEquals("_query_:\"{!field f=created_date op=Intersects}[1952-01-01 TO *]\"",
         ParserUtils.parseQueryFilter("dateIntersects(created,interval(1952-01-01,*))"));
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Intersects} [* TO 1962-01-01]\"",
+    Assert.assertEquals("_query_:\"{!field f=created_date op=Intersects}[* TO 1962-01-01]\"",
         ParserUtils.parseQueryFilter("dateIntersects(created,interval(*,1962-01-01))"));
 
   }
   @Test
   public void testDateSearchQuery_when_AND_OR_operations() throws  ParseException {
-    Assert.assertEquals("(_query_:\"{!field f=created_date op=Contains} 1950\" OR _query_:\"{!field f=created_date op=Contains} 1960\")",
+    Assert.assertEquals("(_query_:\"{!field f=created_date op=Contains}1950\" OR _query_:\"{!field f=created_date op=Contains}1960\")",
         ParserUtils.parseQueryFilter("date(created,1950) OR date(created,1960)"));
 
-    Assert.assertEquals("(_query_:\"{!field f=created_date op=Contains} [1950 TO 1960]\" OR _query_:\"{!field f=created_date op=Contains} [1970 TO 1980]\")",
+    Assert.assertEquals("(_query_:\"{!field f=created_date op=Contains}[1950 TO 1960]\" OR _query_:\"{!field f=created_date op=Contains}[1970 TO 1980]\")",
         ParserUtils.parseQueryFilter("date(created,interval(1950,1960)) OR date(created,interval(1970,1980))"));
   }
   @Test
   public void testDateSearchQuery_when_NOT_operator() throws  ParseException {
-    Assert.assertEquals(" NOT (_query_:\"{!field f=created_date op=Contains} 1950\")",
+    Assert.assertEquals(" NOT (_query_:\"{!field f=created_date op=Contains}1950\")",
         ParserUtils.parseQueryFilter("NOT date(created,1950)"));
 
-    Assert.assertEquals(" NOT ((_query_:\"{!field f=created_date op=Contains} [1950 TO 1960]\" OR _query_:\"{!field f=created_date op=Contains} [1970 TO 1980]\"))",
+    Assert.assertEquals(" NOT ((_query_:\"{!field f=created_date op=Contains}[1950 TO 1960]\" OR _query_:\"{!field f=created_date op=Contains}[1970 TO 1980]\"))",
         ParserUtils.parseQueryFilter("NOT(date(created,interval(1950,1960)) OR date(created,interval(1970,1980)) )"));
+  }
+
+  @Test
+  public void testDateSearchQuery_when_invalid_field() throws ParseException {
+    ParserUtils.parseQueryFilter("date(created,1950)");
   }
 
 
