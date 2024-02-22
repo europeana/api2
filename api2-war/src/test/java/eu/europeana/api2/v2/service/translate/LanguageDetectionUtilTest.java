@@ -58,7 +58,7 @@ public class LanguageDetectionUtilTest {
     public void Test_getEdmLanguage_Record_1() {
         List<Language> language = LanguageDetectionUtils.getEdmLanguage(bean, false);
         Assert.assertFalse(language.isEmpty());
-        Assert.assertEquals(language.get(0),Language.NL);
+        Assert.assertEquals(Language.NL, language.get(0));
     }
 
     // test valid edm lang
@@ -67,7 +67,7 @@ public class LanguageDetectionUtilTest {
         BriefBean bean =  MockSearchBeanResults.mockForLang("de");
         List<Language> language = LanguageDetectionUtils.getEdmLanguage(bean, true);
         Assert.assertFalse(language.isEmpty());
-        Assert.assertEquals(language.get(0),Language.DE);
+        Assert.assertEquals(Language.DE, language.get(0));
     }
 
     // test region codes
@@ -85,7 +85,7 @@ public class LanguageDetectionUtilTest {
 
         List<Language> language = LanguageDetectionUtils.getEdmLanguage(bean, false);
         Assert.assertFalse(language.isEmpty());
-        Assert.assertEquals(language.get(0),Language.EN);
+        Assert.assertEquals(Language.EN, language.get(0));
     }
 
     // test Invalid edm lang
@@ -119,7 +119,7 @@ public class LanguageDetectionUtilTest {
         BriefBean bean =  MockSearchBeanResults.mockForLang("de-NL");
         List<Language> language = LanguageDetectionUtils.getEdmLanguage(bean, true);
         Assert.assertFalse(language.isEmpty());
-        Assert.assertEquals(language.get(0),Language.DE);
+        Assert.assertEquals(Language.DE, language.get(0));
 
     }
 

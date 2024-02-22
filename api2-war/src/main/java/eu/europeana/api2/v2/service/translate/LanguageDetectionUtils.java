@@ -19,9 +19,6 @@ public class LanguageDetectionUtils {
 
     private static final Logger LOG = LogManager.getLogger(LanguageDetectionUtils.class);
 
-    private static final String PATTERN = "\\p{L}|[0-9]";
-    private static final Pattern unicodeNumberPattern = Pattern.compile(PATTERN);
-
     private LanguageDetectionUtils() {
 
     }
