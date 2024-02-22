@@ -30,7 +30,7 @@ public class DateFunction implements FunctionClass {
     public static final String NAME = "date";
     public static enum Operation { Intersects, Contains, Within }
 
-    private static String SOLR_DATE_QUERY = "_query_:\"{!field f=%s op=%s} %s\"";
+    private static String SOLR_DATE_QUERY = "_query_:\"{!field f=%s op=%s}%s\"";
     private static String DATE_WILDCARD   = "*";
     private static String DATE_NOW        = "now";
 

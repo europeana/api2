@@ -14,9 +14,8 @@ import eu.europeana.api.search.syntax.function.IntervalFunction;
 import eu.europeana.api.search.syntax.model.SyntaxExpression;
 import eu.europeana.api.search.syntax.parser.ParseException;
 import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,9 +42,9 @@ public class ParserUtils {
    */
   public static void loadFieldRegistry()  {
     try {
-      File inputFile = getFileObjectFromResources(Constants.FIELD_REGISTRY_XML);
+      InputStream inputStream = getInputStreamFromFile(Constants.FIELD_REGISTRY_XML);
       XmlMapper xmlMapper = getXmlMapper(FieldRegistry.class,new FieldInfoDeserializer());
-      xmlMapper.readValue(inputFile, FieldRegistry.class);
+      FieldRegistry fieldRegistry = xmlMapper.readValue(inputStream, FieldRegistry.class);
     }
     catch (IOException ex){
       LOG.error("query-parser -> Error while loading fieldRegistry. "+ ex.getMessage());
@@ -66,10 +65,10 @@ public class ParserUtils {
     return xmlMapper;
   }
 
-  private static File getFileObjectFromResources(String fileName) {
+  private static InputStream getInputStreamFromFile(String fileName) {
     ClassLoader loader = ParserUtils.class.getClassLoader();
-    URL resource = loader.getResource(fileName);
-    return new File(resource.getFile());
+    InputStream resource = loader.getResourceAsStream(fileName);
+    return resource;
   }
 
   /**
