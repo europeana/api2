@@ -4,15 +4,12 @@ import eu.europeana.api.translation.definitions.model.TranslationObj;
 import eu.europeana.api2.v2.model.translate.TranslationMap;
 import eu.europeana.api2.v2.utils.MockFullBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
-import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.corelib.solr.entity.PhysicalThingImpl;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
