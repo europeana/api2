@@ -205,7 +205,10 @@ public class TranslationUtils {
      * Assumption - only def tags may have the unresolved contextual entities
      *
      * If in the existing map we have a non-language tagged URI values for which contextual
-     * entity exists and has a prefLabel in target language - Then add the values in the TranslationMap prefLabelsAcrossProxyInTargetLang
+     * entity exists and has a prefLabel in source and target language - Then add the source lang values in the
+     * TranslationMap getPrefLabelsAcrossProxyInSourceLang
+     *
+     * NOTE : these source lang pref Labels are later checked against the text gathered for translations.
      *
      * @param bean             FullBean to fetch the contextual entities (This only applies for record translations)
      * @param existingMap      existing map of the field
