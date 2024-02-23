@@ -78,7 +78,7 @@ TopLevelExpression IndividualExpressions():{
 
 FunctionExpression FunctionExpression():{
   String functionName="";
-  List<ArgumentExpression> paramList = new ArrayList<ArgumentExpression>();
+  List<ArgumentExpression> paramList = new ArrayList<>();
   ArgumentExpression argExpr=null;
   }{
   (functionName=FunctionName()<LPAR>

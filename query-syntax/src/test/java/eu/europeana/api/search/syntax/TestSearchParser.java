@@ -73,14 +73,20 @@ public class TestSearchParser {
     Assert.assertEquals("created_date:1980",ParserUtils.parseQueryFilter("created:1980"));
     Assert.assertEquals("created_date:\"field45\"",ParserUtils.parseQueryFilter("created:\"field45\""));
     Assert.assertEquals("created_date:\"field45 field46\"",ParserUtils.parseQueryFilter("created:\"field45 field46\""));
-    Assert.assertEquals("created_date:\'field45 field46\'",ParserUtils.parseQueryFilter("created:\'field45 field46\'"));
+    Assert.assertEquals("created_date:'field45 field46'",ParserUtils.parseQueryFilter("created:'field45 field46'"));
   }
 
 
-
+  @Test
   public void testFieldSearchQuery_when_AND_OR_Operator() throws  ParseException {
-    Assert.assertEquals("issued_date:1950 AND issued_date:1950",ParserUtils.parseQueryFilter("issued:1950 AND issued_date:1950"));
+    Assert.assertEquals("(issued_date:1950 AND (issued_date:1960 AND issued_date:1970))",ParserUtils.parseQueryFilter("issued:1950 AND issued:1960 AND issued:1970"));
 
   }
+
+  @Test
+  public void testGeodistanceQuery() throws ParseException {
+    ParserUtils.parseQueryFilter("distance(coverageLocation,47,12,2000)");
+  }
+
 
 }
