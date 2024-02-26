@@ -2,7 +2,7 @@ package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.translation.definitions.model.TranslationObj;
-import eu.europeana.api.translation.definitions.model.TranslationRequest;
+import eu.europeana.api2.v2.model.translate.TranslationMap;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
 import eu.europeana.corelib.utils.ComparatorUtils;
@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -111,7 +112,7 @@ public class TranslationUtils {
                         LOG.debug("Entity {} has preflabel in chosen language {} for translation  ", value, sourceLang);
                         valuesToTranslate.addAll(getValueFromMultiLingualMap(entity.getPrefLabel(), sourceLang));
                     } else {
-                        LOG.debug("Entity {} already has value in target language {}", entity.getAbout(), targetLang);
+                        LOG.debug("Entity {} already has value in target language {}", entity != null ? entity.getAbout() : "", targetLang);
                     }
                 } else {
                     valuesToTranslate.add(value); // add non uri values
@@ -174,43 +175,60 @@ public class TranslationUtils {
     }
 
     /**
-     * Eliminate any duplicate values from translated Values if value already exist in any lang-tagged map
+     * Optimisation - If there is a language tagged value in the source language that matches a preferred label (language tagged in the source language or not language tagged)
+     *                of a contextual entity within this property, and if the contextual entity has a language tagged value in the target language, skip this value
      *
-     * @param existingMap      existing map of the field
-     * @param translatedValues translated values to be added for that field
+     *  prefLabelsAcrossProxyInSourceLang contains the prefLabels in source language to match with the text gathered for translations.
+     *  This way we can optimise the values gathered across proxy for entities which already have a preflabels
+     *
+     *  Remember the prefLabels are added in the map only if source and target both values were present
+     *
+     * @param prefLabelsAcrossProxyInSourceLang Translation Map to store preflabels across proxy for each field in source language
+     * @param textToTranslate text gathered for Translate
      */
-    public static void eliminateDuplicatesForLangQualifiedValues(Map<String, List<String>> existingMap,
-                                                                 List<String> translatedValues) {
-        for (Map.Entry<String, List<String>> entry : existingMap.entrySet()) {
-            if (!entry.getKey().equals(Language.DEF)) {
-                translatedValues.removeAll(entry.getValue());
+    public static void optimisation(TranslationMap prefLabelsAcrossProxyInSourceLang, TranslationMap textToTranslate) {
+        for (Map.Entry<String, List<String>> entry : prefLabelsAcrossProxyInSourceLang.entrySet()) {
+            if (textToTranslate.containsKey(entry.getKey())) {
+                List<String> valuesRemoved = LanguageDetectionUtils.removeCaseSensitiveValuesFromList(textToTranslate.get(entry.getKey()), entry.getValue());
+                if (!valuesRemoved.isEmpty() && LOG.isDebugEnabled()) {
+                    LOG.debug("Optimisation performed for field {} with values - {}", entry.getKey(), valuesRemoved);
+                }
+                // remove the field if values are empty now
+                if (textToTranslate.get(entry.getKey()).isEmpty()) {
+                    textToTranslate.remove(entry.getKey());
+                }
             }
         }
     }
 
     /**
-     * Eliminate any duplicate values from translated Values if
-     * - value already exist in any lang-tagged map
-     * - Or if contextual entity exists with language qualified preferred labels
+     * Assumption - only def tags may have the unresolved contextual entities
+     *
+     * If in the existing map we have a non-language tagged URI values for which contextual
+     * entity exists and has a prefLabel in source and target language - Then add the source lang values in the
+     * TranslationMap getPrefLabelsAcrossProxyInSourceLang
+     *
+     * NOTE : these source lang pref Labels are later checked against the text gathered for translations.
      *
      * @param bean             FullBean to fetch the contextual entities (This only applies for record translations)
      * @param existingMap      existing map of the field
-     * @param translatedValues translated values to be added for that field
      * @param targetLang       target language in which values are translated
+     * @param prefLabelsAcrossProxyInSourceLang Translation Map to store preflabels across proxy for each field in source language
      */
-    public static void eliminateDuplicatesForLangQualifiedValuesAndPreflabels(FullBean bean, Map<String, List<String>> existingMap,
-                                                                     List<String> translatedValues, String targetLang) {
-        for (Map.Entry<String, List<String>> entry : existingMap.entrySet()) {
-            // for non-language tagged only check for contextual entities
-            if (entry.getKey().equals(Language.DEF)) {
-                List<String> uris = getUris(entry.getValue());
-                uris.stream().forEach(uri -> removePrefLabelValuesFromTranslated(bean, uri, targetLang, translatedValues));
-            } else {
-                for (String value : entry.getValue()) {
-                    if (EuropeanaUriUtils.isUri(value)) {
-                        removePrefLabelValuesFromTranslated(bean, value, targetLang, translatedValues);
-                    } else if (translatedValues.contains(value)) {
-                            translatedValues.remove(value);
+    public static void getPrefLabelsAcrossProxyInSourceLang(FullBean bean, Field field, Map<String, List<String>> existingMap,
+                                                            String sourceLang, String targetLang, TranslationMap prefLabelsAcrossProxyInSourceLang) {
+        if (existingMap != null && !existingMap.isEmpty() && existingMap.containsKey(Language.DEF)) {
+            List<String> defValues = existingMap.get(Language.DEF);
+            List<String> onlyUris = getUris(defValues);
+            for (String value : onlyUris) {
+                if (EuropeanaUriUtils.isUri(value)) {
+                    List<String> prefLabels = getPrefLabelValuesInSourceLang(bean, value, sourceLang, targetLang);
+                    if (prefLabels != null && !prefLabels.isEmpty()) {
+                        // It's likely that we will have same prefLabel values from different entities. Remove duplicates before adding them
+                        if (prefLabelsAcrossProxyInSourceLang.containsKey(field.getName())) {
+                            prefLabels.removeAll(prefLabelsAcrossProxyInSourceLang.get(field.getName()));
+                        }
+                        prefLabelsAcrossProxyInSourceLang.add(field.getName(),prefLabels);
                     }
                 }
             }
@@ -218,28 +236,20 @@ public class TranslationUtils {
     }
 
     /**
-     * Will eliminate duplicate values from translated values
-     * if Contextual entity has the prefLabel in the target lang that matches the translation.
+     * If Entity exists with the uri, fetch the prefLabel value in the source language
+     * Only if there is value present in source and target language
      *
-     * ex - translatedValues : ["paris", "Bonjour", "Madam"]
-     *      prefLabel : {fr : ["paris"], en : ["paris] , de : ["paris"]}
-     *      targetlang - fr
-     *      then translatedValues will be - ["Bonjour", "Madam"] as translation "paris" already exists
-     *      in the target language.
      * @param bean
      * @param uri
      * @param targetLang
-     * @param translatedValues
      */
-    private static void removePrefLabelValuesFromTranslated(FullBean bean, String uri, String targetLang, List<String> translatedValues) {
+    private static List<String> getPrefLabelValuesInSourceLang(FullBean bean, String uri, String sourceLang, String targetLang) {
         ContextualClass entity = BaseService.entityExistsWithUrl(bean, uri);
-        if (entity != null && entity.getPrefLabel() != null && !entity.getPrefLabel().isEmpty() && entity.getPrefLabel().containsKey(targetLang)) {
-            List<String> prefLabelsInTargetLang = entity.getPrefLabel().get(targetLang);
-            boolean removed = translatedValues.removeAll(prefLabelsInTargetLang);
-            if (removed) {
-                LOG.debug("Eliminated translated value for entity {} which has prefLabel in target language {} ", uri, targetLang);
-            }
+        if (entity != null && entity.getPrefLabel() != null && !entity.getPrefLabel().isEmpty() &&
+                containsLangOrRegionLang(entity.getPrefLabel(), sourceLang) && containsLangOrRegionLang(entity.getPrefLabel(), targetLang)) {
+            return getValueFromMultiLingualMap(entity.getPrefLabel(), sourceLang);
         }
+        return Collections.emptyList();
     }
 
     private static List<String> getUris(List<String> values) {
