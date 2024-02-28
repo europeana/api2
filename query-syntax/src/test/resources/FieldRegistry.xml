@@ -2,5 +2,4 @@
   <field name="issued" type="date" searching="issued_date" faceting="issued" sorting-descending="issued_date_end" sorting-ascending="issued_date_begin"></field>
   <field name="created" type="date" searching="created_date" faceting="created" sorting-descending="created_date_end" sorting-ascending="created_date_begin"></field>
   <field name="coverageLocation" type="geo" searching="coverageLocation" faceting="created" sorting-descending="created_date_end" sorting-ascending="created_date_begin"></field>
-
 </field-definitions>
