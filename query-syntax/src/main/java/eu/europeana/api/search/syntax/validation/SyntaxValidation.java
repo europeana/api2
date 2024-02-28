@@ -3,11 +3,11 @@
  */
 package eu.europeana.api.search.syntax.validation;
 
-import static eu.europeana.api.search.syntax.validation.SyntaxErrorUtils.*;
+import static eu.europeana.api.search.syntax.validation.SyntaxErrorUtils.newIllegalFunctionArg;
+import static eu.europeana.api.search.syntax.validation.SyntaxErrorUtils.newWrongFieldType;
 
 import eu.europeana.api.search.syntax.field.FieldDeclaration;
 import eu.europeana.api.search.syntax.field.FieldType;
-import eu.europeana.api.search.syntax.function.FunctionClass;
 import eu.europeana.api.search.syntax.model.ArgumentExpression;
 import eu.europeana.api.search.syntax.model.FunctionExpression;
 
@@ -18,9 +18,9 @@ import eu.europeana.api.search.syntax.model.FunctionExpression;
 public class SyntaxValidation {
 
     public static void checkFieldType(FieldDeclaration field
-                                    , FieldType expected, FieldType got) {
-        if ( FieldType.date != field.getType() ) {
-            newWrongFieldType(field.getName(), FieldType.date, field.getType());
+                                    , FieldType expected) {
+        if ( expected != field.getType() ) {
+            newWrongFieldType(field.getName(), expected, field.getType());
         }
     }
 

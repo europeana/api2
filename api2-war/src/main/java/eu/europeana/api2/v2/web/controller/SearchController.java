@@ -3,9 +3,7 @@ package eu.europeana.api2.v2.web.controller;
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 import eu.europeana.api.commons.web.exception.HttpException;
-import eu.europeana.api.search.syntax.converter.ConverterContext;
-import eu.europeana.api.search.syntax.model.SyntaxExpression;
-import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
+import eu.europeana.api.search.syntax.utils.Constants;
 import eu.europeana.api.search.syntax.utils.ParserUtils;
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
 import eu.europeana.api.translation.definitions.language.Language;
@@ -95,6 +93,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -428,14 +427,18 @@ public class SearchController extends BaseController {
         } else if (StringUtils.containsIgnoreCase(sort, "distance")){
             // removes "distance", "distance asc", "distance desc" also when followed by other sort parameters,
             // including possible spaces and the trailing comma in those cases
-            sort = org.apache.commons.lang3.RegExUtils.removePattern(sort, "distance\\s?(asc|desc)?(\\s|,)*");
+            sort = RegExUtils.removePattern(sort, "distance\\s?(asc|desc)?(\\s|,)*");
         }
 
-        LOG.info("Search Query : "+ newRefinementString);
-        String parsedSolrQueryParameter = parseFilterParameter(newRefinementString);
+       //Start -New Parser Logic
+        ParserUtils.loadFieldRegistryFromResource(this.getClass(), Constants.FIELD_REGISTRY_XML);
+        ParserUtils.loadFunctionRegistry();
+        Map<String, String> parametermap = ParserUtils.getParsedParametersMap(newRefinementString);
+
+        //If the qf parameter is not populated get the refinement query value from new nqf parameter
         if (ArrayUtils.isEmpty(refinementArray)) {
             refinementArray = new String[1];
-            refinementArray[0] = parsedSolrQueryParameter;
+            refinementArray[0] = parametermap.get("fq");
         }
 
         Class<? extends IdBean> clazz = selectBean(profile);
@@ -451,7 +454,17 @@ public class SearchController extends BaseController {
                                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                                 .setSpellcheckAllowed(false);
 
-        // EA-2996
+        String sfield = parametermap.get("sfield");
+        String pt = parametermap.get("pt");
+        String d = parametermap.get("d");
+
+        if(StringUtils.isNotBlank(sfield) || StringUtils.isNotBlank(pt) || StringUtils.isNotBlank(d)) {
+            query.addGeoParamsToQuery(sfield, pt, d);
+        }
+        // End -New Parser Logic
+
+
+            // EA-2996
         if (geoDistance.isInitialised()){
             query.addGeoParamsToQuery(geoDistance.getSField(), geoDistance.getPoint(), geoDistance.getDistance());
         }
@@ -544,39 +557,7 @@ public class SearchController extends BaseController {
         response.setCharacterEncoding(UTF8);
         response.addHeader("Allow", ControllerUtils.ALLOWED_GET_HEAD_POST);
         return JsonUtils.toJson(result, callback);
-    }
-
-    public static String  parseFilterParameter(String newRefinementQuery)
-        throws  SolrQueryException {
-        try {
-            if (StringUtils.isNotBlank(newRefinementQuery)) {
-                ParserUtils.loadFieldRegistry();
-                ParserUtils.loadFunctionRegistry();
-                SearchExpressionParser parser = new SearchExpressionParser(new java.io.StringReader(
-                    newRefinementQuery));
-                SyntaxExpression solrSyntax = parser.parse();
-                return getSolrQuery(solrSyntax);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new SolrQueryException(ProblemType.SEARCH_QUERY_INVALID);
-        }
-        return null;
-    }
-
-    private static String getSolrQuery(SyntaxExpression solrSyntax) {
-        String parsedQuery ="";
-        if(solrSyntax !=null) {
-            parsedQuery = solrSyntax.toSolr(new ConverterContext());
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("### Syntax check passed for filter query ! Parsing completed !####");
-                LOG.debug("Object model: " + solrSyntax.toString());
-                LOG.debug("Solr query: " + parsedQuery);
-            }
-        }
-        return parsedQuery;
-    }
+    } 
 
     /**
      * @return targetLanguage

@@ -11,12 +11,13 @@ import eu.europeana.api.search.syntax.model.FunctionExpression;
 import eu.europeana.api.search.syntax.model.OrExpression;
 import eu.europeana.api.search.syntax.model.SyntaxExpression;
 import eu.europeana.api.search.syntax.model.ValueExpression;
+import eu.europeana.api.search.syntax.utils.Constants;
 import eu.europeana.api.search.syntax.utils.ParserUtils;
 
 public class TestSyntaxConversion {
 
   static {
-    ParserUtils.loadFieldRegistry();
+    ParserUtils.loadFieldRegistryFromResource(TestSyntaxConversion.class, Constants.FIELD_REGISTRY_XML);
     ParserUtils.loadFunctionRegistry();
   }
 
