@@ -14,6 +14,8 @@ public class FieldRegistry {
 
     public static FieldRegistry INSTANCE = new FieldRegistry();
 
+    public boolean isLoaded= false;
+
     public Map<String,FieldDeclaration> registry;
 
     public FieldRegistry() {
@@ -36,4 +38,6 @@ public class FieldRegistry {
         FieldDeclaration decl = registry.get(name);
         return ( decl != null ? decl.getField(mode) : null);
     }
+
+
 }

@@ -102,10 +102,8 @@ public class DateFunction implements FunctionClass {
     private String getField(ArgumentExpression arg, ConverterContext ctxt) {
         if ( arg instanceof ValueExpression ) {
             ValueExpression expr = (ValueExpression)arg;
-
             FieldDeclaration field = ctxt.getField(expr.getValue());
-            checkFieldType(field, FieldType.date, field.getType());
-
+            checkFieldType(field, FieldType.date);
             return field.getField(FieldMode.search);
         }
         return null;
