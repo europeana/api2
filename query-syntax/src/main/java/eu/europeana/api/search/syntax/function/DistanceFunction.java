@@ -35,9 +35,9 @@ public class DistanceFunction implements FunctionClass {
       String fieldName = getField(params.get(0), context);
       String sfield = StringUtils.isNotBlank(fieldName) ? (fieldName + Constants.LOCATION_SUFFIX) : null;
 
-      context.setParameter("sfield", sfield);
-      context.setParameter("pt",getFloatValue(params.get(1)) +","+ getFloatValue(params.get(2)));
-      context.setParameter("d",getFloatValue(params.get(3)));
+      context.setParameter(Constants.SFIELD_PARAM, sfield);
+      context.setParameter(Constants.PT_PARAM,getFloatValue(params.get(1)) +","+ getFloatValue(params.get(2)));
+      context.setParameter(Constants.D_PARAM,getFloatValue(params.get(3)));
       return SOLR_GEODISTANCE_QUERY;
     }
     return null;

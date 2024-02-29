@@ -18,5 +18,8 @@ public class Constants {
   public static final String EQUALS = "=";
 
   public static final String FQ_PARAM = "fq";
+  public static final String SFIELD_PARAM = "sfield";
+  public static final String PT_PARAM = "pt";
+  public static final String D_PARAM = "d";
 
 }
