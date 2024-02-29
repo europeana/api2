@@ -45,9 +45,10 @@ public class DistanceFunction implements FunctionClass {
 
   private String getFloatValue(ArgumentExpression argument) {
     if(argument instanceof ValueExpression){
-      ValueExpression val = (ValueExpression) argument;
-      if(val!=null)
-        return String.valueOf(Float.parseFloat(val.getValue())) ;
+      String value = ((ValueExpression) argument).getValue();
+      if(value!=null) {
+        return String.valueOf(Float.parseFloat(value));
+      }
     }
     return null;
   }
