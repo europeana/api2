@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.definitions.model.TranslationObj;
+import eu.europeana.api2.v2.model.translate.TranslationMap;
 import eu.europeana.api2.v2.utils.MockFullBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import org.junit.Assert;
@@ -96,5 +97,32 @@ public class TranslationUtilsTest {
         valuesToTranslate = TranslationUtils.getValuesToTranslate(map, KEY2, TARGET_LANG, bean, true, null, null);
         Assert.assertEquals(3, valuesToTranslate.size());
         Assert.assertFalse(valuesToTranslate.contains("Landbruk"));
+    }
+
+    @Test
+    public void Test_Optimisation() {
+        TranslationMap prefLabelAcrossProxy = new TranslationMap(KEY1);
+        TranslationMap textToTranslate = new TranslationMap(KEY1);
+
+        prefLabelAcrossProxy.add("dcSubject", new ArrayList<>(Arrays.asList("Großbritannien", "Irland", "Guernsey", "Jersey", "Isle of Man", "Kanalinseln", "London", "Cricket", "Erster Weltkrieg", "Irland", "England", "Erster Weltkrieg")));
+        prefLabelAcrossProxy.add("dcType", new ArrayList<>(Arrays.asList("Film")));
+        prefLabelAcrossProxy.add("dctermsSpatial", new ArrayList<>(Arrays.asList("Großbritannien", "Britische Inseln", "Vereinigtes Königreich", "Irland", "Guernsey", "Jersey", "Isle of Man", "Kanalinseln", "London", "Cricket", "Erster Weltkrieg", "England", "Königreich der Niederland")));
+
+        textToTranslate.add("dcDescription", new ArrayList<>(Arrays.asList("Wochenschau mit Artikeln über England während des Ersten Weltkriegs")));
+        textToTranslate.add("dcSubject", new ArrayList<>(Arrays.asList("Großbritannien", "London", "Kricket", "Monarchie")));
+        textToTranslate.add("dcTitle", new ArrayList<>(Arrays.asList("Wochenschau mit Artikeln über England während des Ersten Weltkriegs")));
+        textToTranslate.add("dctermsSpatial", new ArrayList<>(Arrays.asList("großbritannien", "london", "cricket"))); // case sensitive values
+
+        TranslationUtils.optimisation(prefLabelAcrossProxy, textToTranslate);
+
+        Assert.assertFalse(textToTranslate.isEmpty());
+        Assert.assertTrue(textToTranslate.containsKey("dcDescription"));
+        // two values are removed
+        Assert.assertTrue(textToTranslate.containsKey("dcSubject"));
+        Assert.assertEquals(2, textToTranslate.get("dcSubject").size());
+
+        Assert.assertTrue(textToTranslate.containsKey("dcTitle"));
+        // all values removed
+        Assert.assertFalse(textToTranslate.containsKey("dctermsSpatial"));
     }
 }

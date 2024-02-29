@@ -180,19 +180,29 @@ public class MetadataTranslationService extends BaseService {
 
         TranslationMap textToTranslate = new TranslationMap(chosenLanguage);
 
+        // will store the preflabels(in target language) of contextual entities present in non-language tagged ("def") across proxy for each field
+        // values will be added only if they are present in the target language
+        // this is to optimise any duplicate translations across proxy for each field.
+        TranslationMap prefLabelsAcrossProxyInSourceLang = new TranslationMap(targetLanguage);
+
         // To store the fields if they have target language values across any proxy
         Set<String> otherProxyFieldsWithTargetValues = new HashSet<>();
 
         for (Proxy proxy : proxies) {
-            ReflectionUtils.doWithFields(proxy.getClass(), field -> getProxyValuesToTranslateForField(proxy, field, chosenLanguage, targetLanguage, bean, textToTranslate, otherProxyFieldsWithTargetValues), BaseService.proxyFieldFilter);
+            ReflectionUtils.doWithFields(proxy.getClass(), field -> getProxyValuesToTranslateForField(proxy, field, chosenLanguage, targetLanguage, bean, textToTranslate,
+                    otherProxyFieldsWithTargetValues, prefLabelsAcrossProxyInSourceLang), BaseService.proxyFieldFilter);
         }
-
         // remove the fields whose target language values are already present in other proxies.
         otherProxyFieldsWithTargetValues.stream().forEach(field -> {
                 if (textToTranslate.containsKey(field)) {
                     textToTranslate.remove(field);
                 }
         });
+
+        // optimisation - if there are already preflabels across in source language
+        if (!prefLabelsAcrossProxyInSourceLang.isEmpty()) {
+            optimisation(prefLabelsAcrossProxyInSourceLang, textToTranslate);
+        }
 
         // if no translation gathered return
         if (textToTranslate.isEmpty()) {
@@ -226,9 +236,10 @@ public class MetadataTranslationService extends BaseService {
      * @param bean
      * @return
      */
-    private void getProxyValuesToTranslateForField(Proxy proxy, Field field, String sourceLang, String targetLang, FullBean bean, TranslationMap map, Set<String> otherProxyFieldsWithTargetValues) {
+    private void getProxyValuesToTranslateForField(Proxy proxy, Field field, String sourceLang, String targetLang, FullBean bean, TranslationMap map,
+                                                   Set<String> otherProxyFieldsWithTargetValues, TranslationMap prefLabelsAcrossProxyInTargetLang) {
         HashMap<String, List<String>> origFieldData = (HashMap<String, List<String>>) BaseService.getValueOfTheField(proxy, false).apply(field.getName());
-        getValueFromLanguageMap(SerializationUtils.clone(origFieldData), field, sourceLang, targetLang, bean, map, otherProxyFieldsWithTargetValues);
+        getValueFromLanguageMap(SerializationUtils.clone(origFieldData), field, sourceLang, targetLang, bean, map, otherProxyFieldsWithTargetValues, prefLabelsAcrossProxyInTargetLang);
     }
 
     /**
@@ -239,10 +250,11 @@ public class MetadataTranslationService extends BaseService {
      * @param field         field name (from the whitelisted fields)
      * @param sourceLang    the language chosen for translation
      * @param bean          record
+     * @param prefLabelsAcrossProxyInTargetLang Translation Map to store preflabels across proxy for each field in target language
      * @return
      */
     public void getValueFromLanguageMap(HashMap<String, List<String>> origFieldData, Field field, String sourceLang, String targetLang, FullBean bean,
-                                               TranslationMap map, Set<String> otherProxyFieldsWithTargetValues) {
+                                               TranslationMap map, Set<String> otherProxyFieldsWithTargetValues, TranslationMap prefLabelsAcrossProxyInTargetLang) {
         // Get the value if present for the sourceLang
         if (TranslationUtils.ifValuesShouldBePickedForTranslation(origFieldData, sourceLang, targetLang)) {
             List<String> valuesToTranslateForField = getValuesToTranslate(origFieldData, sourceLang, targetLang, bean, false, translationCharLimit, translationCharTolerance);
@@ -254,6 +266,9 @@ public class MetadataTranslationService extends BaseService {
         if (origFieldData != null && !origFieldData.isEmpty() && origFieldData.containsKey(targetLang)) {
                 otherProxyFieldsWithTargetValues.add(field.getName());
         }
+
+        // For optimisation later after translations are fetched
+        getPrefLabelsAcrossProxyInSourceLang(bean, field, origFieldData, sourceLang, targetLang, prefLabelsAcrossProxyInTargetLang);
     }
 
     /**
@@ -294,8 +309,6 @@ public class MetadataTranslationService extends BaseService {
             // remove duplicates for translated values per field and add
             targetLangValues.addAll(ComparatorUtils.removeDuplicates(translatedValues));
             existingMap.compute(targetLanguage, (key, val) -> targetLangValues);
-        } else {
-            LOG.debug("No translations added for {}. Translated values already present", fieldName);
         }
     }
 
