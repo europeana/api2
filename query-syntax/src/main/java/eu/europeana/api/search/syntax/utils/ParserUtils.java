@@ -25,7 +25,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class ParserUtils {
-  static Logger LOG = LogManager.getLogger(ParserUtils.class);
+  static Logger log = LogManager.getLogger(ParserUtils.class);
   private ParserUtils(){
   }
 
@@ -33,9 +33,8 @@ public class ParserUtils {
     Map<String,String> paramTovalueMap = new HashMap<>();
     if(queryString!=null){
       Set<Entry<String, String>>  set =  parseQueryFilter( queryString);
-      set.stream().forEach( entry ->{
-        paramTovalueMap.put(entry.getKey() ,entry.getValue());
-      });
+      set.stream().forEach( entry -> paramTovalueMap.put(entry.getKey() ,entry.getValue()));
+
     }
     return paramTovalueMap;
   }
@@ -45,7 +44,6 @@ public class ParserUtils {
     ConverterContext context = new ConverterContext();
     String solrFormat = expr.toSolr(context);
     context.setParameter(Constants.FQ_PARAM, solrFormat);
-    LOG.info(queryString + " => " + solrFormat);
     return context.getParameters();
   }
   private static SyntaxExpression getParsedModel(String queryString) throws QuerySyntaxException {
@@ -69,15 +67,15 @@ public class ParserUtils {
     try {
 
       if(!FieldRegistry.INSTANCE.isLoaded) {
-        LOG.info("Loading field Registry !");
+        log.info("Loading field Registry !");
         InputStream inputStream =  loaderClass.getClassLoader().getResourceAsStream(fileToLoad);
         XmlMapper xmlMapper = getXmlMapper(FieldRegistry.class, new FieldInfoDeserializer());
         xmlMapper.readValue(inputStream, FieldRegistry.class);
-        FieldRegistry.INSTANCE.isLoaded =true;        ;
+        FieldRegistry.INSTANCE.isLoaded =true;
       }
     }
     catch (IOException ex){
-      LOG.error("query-parser -> Error while loading fieldRegistry. "+ ex.getMessage());
+      log.error(String.format("query-parser -> Error while loading fieldRegistry. %s", ex.getMessage()));
     }
   }
 
