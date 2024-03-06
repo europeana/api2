@@ -21,6 +21,11 @@ public class TestSearchParser {
         ParserUtils.getParsedParametersMap("(date(created,1920)").get(Constants.FQ_PARAM));
   }
 
+  @Test(expected = QuerySyntaxException.class)
+  public void testDateSearchQueryForError_when_wrong_bracket_at_end() throws QuerySyntaxException {
+    Assert.assertEquals("_query_:\"{!field f=created_date op=Contains}1950\"",
+        ParserUtils.getParsedParametersMap("date(created,1920))").get(Constants.FQ_PARAM));
+  }
   @Test
   public void testDateSearchQuery_when_simple_dateFunction() throws  QuerySyntaxException {
     Assert.assertEquals("_query_:\"{!field f=created_date op=Contains}1950\"",

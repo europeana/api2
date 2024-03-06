@@ -3,6 +3,9 @@ package eu.europeana.api2.v2.web.controller;
 import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 import eu.europeana.api.commons.web.exception.HttpException;
+import eu.europeana.api.search.syntax.field.FieldDeclaration;
+import eu.europeana.api.search.syntax.field.FieldMode;
+import eu.europeana.api.search.syntax.field.FieldRegistry;
 import eu.europeana.api.search.syntax.utils.Constants;
 import eu.europeana.api.search.syntax.utils.ParserUtils;
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
@@ -252,7 +255,6 @@ public class SearchController extends BaseController {
 
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
-
         if (profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(request) == null) {
             throw new InvalidAuthorizationException();
         }
@@ -260,13 +262,9 @@ public class SearchController extends BaseController {
         if (StringUtils.isBlank(queryString)) {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
-
         // validate boost Param
         BoostParamUtils.validateBoostParam(boostParam);
-
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
-
-
         // validate provided languages
         List<Language> filterLanguages = null;
         if (lang != null) {
@@ -274,9 +272,35 @@ public class SearchController extends BaseController {
                 filterLanguages = Language.validateMultiple(lang);
             } catch(InvalidLanguageException e) {
                 throw new InvalidParamValueException(e.getMessage());
-
             }
         }
+
+        // EA 3657 - Start - New Parser Logic -load the registry before parsing
+        ParserUtils.loadFieldRegistryFromResource(ParserUtils.class, Constants.FIELD_REGISTRY_XML);
+        ParserUtils.loadFunctionRegistry();
+
+        Map<String, String> parametermap = ParserUtils.getParsedParametersMap(newRefinementString);
+        //EA 3657 -If qf parameter not populated and new nqf parameter is used geodistance parameters calculation is handled with parser.
+        String sField = parametermap.get("sfield");
+        String pt = parametermap.get("pt");
+        String d = parametermap.get("d");
+        boolean isGeoSearchRequested =  (StringUtils.isNotBlank(sField) && StringUtils.isNotBlank(pt) && StringUtils.isNotBlank(d) );
+
+        //EA 3657 - handle old conditions from EA-2996  ,sort parameter related to distance are removed if geodistance nqf param not provided.
+        if(!isGeoSearchRequested){
+            RegExUtils.removePattern(sort, "distance\\s?(asc|desc)?(\\s|,)*");
+        }
+
+        //Validate sort param
+        sort= validateAndUpdateSortParameters(sort);
+
+        //EA 3657-If the qf parameter is not populated get the refinement query value from new nqf param.
+        if (ArrayUtils.isEmpty(refinementArray)) {
+            refinementArray = new String[1];
+            refinementArray[0] = parametermap.get("fq");
+        }
+        // EA 3657 - End -New Parser Logic
+
 
         boolean isTranslateProfileActive = profiles.contains(Profile.TRANSLATE);
         // fail fast if user is requesting translations when translation service is not enabled
@@ -286,20 +310,16 @@ public class SearchController extends BaseController {
                 (resultsTranslationEnabled && !searchResultTranslator.isEnabled()))) {
             throw new TranslationServiceDisabledException();
         }
-        queryString = queryString.trim();
 
+        queryString = queryString.trim();
         // append the boost value in the query
         if(StringUtils.isNotEmpty(boostParam)) {
             queryString = boostParam + queryString;
         }
-
         queryString = fixCountryCapitalization(queryString);
-
-
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
         LOG.debug("ORIGINAL QUERY: |{}|", queryString);
-
         if (queryTranslationEnabled && isTranslateProfileActive && StringUtils.isNotBlank(queryTargetLang)) {
             validateQueryTranslateParams(querySourceLang, queryTargetLang);
             // generate multi-lingual search query
@@ -314,11 +334,9 @@ public class SearchController extends BaseController {
                 // throwing exception again overwrites the exception message with problem type message. Hence, fetch the original message from cause
                 throw new TranslationServiceNotAvailableException(e.getCause().getMessage(), e);
             }
-
         }
         boolean isMinimalProfileActive = profiles.contains(Profile.MINIMAL);
         //StringUtils.containsIgnoreCase(profile, Profile.MINIMAL.getName());
-
         String translateTargetLang = null;
         if (resultsTranslationEnabled && isTranslateProfileActive && isMinimalProfileActive) {
             if (filterLanguages == null || filterLanguages.isEmpty()) {
@@ -330,12 +348,10 @@ public class SearchController extends BaseController {
             }
             translateTargetLang = filterLanguages.get(0).name().toLowerCase(Locale.ROOT); // only use first provided language for translations
         }
-
         if ((cursorMark != null) && (start > 1)) {
             throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
                                          "Parameters 'start' and 'cursorMark' cannot be used together");
         }
-
         // TODO April '22 - this issue is now over 11 years old and I'm quite certain that we can stop checking this
         // TODO check whether this is still necessary? <= about time we did that!
         // workaround of a Spring issue
@@ -344,7 +360,6 @@ public class SearchController extends BaseController {
         if (qfArray != null && qfArray.length != refinementArray.length) {
             refinementArray = qfArray;
         }
-
         if (StringUtils.isNotBlank(theme)) {
             if (StringUtils.containsAny(theme, "+ #%^&*-='\"<>`!@[]{}\\/|")) {
                 throw new SolrQueryException(ProblemType.SEARCH_THEME_MULTIPLE);
@@ -352,13 +367,11 @@ public class SearchController extends BaseController {
                 refinementArray = ArrayUtils.add(refinementArray, "collection:" + theme);
             }
         }
-    
         List<String> colourPalette = new ArrayList<>();
         if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
             StringArrayUtils.addToList(colourPalette, colourPaletteArray);
         }
         colourPalette.replaceAll(String::toUpperCase);
-    
         // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
         // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
         if (!colourPalette.isEmpty()) {
@@ -367,20 +380,16 @@ public class SearchController extends BaseController {
                 queryString = filterQueryBuilder(colourPaletteTags.iterator(), queryString, " AND ", false);
             }
         }
-
         final List<Integer> filterTags = new ArrayList<>();
-        
         // EA-2996 this is to hold the sfield, pt and d geospatial parameters
         // Created here, passed to processQfParameters() & initialised there
         GeoDistance geoDistance = new GeoDistance();
-        
         // NOTE the zero tag is now added in processQfParameters
         try {
             refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags, geoDistance);
         } catch (InvalidParamValueException e) {
             throw new SolrQueryException(ProblemType.INVALID_PARAMETER_VALUE, e.getErrorDetails());
         }
-    
         // add the CF filter facets to the query string like this:
         // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
         if (!filterTags.isEmpty()) {
@@ -389,7 +398,6 @@ public class SearchController extends BaseController {
                     " OR ",
                     true);
         }
-
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets   = StringArrayUtils.splitWebParameter(mixedFacetArray);
 
@@ -430,16 +438,6 @@ public class SearchController extends BaseController {
             sort = RegExUtils.removePattern(sort, "distance\\s?(asc|desc)?(\\s|,)*");
         }
 
-       //Start -New Parser Logic
-        ParserUtils.loadFieldRegistryFromResource(this.getClass(), Constants.FIELD_REGISTRY_XML);
-        ParserUtils.loadFunctionRegistry();
-        Map<String, String> parametermap = ParserUtils.getParsedParametersMap(newRefinementString);
-
-        //If the qf parameter is not populated get the refinement query value from new nqf parameter
-        if (ArrayUtils.isEmpty(refinementArray)) {
-            refinementArray = new String[1];
-            refinementArray[0] = parametermap.get("fq");
-        }
 
         Class<? extends IdBean> clazz = selectBean(profile);
         Query query = new Query(SearchUtils.rewriteQueryFields(
@@ -454,21 +452,15 @@ public class SearchController extends BaseController {
                                 .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
                                 .setSpellcheckAllowed(false);
 
-        String sfield = parametermap.get("sfield");
-        String pt = parametermap.get("pt");
-        String d = parametermap.get("d");
-
-        if(StringUtils.isNotBlank(sfield) || StringUtils.isNotBlank(pt) || StringUtils.isNotBlank(d)) {
-            query.addGeoParamsToQuery(sfield, pt, d);
+        if(isGeoSearchRequested) {
+            query.addGeoParamsToQuery(sField, pt, d);
         }
-        // End -New Parser Logic
+        // EA 3657 -End -New Parser Logic
 
-
-            // EA-2996
+        // EA-2996
         if (geoDistance.isInitialised()){
             query.addGeoParamsToQuery(geoDistance.getSField(), geoDistance.getPoint(), geoDistance.getDistance());
         }
-
         if (facetsRequested) {
             Map<String, String[]> parameterMap = request.getParameterMap();
             try {
@@ -503,7 +495,6 @@ public class SearchController extends BaseController {
         } else {
             query.setFacetsAllowed(false);
         }
-
         if (profiles.contains(Profile.HITS)) {
             int nrSelectors;
             if (StringUtils.isBlank(hlSelectors)) {
@@ -527,11 +518,9 @@ public class SearchController extends BaseController {
             // see EA-1570 (workaround to increase the number of characters that are being considered for highlighting)
             query.setParameter("hl.maxAnalyzedChars", hlMaxAnalyzedChars);
         }
-
         if (null != valueReplacements && !valueReplacements.isEmpty()) {
             query.setValueReplacements(valueReplacements);
         }
-
         // reusability facet settings; spell check allowed, etcetera
         if (defaultOrReusabilityFacetsRequested) {
             query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
@@ -543,10 +532,8 @@ public class SearchController extends BaseController {
             (ArrayUtils.contains(solrFacets, "DATA_PROVIDER") || ArrayUtils.contains(solrFacets, "DEFAULT"))) {
             query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
         }
-
         SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
                 translateTargetLang, filterLanguages, request, response);
-
         if (profiles.contains(Profile.PARAMS)) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
@@ -557,7 +544,41 @@ public class SearchController extends BaseController {
         response.setCharacterEncoding(UTF8);
         response.addHeader("Allow", ControllerUtils.ALLOWED_GET_HEAD_POST);
         return JsonUtils.toJson(result, callback);
-    } 
+    }
+
+    public  String validateAndUpdateSortParameters(String sort) throws InvalidParamValueException {
+        if(StringUtils.isNotBlank(sort)) {
+            StringBuilder newSortString = new StringBuilder();
+            String[] sortInfo =  sort.split("\\s*,\\s*");
+                for (String info:sortInfo) {
+                    String[] sortingInfo = info.split("\\s+");
+                    if (sortingInfo.length >0) {
+                        FieldDeclaration field = FieldRegistry.INSTANCE.getField(sortingInfo[0]);
+                        if (field == null) {
+                            throw new InvalidParamValueException("Invalid Sort Parameter value : "+sortingInfo[0]);
+                        }
+                        //get equivalent sort param for solr
+                        String mode= sortingInfo.length ==2 ? sortingInfo[1].trim() : "desc";
+                         if(!newSortString.isEmpty())
+                             newSortString.append(",");
+                          newSortString.append(getSolrFieldForSorting(mode, field)+" "+mode);
+                    }
+                }
+                return newSortString.toString();
+        }
+        return null;
+    }
+
+    private String getSolrFieldForSorting(String mode, FieldDeclaration field) throws InvalidParamValueException {
+        String solrSortFieldName= "";
+        if("asc".equals(mode))
+                solrSortFieldName = field.getField(FieldMode.sort_asc);
+        if("desc".equals(mode))
+                solrSortFieldName =  field.getField(FieldMode.sort_desc);
+        if(StringUtils.isEmpty(solrSortFieldName))
+            throw new InvalidParamValueException("Equivalent solr sort parameter not found in Field registry!");
+        return solrSortFieldName;
+    }
 
     /**
      * @return targetLanguage

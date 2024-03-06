@@ -8,7 +8,8 @@ PARSER_BEGIN(SearchExpressionParser)
 package eu.europeana.api.search.syntax.parser;
 
 import eu.europeana.api.search.syntax.converter.*;
-import eu.europeana.api.search.syntax.exception.QuerySyntaxException;import eu.europeana.api.search.syntax.field.*;
+import eu.europeana.api.search.syntax.exception.QuerySyntaxException;
+import eu.europeana.api.search.syntax.field.*;
 import eu.europeana.api.search.syntax.function.*;
 import eu.europeana.api.search.syntax.model.*;
 import java.util.List;
@@ -20,7 +21,7 @@ PARSER_END(SearchExpressionParser)
 
 <DEFAULT> SKIP:  { " "|"\t" | "\n" | "\r" }
 <S1>SKIP: {"\t" | "\n" | "\r"}
-<S1> TOKEN:{< UNQUOTED_ANY_CHARS:   (~["\"","\'"] )* > }
+<S1> TOKEN:{< UNQUOTED_ANY_CHARS:   (~["(",")","\"","\'"] )* > }
 
 TOKEN: {
  <AND: "AND">
@@ -42,7 +43,7 @@ TOKEN: { <LETTERS: ["a"-"z","A"-"Z","0"-"9","-","*",".","_"] (["a"-"z","A"-"Z","
 SyntaxExpression parse():{
  SyntaxExpression top;}
 {
- top= TopExpression(){return top;} <EOF>
+ top= TopExpression() <EOF> {return top;}
 }
 
 TopLevelExpression TopExpression():{
@@ -108,7 +109,7 @@ FieldQueryExpression FieldQueryExpression():{
 {
 FieldDeclaration field = FieldRegistry.INSTANCE.getField(fieldName);
 if(field==null){
-  //throw new QuerySyntaxException("No matching field found in registry for field "+fieldName);
+  throw new QuerySyntaxException("No matching field found in registry for field "+fieldName);
 }
 return new FieldQueryExpression(field,fieldArgExpr);}
 }

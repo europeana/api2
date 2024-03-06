@@ -14,7 +14,6 @@ import eu.europeana.api.search.syntax.function.DistanceFunction;
 import eu.europeana.api.search.syntax.function.FunctionRegistry;
 import eu.europeana.api.search.syntax.function.IntervalFunction;
 import eu.europeana.api.search.syntax.model.SyntaxExpression;
-import eu.europeana.api.search.syntax.parser.ParseException;
 import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,8 +54,11 @@ public class ParserUtils {
           new java.io.StringReader(queryString));
       return parser.parse();
     }
-    catch(ParseException ex){
-      throw new QuerySyntaxException("Unable to Parse "+queryString +" "+ex.getMessage());
+    catch(Exception ex){
+      throw new QuerySyntaxException("Exception : Unable to Parse "+queryString +" "+ex.getMessage());
+    }
+    catch(Error ex){
+      throw new QuerySyntaxException("Error : Unable to Parse "+queryString +" "+ex.getMessage());
     }
   }
 
