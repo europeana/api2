@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>api2</artifactId>
-    <version>2.16.7-SNAPSHOT</version>
+    <version>2.16.8-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Search and Record API</name>
     <url>http://www.europeana.eu</url>
@@ -34,12 +34,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <corelib.version>2.16.7-SNAPSHOT</corelib.version>
+        <corelib.version>2.16.7</corelib.version>
         <!-- metis-framework 11 and metis.schema 9-SNAPSHOT uses JDK 17.
          Moving forward we do need to upgrade to JDK 21 if we continue to use metis dependencies and want to upgrade them-->
         <metis.version>11</metis.version>
-        <apicommons.version>0.3.23-SNAPSHOT</apicommons.version>
-        <translation.api.client.version>0.1.1-SNAPSHOT</translation.api.client.version>
+        <apicommons.version>0.3.23</apicommons.version>
+        <translation.api.client.version>0.1.1</translation.api.client.version>
 
         <httpclient.version>4.5.13</httpclient.version>
         <jackson.version>2.16.0</jackson.version>
