@@ -295,9 +295,10 @@ public class SearchController extends BaseController {
         sort= validateAndUpdateSortParameters(sort);
 
         //EA 3657-If the qf parameter is not populated get the refinement query value from new nqf param.
-        if (ArrayUtils.isEmpty(refinementArray)) {
+        String fqParam =  parametermap.get("fq");
+        if (ArrayUtils.isEmpty(refinementArray) && StringUtils.isNotBlank(fqParam)) {
             refinementArray = new String[1];
-            refinementArray[0] = parametermap.get("fq");
+            refinementArray[0] = fqParam;
         }
         // EA 3657 - End -New Parser Logic
 
