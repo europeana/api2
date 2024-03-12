@@ -12,6 +12,9 @@ COPY api2-war/target/api/ ./ROOT/
 # Remove properties file and credentials. Don't fail if either file is missing
 RUN rm -f ./ROOT/WEB-INF/classes/europeana.user.properties
 
+#EA-3783-Replace tomacat server.xml with the one which has configuration change for maxHttpHeaderSize to be 16kb
+COPY api2-war/target/api/WEB-INF/classes/tomcat/server.xml /usr/local/tomcat/conf/
+
 # Uncomment the options below and map port number 9010 to enable profiling in the docker container
 #EXPOSE 8080
 #EXPOSE 9010
