@@ -35,8 +35,8 @@ public class FacetParameterUtilsTest {
 		assertEquals(SolrFacetType.values().length + 1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.limit"));
 		assertTrue(resultMap.containsKey("f.DATA_PROVIDER.facet.limit"));
-		assertEquals(new Integer(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
-		assertEquals(new Integer(50), resultMap.get("f.DATA_PROVIDER.facet.limit"));
+		assertEquals(Integer.valueOf(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
+		assertEquals(Integer.valueOf(50), resultMap.get("f.DATA_PROVIDER.facet.limit"));
 	}
 
 	@Test
@@ -45,7 +45,7 @@ public class FacetParameterUtilsTest {
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.limit"));
-		assertEquals(new Integer(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
+		assertEquals(Integer.valueOf(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
 	}
 
 	@Test
@@ -54,7 +54,7 @@ public class FacetParameterUtilsTest {
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
-		assertEquals(new Integer(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
+		assertEquals(Integer.valueOf(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
 	}
 
 	@Test
@@ -63,7 +63,7 @@ public class FacetParameterUtilsTest {
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
-		assertEquals(new Integer(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
+		assertEquals(Integer.valueOf(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
 	}
 
 	@Test
@@ -74,9 +74,9 @@ public class FacetParameterUtilsTest {
 		assertNotNull(resultMap);
 		assertEquals(2, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
-		assertEquals(new Integer(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
+		assertEquals(Integer.valueOf(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
-		assertEquals(new Integer(0), resultMap.get("f.PROVIDER.facet.offset"));
+		assertEquals(Integer.valueOf(0), resultMap.get("f.PROVIDER.facet.offset"));
 	}
 
 	@Test
@@ -87,7 +87,7 @@ public class FacetParameterUtilsTest {
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
-		assertEquals(new Integer(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
+		assertEquals(Integer.valueOf(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
 	}
 
 	@Test
