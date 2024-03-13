@@ -39,7 +39,7 @@
         <dependency>
             <groupId>eu.europeana.api</groupId>
             <artifactId>query-syntax</artifactId>
-            <version>2.16.7-SNAPSHOT</version>
+            <version>2.16.8-SNAPSHOT</version>
         </dependency>
 
         <!-- CORELIB -->
@@ -312,19 +312,6 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>2.9.8</version>
         </dependency>
-      <dependency>
-        <groupId>eu.europeana.api</groupId>
-        <artifactId>query-syntax</artifactId>
-        <version>2.16.7-SNAPSHOT</version>
-        <scope>compile</scope>
-      </dependency>
-        <dependency>
-            <groupId>eu.europeana.api</groupId>
-            <artifactId>query-syntax</artifactId>
-            <version>2.16.7-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-
     </dependencies>
 
     <build>

@@ -1,11 +1,14 @@
 package eu.europeana.api2.v2.utils;
 
-import static org.junit.Assert.*;
-
-import java.util.HashMap;
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.DataFormatException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -86,4 +89,12 @@ public class FacetParameterUtilsTest {
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
 		assertEquals(new Integer(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
 	}
+
+	@Test
+	public void testSolrDateFormatConversion() throws  DataFormatException {
+		String dateToConvert = "1980";
+		Assert.assertEquals("1980-01-01T00:00:00Z" ,FacetParameterUtils.convertDateInSolrFormat(dateToConvert));
+	}
+
+
 }

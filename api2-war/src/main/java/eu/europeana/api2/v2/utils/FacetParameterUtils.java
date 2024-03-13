@@ -1,18 +1,32 @@
 package eu.europeana.api2.v2.utils;
 
+import eu.europeana.api.search.syntax.field.FieldDeclaration;
+import eu.europeana.api.search.syntax.field.FieldMode;
+import eu.europeana.api.search.syntax.field.FieldRegistry;
+import eu.europeana.api.search.syntax.field.FieldType;
 import eu.europeana.api2.v2.exceptions.DateMathParseException;
 import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
 import eu.europeana.api2.v2.model.NumericFacetParameter;
+import eu.europeana.corelib.definitions.solr.RangeFacetType;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
-import eu.europeana.corelib.definitions.solr.RangeFacetType;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.DataFormatException;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utility class for extracting numeric parameters specific to a given facet.
@@ -40,6 +54,9 @@ public class FacetParameterUtils {
     private static final String DEFAULT_GAP             = "+1YEAR";
 
     private static final long MAX_RANGE_FACETS          = 30000L;
+    public static final String WILD_CARD = "*";
+    public static final String NEGATIVE_SIGN = "-";
+    public static final String DATE_FIELD_FACET_REGEX = "^facet\\.([a-z,A-Z]*)\\.(gap|start|end)$";
 
     private static List<String> defaultSolrFacetList;
     private static List<String> rangeFacetList;
@@ -47,11 +64,24 @@ public class FacetParameterUtils {
 
     private static DateFormat solrDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+    private static Map<String,String> dateTimeSpecifiersMap ;
+
+
+
     static {
         defaultSolrFacetList = new ArrayList<>();
         for (SolrFacetType facet : SolrFacetType.values()) defaultSolrFacetList.add(facet.toString());
         rangeFacetList = new ArrayList<>();
         for (RangeFacetType facet : RangeFacetType.values()) rangeFacetList.add(facet.toString());
+
+        dateTimeSpecifiersMap = new HashMap<>();
+        dateTimeSpecifiersMap.put("Y" ,"YEAR");
+        dateTimeSpecifiersMap.put("M" ,"MONTHS");
+        dateTimeSpecifiersMap.put("d" ,"DAYS");
+        dateTimeSpecifiersMap.put("H" ,"HOURS");
+        dateTimeSpecifiersMap.put("m" ,"MINUTES");
+        dateTimeSpecifiersMap.put("s" ,"SECONDS");
+
     }
 
     /**
@@ -104,10 +134,100 @@ public class FacetParameterUtils {
         return technicalFacetParams;
     }
 
+    public static Map<String, String> getDateRangeParamsNew(Map<String, String[]> parameters)
+        throws DateMathParseException, InvalidRangeOrGapException, DataFormatException {
+        Map<String, String> dateRangeParams = new HashMap<>();
+
+        HashSet<String> fieldsForFaceting = new HashSet<>();
+        //extract valid  date faceting parameters from input parameters
+        for(Map.Entry<String, String[]> entry:parameters.entrySet())
+        {
+            String paramName = entry.getKey();
+            String[] paramValue = entry.getValue();
+            Pattern pattern = Pattern.compile(DATE_FIELD_FACET_REGEX);
+            Matcher matcher = pattern.matcher(paramName);
+            if(matcher.matches())
+            {
+                String[] splitParamName = paramName.split("\\.");
+                String fieldName = splitParamName[1];
+                String rangeSpecifier = splitParamName[2];
+                FieldDeclaration field = FieldRegistry.INSTANCE.getField(fieldName);
+
+                if (field != null && rangeSpecifiers.contains(rangeSpecifier)
+                    && FieldType.date.equals(field.getType())) {
+                    String facetingField = field.getField(FieldMode.facet);
+                    if (facetingField != null) {
+                        fieldsForFaceting.add(facetingField);
+                        String newKey = "f." + facetingField + "." + FACET_RANGE + "."+rangeSpecifier;
+                        //format param value
+                        String val = paramValue[0];
+                        String newVal = "";
+                        if ("gap".equals(rangeSpecifier) && val != null && val.length() > 1) {
+
+                             if(!val.startsWith("+") && !val.startsWith("-")) {
+                                 val="+"+val;
+                             }
+                            newVal = StringUtils.chop(val) + dateTimeSpecifiersMap.get(val.substring(val.length() - 1));
+                        }
+                        if ("start".equals(rangeSpecifier) | "end".equals(rangeSpecifier)) {
+                            newVal = convertDateInSolrFormat(val);
+                        }
+                        dateRangeParams.put(newKey, newVal);
+                    }
+                }
+            }
+        }
+
+        for(String field :fieldsForFaceting){
+            DateMathParser.exceedsMaxNrOfGaps(
+                dateRangeParams.get("f." + field + "." + FACET_RANGE + ".start"),
+                dateRangeParams.get("f." + field + "." + FACET_RANGE + ".end"),
+                dateRangeParams.get("f." + field + "." + FACET_RANGE + ".gap"),
+                MAX_RANGE_FACETS);
+        }
+
+        dateRangeParams.put(FACET_RANGE,String.join(",",fieldsForFaceting));
+
+       return dateRangeParams;
+
+    }
+
+    public static String convertDateInSolrFormat(String val) throws DataFormatException {
+        if (WILD_CARD.equals(val)) { return val; }
+        Pattern pattern = Pattern.compile("^(-)?\\d{4}(-\\d{2}(-d{2})?)?$");
+        Matcher matcher = pattern.matcher(val);
+        if (!matcher.matches()) {
+           throw new DataFormatException("Invalid date value " + val +"! should be in format YYYY-MM-dd or YYYY-MM  or YYYY");
+        }
+        String formatedDate = "";
+        if (val.startsWith(NEGATIVE_SIGN)) {
+            val = val.substring(1);
+            formatedDate = NEGATIVE_SIGN;
+        }
+        return formatedDate + getDateInSolrFormat(val);
+    }
+
+    @NotNull
+    private static String getDateInSolrFormat(String val) {
+        Calendar cal = Calendar.getInstance();
+        String[] tokenizedDate = val.split(NEGATIVE_SIGN);
+        int year = 1;
+        int month = 0;
+        int day=1;
+        if(tokenizedDate.length>=1)
+           year = Integer.parseInt(tokenizedDate[0]);
+        if(tokenizedDate.length>=2)
+            month = Integer.parseInt(tokenizedDate[1]);
+        if(tokenizedDate.length==3)
+            day = Integer.parseInt(tokenizedDate[2]);
+        cal.set(year,month,day,0,0,0);
+        return  solrDateFormat.format(cal.getTime());
+    }
+
     // NOTE that there can be more than one facet range parameter for every field, eg:
     // facet.range=timestamp & &facet.range.start=0000-01-01T00:00:00Z & &facet.range.end=NOW & facet.range.gap=+1DAY
     public static Map<String, String> getDateRangeParams(Map<String, String[]> parameters) throws DateMathParseException,
-            InvalidRangeOrGapException {
+            InvalidRangeOrGapException ,DataFormatException{
         Map<String, String> dateRangeParams = new HashMap<>();
 
         // first, retrieve & validate field values from comma-separated facet.range parameter
@@ -134,6 +254,7 @@ public class FacetParameterUtils {
                     dateRangeParams.put(fieldSpecifier, getDefaultValue(rangeSpecifier));
                 }
             }
+
             DateMathParser.exceedsMaxNrOfGaps(
                         dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".start"),
                         dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE + ".end"),
@@ -142,7 +263,10 @@ public class FacetParameterUtils {
 
 
         }
-        return dateRangeParams;
+        getDateRangeParamsNew(parameters).forEach(dateRangeParams::putIfAbsent);
+
+
+      return dateRangeParams;
     }
 
     private static String getDefaultValue(String rangeSpecifier){

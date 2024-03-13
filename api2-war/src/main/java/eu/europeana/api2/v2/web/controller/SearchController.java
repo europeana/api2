@@ -89,6 +89,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.DataFormatException;
 import javax.annotation.Nullable;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -492,6 +493,8 @@ public class SearchController extends BaseController {
                 throw new SolrQueryException(ProblemType.SEARCH_FACET_RANGE_INVALID, errorDetails);
             } catch (InvalidRangeOrGapException e) {
                 throw new SolrQueryException(ProblemType.SEARCH_FACET_RANGE_INVALID, e.getMessage());
+            } catch (DataFormatException e) {
+              throw new InvalidParamValueException(e.getMessage());
             }
         } else {
             query.setFacetsAllowed(false);
