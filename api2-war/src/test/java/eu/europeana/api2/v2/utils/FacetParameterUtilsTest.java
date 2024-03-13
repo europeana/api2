@@ -18,7 +18,7 @@ public class FacetParameterUtilsTest {
 	private Map<String, String[]> parameters;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp()  {
 		facets = new String[]{"proxy_dc_contributor"};
 
 		parameters = new HashMap<>();
