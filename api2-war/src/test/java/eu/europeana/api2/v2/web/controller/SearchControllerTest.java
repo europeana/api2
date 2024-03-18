@@ -284,7 +284,7 @@ public class SearchControllerTest {
     }
 
     @Test
-    public void testIsBase64Encoded_whenIncorrectCirsorValue (){
+    public void testIsBase64Encoded_whenIncorrectCursorValue (){
         Assert.assertFalse(ControllerUtils.isBase64Encoded("AoIvLzEwMjgvRTAwMjc3MjQyc%2FyK%2BZ%2BNAw%3D%1D"));
     }
     @Test
