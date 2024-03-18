@@ -280,8 +280,7 @@ public class SearchControllerTest {
         GeoDistance         geoDistance   = new GeoDistance();
         
         // negative distance should fail
-        String [] refinementArray = new String[]{"distance(currentLocation,20.4,80.09,-40)"};
-        refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
+       searchController.processQfParameters(new String[]{"distance(currentLocation,20.4,80.09,-40)"}, false, false,false, false, filterTags, geoDistance);
     }
 
     @Test
