@@ -3,9 +3,11 @@ package eu.europeana.api2.v2.web.controller;
 import static org.junit.Assert.*;
 
 import eu.europeana.api2.v2.model.GeoDistance;
+import eu.europeana.api2.v2.utils.ControllerUtils;
 import eu.europeana.api2.v2.utils.ModelUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -281,5 +283,15 @@ public class SearchControllerTest {
         String [] refinementArray = new String[]{"distance(currentLocation,20.4,80.09,-40)"};
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
     }
-    
+
+    @Test
+    public void testIsBase64Encoded_whenIncorrectCirsorValue (){
+        Assert.assertFalse(ControllerUtils.isBase64Encoded("AoIvLzEwMjgvRTAwMjc3MjQyc%2FyK%2BZ%2BNAw%3D%1D"));
+    }
+    @Test
+    public void testIfCusrsorIsBase64Encoded (){
+        Assert.assertTrue(ControllerUtils.isBase64Encoded("AoQhVHmH7uC01AIGAAAAADsvMjAyMjYwOC9OT01fTk9NRl8wMjc3Ml80MTE="));
+    }
+
+
 }

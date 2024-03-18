@@ -93,6 +93,7 @@ public class SearchController extends BaseController {
     // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
     private static final Pattern COUNTRY_PATTERN = Pattern.compile("COUNTRY:\"(.*?)\"|COUNTRY:(.*?)(&|\\s|$)");
+    public static final String ASTERISK = "*";
 
     @Resource
     private Api2UrlService urlService;
@@ -291,10 +292,17 @@ public class SearchController extends BaseController {
             translateTargetLang = filterLanguages.get(0).name().toLowerCase(Locale.ROOT); // only use first provided language for translations
         }
 
+
+        //Add Validation For Cursormark
         if ((cursorMark != null) && (start > 1)) {
             throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
-                                         "Parameters 'start' and 'cursorMark' cannot be used together");
+                "Parameters 'start' and 'cursorMark' cannot be used together");
         }
+        //If the cursor value other than * is provided then it needs to be Base64 Encoded
+        if (!ASTERISK.equals(cursorMark) && !ControllerUtils.isBase64Encoded(cursorMark)) {
+            throw new InvalidParamValueException("Encoding for the cursor parameter is invalid!!");
+        }
+
 
         // TODO April '22 - this issue is now over 11 years old and I'm quite certain that we can stop checking this
         // TODO check whether this is still necessary? <= about time we did that!
