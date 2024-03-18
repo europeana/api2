@@ -166,60 +166,60 @@ public class SearchControllerTest {
         GeoDistance         geoDistance   = new GeoDistance();
         
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 3);
-        assertTrue(refinementArray.length == 4);
+      assertEquals(3, filterTags.size());
+      assertEquals(4, refinementArray.length);
 
         filterTags.clear();
         refinementArray = new String[]{"IMAGE_COLOUR:true", "IMAGE_GREYSCALE:true", "COLORPALETTE:#4682b4"};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 2);
-        assertTrue(refinementArray.length == 4);
+      assertEquals(2, filterTags.size());
+      assertEquals(4, refinementArray.length);
 
         // invalid values
         filterTags.clear();
         refinementArray = new String[]{"SOUND_HQ:test", "MIME_TYPE:application/dash+ltxml"};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 1);
+      assertEquals(1, filterTags.size());
         assertTrue(filterTags.contains(0));
-        assertTrue(refinementArray.length == 4);
+      assertEquals(4, refinementArray.length);
 
         filterTags.clear();
         // add theme:art and invalid tech facet
         refinementArray = new String[]{"MIME_TYPE:application/dash+ltxml", "collection:art"};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 1);
+      assertEquals(1, filterTags.size());
         assertTrue(filterTags.contains(0));
-        assertTrue(refinementArray.length == 5);
+      assertEquals(5, refinementArray.length);
 
         filterTags.clear();
         // valid non-tech facet
         refinementArray = new String[]{"contentTier:(1 OR 2 OR 3 OR 4)"};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 0);
-        assertTrue(refinementArray.length == 5);
+      assertEquals(0, filterTags.size());
+      assertEquals(5, refinementArray.length);
 
         filterTags.clear();
         // valid non-tech facet and invalid tech facet
         refinementArray = new String[]{"contentTier:(1 OR 2 OR 3 OR 4)", "SOUND_HQ:test"};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 1);
+      assertEquals(1, filterTags.size());
         assertTrue(filterTags.contains(0));
-        assertTrue(refinementArray.length == 5);
+      assertEquals(5, refinementArray.length);
 
         filterTags.clear();
         // valid non-tech facet and valid tech facet
         refinementArray = new String[]{"contentTier:(1 OR 2 OR 3 OR 4)", "MIME_TYPE:video/mpeg"};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 1);
+      assertEquals(1, filterTags.size());
         // should NOT have filter tag 0
         assertFalse(filterTags.contains(0));
-        assertTrue(refinementArray.length == 5);
+      assertEquals(5, refinementArray.length);
 
         filterTags.clear();
         // check with all tech facets with invalid values
@@ -228,10 +228,10 @@ public class SearchControllerTest {
         "VIDEO_HD:test", "VIDEO_DURATION:test", "MEDIA:test", "THUMBNAIL:test", "TEXT_FULLTEXT:test", "LANDINGPAGE:test"};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 1);
+      assertEquals(1, filterTags.size());
         // should have filter tag 0
         assertTrue(filterTags.contains(0));
-        assertTrue(refinementArray.length == 4);
+      assertEquals(4, refinementArray.length);
 
 
         filterTags.clear();
@@ -240,20 +240,20 @@ public class SearchControllerTest {
         refinementArray = new String[]{"SOUND_HQ:false", "VIDEO_HD:false"};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 0);
+      assertEquals(0, filterTags.size());
         // should NOT have filter tag 0
         assertFalse(filterTags.contains(0));
-        assertTrue(refinementArray.length == 4);
+      assertEquals(4, refinementArray.length);
 
         filterTags.clear();
         // valid boolean tech facet with false value ( SOUND_HQ, VIDEO_HD - don't not have a false scenario) and valid non-tech facet and valid tech facet
         refinementArray = new String[]{"SOUND_HQ:false", "VIDEO_HD:false", "contentTier:(1 OR 2 OR 3 OR 4)", "MIME_TYPE:video/mpeg" };
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 1);
+      assertEquals(1, filterTags.size());
         // should NOT have filter tag 0 as it has a valid tech facet
         assertFalse(filterTags.contains(0));
-        assertTrue(refinementArray.length == 5);
+      assertEquals(5, refinementArray.length);
     
     
         // empty refinement
@@ -261,8 +261,8 @@ public class SearchControllerTest {
         refinementArray = new String[]{};
 
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 0);
-        assertTrue(refinementArray.length == 4);
+      assertEquals(0, filterTags.size());
+      assertEquals(4, refinementArray.length);
     
     
         // empty refinement
@@ -270,8 +270,8 @@ public class SearchControllerTest {
         
         refinementArray = new String[]{"distance(currentLocation,20.4,80.09,40)"};
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
-        assertTrue(filterTags.size() == 0);
-        assertTrue(refinementArray.length == 5);
+      assertEquals(0, filterTags.size());
+      assertEquals(5, refinementArray.length);
     }
     
     @Test(expected = EuropeanaException.class)
