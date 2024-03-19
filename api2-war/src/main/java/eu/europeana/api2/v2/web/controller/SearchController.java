@@ -301,7 +301,8 @@ public class SearchController extends BaseController {
            }
            //If the cursor value other than * is provided then it needs to be Base64 Encoded
            if (!ASTERISK.equals(cursorMark) && !ControllerUtils.isBase64Encoded(cursorMark)) {
-               throw new InvalidParamValueException("Encoding for the cursor parameter is invalid!!");
+               throw new SolrQueryException(ProblemType.SEARCH_CURSORMARK_INVALID,
+                   "Please make sure you encode the cursor value before sending it to the API.");
            }
          }
 
