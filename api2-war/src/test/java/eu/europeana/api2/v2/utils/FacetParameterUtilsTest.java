@@ -1,11 +1,14 @@
 package eu.europeana.api2.v2.utils;
 
-import static org.junit.Assert.*;
-
-import java.util.HashMap;
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.DataFormatException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,7 +18,7 @@ public class FacetParameterUtilsTest {
 	private Map<String, String[]> parameters;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp()  {
 		facets = new String[]{"proxy_dc_contributor"};
 
 		parameters = new HashMap<>();
@@ -32,8 +35,8 @@ public class FacetParameterUtilsTest {
 		assertEquals(SolrFacetType.values().length + 1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.limit"));
 		assertTrue(resultMap.containsKey("f.DATA_PROVIDER.facet.limit"));
-		assertEquals(new Integer(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
-		assertEquals(new Integer(50), resultMap.get("f.DATA_PROVIDER.facet.limit"));
+		assertEquals(Integer.valueOf(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
+		assertEquals(Integer.valueOf(50), resultMap.get("f.DATA_PROVIDER.facet.limit"));
 	}
 
 	@Test
@@ -42,7 +45,7 @@ public class FacetParameterUtilsTest {
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.limit"));
-		assertEquals(new Integer(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
+		assertEquals(Integer.valueOf(30), resultMap.get("f.proxy_dc_contributor.facet.limit"));
 	}
 
 	@Test
@@ -51,7 +54,7 @@ public class FacetParameterUtilsTest {
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
-		assertEquals(new Integer(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
+		assertEquals(Integer.valueOf(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
 	}
 
 	@Test
@@ -60,7 +63,7 @@ public class FacetParameterUtilsTest {
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
-		assertEquals(new Integer(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
+		assertEquals(Integer.valueOf(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
 	}
 
 	@Test
@@ -71,9 +74,9 @@ public class FacetParameterUtilsTest {
 		assertNotNull(resultMap);
 		assertEquals(2, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
-		assertEquals(new Integer(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
+		assertEquals(Integer.valueOf(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
-		assertEquals(new Integer(0), resultMap.get("f.PROVIDER.facet.offset"));
+		assertEquals(Integer.valueOf(0), resultMap.get("f.PROVIDER.facet.offset"));
 	}
 
 	@Test
@@ -84,6 +87,14 @@ public class FacetParameterUtilsTest {
 		assertNotNull(resultMap);
 		assertEquals(1, resultMap.size());
 		assertTrue(resultMap.containsKey("f.proxy_dc_contributor.facet.offset"));
-		assertEquals(new Integer(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
+		assertEquals(Integer.valueOf(0), resultMap.get("f.proxy_dc_contributor.facet.offset"));
 	}
+
+	@Test
+	public void testSolrDateFormatConversion() throws  DataFormatException {
+		String dateToConvert = "1980";
+		Assert.assertEquals("1980-01-01T00:00:00Z" ,FacetParameterUtils.convertDateInSolrFormat(dateToConvert));
+	}
+
+
 }

@@ -2,10 +2,14 @@ package eu.europeana.api2.v2.web.controller;
 
 import static org.junit.Assert.*;
 
+import eu.europeana.api.search.syntax.utils.Constants;
+import eu.europeana.api.search.syntax.utils.ParserUtils;
+import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
 import eu.europeana.api2.v2.model.GeoDistance;
 import eu.europeana.api2.v2.utils.ModelUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -281,5 +285,16 @@ public class SearchControllerTest {
         String [] refinementArray = new String[]{"distance(currentLocation,20.4,80.09,-40)"};
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
     }
+
+
+
+    @Test
+    public void test_sortParameterValidation() throws InvalidParamValueException {
+        String expected = "geodist() asc,geodist() desc";
+        ParserUtils.loadFieldRegistryFromResource(ParserUtils.class, Constants.FIELD_REGISTRY_XML);
+        ParserUtils.loadFunctionRegistry();
+        Assert.assertEquals(expected,searchController.validateAndUpdateSortParameters("distance  asc ,distance desc"));
+    }
+
     
 }
