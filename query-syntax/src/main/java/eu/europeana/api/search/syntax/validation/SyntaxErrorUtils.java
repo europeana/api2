@@ -13,25 +13,25 @@ import eu.europeana.api.search.syntax.field.FieldType;
 public class SyntaxErrorUtils {
 
 
-    private static String ERR_UNKNOWN_FUNCTION = 
-        "Unknown function %s";
-
-    private static String ERR_WRONG_QUERY_EXPRESSION = 
+    private static final String ERR_WRONG_QUERY_EXPRESSION =
         "function %s cannot be used as a field query expression";
 
-    private static String ERR_WRONG_FUNCTION_ARGUMENT = 
+    private static final String ERR_WRONG_FUNCTION_ARGUMENT =
         "Invalid %s argument for function %s, expected %s";
 
-    private static String ERR_ILLEGAL_FUNCTION_ARGUMENT = 
+    private static final String ERR_ILLEGAL_FUNCTION_ARGUMENT =
         "Invalid %s argument type for function %s, expected %s got %s";
 
-    private static String ERR_MISSING_ARGUMENT = 
+    private static final String ERR_MISSING_ARGUMENT =
         "Missing arguments for function %s, expected %s got %s";
 
-    private static String ERR_UNKNOWN_FIELD = 
+    private static final String ERR_UNKNOWN_FIELD =
         "Unknown field %s";
 
-    private static String ERR_WRONG_FIELD = 
+    private static final String ERR_UNKNOWN_FIELD_MODE =
+        "Missing field name to be used for mode %s and input field %s";
+
+    private static final String ERR_WRONG_FIELD =
         "Unexpected field type for %s, expected %s got %s";
 
 
@@ -40,7 +40,8 @@ public class SyntaxErrorUtils {
     }
 
     public static void newUnknownFunction(String funcname) {
-        newException(String.format(ERR_UNKNOWN_FUNCTION, funcname));
+      String ERR_UNKNOWN_FUNCTION = "Unknown function %s";
+      newException(String.format(ERR_UNKNOWN_FUNCTION, funcname));
     }
 
     public static void newWrongFunctionArg(String funcName
@@ -74,5 +75,9 @@ public class SyntaxErrorUtils {
 
     public static void newException(String message) {
         throw new QuerySyntaxException(message);
+    }
+
+    public static void newUnknownFieldNameForMode(String mode,String fieldName) {
+        newException(String.format(ERR_UNKNOWN_FIELD_MODE, mode,fieldName));
     }
 }

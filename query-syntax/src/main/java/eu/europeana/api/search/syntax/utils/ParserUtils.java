@@ -1,11 +1,16 @@
 package eu.europeana.api.search.syntax.utils;
 
+import static eu.europeana.api.search.syntax.validation.SyntaxValidation.checkFieldType;
+
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import eu.europeana.api.search.syntax.converter.ConverterContext;
 import eu.europeana.api.search.syntax.exception.QuerySyntaxException;
+import eu.europeana.api.search.syntax.field.FieldDeclaration;
+import eu.europeana.api.search.syntax.field.FieldMode;
 import eu.europeana.api.search.syntax.field.FieldRegistry;
+import eu.europeana.api.search.syntax.field.FieldType;
 import eu.europeana.api.search.syntax.function.DateContainsFunction;
 import eu.europeana.api.search.syntax.function.DateFunction;
 import eu.europeana.api.search.syntax.function.DateIntersectsFunction;
@@ -14,13 +19,16 @@ import eu.europeana.api.search.syntax.function.DistanceFunction;
 import eu.europeana.api.search.syntax.function.FunctionRegistry;
 import eu.europeana.api.search.syntax.function.IntervalFunction;
 import eu.europeana.api.search.syntax.model.SyntaxExpression;
+import eu.europeana.api.search.syntax.model.ValueExpression;
 import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
+import eu.europeana.api.search.syntax.validation.SyntaxErrorUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,7 +41,7 @@ public class ParserUtils {
     Map<String,String> paramTovalueMap = new HashMap<>();
     if(queryString!=null){
       Set<Entry<String, String>>  set =  parseQueryFilter( queryString);
-      set.stream().forEach( entry -> paramTovalueMap.put(entry.getKey() ,entry.getValue()));
+      set.forEach( entry -> paramTovalueMap.put(entry.getKey() ,entry.getValue()));
 
     }
     return paramTovalueMap;
@@ -105,4 +113,32 @@ public class ParserUtils {
     registry.addFunction(new IntervalFunction());
     registry.addFunction(new DistanceFunction());
   }
+
+
+
+  public static String getValidFieldFromRegistry(ValueExpression valExpr, ConverterContext context,
+      FieldType type , FieldMode mode) {
+
+    String value = valExpr.getValue();
+    FieldDeclaration field = context.getField(value);
+    checkFieldType(field, type);
+    return getFiledNameForSpecificMode(mode, field);
+  }
+
+  /**
+   * FieldNames (refer field registry xml from module resources ) coming in query parameters  can have different
+   * field name associated to it which are used for solr search ,
+   * below method gets the appropriate filedName based on the mode
+   * @param mode FieldMode  e.g. search ,sort
+   * @param field FieldDeclaration
+   * @return  associated field name based on mode
+   */
+  public static String getFiledNameForSpecificMode(FieldMode mode, FieldDeclaration field) {
+    String filedNameBasedOnMode  = field.getField(mode);
+    if(!StringUtils.isNotBlank(filedNameBasedOnMode))
+      SyntaxErrorUtils.newUnknownFieldNameForMode(mode.toString(), field.getName());
+    return field.getField(mode);
+  }
+
+
 }

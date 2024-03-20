@@ -11,24 +11,24 @@ import eu.europeana.api.search.syntax.function.FunctionClass;
 
 public class FunctionExpression implements TopLevelExpression ,ArgumentExpression{
 
-    private FunctionClass            function;
-    private List<ArgumentExpression> paramList;
+    private   FunctionClass   function;
+    private  List<ArgumentExpression> paramList;
 
     public FunctionExpression(FunctionClass function) {
         this.function  = function;
-        this.paramList = Collections.EMPTY_LIST;
+        this.paramList = Collections.emptyList();
     }
 
     public FunctionExpression(FunctionClass function
                             , List<ArgumentExpression> params) {
         this.function  = function;
-        this.paramList = params;
+        this.paramList = (params!=null ? params: Collections.emptyList());
     }
 
     public FunctionExpression(FunctionClass function
                             , ArgumentExpression... params) {
         this.function  = function;
-        this.paramList = Arrays.asList(params);
+        this.paramList = (params!=null ? Arrays.asList(params):Collections.emptyList());
     }
 
     public FunctionClass getFunction() {

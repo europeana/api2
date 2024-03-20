@@ -12,11 +12,11 @@ import eu.europeana.api.search.syntax.model.FunctionExpression;
  */
 public interface FunctionClass {
 
-    public String getName();
+     String getName();
 
-    public int getArgumentNr();
+     int getArgumentNr();
 
-    public void isValid(FunctionExpression expr);
+     boolean isValid(FunctionExpression expr);
 
-    public String toSolr(FunctionExpression expr, ConverterContext context);
+     String toSolr(FunctionExpression expr, ConverterContext context);
 }

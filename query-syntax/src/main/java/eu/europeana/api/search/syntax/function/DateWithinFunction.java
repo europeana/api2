@@ -18,5 +18,5 @@ public class DateWithinFunction extends DateFunction {
     public String toString() { return "DateWithinFunction{} " + getName(); }
 
     @Override
-    protected Operation getOperation() { return Operation.Within; }
+    protected Operation getOperation() { return Operation.WITHIN; }
 }

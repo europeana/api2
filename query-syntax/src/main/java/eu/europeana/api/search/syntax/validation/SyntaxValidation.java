@@ -26,8 +26,8 @@ public class SyntaxValidation {
 
     public static void checkArgumentNotFunction(String argNr
             , FunctionExpression funcExpr, ArgumentExpression arg) {
-        if ( arg instanceof FunctionExpression ) {
-            FunctionExpression argExpr = (FunctionExpression)arg;
+        if ( arg instanceof FunctionExpression argExpr) {
+            //FunctionExpression object will always have function associated to it
             newIllegalFunctionArg(funcExpr.getFunction().getName(), argNr, "value"
                                 , argExpr.getFunction().getName());
         }

@@ -18,5 +18,5 @@ public class DateContainsFunction extends DateFunction {
     public String toString() { return "DateContainsFunction{} " + getName(); }
 
     @Override
-    protected Operation getOperation() { return Operation.Contains; }
+    protected Operation getOperation() { return Operation.CONTAINS; }
 }

@@ -18,5 +18,5 @@ public class DateIntersectsFunction extends DateFunction {
     public String toString() { return "DateIntersectsFunction{} " + getName() ; }
 
     @Override
-    protected Operation getOperation() { return Operation.Intersects; }
+    protected Operation getOperation() { return Operation.INTERSECTS; }
 }
