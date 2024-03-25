@@ -1,5 +1,5 @@
 # name suffix and commonLabels to be provided imperatively during deployment
-apiVersion: kustomize.config.k8s.io/v1beta1
+apiVersion: kustomize.config.k8s.io/v1
 kind: Kustomization
 
 resources:
@@ -7,5 +7,5 @@ resources:
 - service.yaml
 - ingress.properties.yaml
 
-patchesStrategicMerge:
-- deployment_patch.properties.yaml
+patches:
+- path: deployment_patch.properties.yaml
