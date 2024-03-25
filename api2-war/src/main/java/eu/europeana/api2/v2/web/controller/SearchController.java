@@ -93,6 +93,7 @@ public class SearchController extends BaseController {
     // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
     private static final Pattern COUNTRY_PATTERN = Pattern.compile("COUNTRY:\"(.*?)\"|COUNTRY:(.*?)(&|\\s|$)");
+    public static final String ASTERISK = "*";
 
     @Resource
     private Api2UrlService urlService;
@@ -226,13 +227,13 @@ public class SearchController extends BaseController {
 
         // validate boost Param
         BoostParamUtils.validateBoostParam(boostParam);
-        
+
         // validate provided languages
         List<Language> filterLanguages = null;
         if (lang != null) {
             try {
                 filterLanguages = Language.validateMultiple(lang);
-            } catch(InvalidLanguageException e) {
+            } catch (InvalidLanguageException e) {
                 throw new InvalidParamValueException(e.getMessage());
 
             }
@@ -242,30 +243,30 @@ public class SearchController extends BaseController {
         // fail fast if user is requesting translations when translation service is not enabled
         // note that we'll ignore when query translations or results translations is disabled
         if (isTranslateProfileActive && (
-                (queryTranslationEnabled && queryGenerator == null) ||
+            (queryTranslationEnabled && queryGenerator == null) ||
                 (resultsTranslationEnabled && !searchResultTranslator.isEnabled()))) {
             throw new TranslationServiceDisabledException();
         }
         queryString = queryString.trim();
 
         // append the boost value in the query
-        if(StringUtils.isNotEmpty(boostParam)) {
+        if (StringUtils.isNotEmpty(boostParam)) {
             queryString = boostParam + queryString;
         }
 
         queryString = fixCountryCapitalization(queryString);
 
-
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
         LOG.debug("ORIGINAL QUERY: |{}|", queryString);
 
-        if (queryTranslationEnabled && isTranslateProfileActive && StringUtils.isNotBlank(queryTargetLang)) {
+        if (queryTranslationEnabled && isTranslateProfileActive && StringUtils.isNotBlank(
+            queryTargetLang)) {
             validateQueryTranslateParams(querySourceLang, queryTargetLang);
             // generate multi-lingual search query
             try {
                 queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
-                        querySourceLang, getAuthorizationHeader(request));
+                    querySourceLang, getAuthorizationHeader(request));
                 LOG.debug("TRANSLATED QUERY: |{}|", queryString);
             } catch (TranslationServiceNotAvailableException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
@@ -288,13 +289,23 @@ public class SearchController extends BaseController {
                     throw new InvalidParamValueException(e.getMessage());
                 }
             }
-            translateTargetLang = filterLanguages.get(0).name().toLowerCase(Locale.ROOT); // only use first provided language for translations
+            translateTargetLang = filterLanguages.get(0).name()
+                .toLowerCase(Locale.ROOT); // only use first provided language for translations
         }
 
-        if ((cursorMark != null) && (start > 1)) {
-            throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
-                                         "Parameters 'start' and 'cursorMark' cannot be used together");
-        }
+        //Add Validation For Cursormark
+        if (cursorMark != null) {
+           if( (start > 1)) {
+               throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
+                   "Parameters 'start' and 'cursorMark' cannot be used together");
+           }
+           //If the cursor value other than * is provided then it needs to be Base64 Encoded
+           if (!ASTERISK.equals(cursorMark) && !ControllerUtils.isBase64Encoded(cursorMark)) {
+               throw new SolrQueryException(ProblemType.SEARCH_CURSORMARK_INVALID,
+                   "Please make sure you encode the cursor value before sending it to the API.");
+           }
+         }
+
 
         // TODO April '22 - this issue is now over 11 years old and I'm quite certain that we can stop checking this
         // TODO check whether this is still necessary? <= about time we did that!
