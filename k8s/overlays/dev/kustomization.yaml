@@ -1,12 +1,14 @@
-apiVersion: kustomize.config.k8s.io/v1
+apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- ../../base
-- nodeport.yaml
+  - ../../base
+  - nodeport.yaml
 
 patches:
-- path: deployment_patch.yaml
+  - path: deployment_patch.yaml
 
-commonLabels:
-  app: search-api
+labels:
+  - includeSelectors: true
+    pairs:
+      app: search-api
