@@ -8,5 +8,5 @@ resources:
 - ingress.properties.yaml
 - hpa.properties.yaml
 
-patchesStrategicMerge:
-- deployment_patch.properties.yaml
+patches:
+- path: deployment_patch.properties.yaml
