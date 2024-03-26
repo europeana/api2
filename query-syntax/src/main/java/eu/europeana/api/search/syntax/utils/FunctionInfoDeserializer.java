@@ -10,11 +10,14 @@ import eu.europeana.api.search.syntax.function.FunctionClass;
 import eu.europeana.api.search.syntax.function.FunctionRegistry;
 import java.lang.reflect.Constructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FunctionInfoDeserializer extends JsonDeserializer<FunctionRegistry> {
 
   public static final String CLASSNAME = "classname";
 
+  private final Logger log = LogManager.getLogger(FunctionInfoDeserializer.class);
   /**
    * Read the Function class names from input file located in resources folder and register the respective function objects.
    * @param p Parser used for reading JSON content
@@ -28,6 +31,7 @@ public class FunctionInfoDeserializer extends JsonDeserializer<FunctionRegistry>
 
     FunctionRegistry registry = FunctionRegistry.INSTANCE;
     try {
+      int functionCount =0;
       ObjectNode tree = p.readValueAsTree();
       JsonNode functionNode = tree.findValue(Constants.FUNCTION);
       if (functionNode != null && !functionNode.isEmpty()) {
@@ -38,9 +42,11 @@ public class FunctionInfoDeserializer extends JsonDeserializer<FunctionRegistry>
               Class<?> functionClass = Class.forName(classname);
               Constructor<?> cons = functionClass.getConstructor();
               registry.addFunction((FunctionClass) cons.newInstance());
+              functionCount ++;
             }
           }
         }
+        log.info("FunctionRegistry -> Total {} function classes loaded in registry!!",functionCount);
       }
     } catch (Exception e) {
       throw new DeserializationException(String.format("Exception occurred while loading %s. %s",Constants.FUNCTION_REGISTRY_XML,e));

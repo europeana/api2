@@ -9,9 +9,12 @@ import eu.europeana.api.search.syntax.exception.DeserializationException;
 import eu.europeana.api.search.syntax.field.FieldDeclaration;
 import eu.europeana.api.search.syntax.field.FieldRegistry;
 import eu.europeana.api.search.syntax.field.FieldType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FieldInfoDeserializer extends JsonDeserializer<FieldRegistry> {
 
+  private final Logger log = LogManager.getLogger(FieldInfoDeserializer.class);
   /**
    * Read the field information from input xml and register the fields with their corresponding solr field names based on different modes.
    * e.g. field 'issued' has corresponding field name 'issued_date'  which is used for searching in the solr.
@@ -27,6 +30,7 @@ public class FieldInfoDeserializer extends JsonDeserializer<FieldRegistry> {
   public FieldRegistry deserialize(JsonParser p, DeserializationContext ctxt) {
     FieldRegistry fieldRegistry = FieldRegistry.INSTANCE;
     try {
+      int count =0;
       ObjectNode tree = p.readValueAsTree();
       JsonNode field = tree.findValue(Constants.FIELD);
       if (field != null && !field.isEmpty()) {
@@ -39,7 +43,9 @@ public class FieldInfoDeserializer extends JsonDeserializer<FieldRegistry> {
               node.get(Constants.SORTING_DESCENDING).textValue(),
               node.get(Constants.SORTING_ASCENDING).textValue())
           );
+          count++;
         }
+        log.info("FieldRegistry -> Total {} field details loaded in registry!!",count);
       }
     } catch (Exception e) {
       throw new DeserializationException(String.format("Exception occurred while loading %s. %s",Constants.FIELD_REGISTRY_XML,e));
