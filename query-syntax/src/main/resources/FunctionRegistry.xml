@@ -1,1 +1,8 @@
-<function-registry></function-registry>
+<function-definitions>
+  <function classname="eu.europeana.api.search.syntax.function.DateFunction"/>
+  <function classname="eu.europeana.api.search.syntax.function.DateIntersectsFunction"/>
+  <function classname="eu.europeana.api.search.syntax.function.DateContainsFunction"/>
+  <function classname="eu.europeana.api.search.syntax.function.DateWithinFunction"/>
+  <function classname="eu.europeana.api.search.syntax.function.DistanceFunction"/>
+  <function classname="eu.europeana.api.search.syntax.function.IntervalFunction"/>
+</function-definitions>

@@ -11,8 +11,8 @@ public class TestSearchParser {
 
   @Before
   public void setup() {
-    ParserUtils.loadFieldRegistryFromResource(this.getClass(), Constants.FIELD_REGISTRY_XML);
-    ParserUtils.loadFunctionRegistry();
+    ParserUtils.loadFieldRegistryFromResource(Constants.FIELD_REGISTRY_XML);
+    ParserUtils.loadFunctionRegistry(Constants.FUNCTION_REGISTRY_XML);
   }
 
   @Test(expected = QuerySyntaxException.class)

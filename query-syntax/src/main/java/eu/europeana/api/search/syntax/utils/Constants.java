@@ -2,11 +2,14 @@ package eu.europeana.api.search.syntax.utils;
 
 public class Constants {
   private Constants() {}
-
   public static final String FIELD_REGISTRY_XML = "FieldRegistry.xml";
+  public static final String FUNCTION_REGISTRY_XML = "FunctionRegistry.xml";
 
   public static final String NAME = "name";
   public static final String FIELD = "field";
+
+  public static final String FUNCTION = "function";
+
   public static final String TYPE = "type";
   public static final String SEARCHING = "searching";
   public static final String FACETING = "faceting";

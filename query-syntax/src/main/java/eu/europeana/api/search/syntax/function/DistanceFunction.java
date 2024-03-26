@@ -76,7 +76,7 @@ public class DistanceFunction implements FunctionClass {
   if(!(arg instanceof ValueExpression) ){
     newWrongFunctionArg(getName(), ArgumentExpression.ARG1, "valid field name");
   }
-  return ParserUtils.getValidFieldFromRegistry((ValueExpression)arg, context,FieldType.geo,FieldMode.search);
+  return ParserUtils.getValidFieldFromRegistry((ValueExpression)arg, context,FieldType.GEO,FieldMode.SEARCH);
   }
 
 }

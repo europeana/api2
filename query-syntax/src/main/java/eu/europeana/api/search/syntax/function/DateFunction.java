@@ -28,7 +28,17 @@ import org.apache.commons.lang3.StringUtils;
 public class DateFunction implements FunctionClass {
 
     public static final String NAME = "date";
-    public enum Operation {INTERSECTS, CONTAINS, WITHIN}
+    public enum Operation {
+        INTERSECTS("Intersects"), CONTAINS("Contains"), WITHIN("Within");
+        Operation(String val) {
+            this.value = val;
+        }
+        private String value;
+        public String getValue() {
+            return this.value;
+        }
+
+    }
 
     private static final String SOLR_DATE_QUERY = "_query_:\"{!field f=%s op=%s}%s\"";
     private static final String DATE_WILDCARD   = "*";
@@ -65,7 +75,7 @@ public class DateFunction implements FunctionClass {
         List<ArgumentExpression> params = expr.getParameters();
         String field = getDateField(context, params);
         String date = getDate(ArgumentExpression.ARG2, params.get(1), context);
-        String operation = getOperation().name();
+        String operation = getOperation().getValue();
 
         return String.format(SOLR_DATE_QUERY, field, operation, date);
 
@@ -76,7 +86,7 @@ public class DateFunction implements FunctionClass {
             newWrongFunctionArg(getName(), ArgumentExpression.ARG1, "valid field name");
         }
         return ParserUtils.getValidFieldFromRegistry((ValueExpression) params.get(0),
-            context,FieldType.date,FieldMode.search);
+            context,FieldType.DATE,FieldMode.SEARCH);
 
     }
 

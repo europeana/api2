@@ -22,16 +22,12 @@ public class ConverterContext extends Stack<SyntaxExpression> {
 
     private FieldRegistry    fieldRegistry;
     private FunctionRegistry functionRegistry;
-
     private Map<String,String> paramMap = new LinkedHashMap<>();
-
 
     public ConverterContext() {
         fieldRegistry    = FieldRegistry.INSTANCE;
         functionRegistry = FunctionRegistry.INSTANCE;
     }
-
-
     public Set<Map.Entry<String, String>> getParameters() {
         return paramMap.entrySet();
     }
@@ -40,15 +36,12 @@ public class ConverterContext extends Stack<SyntaxExpression> {
         this.paramMap.put(key, value);
     }
 
-
-
-    public boolean contains(Class clazz) {
+    public boolean contains(Class<?> clazz) {
         for ( SyntaxExpression expr : this ) {
             if ( clazz.isAssignableFrom(expr.getClass()) ) { return true; }
         }
         return false;
     }
-
     public FieldDeclaration getField(String name) {
         FieldDeclaration field = fieldRegistry.getField(name);
         if ( field == null ) { newUnknownField(name); }

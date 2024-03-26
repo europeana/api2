@@ -277,8 +277,8 @@ public class SearchController extends BaseController {
         }
 
         // EA 3657 - Start - New Parser Logic -load the registry before parsing
-        ParserUtils.loadFieldRegistryFromResource(ParserUtils.class, Constants.FIELD_REGISTRY_XML);
-        ParserUtils.loadFunctionRegistry();
+        ParserUtils.loadFieldRegistryFromResource(Constants.FIELD_REGISTRY_XML);
+        ParserUtils.loadFunctionRegistry(Constants.FUNCTION_REGISTRY_XML);
 
         Map<String, String> parametermap = ParserUtils.getParsedParametersMap(newRefinementString);
         //EA 3657 -If qf parameter not populated and new nqf parameter is used geodistance parameters calculation is handled with parser.
@@ -576,9 +576,9 @@ public class SearchController extends BaseController {
     private String getSolrFieldForSorting(String mode, FieldDeclaration field) throws InvalidParamValueException {
         String solrSortFieldName= "";
         if("asc".equals(mode))
-                solrSortFieldName = field.getField(FieldMode.sort_asc);
+                solrSortFieldName = field.getField(FieldMode.SORT_DESC);
         if("desc".equals(mode))
-                solrSortFieldName =  field.getField(FieldMode.sort_desc);
+                solrSortFieldName =  field.getField(FieldMode.SORT_DESC);
         if(StringUtils.isEmpty(solrSortFieldName))
             throw new InvalidParamValueException("Equivalent solr sort parameter not found in Field registry!");
         return solrSortFieldName;

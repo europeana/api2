@@ -12,8 +12,8 @@ public class TestGeodistanceQueryParsing {
 
   @Before
   public void setup() {
-    ParserUtils.loadFieldRegistryFromResource(this.getClass(), Constants.FIELD_REGISTRY_XML);
-    ParserUtils.loadFunctionRegistry();
+    ParserUtils.loadFieldRegistryFromResource(Constants.FIELD_REGISTRY_XML);
+    ParserUtils.loadFunctionRegistry(Constants.FUNCTION_REGISTRY_XML);
   }
   @Test
   public void testGeodistance()  {
@@ -37,8 +37,8 @@ public class TestGeodistanceQueryParsing {
    */
   @Test
   public void testGeodistance_whenMultipleOccurance_2() {
-    ParserUtils.getParsedParametersMap(
-        "distance(coverageLocation,47,12,2000) OR distance(coverageLocation,48,13,3000)");
+    Assert.assertEquals("({!geofilt} OR {!geofilt})",ParserUtils.getParsedParametersMap(
+        "distance(coverageLocation,47,12,2000) OR distance(coverageLocation,48,13,3000)").get("fq"));
   }
   @Test(expected = QuerySyntaxException.class)
   public void testGeodistance_whenInvalidArguments()  {

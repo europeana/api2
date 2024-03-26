@@ -154,8 +154,8 @@ public class FacetParameterUtils {
                 FieldDeclaration field = FieldRegistry.INSTANCE.getField(fieldName);
 
                 if (field != null && rangeSpecifiers.contains(rangeSpecifier)
-                    && FieldType.date.equals(field.getType())) {
-                    String facetingField = field.getField(FieldMode.facet);
+                    && FieldType.DATE.equals(field.getType())) {
+                    String facetingField = field.getField(FieldMode.FACET);
                     if (facetingField != null) {
                         fieldsForFaceting.add(facetingField);
                         String newKey = "f." + facetingField + "." + FACET_RANGE + "."+rangeSpecifier;

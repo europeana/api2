@@ -11,13 +11,7 @@ import eu.europeana.api.search.syntax.field.FieldDeclaration;
 import eu.europeana.api.search.syntax.field.FieldMode;
 import eu.europeana.api.search.syntax.field.FieldRegistry;
 import eu.europeana.api.search.syntax.field.FieldType;
-import eu.europeana.api.search.syntax.function.DateContainsFunction;
-import eu.europeana.api.search.syntax.function.DateFunction;
-import eu.europeana.api.search.syntax.function.DateIntersectsFunction;
-import eu.europeana.api.search.syntax.function.DateWithinFunction;
-import eu.europeana.api.search.syntax.function.DistanceFunction;
 import eu.europeana.api.search.syntax.function.FunctionRegistry;
-import eu.europeana.api.search.syntax.function.IntervalFunction;
 import eu.europeana.api.search.syntax.model.SyntaxExpression;
 import eu.europeana.api.search.syntax.model.ValueExpression;
 import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
@@ -71,12 +65,12 @@ public class ParserUtils {
   /**
    * To load the mapping of valid field names to accept in search query and then to query solr.
    */
-  public static void loadFieldRegistryFromResource(Class loaderClass ,String fileToLoad)  {
+  public static void loadFieldRegistryFromResource(String fileToLoad)  {
     try {
 
       if(!FieldRegistry.INSTANCE.isLoaded) {
         log.info("Loading field Registry !");
-        InputStream inputStream =  loaderClass.getClassLoader().getResourceAsStream(fileToLoad);
+        InputStream inputStream =  ParserUtils.class.getClassLoader().getResourceAsStream(fileToLoad);
         XmlMapper xmlMapper = getXmlMapper(FieldRegistry.class, new FieldInfoDeserializer());
         xmlMapper.readValue(inputStream, FieldRegistry.class);
         FieldRegistry.INSTANCE.isLoaded =true;
@@ -93,7 +87,7 @@ public class ParserUtils {
    * @param deserializer Custom deserializer
    * @return XmlMapper Object
    */
-  private static XmlMapper getXmlMapper(Class type, JsonDeserializer deserializer) {
+  private static XmlMapper getXmlMapper(Class<?> type, JsonDeserializer deserializer) {
     JacksonXmlModule module = new JacksonXmlModule();
     module.addDeserializer(type, deserializer);
     XmlMapper xmlMapper = new XmlMapper(module);
@@ -104,14 +98,20 @@ public class ParserUtils {
   /**
    * To load the functions used during the parsing of Search queries.
    */
-  public static void loadFunctionRegistry() {
-    FunctionRegistry registry = FunctionRegistry.INSTANCE;
-    registry.addFunction(new DateFunction());
-    registry.addFunction(new DateContainsFunction());
-    registry.addFunction(new DateIntersectsFunction());
-    registry.addFunction(new DateWithinFunction());
-    registry.addFunction(new IntervalFunction());
-    registry.addFunction(new DistanceFunction());
+  public static void loadFunctionRegistry(String fileToLoad){
+    try {
+      if (!FunctionRegistry.INSTANCE.isLoaded) {
+        log.info("Loading function Registry !");
+        InputStream inputStream = ParserUtils.class.getClassLoader()
+            .getResourceAsStream(fileToLoad);
+        XmlMapper xmlMapper = getXmlMapper(FunctionRegistry.class, new FunctionInfoDeserializer());
+        xmlMapper.readValue(inputStream, FunctionRegistry.class);
+        FieldRegistry.INSTANCE.isLoaded = true;
+      }
+    }
+    catch (IOException ex){
+      log.error(String.format("query-parser -> Error while loading functionRegistry. %s", ex.getMessage()));
+    }
   }
 
 

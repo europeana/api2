@@ -17,8 +17,8 @@ import eu.europeana.api.search.syntax.utils.ParserUtils;
 public class TestSyntaxConversion {
 
   static {
-    ParserUtils.loadFieldRegistryFromResource(TestSyntaxConversion.class, Constants.FIELD_REGISTRY_XML);
-    ParserUtils.loadFunctionRegistry();
+    ParserUtils.loadFieldRegistryFromResource(Constants.FIELD_REGISTRY_XML);
+    ParserUtils.loadFunctionRegistry(Constants.FUNCTION_REGISTRY_XML);
   }
 
 

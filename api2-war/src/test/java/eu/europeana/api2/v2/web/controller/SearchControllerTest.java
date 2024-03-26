@@ -291,8 +291,8 @@ public class SearchControllerTest {
     @Test
     public void test_sortParameterValidation() throws InvalidParamValueException {
         String expected = "geodist() asc,geodist() desc";
-        ParserUtils.loadFieldRegistryFromResource(ParserUtils.class, Constants.FIELD_REGISTRY_XML);
-        ParserUtils.loadFunctionRegistry();
+        ParserUtils.loadFieldRegistryFromResource(Constants.FIELD_REGISTRY_XML);
+        ParserUtils.loadFunctionRegistry(Constants.FUNCTION_REGISTRY_XML);
         Assert.assertEquals(expected,searchController.validateAndUpdateSortParameters("distance  asc ,distance desc"));
     }
 

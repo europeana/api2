@@ -1,6 +1,0 @@
-<field-definitions>
-  <field name="issued" type="date" searching="issued_date" faceting="issued" sorting-descending="issued_date_end" sorting-ascending="issued_date_begin"/>
-  <field name="created" type="date" searching="created_date" faceting="created" sorting-descending="created_date_end" sorting-ascending="created_date_begin"/>
-  <field name="coverageLocation" type="geo" searching="coverageLocation" faceting="created" sorting-descending="created_date_end" sorting-ascending="created_date_begin"/>
-  <field name="distance" type="geo" searching="" faceting="" sorting-descending="geodist()" sorting-ascending="geodist()"></field>
-</field-definitions>

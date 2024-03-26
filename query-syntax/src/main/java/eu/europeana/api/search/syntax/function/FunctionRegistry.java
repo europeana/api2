@@ -14,10 +14,12 @@ public class FunctionRegistry {
 
     public static FunctionRegistry INSTANCE = new FunctionRegistry();
 
+    public boolean isLoaded;
+
     public Map<String,FunctionClass> registry;
 
     public FunctionRegistry() {
-        registry = new HashMap();
+        registry = new HashMap<>();
     }
 
     public void addFunction(FunctionClass function) {
@@ -31,4 +33,6 @@ public class FunctionRegistry {
     public FunctionClass getFunction(String name) {
         return registry.get(name);
     }
+
+
 }

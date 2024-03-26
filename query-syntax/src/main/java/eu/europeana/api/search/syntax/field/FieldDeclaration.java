@@ -23,10 +23,10 @@ public class FieldDeclaration
         this.type = type;
 
         field_map = new LinkedHashMap<>();
-        field_map.put(FieldMode.search   , f_search);
-        field_map.put(FieldMode.facet    , f_facet);
-        field_map.put(FieldMode.sort_asc , f_sort_asc);
-        field_map.put(FieldMode.sort_desc, f_sort_desc);
+        field_map.put(FieldMode.SEARCH   , f_search);
+        field_map.put(FieldMode.FACET    , f_facet);
+        field_map.put(FieldMode.SORT_ASC , f_sort_asc);
+        field_map.put(FieldMode.SORT_DESC, f_sort_desc);
     }
 
     public String getName() {

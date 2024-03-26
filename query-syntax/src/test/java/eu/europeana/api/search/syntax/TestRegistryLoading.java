@@ -15,16 +15,16 @@ public class TestRegistryLoading {
     public void testFieldRegistryloading(){
 
 
-        ParserUtils.loadFieldRegistryFromResource(this.getClass(), Constants.FIELD_REGISTRY_XML);
+        ParserUtils.loadFieldRegistryFromResource(Constants.FIELD_REGISTRY_XML);
 
-        FieldDeclaration expected= new FieldDeclaration("issued", FieldType.date,  "issued_date", "issued", "issued_date_end", "issued_date_begin");//    FieldRegistry registry = FieldRegistry.INSTANCE;
+        FieldDeclaration expected= new FieldDeclaration("issued", FieldType.DATE,  "issued_date", "issued", "issued_date_end", "issued_date_begin");
         FieldDeclaration actual =FieldRegistry.INSTANCE.getField("issued");
         Assert.assertEquals(expected.getName(),actual.getName());
         Assert.assertEquals(expected.getType(),actual.getType());
-        Assert.assertEquals(expected.getField(FieldMode.search), actual.getField(FieldMode.search));
-        Assert.assertEquals(expected.getField(FieldMode.facet), actual.getField(FieldMode.facet));
-        Assert.assertEquals(expected.getField(FieldMode.sort_asc), actual.getField(FieldMode.sort_asc));
-        Assert.assertEquals(expected.getField(FieldMode.sort_desc), actual.getField(FieldMode.sort_desc));
+        Assert.assertEquals(expected.getField(FieldMode.SEARCH), actual.getField(FieldMode.SEARCH));
+        Assert.assertEquals(expected.getField(FieldMode.FACET), actual.getField(FieldMode.FACET));
+        Assert.assertEquals(expected.getField(FieldMode.SORT_ASC), actual.getField(FieldMode.SORT_ASC));
+        Assert.assertEquals(expected.getField(FieldMode.SORT_DESC), actual.getField(FieldMode.SORT_DESC));
     }
 
 }
