@@ -106,7 +106,7 @@ public class ParserUtils {
             .getResourceAsStream(fileToLoad);
         XmlMapper xmlMapper = getXmlMapper(FunctionRegistry.class, new FunctionInfoDeserializer());
         xmlMapper.readValue(inputStream, FunctionRegistry.class);
-        FieldRegistry.INSTANCE.isLoaded = true;
+        FunctionRegistry.INSTANCE.isLoaded = true;
       }
     }
     catch (IOException ex){
