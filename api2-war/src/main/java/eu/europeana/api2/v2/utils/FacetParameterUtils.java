@@ -134,6 +134,18 @@ public class FacetParameterUtils {
         return technicalFacetParams;
     }
 
+    /**
+     * Process the new date faceting parameters which are in the below form
+     * facet.<fieldname>.gap=<gap>
+     * facet.<fieldname>.start=<start>
+     * facet.<fieldname>.end=<end>
+     *
+     * @param parameters
+     * @return Map containing the parameter and its value
+     * @throws DateMathParseException
+     * @throws InvalidRangeOrGapException
+     * @throws DataFormatException
+     */
     public static Map<String, String> getDateRangeParamsNew(Map<String, String[]> parameters)
         throws DateMathParseException, InvalidRangeOrGapException, DataFormatException {
         Map<String, String> dateRangeParams = new HashMap<>();
@@ -151,6 +163,8 @@ public class FacetParameterUtils {
                 String[] splitParamName = paramName.split("\\.");
                 String fieldName = splitParamName[1];
                 String rangeSpecifier = splitParamName[2];
+
+
                 FieldDeclaration field = FieldRegistry.INSTANCE.getField(fieldName);
 
                 if (field != null && rangeSpecifiers.contains(rangeSpecifier)
@@ -158,6 +172,8 @@ public class FacetParameterUtils {
                     String facetingField = field.getField(FieldMode.FACET);
                     if (facetingField != null) {
                         fieldsForFaceting.add(facetingField);
+
+
                         String newKey = "f." + facetingField + "." + FACET_RANGE + "."+rangeSpecifier;
                         //format param value
                         String val = paramValue[0];
@@ -184,6 +200,7 @@ public class FacetParameterUtils {
                 dateRangeParams.get("f." + field + "." + FACET_RANGE + ".end"),
                 dateRangeParams.get("f." + field + "." + FACET_RANGE + ".gap"),
                 MAX_RANGE_FACETS);
+            //Apply the formula (end-start)+1/gap
         }
 
         dateRangeParams.put(FACET_RANGE,String.join(",",fieldsForFaceting));
@@ -263,6 +280,7 @@ public class FacetParameterUtils {
 
 
         }
+
         getDateRangeParamsNew(parameters).forEach(dateRangeParams::putIfAbsent);
 
 

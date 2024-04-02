@@ -295,9 +295,10 @@ public class SearchController extends BaseController {
         //Validate sort param
         sort= validateAndUpdateSortParameters(sort);
 
-        //EA 3657-If the qf parameter is not populated get the refinement query value from new nqf param.
+        //EA 3657-If the qf parameter is not populated get the refinement query value from new nqf param ,used by parser to generate solr fq param.
         String fqParam =  parametermap.get("fq");
-        if (ArrayUtils.isEmpty(refinementArray) && StringUtils.isNotBlank(fqParam)) {
+        boolean useNewQueryFilterRefinements = ArrayUtils.isEmpty(refinementArray) && StringUtils.isNotBlank(fqParam);
+        if (useNewQueryFilterRefinements) {
             refinementArray = new String[1];
             refinementArray[0] = fqParam;
         }
@@ -537,7 +538,7 @@ public class SearchController extends BaseController {
             query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
         }
         SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
-                translateTargetLang, filterLanguages, request, response);
+                translateTargetLang, filterLanguages, request, response,!useNewQueryFilterRefinements );
         if (profiles.contains(Profile.PARAMS)) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
@@ -985,7 +986,8 @@ public class SearchController extends BaseController {
                                                               String translateTargetLang,
                                                               List<Language> filterLanguages,
                                                               HttpServletRequest servletRequest,
-                                                              HttpServletResponse servletResponse) throws EuropeanaException {
+                                                              HttpServletResponse servletResponse,
+        boolean isToDivideQueryRefinements) throws EuropeanaException {
 
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
@@ -993,9 +995,9 @@ public class SearchController extends BaseController {
         SolrClient solrClient = getSolrClient(requestRoute);
 
         if (profiles.contains(Profile.DEBUG)) {
-            resultSet = searchService.search(solrClient, clazz, query, true);
+            resultSet = searchService.search(solrClient, clazz, query, true,isToDivideQueryRefinements);
         } else {
-            resultSet = searchService.search(solrClient, clazz, query);
+            resultSet = searchService.search(solrClient, clazz, query,isToDivideQueryRefinements);
         }
         response.totalResults = resultSet.getResultSize();
         if (StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) &&
@@ -1106,7 +1108,7 @@ public class SearchController extends BaseController {
                                                                             .setSpellcheckAllowed(false)
                                                                             .setFacetsAllowed(false);
         query.setRefinements("pl_wgs84_pos_lat_long:[* TO *]");
-        ResultSet<BriefBean> resultSet = searchService.search(solrClient, BriefBean.class, query);
+        ResultSet<BriefBean> resultSet = searchService.search(solrClient, BriefBean.class, query,true);
         kmlResponse.document.extendedData.totalResults.value = Long.toString(resultSet.getResultSize());
         kmlResponse.document.extendedData.startIndex.value = Integer.toString(start);
         kmlResponse.setItems(resultSet.getResults());
@@ -1156,7 +1158,7 @@ public class SearchController extends BaseController {
                                                                             .setStart(start - 1)
                                                                             .setFacetsAllowed(false)
                                                                             .setSpellcheckAllowed(false);
-        ResultSet<BriefBean> resultSet = searchService.search(solrClient, BriefBean.class, query);
+        ResultSet<BriefBean> resultSet = searchService.search(solrClient, BriefBean.class, query,true);
         channel.totalResults.value = resultSet.getResultSize();
         for (BriefBean bean : resultSet.getResults()) {
             Item item = new Item();
