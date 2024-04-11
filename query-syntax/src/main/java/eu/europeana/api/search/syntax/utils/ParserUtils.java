@@ -140,5 +140,24 @@ public class ParserUtils {
     return field.getField(mode);
   }
 
+  /**
+   * Method accepts the search field and field mode for searching.
+   * It looks into registry for finding the associated field name for that mode and returns it.
+   * @param term
+   * @param mode
+   * @return
+   */
+  public String getFieldNameBasedOnModeForSearchField(String term,FieldMode mode){
+    Map<String, FieldDeclaration> registry = FieldRegistry.INSTANCE.registry;
+    for(Entry<String, FieldDeclaration> e : registry.entrySet()){
+      FieldDeclaration decl = e.getValue();
+      if(term.equals(decl.getName()))
+         return decl.getField(mode);
+    }
+    return null;
+  }
+
+
+
 
 }

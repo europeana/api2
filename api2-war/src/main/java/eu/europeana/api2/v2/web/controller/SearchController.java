@@ -28,6 +28,7 @@ import eu.europeana.api2.v2.model.json.SearchResults;
 import eu.europeana.api2.v2.model.json.view.ApiView;
 import eu.europeana.api2.v2.model.json.view.BriefView;
 import eu.europeana.api2.v2.model.json.view.RichView;
+import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import eu.europeana.api2.v2.model.translate.MultilingualQueryGenerator;
 import eu.europeana.api2.v2.model.xml.kml.KmlResponse;
 import eu.europeana.api2.v2.model.xml.rss.Channel;
@@ -1064,7 +1065,20 @@ public class SearchController extends BaseController {
                                                                        query.isDefaultFacetsRequested(),
                                                                        query.getTechnicalFacetLimits(),
                                                                        query.getTechnicalFacetOffsets());
+            //map facet name returned by solr to the facet term requested by user
+            if (CollectionUtils.isNotEmpty(query.getSolrFacets())) {
+                for (String facetTerm : query.getSolrFacets()) {
+                    String filedNameForSpecificMode = ParserUtils.getFiledNameForSpecificMode(
+                        FieldMode.FACET, FieldRegistry.INSTANCE.getField(facetTerm));
+                    for (Facet facet : response.facets) {
+                        if (filedNameForSpecificMode.equals(facet.name)) {
+                            facet.name = facetTerm;
+                        }
+                    }
+                }
+            }
         }
+
         if (profiles.contains(Profile.HITS) && MapUtils.isNotEmpty(resultSet.getHighlighting())) {
             response.hits = new HitMaker().createHitList(resultSet.getHighlighting(), query.getNrSelectors());
         }
