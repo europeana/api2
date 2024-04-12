@@ -227,7 +227,7 @@ public class SearchController extends BaseController {
     public ModelAndView searchJsonGet(
                                       @SolrEscape @RequestParam(value = "query") String queryString,
                                       @RequestParam(value = "qf", required = false) String[] refinementArray,
-                                      @RequestParam(value = "nqf", required = false) String newRefinementString,
+                                      @RequestParam(value = "nqf", required = false) String[] newRefinementString,
 
                                       @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
                                       @RequestParam(value = "profile", required = false, defaultValue = "standard")
@@ -281,7 +281,9 @@ public class SearchController extends BaseController {
         ParserUtils.loadFieldRegistryFromResource(Constants.FIELD_REGISTRY_XML);
         ParserUtils.loadFunctionRegistry(Constants.FUNCTION_REGISTRY_XML);
 
-        Map<String, String> parametermap = ParserUtils.getParsedParametersMap(newRefinementString);
+
+
+        Map<String, String> parametermap = ParserUtils.getParsedParametersMap(request.getParameterMap().get("nqf"));
         //EA 3657 -If qf parameter not populated and new nqf parameter is used geodistance parameters calculation is handled with parser.
         String sField = parametermap.get("sfield");
         String pt = parametermap.get("pt");

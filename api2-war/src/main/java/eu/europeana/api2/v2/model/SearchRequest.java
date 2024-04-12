@@ -24,7 +24,7 @@ public class SearchRequest {
     private String query;
 
     private String[] qf;
-    private String nqf;
+    private String[] nqf;
     private String[] reusability;
     private String[] profile = {"standard"};
     private int start = 1;
@@ -187,7 +187,7 @@ public class SearchRequest {
 
     public void setBoost(String boost) { this.boost = boost;}
 
-    public String getNqf() { return nqf; }
+    public String[] getNqf() { return nqf; }
 
-    public void setNqf(String nqf) { this.nqf = nqf; }
+    public void setNqf(String[] nqf) { this.nqf = nqf; }
 }

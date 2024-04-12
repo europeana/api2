@@ -31,21 +31,26 @@ public class ParserUtils {
   private ParserUtils(){
   }
 
-  public static Map<String,String> getParsedParametersMap(String queryString){
-    Map<String,String> paramTovalueMap = new HashMap<>();
-    if(queryString!=null){
-      Set<Entry<String, String>>  set =  parseQueryFilter( queryString);
-      set.forEach( entry -> paramTovalueMap.put(entry.getKey() ,entry.getValue()));
+  public static Map<String,String> getParsedParametersMap(String[] queryString){
 
+
+    Map<String,String> paramTovalueMap = new HashMap<>();
+    if(queryString!=null && queryString.length>0){
+      //TO DO support multiple parameter
+      Set<Entry<String, String>>  set =  parseQueryFilter(queryString);
+      set.forEach( entry -> paramTovalueMap.put(entry.getKey() ,entry.getValue()));
     }
     return paramTovalueMap;
   }
 
-  public static Set<Entry<String, String>> parseQueryFilter(String queryString) throws QuerySyntaxException {
-    SyntaxExpression expr = getParsedModel(queryString);
+  public static Set<Entry<String, String>> parseQueryFilter(String[] queryStringArray) throws QuerySyntaxException {
     ConverterContext context = new ConverterContext();
-    String solrFormat = expr.toSolr(context);
-    context.setParameter(Constants.FQ_PARAM, solrFormat);
+    String solrFormat =null;
+    for(String nqf : queryStringArray) {
+      SyntaxExpression expr = getParsedModel(nqf);
+      solrFormat = StringUtils.isEmpty(solrFormat) ? expr.toSolr(context) : solrFormat.concat(" AND ").concat(expr.toSolr(context));
+      context.setParameter(Constants.FQ_PARAM, solrFormat);
+    }
     return context.getParameters();
   }
   private static SyntaxExpression getParsedModel(String queryString) throws QuerySyntaxException {

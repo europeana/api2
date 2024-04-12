@@ -17,7 +17,7 @@ public class TestGeodistanceQueryParsing {
   }
   @Test
   public void testGeodistance()  {
-    Map<String, String> parsedParametersMap = ParserUtils.getParsedParametersMap("distance(coverageLocation,47,12,2000)");
+    Map<String, String> parsedParametersMap = ParserUtils.getParsedParametersMap(new String[]{"distance(coverageLocation,47,12,2000)"});
     Assert.assertEquals("{!geofilt}", parsedParametersMap.get( Constants.FQ_PARAM));
     Assert.assertEquals("2000.0", parsedParametersMap.get( Constants.D_PARAM));
     Assert.assertEquals("47.0,12.0", parsedParametersMap.get( Constants.PT_PARAM));
@@ -25,11 +25,11 @@ public class TestGeodistanceQueryParsing {
   }
   @Test (expected = QuerySyntaxException.class)
   public void testGeodistance_whenMultipleOccurance()    {
-    ParserUtils.getParsedParametersMap("(distance(coverageLocation,47,12,2000)distance(coverageLocation,47,12,2000))");
+    ParserUtils.getParsedParametersMap(new String[]{"(distance(coverageLocation,47,12,2000)distance(coverageLocation,47,12,2000))"});
   }
   @Test(expected = QuerySyntaxException.class)
   public void testGeodistance_whenMultipleOccurance_1()  {
-     ParserUtils.getParsedParametersMap("distance(coverageLocation,47,12,2000)distance(coverageLocation,47,12,2000)");
+     ParserUtils.getParsedParametersMap(new String[]{"distance(coverageLocation,47,12,2000)distance(coverageLocation,47,12,2000)"});
   }
 
   /**
@@ -38,26 +38,26 @@ public class TestGeodistanceQueryParsing {
   @Test
   public void testGeodistance_whenMultipleOccurance_2() {
     Assert.assertEquals("({!geofilt} OR {!geofilt})",ParserUtils.getParsedParametersMap(
-        "distance(coverageLocation,47,12,2000) OR distance(coverageLocation,48,13,3000)").get("fq"));
+        new String[]{"distance(coverageLocation,47,12,2000) OR distance(coverageLocation,48,13,3000)"}).get("fq"));
   }
   @Test(expected = QuerySyntaxException.class)
   public void testGeodistance_whenInvalidArguments()  {
-    ParserUtils.getParsedParametersMap("distance(^;C,#44%,f~@tr**$(-27#(alph@),2.0.-=00)");
+    ParserUtils.getParsedParametersMap(new String[]{"distance(^;C,#44%,f~@tr**$(-27#(alph@),2.0.-=00)"});
   }
 
   @Test(expected = QuerySyntaxException.class)
   public void testGeodistance_whenInvalidArguments_1() {
-    ParserUtils.getParsedParametersMap("distance(DELETE * FROM USERS)");
+    ParserUtils.getParsedParametersMap(new String[]{"distance(DELETE * FROM USERS)"});
   }
 
   @Test(expected = QuerySyntaxException.class)
   public void testGeodistance_whenInvalidArguments_2() {
-    ParserUtils.getParsedParametersMap("distance(,,,)");
+    ParserUtils.getParsedParametersMap(new String[]{"distance(,,,)"});
   }
 
   @Test(expected = QuerySyntaxException.class)
   public void testGeodistance_whenInvalidArguments_3() {
-    ParserUtils.getParsedParametersMap("distance(coverageLocation,20.4,80.09,-40)");
+    ParserUtils.getParsedParametersMap(new String[]{"distance(coverageLocation,20.4,80.09,-40)"});
   }
 
 }
