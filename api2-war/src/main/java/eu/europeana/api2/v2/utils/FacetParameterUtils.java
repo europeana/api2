@@ -15,6 +15,7 @@ import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -60,7 +61,6 @@ public class FacetParameterUtils {
     private static final String DEFAULT_GAP             = "+1YEAR";
 
     private static final long MAX_RANGE_FACETS          = 30000L;
-    public static final String WILD_CARD = "*";
     public static final String NEGATIVE_SIGN = "-";
     public static final String DATE_FIELD_FACET_REGEX = "^facet\\.([a-z,A-Z]*)\\.(gap|start|end)$";
     private static List<String> defaultSolrFacetList;
@@ -143,14 +143,13 @@ public class FacetParameterUtils {
      * @param parameters
      * @return Map containing the parameter and its value
      * @throws DateMathParseException
-     * @throws InvalidRangeOrGapException
      * @throws DataFormatException
      * @throws MissingParamException
      * @throws InvalidParamValueException
      *
      */
     public static Map<String, String> getDateRangeParamsForDateSearch(Map<String, String[]> parameters)
-        throws DateMathParseException, InvalidRangeOrGapException, DataFormatException, MissingParamException, InvalidParamValueException {
+        throws DateMathParseException,  DataFormatException, MissingParamException, InvalidParamValueException {
 
         Map<String, String> dateRangeParams = new HashMap<>();
         HashSet<String> fieldsForFaceting = new HashSet<>();
@@ -188,17 +187,18 @@ public class FacetParameterUtils {
      * @throws MissingParamException
      * @throws DateMathParseException
      * @throws InvalidParamValueException
-     * @throws InvalidRangeOrGapException
      */
     private static void validateAndUpdateDateFacetingParams(HashSet<String> fieldsForFaceting,
         Map<String, String> dateRangeParams)
-        throws MissingParamException, DateMathParseException, InvalidParamValueException, InvalidRangeOrGapException, DataFormatException {
+        throws MissingParamException, DateMathParseException, InvalidParamValueException, DataFormatException {
 
         for(String field : fieldsForFaceting){
             String startDate = dateRangeParams.get("f." + field + "." + FACET_RANGE_START);
             String gap = dateRangeParams.get("f." + field + "." + FACET_RANGE_GAP);
             String endDate = dateRangeParams.get("f." + field + "." + FACET_RANGE_END);
 
+            String gapValue;
+            String gapValueUnit;
             //User need to provide both start and gap values
             if(StringUtils.isNotBlank(startDate) && StringUtils.isNotBlank(gap) ) {
                 //in case both the start and gap provided but end not provided , default it to current dateTime
@@ -207,7 +207,6 @@ public class FacetParameterUtils {
                 }
                 startDate = convertDateInSolrFormat(startDate);
                 endDate = convertDateInSolrFormat(endDate);
-
                 //format param value  e.g. if input val is 2Y out put will be +2YEAR
                 if(!gap.startsWith("+")) {
                     gap="+"+gap;
@@ -215,9 +214,8 @@ public class FacetParameterUtils {
                 if(gap.startsWith("-"))
                     throw new InvalidParamValueException("Negative facet gaps are not allowed!");
 
-                String gapValue = StringUtils.chop(gap);
-                String gapValueUnit = dateTimeSpecifiersMap.get(gap.substring(gap.length() - 1));
-
+                gapValue = StringUtils.chop(gap);
+                gapValueUnit = dateTimeSpecifiersMap.get(gap.substring(gap.length() - 1));
                 gap = gapValue+gapValueUnit;
                 endDate = adjustEndDateForFaceting(endDate,gapValue,gapValueUnit);
             }
@@ -227,33 +225,46 @@ public class FacetParameterUtils {
                     field, field));
             }
 
+            compareDatesForFaceting(startDate,endDate,gapValue,gapValueUnit);
+
             dateRangeParams.put("f." + field + "." + FACET_RANGE + ".start",startDate);
-
-            compareDatesForFaceting(startDate,endDate);
-            DateMathParser.exceedsMaxNrOfGaps(startDate,endDate,gap,MAX_RANGE_FACETS);
-
             dateRangeParams.put("f." + field + "." + FACET_RANGE + ".end"  , endDate);
             dateRangeParams.put("f." + field + "." + FACET_RANGE + ".gap",gap);
         }
     }
 
-    private static void compareDatesForFaceting( String startDate,String endDate )
+    private static void compareDatesForFaceting( String startDate,String endDate,String gapValue,String gapUnit )
         throws DateMathParseException, InvalidParamValueException {
            //start date should be before end date
            Date startDateVal = parseDate(startDate);
            LocalDateTime startDateTime = LocalDateTime.ofInstant(startDateVal.toInstant(),
                ZoneOffset.UTC);
-
            Date endDateVal = parseDate(endDate);
            LocalDateTime endDateTime = LocalDateTime.ofInstant(endDateVal.toInstant(),
                ZoneOffset.UTC);
-
            if (startDateVal.compareTo(endDateVal) > 0) {
                throw new InvalidParamValueException(
                    "Facet start date can not be grater than end date !");
            }
-           //Duration.between(startDateTime, endDateTime).toMillis()  > Duration.between(startDateTime, endDateTime).toMillis()
+        validateDateAgainstGapValues(gapValue, gapUnit, startDateTime, endDateTime);
+    }
 
+    private static void validateDateAgainstGapValues(String gapValue, String gapUnit, LocalDateTime startDateTime,
+        LocalDateTime endDateTime) throws InvalidParamValueException {
+        Date currentDate = new Date();
+        Date gap = getDateBasedOnGapDuration(gapValue, gapUnit, currentDate);
+
+        long timespanInMillis = Duration.between(startDateTime, endDateTime).toMillis();
+        long gapInMillis = Duration.between(
+            LocalDateTime.ofInstant(currentDate.toInstant(), ZoneOffset.UTC),
+            LocalDateTime.ofInstant(gap.toInstant(), ZoneOffset.UTC)).toMillis();
+
+        if( timespanInMillis < gapInMillis){
+            throw new InvalidParamValueException("Incorrect gap value :  should not be more than the gap between start and end date!");
+        }
+        if((timespanInMillis+1)/gapInMillis >MAX_RANGE_FACETS){
+            throw new InvalidParamValueException("Incorrect gap value : should not be more than maximum allowed number of gaps");
+        }
     }
 
     private static Date parseDate(String dateVal) throws DateMathParseException {
@@ -272,17 +283,13 @@ public class FacetParameterUtils {
      *
      * @return
      */
-
     private static String adjustEndDateForFaceting(String end,String gapVal,String gapValUnit)
         throws  DateMathParseException {
        try {
            if (end.startsWith(NEGATIVE_SIGN))
                end = end.substring(1);
-
            Date date = solrDateFormat.parse(end);
-
            return solrDateFormat.format(getDateBasedOnGapDuration(gapVal, gapValUnit, date));
-
        }catch(ParseException e){
            throw new DateMathParseException(e, end, end);
        }
@@ -291,7 +298,6 @@ public class FacetParameterUtils {
     private static Date getDateBasedOnGapDuration(String gapVal, String gapValUnit, Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
-
         int gapValueForEndDateAdjustment = Integer.parseInt(gapVal);
         if("YEAR".equals(gapValUnit))  calendar.add(Calendar.YEAR, gapValueForEndDateAdjustment);
         if("MONTHS".equals(gapValUnit))  calendar.add(Calendar.MONTH, gapValueForEndDateAdjustment);
@@ -299,7 +305,6 @@ public class FacetParameterUtils {
         if("HOURS".equals(gapValUnit))  calendar.add(Calendar.HOUR_OF_DAY, gapValueForEndDateAdjustment);
         if("MINUTES".equals(gapValUnit))  calendar.add(Calendar.MINUTE, gapValueForEndDateAdjustment);
         if("SECONDS".equals(gapValUnit))  calendar.add(Calendar.SECOND, gapValueForEndDateAdjustment);
-
         return calendar.getTime();
     }
 
