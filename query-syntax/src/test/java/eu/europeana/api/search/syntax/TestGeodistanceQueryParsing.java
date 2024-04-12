@@ -3,6 +3,7 @@ package eu.europeana.api.search.syntax;
 import eu.europeana.api.search.syntax.exception.QuerySyntaxException;
 import eu.europeana.api.search.syntax.utils.Constants;
 import eu.europeana.api.search.syntax.utils.ParserUtils;
+import java.util.List;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
@@ -17,10 +18,10 @@ public class TestGeodistanceQueryParsing {
   }
   @Test
   public void testGeodistance()  {
-    Map<String, String> parsedParametersMap = ParserUtils.getParsedParametersMap(new String[]{"distance(coverageLocation,47,12,2000)"});
-    Assert.assertEquals("{!geofilt}", parsedParametersMap.get( Constants.FQ_PARAM));
-    Assert.assertEquals("2000.0", parsedParametersMap.get( Constants.D_PARAM));
-    Assert.assertEquals("47.0,12.0", parsedParametersMap.get( Constants.PT_PARAM));
+    Map<String, List<String>> parsedParametersMap = ParserUtils.getParsedParametersMap(new String[]{"distance(coverageLocation,47,12,2000)"});
+    Assert.assertEquals("{!geofilt}", parsedParametersMap.get(Constants.FQ_PARAM).get(0));
+    Assert.assertEquals("2000.0", parsedParametersMap.get( Constants.D_PARAM).get(0));
+    Assert.assertEquals("47.0,12.0", parsedParametersMap.get( Constants.PT_PARAM).get(0));
 
   }
   @Test (expected = QuerySyntaxException.class)

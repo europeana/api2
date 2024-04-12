@@ -18,7 +18,9 @@ import eu.europeana.api.search.syntax.parser.SearchExpressionParser;
 import eu.europeana.api.search.syntax.validation.SyntaxErrorUtils;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -31,24 +33,29 @@ public class ParserUtils {
   private ParserUtils(){
   }
 
-  public static Map<String,String> getParsedParametersMap(String[] queryString){
+  /**Method accepts the parameter values array and creates the Map having solr parameter name and parsed parameter value List.
+   * As there is possibility to have multiple values for same input parameter we have List of values as output.    *
+   * @param queryStringArray input values for single query parameter
+   * @return Map<String,List<String>> parsed param map
+   */
 
+  public static Map<String,List<String>> getParsedParametersMap(String[] queryStringArray){
 
-    Map<String,String> paramTovalueMap = new HashMap<>();
-    if(queryString!=null && queryString.length>0){
+    Map<String,List<String>> paramTovalueMap = new HashMap<>();
+    if(queryStringArray!=null && queryStringArray.length>0){
       //TO DO support multiple parameter
-      Set<Entry<String, String>>  set =  parseQueryFilter(queryString);
-      set.forEach( entry -> paramTovalueMap.put(entry.getKey() ,entry.getValue()));
+      Set<Entry<String, List<String>>>  set =  parseQueryFilter(queryStringArray);
+      set.forEach(entry -> paramTovalueMap.put(entry.getKey() ,entry.getValue() ));
     }
     return paramTovalueMap;
   }
 
-  public static Set<Entry<String, String>> parseQueryFilter(String[] queryStringArray) throws QuerySyntaxException {
+  public static Set<Entry<String, List<String>>> parseQueryFilter(String[] queryStringArray) throws QuerySyntaxException {
     ConverterContext context = new ConverterContext();
-    String solrFormat =null;
+    List<String> solrFormat =new ArrayList<>();
     for(String nqf : queryStringArray) {
       SyntaxExpression expr = getParsedModel(nqf);
-      solrFormat = StringUtils.isEmpty(solrFormat) ? expr.toSolr(context) : solrFormat.concat(" AND ").concat(expr.toSolr(context));
+      solrFormat.add(expr.toSolr(context));
       context.setParameter(Constants.FQ_PARAM, solrFormat);
     }
     return context.getParameters();
@@ -161,8 +168,5 @@ public class ParserUtils {
     }
     return null;
   }
-
-
-
 
 }

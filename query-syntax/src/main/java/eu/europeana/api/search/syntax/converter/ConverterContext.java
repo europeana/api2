@@ -10,6 +10,7 @@ import eu.europeana.api.search.syntax.field.FieldRegistry;
 import eu.europeana.api.search.syntax.function.FunctionRegistry;
 import eu.europeana.api.search.syntax.model.SyntaxExpression;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -22,17 +23,17 @@ public class ConverterContext extends Stack<SyntaxExpression> {
 
     private FieldRegistry    fieldRegistry;
     private FunctionRegistry functionRegistry;
-    private Map<String,String> paramMap = new LinkedHashMap<>();
+    private Map<String,List<String>> paramMap = new LinkedHashMap<>();
 
     public ConverterContext() {
         fieldRegistry    = FieldRegistry.INSTANCE;
         functionRegistry = FunctionRegistry.INSTANCE;
     }
-    public Set<Map.Entry<String, String>> getParameters() {
+    public Set<Map.Entry<String, List<String>>>getParameters() {
         return paramMap.entrySet();
     }
 
-    public void setParameter(String key, String value) {
+    public void setParameter(String key, List<String> value) {
         this.paramMap.put(key, value);
     }
 

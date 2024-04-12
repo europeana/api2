@@ -283,11 +283,12 @@ public class SearchController extends BaseController {
 
 
 
-        Map<String, String> parametermap = ParserUtils.getParsedParametersMap(request.getParameterMap().get("nqf"));
+        Map<String, List<String>> parsedParametersMap = ParserUtils.getParsedParametersMap(request.getParameterMap().get("nqf"));
         //EA 3657 -If qf parameter not populated and new nqf parameter is used geodistance parameters calculation is handled with parser.
-        String sField = parametermap.get("sfield");
-        String pt = parametermap.get("pt");
-        String d = parametermap.get("d");
+        String sField = CollectionUtils.isNotEmpty(parsedParametersMap.get("sfield")) ?parsedParametersMap.get("sfield").get(0):null;
+        String pt = CollectionUtils.isNotEmpty(parsedParametersMap.get("pt"))?parsedParametersMap.get("pt").get(0):null;
+        String d = CollectionUtils.isNotEmpty(parsedParametersMap.get("d"))?parsedParametersMap.get("d").get(0):null;
+
         boolean isGeoSearchRequested =  (StringUtils.isNotBlank(sField) && StringUtils.isNotBlank(pt) && StringUtils.isNotBlank(d) );
 
         //EA 3657 - handle old conditions from EA-2996  ,sort parameter related to distance are removed if geodistance nqf param not provided.
@@ -299,11 +300,10 @@ public class SearchController extends BaseController {
         sort= validateAndUpdateSortParameters(sort);
 
         //EA 3657-If the qf parameter is not populated get the refinement query value from new nqf param ,used by parser to generate solr fq param.
-        String fqParam =  parametermap.get("fq");
-        boolean useNewQueryFilterRefinements = ArrayUtils.isEmpty(refinementArray) && StringUtils.isNotBlank(fqParam);
+        List<String> fqParam =  parsedParametersMap.get("fq");
+        boolean useNewQueryFilterRefinements = ArrayUtils.isEmpty(refinementArray) && CollectionUtils.isNotEmpty(fqParam);
         if (useNewQueryFilterRefinements) {
-            refinementArray = new String[1];
-            refinementArray[0] = fqParam;
+            refinementArray =  fqParam.toArray(new String[0]);
         }
         // EA 3657 - End -New Parser Logic
 

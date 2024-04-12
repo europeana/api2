@@ -47,13 +47,13 @@ public class DistanceFunction implements FunctionClass {
 
   private void updateGeoFieldName(ConverterContext context, List<ArgumentExpression> params) {
     String fieldName = getGeoField(params.get(0), context);
-    context.setParameter(Constants.SFIELD_PARAM, (fieldName + Constants.LOCATION_SUFFIX));
+    context.setParameter(Constants.SFIELD_PARAM, List.of((fieldName + Constants.LOCATION_SUFFIX)));
   }
 
   private void updateDistance(ConverterContext context, List<ArgumentExpression> params) {
     Float distance = getFloatValue(params.get(3));
     if(distance <0 || distance >24000.0) newWrongFunctionArg(this.getName(),ArgumentExpression.ARG4,"positive decimal number which is less than possible distance between two points on Earth (20.004 km)");
-    context.setParameter(Constants.D_PARAM, String.valueOf(distance));
+    context.setParameter(Constants.D_PARAM, List.of(String.valueOf(distance)));
   }
 
   private void updateLatitudeAndLongitude(ConverterContext context, List<ArgumentExpression> params) {
@@ -61,7 +61,8 @@ public class DistanceFunction implements FunctionClass {
     if(abs(latitude) > 90.0) newWrongFunctionArg(this.getName(),ArgumentExpression.ARG2," value for latitude must be between -90.0 and 90.0");
     Float longitude = getFloatValue(params.get(2));
     if(abs(longitude) > 180.0) newWrongFunctionArg(this.getName(),ArgumentExpression.ARG3," value for longitude must be between -180.0 and 180.0");
-    context.setParameter(Constants.PT_PARAM, latitude + "," + longitude);
+
+    context.setParameter(Constants.PT_PARAM, List.of(latitude + "," + longitude));
   }
 
   private Float getFloatValue(ArgumentExpression argument) {
