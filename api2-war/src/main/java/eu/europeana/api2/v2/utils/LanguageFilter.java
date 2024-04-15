@@ -4,6 +4,7 @@ import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api2.v2.service.translate.BaseService;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.entity.EuropeanaAggregation;
+import eu.europeana.corelib.solr.entity.ProxyImpl;
 import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,10 +35,12 @@ public final class LanguageFilter {
      */
     public static IdBean filter(IdBean bean, List<Language> targetLangs) {
         long startTime = System.currentTimeMillis();
-        iterativeFilterFields(bean, targetLangs);
+        Set<String> proxyFieldsWithTargetLang = new TreeSet<>();
+        iterativeFilterFields(bean, targetLangs, proxyFieldsWithTargetLang);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Filtering language data took {} ms", (System.currentTimeMillis() - startTime));
         }
+        proxyFieldsWithTargetLang.clear();
         return bean;
     }
 
@@ -57,7 +60,7 @@ public final class LanguageFilter {
      * 2) it is a bit slower than the getDeclaredFields approach
      */
     @SuppressWarnings("java:S3011") // suppress the setAccessibility(true) or ReflectionUtils.makeAccessible warning
-    private static void iterativeFilterFields(Object o, List<Language> targetLangs) {
+    private static void iterativeFilterFields(Object o, List<Language> targetLangs,  Set<String> proxyFieldsWithTargetLang) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Inspecting object {}", o.getClass().getName());
         }
@@ -75,25 +78,82 @@ public final class LanguageFilter {
                 LOG.debug("  Field {} has class {}", field.getName(), fieldValue == null ? null : fieldValue.getClass());
             }
             if (fieldValue instanceof Map<?, ?>) {
-                fieldValue = filterLanguageMap(field.getName(), (Map<?, ?>) fieldValue, targetLangs);
+                fieldValue = filterLanguageMap(field.getName(), (Map<?, ?>) fieldValue, targetLangs, filterOnlyTargetLanguage(o, proxyFieldsWithTargetLang, field.getName()));
                 if (fieldValue == null) {
                     LOG.debug("    Deleting map {} entirely", field.getName());
                     field.set(o, null);
                 }
+
+                // if object is proxy and we have already gathered the fieldValue in target language then add it in the proxyFieldsWithTargetLang set
+                if (o.getClass().isAssignableFrom(ProxyImpl.class) && fieldValue != null && ifFieldHasTargetLangValue((Map<?, ?>) fieldValue, targetLangs)) {
+                    proxyFieldsWithTargetLang.add(field.getName());
+                }
             } else if (fieldValue instanceof List) {
                 List<?> list = (List<?>) fieldValue;
                 for (Object item : list) {
-                    iterativeFilterFields(item, targetLangs);
+                    iterativeFilterFields(item, targetLangs, proxyFieldsWithTargetLang);
                 }
             } else if (fieldValue instanceof EuropeanaAggregation) {
-                iterativeFilterFields(fieldValue, targetLangs);
+                iterativeFilterFields(fieldValue, targetLangs, proxyFieldsWithTargetLang);
             } else {
                 assert fieldValue == null : "Unknown field class " + fieldValue.getClass() + ". Checks do not match field filter";
             }
         }, fieldFilter);
     }
 
-    private static Map filterLanguageMap(String fieldName, Map<?,?> map, List<Language> targetLangs) {
+
+    /**
+     * If proxyFieldsWithTargetLang contains teh field name (this means it already has found the value in target language)
+     * then for the field in other proxies we should only fetch the target language values if present.
+     * We should not do the default filtering like retaining def values or displaying everything.
+     *
+     * @param o Object being filtered
+     * @param proxyFieldsWithTargetLang set of values with field names which already have been filtered with target lang
+     * @param fieldName field name
+     * @return
+     */
+    private static boolean filterOnlyTargetLanguage(Object o, Set<String> proxyFieldsWithTargetLang, String fieldName) {
+        return  o.getClass().isAssignableFrom(ProxyImpl.class) && proxyFieldsWithTargetLang.contains(fieldName);
+    }
+
+    /**
+     * If the field value after filtering has any of the target language value then return true
+     * @param map multilingual map after filtering
+     * @param targetLangs target languages for filtering
+     * @return
+     */
+    private static boolean ifFieldHasTargetLangValue(Map<?,?> map, List<Language> targetLangs) {
+        Set<String> keyset = (Set<String>) map.keySet();
+        for (Language language : targetLangs) {
+             if (keyset.contains(language.name().toLowerCase(Locale.ROOT))) {
+                 return  true; // if any of the target language found return true
+             }
+        }
+        return false;
+    }
+
+    /**
+     * Filter the map for the traget language values
+     *  Default filtering - we keep the def and uri values
+     *                    - remove the invalid languages that are not supported
+     *                    -  keep the 'zxx' values as well
+     *                    - if value in target language is found keep that as well
+     *
+     * After this if no value is returned (after filtering) for a given property, in that case,
+     * all language tagged values should be returned (EA-3727)
+     *
+     *  But for Proxy object we need to consider them as one object hence -
+     *    if filterOnlyTargetLanguage is true - only filter the target language values and remove everything else.
+     *
+     * NOTE - filterOnlyTargetLanguage is true - this means that the field has already been filtered with the target lang in one of the proxy
+     *
+     * @param fieldName field name
+     * @param map original map for the field
+     * @param targetLangs target language for filtering
+     * @param filterOnlyTargetLanguage if true, only look for the target language values and don't perform the default filtering.
+     * @return
+     */
+    private static Map filterLanguageMap(String fieldName, Map<?,?> map, List<Language> targetLangs, boolean filterOnlyTargetLanguage) {
         if (map == null) {
             return null;
         }
@@ -105,27 +165,36 @@ public final class LanguageFilter {
             // Language keys of search results are compound and exist of <solrFieldName>.<lang>, so we need to filter
             // the language from the key name
             String keyLang = origKey.substring(origKey.indexOf(".") + 1);
-            // keep all def keys and keep all uri values
-            if ("def".equals(keyLang) || EuropeanaUriUtils.isUri(origKey)) {
-                LOG.debug("      Keeping key def, value {}", keyValue.getValue());
-                continue;
-            }
-            // remove all unsupported languages and languages not requested
-            if (Language.isNoLinguisticContent(keyLang) ||
-                    (Language.isSupported(keyLang) && targetLangs.contains(Language.getLanguage(keyLang)))) {
-                LOG.debug("      Keeping key {}, value {}", origKey, keyValue.getValue());
+            if (filterOnlyTargetLanguage) {
+                // 'zxx' and 'def' will be removed as they are non supported languages
+                if (!Language.isSupported(keyLang) || !targetLangs.contains(Language.getLanguage(keyLang))) {
+                    LOG.debug("     Proxy field {} is already filtered for target lang. Removing key {}, value {}", fieldName, origKey, keyValue.getValue());
+                    keysToRemove.add(keyLang);
+                }
             } else {
-                LOG.debug("      Removing key {}, value {}", origKey, keyValue.getValue());
-                keysToRemove.add(origKey); // add the original key language for removal
+                // keep all def keys and keep all uri values
+                if ("def".equals(keyLang) || EuropeanaUriUtils.isUri(origKey)) {
+                    LOG.debug("      Keeping key def, value {}", keyValue.getValue());
+                    continue;
+                }
+                // remove all unsupported languages and languages not requested
+                if (Language.isNoLinguisticContent(keyLang) ||
+                        (Language.isSupported(keyLang) && targetLangs.contains(Language.getLanguage(keyLang)))) {
+                    LOG.debug("      Keeping key {}, value {}", origKey, keyValue.getValue());
+                } else {
+                    LOG.debug("      Removing key {}, value {}", origKey, keyValue.getValue());
+                    keysToRemove.add(origKey); // add the original key language for removal
+                }
+
+                // If no value is returned (after filtering) for a given property, in which case,
+                // all language tagged values should be returned EA-3727
+                if (map.keySet().size() == keysToRemove.size()) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Keys to remove {}. Return all lang-tagged values", keysToRemove.size());
+                    }
+                    return map; // everything returned
+                }
             }
-        }
-        // If no value is returned (after filtering) for a given property, in which case,
-        // all language tagged values should be returned EA-3727
-        if (map.keySet().size() == keysToRemove.size()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Keys to remove {}. Return all lang-tagged values", keysToRemove.size());
-            }
-            return map; // everything returned
         }
         // do actual removal
         for (String keyToRemove : keysToRemove) {
