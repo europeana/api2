@@ -35,11 +35,13 @@ public abstract class BinaryArgumentExpression implements SetExpression {
     @Override
     public String toSolr(ConverterContext context) {
         context.push(this);
+        context.setIsToSurroundWithFilterFunction(true);
         try {
             return ("(" + getLeft().toSolr(context) + getOperator()
                         + getRight().toSolr(context) + ")");
         }
         finally {
+            context.setIsToSurroundWithFilterFunction(false);
             context.pop();
         }
     }

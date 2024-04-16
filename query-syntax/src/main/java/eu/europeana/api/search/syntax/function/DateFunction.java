@@ -40,11 +40,11 @@ public class DateFunction implements FunctionClass {
 
     }
 
-    private static final String SOLR_DATE_QUERY = "filter(_query_:\"{!field f=%s op=%s}%s\")";
+    private static final String SOLR_DATE_QUERY = "_query_:\"{!field f=%s op=%s}%s\"";
     private static final String DATE_WILDCARD   = "*";
     private static final String DATE_NOW        = "now";
 
-    private DateFormat dateFormat  = new SimpleDateFormat("yyyy-MM-dd");
+    private final DateFormat dateFormat  = new SimpleDateFormat("yyyy-MM-dd");
     private static final Pattern    datePattern = Pattern.compile("[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?");
 
 
@@ -77,8 +77,10 @@ public class DateFunction implements FunctionClass {
         String date = getDate(ArgumentExpression.ARG2, params.get(1), context);
         String operation = getOperation().getValue();
 
+        if(context.getIsToSurroundWithFilterFunction()) {
+            return String.format("filter("+SOLR_DATE_QUERY+")", field, operation, date);
+        }
         return String.format(SOLR_DATE_QUERY, field, operation, date);
-
     }
 
     private String getDateField(ConverterContext context, List<ArgumentExpression> params) {

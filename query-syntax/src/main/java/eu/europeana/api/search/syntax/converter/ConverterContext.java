@@ -25,6 +25,8 @@ public class ConverterContext extends Stack<SyntaxExpression> {
     private FunctionRegistry functionRegistry;
     private Map<String,List<String>> paramMap = new LinkedHashMap<>();
 
+    private boolean isToSurroundWithFilterFunction= false;
+
     public ConverterContext() {
         fieldRegistry    = FieldRegistry.INSTANCE;
         functionRegistry = FunctionRegistry.INSTANCE;
@@ -47,5 +49,12 @@ public class ConverterContext extends Stack<SyntaxExpression> {
         FieldDeclaration field = fieldRegistry.getField(name);
         if ( field == null ) { newUnknownField(name); }
         return field;
+    }
+
+    public boolean getIsToSurroundWithFilterFunction() {
+        return isToSurroundWithFilterFunction;
+    }
+    public  void setIsToSurroundWithFilterFunction(boolean value) {
+        this.isToSurroundWithFilterFunction=value;
     }
 }
