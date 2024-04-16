@@ -40,7 +40,7 @@ public class DateFunction implements FunctionClass {
 
     }
 
-    private static final String SOLR_DATE_QUERY = "_query_:\"{!field f=%s op=%s}%s\"";
+    private static final String SOLR_DATE_QUERY = "filter(_query_:\"{!field f=%s op=%s}%s\")";
     private static final String DATE_WILDCARD   = "*";
     private static final String DATE_NOW        = "now";
 

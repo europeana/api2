@@ -18,21 +18,21 @@ public class TestSearchParser {
   @Test(expected = QuerySyntaxException.class)
   public void testDateSearchQueryForError_when_wrong_bracket_at_beginning()
       throws QuerySyntaxException {
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Contains}1950\"",
+    Assert.assertEquals("filter(_query_:\"{!field f=created_date op=Contains}1950\")",
         ParserUtils.getParsedParametersMap(new String[]{"(date(created,1920)"})
             .get(Constants.FQ_PARAM).get(0));
   }
 
   @Test(expected = QuerySyntaxException.class)
   public void testDateSearchQueryForError_when_wrong_bracket_at_end() throws QuerySyntaxException {
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Contains}1950\"",
+    Assert.assertEquals("filter(_query_:\"{!field f=created_date op=Contains}1950\")",
         ParserUtils.getParsedParametersMap(new String[]{"date(created,1920))"})
             .get(Constants.FQ_PARAM).get(0));
   }
 
   @Test
   public void testDateSearchQuery_when_simple_dateFunction() throws QuerySyntaxException {
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Contains}1950\"",
+    Assert.assertEquals("filter(_query_:\"{!field f=created_date op=Contains}1950\")",
         ParserUtils.getParsedParametersMap(new String[]{"date(created,1950)"})
             .get(Constants.FQ_PARAM).get(0));
   }
@@ -41,21 +41,21 @@ public class TestSearchParser {
   public void testDateSearchQuery_when_including_interval_dateFunction()
       throws QuerySyntaxException {
 
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Contains}[1950 TO 1960]\"",
+    Assert.assertEquals("filter(_query_:\"{!field f=created_date op=Contains}[1950 TO 1960]\")",
         ParserUtils.getParsedParametersMap(new String[]{"date(created,interval(1950,1960))"})
             .get(Constants.FQ_PARAM).get(0));
     Assert.assertEquals(
-        "_query_:\"{!field f=created_date op=Intersects}[1952-01-01 TO 1953-12-31]\"",
+        "filter(_query_:\"{!field f=created_date op=Intersects}[1952-01-01 TO 1953-12-31]\")",
         ParserUtils.getParsedParametersMap(
                 new String[]{"dateIntersects(created,interval(1952-01-01,1953-12-31))"})
             .get(Constants.FQ_PARAM).get(0));
 
     //Test interval with no upper/lower limit
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Intersects}[1952-01-01 TO *]\"",
+    Assert.assertEquals("filter(_query_:\"{!field f=created_date op=Intersects}[1952-01-01 TO *]\")",
         ParserUtils.getParsedParametersMap(
                 new String[]{"dateIntersects(created,interval(1952-01-01,*))"})
             .get(Constants.FQ_PARAM).get(0));
-    Assert.assertEquals("_query_:\"{!field f=created_date op=Intersects}[* TO 1962-01-01]\"",
+    Assert.assertEquals("filter(_query_:\"{!field f=created_date op=Intersects}[* TO 1962-01-01]\")",
         ParserUtils.getParsedParametersMap(
                 new String[]{"dateIntersects(created,interval(*,1962-01-01))"})
             .get(Constants.FQ_PARAM).get(0));
@@ -65,12 +65,12 @@ public class TestSearchParser {
   @Test
   public void testDateSearchQuery_when_AND_OR_operations() throws QuerySyntaxException {
     Assert.assertEquals(
-        "(_query_:\"{!field f=created_date op=Contains}1950\" OR _query_:\"{!field f=created_date op=Contains}1960\")",
+        "(filter(_query_:\"{!field f=created_date op=Contains}1950\") OR filter(_query_:\"{!field f=created_date op=Contains}1960\"))",
         ParserUtils.getParsedParametersMap(new String[]{"date(created,1950) OR date(created,1960)"})
             .get(Constants.FQ_PARAM).get(0));
 
     Assert.assertEquals(
-        "(_query_:\"{!field f=created_date op=Contains}[1950 TO 1960]\" OR _query_:\"{!field f=created_date op=Contains}[1970 TO 1980]\")",
+        "(filter(_query_:\"{!field f=created_date op=Contains}[1950 TO 1960]\") OR filter(_query_:\"{!field f=created_date op=Contains}[1970 TO 1980]\"))",
         ParserUtils.getParsedParametersMap(
                 new String[]{"date(created,interval(1950,1960)) OR date(created,interval(1970,1980))"})
             .get(Constants.FQ_PARAM).get(0));
@@ -79,10 +79,10 @@ public class TestSearchParser {
   @Test
   public void testDateSearchQuery_when_NOT_operator() throws QuerySyntaxException {
     String actual = ParserUtils.getParsedParametersMap(new String[]{"NOT date(created,1950)"}).get(Constants.FQ_PARAM).get(0);
-    Assert.assertEquals(" NOT (_query_:\"{!field f=created_date op=Contains}1950\")",actual);
+    Assert.assertEquals(" NOT (filter(_query_:\"{!field f=created_date op=Contains}1950\"))",actual);
 
     Assert.assertEquals(
-        " NOT ((_query_:\"{!field f=created_date op=Contains}[1950 TO 1960]\" OR _query_:\"{!field f=created_date op=Contains}[1970 TO 1980]\"))",
+        " NOT ((filter(_query_:\"{!field f=created_date op=Contains}[1950 TO 1960]\") OR filter(_query_:\"{!field f=created_date op=Contains}[1970 TO 1980]\")))",
         ParserUtils.getParsedParametersMap(new String[]{
                 "NOT(date(created,interval(1950,1960)) OR date(created,interval(1970,1980)) )"})
             .get(Constants.FQ_PARAM).get(0));
