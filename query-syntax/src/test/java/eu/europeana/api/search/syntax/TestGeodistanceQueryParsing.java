@@ -39,7 +39,7 @@ public class TestGeodistanceQueryParsing {
   @Test
   public void testGeodistance_whenMultipleOccurance_2() {
     Assert.assertEquals("({!geofilt} OR {!geofilt})",ParserUtils.getParsedParametersMap(
-        new String[]{"distance(coverageLocation,47,12,2000) OR distance(coverageLocation,48,13,3000)"}).get("fq"));
+        new String[]{"distance(coverageLocation,47,12,2000) OR distance(coverageLocation,48,13,3000)"}).get("fq").get(0));
   }
   @Test(expected = QuerySyntaxException.class)
   public void testGeodistance_whenInvalidArguments()  {

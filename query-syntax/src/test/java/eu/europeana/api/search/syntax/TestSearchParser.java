@@ -96,17 +96,17 @@ public class TestSearchParser {
 
   @Test
   public void testFieldSearchQuery() throws QuerySyntaxException {
-    Assert.assertEquals("issued_date:1950",
+    Assert.assertEquals("filter(issued_date:1950)",
         ParserUtils.getParsedParametersMap(new String[]{"issued:1950"}).get(Constants.FQ_PARAM).get(0));
-    Assert.assertEquals("created_date:1980",
+    Assert.assertEquals("filter(created_date:1980)",
         ParserUtils.getParsedParametersMap(new String[]{"created:1980"}).get(Constants.FQ_PARAM).get(0));
-    Assert.assertEquals("created_date:\"field45\"",
+    Assert.assertEquals("filter(created_date:\"field45\")",
         ParserUtils.getParsedParametersMap(new String[]{"created:\"field45\""})
             .get(Constants.FQ_PARAM).get(0));
-    Assert.assertEquals("created_date:\"field45 field46\"",
+    Assert.assertEquals("filter(created_date:\"field45 field46\")",
         ParserUtils.getParsedParametersMap(new String[]{"created:\"field45 field46\""})
             .get(Constants.FQ_PARAM).get(0));
-    Assert.assertEquals("created_date:'field45 field46'",
+    Assert.assertEquals("filter(created_date:'field45 field46')",
         ParserUtils.getParsedParametersMap(new String[]{"created:'field45 field46'"})
             .get(Constants.FQ_PARAM).get(0));
   }
@@ -114,7 +114,7 @@ public class TestSearchParser {
 
   @Test
   public void testFieldSearchQuery_when_AND_OR_Operator() throws QuerySyntaxException {
-    Assert.assertEquals("(issued_date:1950 AND (issued_date:1960 AND issued_date:1970))",
+    Assert.assertEquals("(filter(issued_date:1950) AND (filter(issued_date:1960) AND filter(issued_date:1970)))",
         ParserUtils.getParsedParametersMap(
                 new String[]{"issued:1950 AND issued:1960 AND issued:1970"}).get(Constants.FQ_PARAM)
             .get(0));

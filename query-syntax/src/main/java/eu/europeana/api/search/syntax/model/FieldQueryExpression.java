@@ -40,8 +40,8 @@ public class FieldQueryExpression implements TopLevelExpression {
     public String toSolr(ConverterContext context) {
         context.push(this);
         try {
-            return this.field.getField(FieldMode.SEARCH)
-                 + ":" + value.toSolr(context);
+            return "filter("+this.field.getField(FieldMode.SEARCH)
+                 + ":" + value.toSolr(context)+")";
         }
         finally { context.pop(); }
     }
