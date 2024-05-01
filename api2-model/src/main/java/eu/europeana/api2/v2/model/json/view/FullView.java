@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.*;
 import eu.europeana.corelib.solr.entity.AggregationImpl;
+import eu.europeana.corelib.solr.entity.EuropeanaAggregationImpl;
+import eu.europeana.corelib.solr.entity.QualityAnnotationImpl;
 import eu.europeana.corelib.utils.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
@@ -129,8 +131,12 @@ public class FullView implements FullBean {
                     List<QualityAnnotation> qualityAnnotations = new ArrayList<>();
                     bean.getQualityAnnotations().stream().forEach(anno -> {
                                 if (StringUtils.equals(aggregation.getAbout(), anno.getTarget()[0])) {
-                                    anno.setAbout(null); // remove about field
-                                    qualityAnnotations.add(anno);
+                                    // Don't modify values in the existing QA of th record as that will be used later in other places like Europeana Aggregation
+                                    QualityAnnotation qa = new QualityAnnotationImpl();
+                                    qa.setCreated(anno.getCreated());
+                                    qa.setTarget(anno.getTarget());
+                                    qa.setBody(anno.getBody());
+                                    qualityAnnotations.add(qa);
                                 }});
                     aggregation.setDqvHasQualityAnnotation(qualityAnnotations);
                 }
@@ -165,7 +171,30 @@ public class FullView implements FullBean {
 
     @Override
     public EuropeanaAggregation getEuropeanaAggregation() {
-        return bean.getEuropeanaAggregation();
+        if (bean.getEuropeanaAggregation() != null) {
+            EuropeanaAggregation europeanaAggregation =  bean.getEuropeanaAggregation();
+            EuropeanaAggregationImpl ea = (EuropeanaAggregationImpl) europeanaAggregation;
+
+            // Add quality annotations in json response
+            if (ea.getDqvHasQualityAnnotation() != null && bean.getQualityAnnotations() != null) {
+                List<QualityAnnotation> qualityAnnotations = new ArrayList<>();
+                for (String qa : ea.getDqvHasQualityAnnotation()) {
+                    for (QualityAnnotation fBeanQA : bean.getQualityAnnotations()) {
+                        if (StringUtils.equals(qa, fBeanQA.getAbout())) {
+                            QualityAnnotation annotation = new QualityAnnotationImpl();
+                            annotation.setCreated(fBeanQA.getCreated());
+                            annotation.setBody(fBeanQA.getBody());
+                            annotation.setTarget(new String [] {ea.getAbout()}); // target value will be '/aggregation/europeana/RECORD_ID'
+
+                            qualityAnnotations.add(annotation);
+                        }
+                    }
+                }
+                ea.setHasQualityAnnotation(qualityAnnotations);
+            }
+            return ea;
+        }
+        return null;
     }
 
     /**
