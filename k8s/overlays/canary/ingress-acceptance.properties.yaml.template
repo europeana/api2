@@ -1,0 +1,71 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: search-api-ingress
+  annotations:
+    cert-manager.io/issuer: letsencrypt-production
+    # requests will only end up in this ingress if header "X-Canary: always" is specified
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-by-header: "X-Canary"
+    nginx.ingress.kubernetes.io/canary-weight: 0
+spec:
+  ingressClassName: public-iks-k8s-nginx
+  tls:
+    - hosts:
+        - ${K8S_HOSTNAME_1}
+        - ${K8S_HOSTNAME_2}
+        - ${K8S_HOSTNAME_3}
+      secretName: ${K8S_HOSTNAME_SECRET_1}
+  rules:
+    - host: ${K8S_HOSTNAME_1}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: search-api-service
+                port:
+                  number: 80
+    - host: ${K8S_HOSTNAME_2}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: search-api-service
+                port:
+                  number: 80
+    - host: ${K8S_HOSTNAME_3}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: search-api-service
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: search-api-ingress2
+spec:
+  ingressClassName: public-iks-k8s-nginx
+  tls:
+    - hosts:
+        - ${K8S_HOSTNAME_4}
+      secretName: ${K8S_HOSTNAME_SECRET_4}
+  rules:
+    - host: ${K8S_HOSTNAME_4}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: search-api-service
+                port:
+                  number: 80
