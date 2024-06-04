@@ -3,7 +3,11 @@ kind: Ingress
 metadata:
   name: search-api-ingress
   annotations:
-    ${K8S_INGRESS_ANNOTATIONS}
+    cert-manager.io/issuer: letsencrypt-production
+    # requests will only end up in this ingress if header "X-Canary: always" is specified
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-by-header: "X-Canary"
+    nginx.ingress.kubernetes.io/canary-weight: 0
 spec:
   ingressClassName: public-iks-k8s-nginx
   tls:
