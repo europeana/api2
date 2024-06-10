@@ -80,6 +80,8 @@ import eu.europeana.metis.schema.model.MediaType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -602,6 +604,9 @@ public class SearchController extends BaseController {
         if (StringUtils.isBlank(queryString)) {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
+
+
+
         // validate boost Param
         BoostParamUtils.validateBoostParam(boostParam);
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
@@ -619,8 +624,6 @@ public class SearchController extends BaseController {
         ParserUtils.loadFieldRegistryFromResource(Constants.FIELD_REGISTRY_XML);
         ParserUtils.loadFunctionRegistry(Constants.FUNCTION_REGISTRY_XML);
 
-
-
         Map<String, List<String>> parsedParametersMap = ParserUtils.getParsedParametersMap(request.getParameterMap().get("qf"));
         //EA 3657 -If qf parameter not populated and new nqf parameter is used geodistance parameters calculation is handled with parser.
         String sField = CollectionUtils.isNotEmpty(parsedParametersMap.get("sfield")) ?parsedParametersMap.get("sfield").get(0):null;
@@ -637,11 +640,11 @@ public class SearchController extends BaseController {
         //Validate sort param
         sort= validateAndUpdateSortParameters(sort);
 
-        //EA 3657-If the qf parameter is not populated get the refinement query value from new nqf param ,used by parser to generate solr fq param.
-        List<String> fqParam =  parsedParametersMap.get("fq");
-        boolean useNewQueryFilterRefinements = ArrayUtils.isEmpty(refinementArray) && CollectionUtils.isNotEmpty(fqParam);
+        //EA 3657-If the qf parameter is not populated get the refinement query value from new nqf param ,used by parser to generate solr fq(filter query) param.
+        List<String> fq_param =  parsedParametersMap.get("parsed_param");
+        boolean useNewQueryFilterRefinements = ArrayUtils.isEmpty(refinementArray) && CollectionUtils.isNotEmpty(fq_param);
         if (useNewQueryFilterRefinements) {
-            refinementArray =  fqParam.toArray(new String[0]);
+            refinementArray =  fq_param.toArray(new String[0]);
         }
         // EA 3657 - End -New Parser Logic
 
@@ -655,7 +658,8 @@ public class SearchController extends BaseController {
             throw new TranslationServiceDisabledException();
         }
 
-        queryString = queryString.trim();
+
+        queryString = ParserUtils.getParsedParametersMap(queryString.trim()).getOrDefault("parsed_param",Collections.emptyList()).get(0);
         // append the boost value in the query
         if(StringUtils.isNotEmpty(boostParam)) {
             queryString = boostParam + queryString;

@@ -50,13 +50,17 @@ public class ParserUtils {
     return paramTovalueMap;
   }
 
+  public static Map<String,List<String>> getParsedParametersMap(String queryStringArray){
+    return getParsedParametersMap(new String[]{queryStringArray});
+  }
+
   public static Set<Entry<String, List<String>>> parseQueryFilter(String[] queryStringArray) throws QuerySyntaxException {
     ConverterContext context = new ConverterContext();
     List<String> solrFormat =new ArrayList<>();
     for(String nqf : queryStringArray) {
       SyntaxExpression expr = getParsedModel(nqf);
-      solrFormat.add(expr.toSolr(context));
-      context.setParameter(Constants.FQ_PARAM, solrFormat);
+      solrFormat.add(expr!=null?expr.toSolr(context):null);
+      context.setParameter(Constants.PARSED_PARAM, solrFormat);
     }
     return context.getParameters();
   }

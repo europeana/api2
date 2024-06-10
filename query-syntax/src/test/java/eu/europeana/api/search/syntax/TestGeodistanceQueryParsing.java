@@ -19,7 +19,7 @@ public class TestGeodistanceQueryParsing {
   @Test
   public void testGeodistance()  {
     Map<String, List<String>> parsedParametersMap = ParserUtils.getParsedParametersMap(new String[]{"distance(coverageLocation,47,12,2000)"});
-    Assert.assertEquals("{!geofilt}", parsedParametersMap.get(Constants.FQ_PARAM).get(0));
+    Assert.assertEquals("{!geofilt}", parsedParametersMap.get(Constants.PARSED_PARAM).get(0));
     Assert.assertEquals("2000.0", parsedParametersMap.get( Constants.D_PARAM).get(0));
     Assert.assertEquals("47.0,12.0", parsedParametersMap.get( Constants.PT_PARAM).get(0));
 
@@ -39,7 +39,7 @@ public class TestGeodistanceQueryParsing {
   @Test
   public void testGeodistance_whenMultipleOccurance_2() {
     Assert.assertEquals("({!geofilt} OR {!geofilt})",ParserUtils.getParsedParametersMap(
-        new String[]{"distance(coverageLocation,47,12,2000) OR distance(coverageLocation,48,13,3000)"}).get("fq").get(0));
+        new String[]{"distance(coverageLocation,47,12,2000) OR distance(coverageLocation,48,13,3000)"}).get("parsed_param").get(0));
   }
   @Test(expected = QuerySyntaxException.class)
   public void testGeodistance_whenInvalidArguments()  {

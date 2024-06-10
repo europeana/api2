@@ -16,7 +16,7 @@ public class Constants {
   public static final String SORTING_DESCENDING = "sorting-descending";
   public static final String SORTING_ASCENDING = "sorting-ascending";
   public static final String LOCATION_SUFFIX   = "_wgs";
-  public static final String FQ_PARAM = "fq";
+  public static final String PARSED_PARAM = "parsed_param";
   public static final String SFIELD_PARAM = "sfield";
   public static final String PT_PARAM = "pt";
   public static final String D_PARAM = "d";
