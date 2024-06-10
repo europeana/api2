@@ -135,6 +135,7 @@ public class SearchController extends BaseController {
     // First pattern is country with value between quotes, second pattern is with value without quotes (ending with &,
     // space or end of string)
     private static final Pattern COUNTRY_PATTERN = Pattern.compile("COUNTRY:\"(.*?)\"|COUNTRY:(.*?)(&|\\s|$)");
+    public static final String ASTERISK = "*";
 
     @Resource
     private Api2UrlService urlService;
@@ -169,7 +170,6 @@ public class SearchController extends BaseController {
         if (resultsTranslationEnabled == null) {
             resultsTranslationEnabled = false;
         }
-
     }
 
     /**
@@ -190,7 +190,6 @@ public class SearchController extends BaseController {
         return searchJsonGet(
                              searchRequest.getQuery(),
                              searchRequest.getQf(),
-                             searchRequest.getNqf(),
                              searchRequest.getReusability(),
                              StringUtils.join(searchRequest.getProfile(), ","),
                              searchRequest.getStart(),
@@ -215,6 +214,7 @@ public class SearchController extends BaseController {
                              response);
     }
 
+
     /**
      * Returns a list of Europeana datasets based on the search terms.
      * The response is an Array of JSON objects, each one containing the identifier and the name of a dataset.
@@ -223,12 +223,350 @@ public class SearchController extends BaseController {
      */
     @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
     @GetMapping(value = {"/api/v2/search.json", "/record/v2/search.json", "/record/search.json"},
-                produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+        produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGet(
+        @SolrEscape @RequestParam(value = "query") String queryString,
+        @RequestParam(value = "qf", required = false) String[] refinementArray,
+        @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
+        @RequestParam(value = "profile", required = false, defaultValue = "standard")
+        String profile,
+        @RequestParam(value = "start", required = false, defaultValue = "1") int start,
+        @RequestParam(value = "rows", required = false, defaultValue = "12") int rows,
+        @RequestParam(value = "facet", required = false) String[] mixedFacetArray,
+        @RequestParam(value = "theme", required = false) String theme,
+        @RequestParam(value = "sort", required = false) String sort,
+        @RequestParam(value = "colourpalette", required = false)
+        String[] colourPaletteArray,
+        @RequestParam(value = "thumbnail", required = false) Boolean thumbnail,
+        @RequestParam(value = "media", required = false) Boolean media,
+        @RequestParam(value = "text_fulltext", required = false) Boolean fullText,
+        @RequestParam(value = "landingpage", required = false) Boolean landingPage,
+        @RequestParam(value = "cursor", required = false) String cursorMark,
+        @RequestParam(value = "callback", required = false) String callback,
+        @SolrEscape @RequestParam(value = "hit.fl", required = false) String hlFl,
+        @RequestParam(value = "hit.selectors", required = false) String hlSelectors,
+        @RequestParam(value = "q.source", required = false) String querySourceLang,
+        @RequestParam(value = "q.target", required = false) String queryTargetLang,
+        @RequestParam(value = "lang", required = false) String lang,
+        @RequestParam(value = "boost", required = false) String boostParam,
+        HttpServletRequest request,
+        HttpServletResponse response)
+        throws EuropeanaException, HttpException {
+
+        // get the profiles
+        Set<Profile> profiles = ProfileUtils.getProfiles(profile);
+
+        if (profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(request) == null) {
+            throw new InvalidAuthorizationException();
+        }
+
+        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
+
+        // check query parameter
+        if (StringUtils.isBlank(queryString)) {
+            throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
+        }
+
+        // validate boost Param
+        BoostParamUtils.validateBoostParam(boostParam);
+
+        // validate provided languages
+        List<Language> filterLanguages = null;
+        if (lang != null) {
+            try {
+                filterLanguages = Language.validateMultiple(lang);
+            } catch (InvalidLanguageException e) {
+                throw new InvalidParamValueException(e.getMessage());
+
+            }
+        }
+
+        boolean isTranslateProfileActive = profiles.contains(Profile.TRANSLATE);
+        // fail fast if user is requesting translations when translation service is not enabled
+        // note that we'll ignore when query translations or results translations is disabled
+        if (isTranslateProfileActive && (
+            (queryTranslationEnabled && queryGenerator == null) ||
+                (resultsTranslationEnabled && !searchResultTranslator.isEnabled()))) {
+            throw new TranslationServiceDisabledException();
+        }
+        queryString = queryString.trim();
+
+        // append the boost value in the query
+        if (StringUtils.isNotEmpty(boostParam)) {
+            queryString = boostParam + queryString;
+        }
+
+        queryString = fixCountryCapitalization(queryString);
+
+        // #579 rights URL's don't match well to queries containing ":https*"
+        queryString = queryString.replace(":https://", ":http://");
+        LOG.debug("ORIGINAL QUERY: |{}|", queryString);
+
+        if (queryTranslationEnabled && isTranslateProfileActive && StringUtils.isNotBlank(
+            queryTargetLang)) {
+            validateQueryTranslateParams(querySourceLang, queryTargetLang);
+            // generate multi-lingual search query
+            try {
+                queryString = queryGenerator.getMultilingualQuery(queryString, queryTargetLang,
+                    querySourceLang, getAuthorizationHeader(request));
+                LOG.debug("TRANSLATED QUERY: |{}|", queryString);
+            } catch (TranslationServiceNotAvailableException e) {
+                // EA-3463 - return 307 redirect without profile param and Keep the Error Response
+                // Body indicating the reason for troubleshooting
+                ControllerUtils.redirectForTranslationsLimitException(request, response, profiles);
+                // throwing exception again overwrites the exception message with problem type message. Hence, fetch the original message from cause
+                throw new TranslationServiceNotAvailableException(e.getCause().getMessage(), e);
+            }
+
+        }
+        boolean isMinimalProfileActive = profiles.contains(Profile.MINIMAL);
+        //StringUtils.containsIgnoreCase(profile, Profile.MINIMAL.getName());
+
+        String translateTargetLang = null;
+        if (resultsTranslationEnabled && isTranslateProfileActive && isMinimalProfileActive) {
+            if (filterLanguages == null || filterLanguages.isEmpty()) {
+                try {
+                    Language.validateSingle(null); // let that method throw appropriate error
+                } catch (InvalidLanguageException e) {
+                    throw new InvalidParamValueException(e.getMessage());
+                }
+            }
+            translateTargetLang = filterLanguages.get(0).name()
+                .toLowerCase(Locale.ROOT); // only use first provided language for translations
+        }
+
+        //Add Validation For Cursormark
+        if (cursorMark != null) {
+            if( (start > 1)) {
+                throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
+                    "Parameters 'start' and 'cursorMark' cannot be used together");
+            }
+            //If the cursor value other than * is provided then it needs to be Base64 Encoded
+            if (!ASTERISK.equals(cursorMark) && !ControllerUtils.isBase64Encoded(cursorMark)) {
+                  new SolrQueryException(ProblemType.SEARCH_CURSORMARK_INVALID,
+                    "Please make sure you encode the cursor value before sending it to the API.");
+            }
+        }
+
+
+        // TODO April '22 - this issue is now over 11 years old and I'm quite certain that we can stop checking this
+        // TODO check whether this is still necessary? <= about time we did that!
+        // workaround of a Spring issue
+        // (https://jira.springsource.org/browse/SPR-7963)
+        String[] qfArray = request.getParameterMap().get("qf");
+        if (qfArray != null && qfArray.length != refinementArray.length) {
+            refinementArray = qfArray;
+        }
+
+        if (StringUtils.isNotBlank(theme)) {
+            if (StringUtils.containsAny(theme, "+ #%^&*-='\"<>`!@[]{}\\/|")) {
+                throw new SolrQueryException(ProblemType.SEARCH_THEME_MULTIPLE);
+            } else {
+                refinementArray = ArrayUtils.add(refinementArray, "collection:" + theme);
+            }
+        }
+
+        List<String> colourPalette = new ArrayList<>();
+        if (ArrayUtils.isNotEmpty(colourPaletteArray)) {
+            StringArrayUtils.addToList(colourPalette, colourPaletteArray);
+        }
+        colourPalette.replaceAll(String::toUpperCase);
+
+        // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
+        // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
+        if (!colourPalette.isEmpty()) {
+            Set<Integer> colourPaletteTags = TagUtils.encodeColourPalette(colourPalette);
+            if (!colourPaletteTags.isEmpty()) {
+                queryString = filterQueryBuilder(colourPaletteTags.iterator(), queryString, " AND ", false);
+            }
+        }
+
+        final List<Integer> filterTags = new ArrayList<>();
+
+        // EA-2996 this is to hold the sfield, pt and d geospatial parameters
+        // Created here, passed to processQfParameters() & initialised there
+        GeoDistance geoDistance = new GeoDistance();
+
+        // NOTE the zero tag is now added in processQfParameters
+        try {
+            refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags, geoDistance);
+        } catch (InvalidParamValueException e) {
+            throw new SolrQueryException(ProblemType.INVALID_PARAMETER_VALUE, e.getErrorDetails());
+        }
+
+        // add the CF filter facets to the query string like this:
+        // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
+        if (!filterTags.isEmpty()) {
+            queryString = filterQueryBuilder(filterTags.iterator(),
+                queryString,
+                " OR ",
+                true);
+        }
+
+        String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
+        String[] mixedFacets   = StringArrayUtils.splitWebParameter(mixedFacetArray);
+
+        boolean rangeFacetsSpecified = request.getParameterMap().containsKey(FACET_RANGE);
+        boolean noFacetsSpecified    = ArrayUtils.isEmpty(mixedFacets);
+        boolean facetsRequested = profiles.contains(Profile.PORTAL) || profiles.contains(Profile.FACETS);
+
+        boolean defaultFacetsRequested = facetsRequested && !rangeFacetsSpecified &&
+            (noFacetsSpecified || ArrayUtils.contains(mixedFacets, "DEFAULT"));
+        boolean defaultOrReusabilityFacetsRequested =
+            defaultFacetsRequested || (facetsRequested && ArrayUtils.contains(mixedFacets, "REUSABILITY"));
+
+        // 1) replaces DEFAULT (or empty list of) facet with those defined in the enum types (removes explicit DEFAULT facet)
+        // 2) separates the requested facets in Solr facets and technical (fake-) facets
+        // 3) when many custom SOLR facets are supplied: caps the number of total facets to FACET_LIMIT
+        Map<String, String[]> separatedFacets = ModelUtils.separateAndLimitFacets(mixedFacets, defaultFacetsRequested);
+        String[] solrFacets = ArrayUtils.addAll(separatedFacets.get("solrfacets"), separatedFacets.get("customfacets"));
+        String[] technicalFacets = separatedFacets.get("technicalfacets");
+
+        rows = Math.min(rows, apiRowLimit);
+
+        Map<String, String> valueReplacements = null;
+        if (ArrayUtils.isNotEmpty(reusabilities)) {
+            valueReplacements = RightReusabilityCategorizer.mapValueReplacements(reusabilities, true);
+            if (null != valueReplacements && !valueReplacements.isEmpty()) {
+                refinementArray = ArrayUtils.addAll(refinementArray, "REUSABILITY:list");
+            }
+        }
+
+        // EA-2996 only allow sorting on distance if a qf distance function is requested => if geoDistance is initialised
+        if (geoDistance.isInitialised()){
+            if (StringUtils.containsIgnoreCase(sort, "distance")) {
+                sort = StringUtils.replaceIgnoreCase(sort, "distance", "geodist()");
+            }
+        } else if (StringUtils.containsIgnoreCase(sort, "distance")){
+            // removes "distance", "distance asc", "distance desc" also when followed by other sort parameters,
+            // including possible spaces and the trailing comma in those cases
+            sort = org.apache.commons.lang3.RegExUtils.removePattern(sort, "distance\\s?(asc|desc)?(\\s|,)*");
+        }
+
+        Class<? extends IdBean> clazz = selectBean(profile);
+        Query query = new Query(SearchUtils.rewriteQueryFields(
+            SearchUtils.fixBuggySolrIndex(queryString)))
+            .setApiQuery(true)
+            .setRefinements(refinementArray)
+            .setPageSize(rows)
+            .setStart(start - 1)
+            .setSort(sort)
+            .setCurrentCursorMark(cursorMark)
+            .setParameter("facet.mincount","1")
+            .setParameter("fl", IdBeanImpl.getFields(getBeanImpl(clazz)))
+            .setSpellcheckAllowed(false);
+
+        // EA-2996
+        if (geoDistance.isInitialised()){
+            query.addGeoParamsToQuery(geoDistance.getSField(), geoDistance.getPoint(), geoDistance.getDistance());
+        }
+
+        if (facetsRequested) {
+            Map<String, String[]> parameterMap = request.getParameterMap();
+            try {
+                query.setSolrFacets(solrFacets)
+                    .setDefaultFacetsRequested(defaultFacetsRequested)
+                    .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("limit",
+                        solrFacets,
+                        parameterMap,
+                        defaultFacetsRequested))
+                    .convertAndSetSolrParameters(FacetParameterUtils.getSolrFacetParams("offset",
+                        solrFacets,
+                        parameterMap,
+                        defaultFacetsRequested))
+                    .setFacetDateRangeParameters(FacetParameterUtils.getDateRangeParams(parameterMap))
+                    .setTechnicalFacets(technicalFacets)
+                    .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit",
+                        technicalFacets,
+                        parameterMap,
+                        defaultFacetsRequested))
+                    .setTechnicalFacetOffsets(FacetParameterUtils.getTechnicalFacetParams("offset",
+                        technicalFacets,
+                        parameterMap,
+                        defaultFacetsRequested))
+                    .setFacetsAllowed(true);
+            } catch (DateMathParseException e) {
+                String errorDetails = "Error parsing value '" + e.getParsing() + "' supplied for " + FACET_RANGE + " " +
+                    e.getWhatsParsed();
+                throw new SolrQueryException(ProblemType.SEARCH_FACET_RANGE_INVALID, errorDetails);
+            } catch (InvalidRangeOrGapException e) {
+                throw new SolrQueryException(ProblemType.SEARCH_FACET_RANGE_INVALID, e.getMessage());
+            } catch (DataFormatException e) {
+                throw new InvalidParamValueException(e.getMessage());
+            }
+        } else {
+            query.setFacetsAllowed(false);
+        }
+
+        if (profiles.contains(Profile.HITS)) {
+            int nrSelectors;
+            if (StringUtils.isBlank(hlSelectors)) {
+                nrSelectors = 1;
+            } else {
+                try {
+                    nrSelectors = Integer.parseInt(hlSelectors);
+                    if (nrSelectors < 1) {
+                        throw new SolrQueryException(ProblemType.SEARCH_HITSELECTOR_INVALID,
+                            "Parameter hit.selectors must be greater than 0");
+                    }
+                } catch (NumberFormatException nfe) {
+                    throw new SolrQueryException(ProblemType.SEARCH_HITSELECTOR_INVALID,
+                        "Parameter hit.selectors must be an integer");
+                }
+            }
+            query.setParameter("hl", "on");
+            query.setParameter("hl.fl", StringUtils.isBlank(hlFl) ? "fulltext.*" : hlFl);
+            // this sets both the Solr parameter and a separate nrSelectors variable used to limit the result set with
+            query.setNrSelectors("hl.snippets", nrSelectors);
+            // see EA-1570 (workaround to increase the number of characters that are being considered for highlighting)
+            query.setParameter("hl.maxAnalyzedChars", hlMaxAnalyzedChars);
+        }
+
+        if (null != valueReplacements && !valueReplacements.isEmpty()) {
+            query.setValueReplacements(valueReplacements);
+        }
+
+        // reusability facet settings; spell check allowed, etcetera
+        if (defaultOrReusabilityFacetsRequested) {
+            query.setQueryFacets(RightReusabilityCategorizer.getQueryFacets());
+        }
+        if (profiles.contains(Profile.PORTAL) || profiles.contains(Profile.SPELLING)) {
+            query.setSpellcheckAllowed(true);
+        }
+        if (facetsRequested && !query.hasParameter("f.DATA_PROVIDER.facet.limit") &&
+            (ArrayUtils.contains(solrFacets, "DATA_PROVIDER") || ArrayUtils.contains(solrFacets, "DEFAULT"))) {
+            query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
+        }
+
+        SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
+            translateTargetLang, filterLanguages, request, response,false);
+
+        if (profiles.contains(Profile.PARAMS)) {
+            result.addParams(RequestUtils.getParameterMap(request), "apikey");
+            result.addParam("profile", profile);
+            result.addParam("start", start);
+            result.addParam("rows", rows);
+            result.addParam("sort", sort);
+        }
+        response.setCharacterEncoding(UTF8);
+        response.addHeader("Allow", ControllerUtils.ALLOWED_GET_HEAD_POST);
+        return JsonUtils.toJson(result, callback);
+    }
+
+
+
+    /** Search API V3
+     * Returns a list of Europeana datasets based on the search terms.
+     * The response is an Array of JSON objects, each one containing the identifier and the name of a dataset.
+     *
+     * @return the JSON response
+     */
+    @ApiOperation(value = "search for records V3", nickname = "searchRecordsV3", response = Void.class)
+    @GetMapping(value = {"/record/v3/search.json"},
+                produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public ModelAndView searchJsonGetV3(
                                       @SolrEscape @RequestParam(value = "query") String queryString,
                                       @RequestParam(value = "qf", required = false) String[] refinementArray,
-                                      @RequestParam(value = "nqf", required = false) String[] newRefinementString,
-
                                       @RequestParam(value = "reusability", required = false) String[] reusabilityArray,
                                       @RequestParam(value = "profile", required = false, defaultValue = "standard")
                                               String profile,
@@ -283,7 +621,7 @@ public class SearchController extends BaseController {
 
 
 
-        Map<String, List<String>> parsedParametersMap = ParserUtils.getParsedParametersMap(request.getParameterMap().get("nqf"));
+        Map<String, List<String>> parsedParametersMap = ParserUtils.getParsedParametersMap(request.getParameterMap().get("qf"));
         //EA 3657 -If qf parameter not populated and new nqf parameter is used geodistance parameters calculation is handled with parser.
         String sField = CollectionUtils.isNotEmpty(parsedParametersMap.get("sfield")) ?parsedParametersMap.get("sfield").get(0):null;
         String pt = CollectionUtils.isNotEmpty(parsedParametersMap.get("pt"))?parsedParametersMap.get("pt").get(0):null;
@@ -540,6 +878,7 @@ public class SearchController extends BaseController {
             (ArrayUtils.contains(solrFacets, "DATA_PROVIDER") || ArrayUtils.contains(solrFacets, "DEFAULT"))) {
             query.setParameter("f.DATA_PROVIDER.facet.limit", FacetParameterUtils.getLimitForDataProvider());
         }
+
         SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
                 translateTargetLang, filterLanguages, request, response,!useNewQueryFilterRefinements );
         if (profiles.contains(Profile.PARAMS)) {

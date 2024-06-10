@@ -1,14 +1,16 @@
 package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.v2.model.enums.Profile;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHeaders;
+import org.apache.solr.common.util.Base64;
+import org.apache.solr.common.util.JavaBinCodec;
+import org.springframework.http.HttpStatus;
 
 /**
  * Class containing a number of useful controller utilities (mainly for setting headers)
@@ -103,7 +105,7 @@ public final class ControllerUtils {
      * @return
      */
     public static String removeRequestMapping(String request) {
-       return StringUtils.substringAfterLast(request, "/");
+        return StringUtils.substringAfterLast(request, "/");
     }
 
     /**
@@ -162,5 +164,20 @@ public final class ControllerUtils {
     public static boolean is5xxError(int httpStatusCode) {
         HttpStatus status = HttpStatus.valueOf(httpStatusCode);
         return status.is5xxServerError();
+    }
+
+    public static boolean isBase64Encoded(String cursorMark) {
+        try {
+            byte[] buf =
+                Base64.base64ToByteArray(cursorMark);
+            try (JavaBinCodec jbc = new JavaBinCodec();
+                ByteArrayInputStream in = new ByteArrayInputStream(buf)) {
+                jbc.unmarshal(in);
+                return true;
+            }
+        }
+        catch (Exception e) {
+            return false;
+        }
     }
 }

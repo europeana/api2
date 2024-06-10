@@ -148,7 +148,7 @@ public class FacetParameterUtils {
      * @throws InvalidParamValueException
      *
      */
-    public static Map<String, String> getDateRangeParamsForDateSearch(Map<String, String[]> parameters)
+    public static Map<String, String> getFacetRangeParamsForDateSearch(Map<String, String[]> parameters)
         throws DateMathParseException,  DataFormatException, MissingParamException, InvalidParamValueException {
 
         Map<String, String> dateRangeParams = new HashMap<>();
@@ -380,8 +380,7 @@ public class FacetParameterUtils {
                         dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE_GAP),
                         MAX_RANGE_FACETS);
         }
-        getDateRangeParamsForDateSearch(parameters).forEach(dateRangeParams::putIfAbsent);
-
+        getFacetRangeParamsForDateSearch(parameters).forEach(dateRangeParams::putIfAbsent);
 
       return dateRangeParams;
     }
