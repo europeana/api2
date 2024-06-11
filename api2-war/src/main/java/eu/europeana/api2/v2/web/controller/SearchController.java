@@ -624,15 +624,15 @@ public class SearchController extends BaseController {
         ParserUtils.loadFieldRegistryFromResource(Constants.FIELD_REGISTRY_XML);
         ParserUtils.loadFunctionRegistry(Constants.FUNCTION_REGISTRY_XML);
 
-        Map<String, List<String>> parsedParametersMap = ParserUtils.getParsedParametersMap(request.getParameterMap().get("qf"));
-        //EA 3657 -If qf parameter not populated and new nqf parameter is used geodistance parameters calculation is handled with parser.
-        String sField = CollectionUtils.isNotEmpty(parsedParametersMap.get("sfield")) ?parsedParametersMap.get("sfield").get(0):null;
-        String pt = CollectionUtils.isNotEmpty(parsedParametersMap.get("pt"))?parsedParametersMap.get("pt").get(0):null;
-        String d = CollectionUtils.isNotEmpty(parsedParametersMap.get("d"))?parsedParametersMap.get("d").get(0):null;
+        Map<String, List<String>> parsedQueryFilterParams = ParserUtils.getParsedParametersMap(request.getParameterMap().get("qf"));
+        //EA 3657 -If qf parameter not populated and new qf parameter parsing is used geodistance parameters calculation is handled with parser.
+        String sField = CollectionUtils.isNotEmpty(parsedQueryFilterParams.get("sfield")) ?parsedQueryFilterParams.get("sfield").get(0):null;
+        String pt = CollectionUtils.isNotEmpty(parsedQueryFilterParams.get("pt"))?parsedQueryFilterParams.get("pt").get(0):null;
+        String d = CollectionUtils.isNotEmpty(parsedQueryFilterParams.get("d"))?parsedQueryFilterParams.get("d").get(0):null;
 
         boolean isGeoSearchRequested =  (StringUtils.isNotBlank(sField) && StringUtils.isNotBlank(pt) && StringUtils.isNotBlank(d) );
 
-        //EA 3657 - handle old conditions from EA-2996  ,sort parameter related to distance are removed if geodistance nqf param not provided.
+        //EA 3657 - handle old conditions from EA-2996  ,sort parameter related to distance are removed if geodistance qf param not provided.
         if(!isGeoSearchRequested){
             RegExUtils.removePattern(sort, "distance\\s?(asc|desc)?(\\s|,)*");
         }
@@ -640,14 +640,12 @@ public class SearchController extends BaseController {
         //Validate sort param
         sort= validateAndUpdateSortParameters(sort);
 
-        //EA 3657-If the qf parameter is not populated get the refinement query value from new nqf param ,used by parser to generate solr fq(filter query) param.
-        List<String> fq_param =  parsedParametersMap.get("parsed_param");
-        boolean useNewQueryFilterRefinements = ArrayUtils.isEmpty(refinementArray) && CollectionUtils.isNotEmpty(fq_param);
-        if (useNewQueryFilterRefinements) {
+        // If  Query filters are successfully parsed  , refinements division not required while calling SOLR
+        List<String> fq_param =  parsedQueryFilterParams.get("parsed_param");
+        boolean isRefinementDivisionRequired = CollectionUtils.isEmpty(fq_param);
+        if (!isRefinementDivisionRequired) {
             refinementArray =  fq_param.toArray(new String[0]);
         }
-        // EA 3657 - End -New Parser Logic
-
 
         boolean isTranslateProfileActive = profiles.contains(Profile.TRANSLATE);
         // fail fast if user is requesting translations when translation service is not enabled
@@ -884,7 +882,7 @@ public class SearchController extends BaseController {
         }
 
         SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
-                translateTargetLang, filterLanguages, request, response,!useNewQueryFilterRefinements );
+                translateTargetLang, filterLanguages, request, response,isRefinementDivisionRequired );
         if (profiles.contains(Profile.PARAMS)) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
