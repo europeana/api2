@@ -1416,7 +1416,7 @@ public class SearchController extends BaseController {
                     String filedNameForSpecificMode = ParserUtils.getFiledNameForSpecificMode(
                         FieldMode.FACET, FieldRegistry.INSTANCE.getField(facetTerm));
                     for (Facet facet : response.facets) {
-                        if (filedNameForSpecificMode.equals(facet.name)) {
+                        if (filedNameForSpecificMode!= null && filedNameForSpecificMode.equals(facet.name)) {
                             facet.name = facetTerm;
                         }
                     }

@@ -19,6 +19,7 @@ import eu.europeana.api.search.syntax.validation.SyntaxErrorUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,10 +151,13 @@ public class ParserUtils {
    * @return  associated field name based on mode
    */
   public static String getFiledNameForSpecificMode(FieldMode mode, FieldDeclaration field) {
-    String filedNameBasedOnMode  = field.getField(mode);
-    if(!StringUtils.isNotBlank(filedNameBasedOnMode))
-      SyntaxErrorUtils.newUnknownFieldNameForMode(mode.toString(), field.getName());
-    return field.getField(mode);
+    if( field!=null) {
+      String filedNameBasedOnMode = field.getField(mode);
+      if (!StringUtils.isNotBlank(filedNameBasedOnMode))
+        SyntaxErrorUtils.newUnknownFieldNameForMode(mode.toString(), field.getName());
+      return field.getField(mode);
+    }
+    return null;
   }
 
   /**
