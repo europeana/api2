@@ -541,7 +541,7 @@ public class SearchController extends BaseController {
         }
 
         SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
-            translateTargetLang, filterLanguages, request, response,false);
+            translateTargetLang, filterLanguages, request, response,true);
 
         if (profiles.contains(Profile.PARAMS)) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
