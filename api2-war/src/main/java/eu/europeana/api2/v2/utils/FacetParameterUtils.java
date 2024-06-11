@@ -176,7 +176,6 @@ public class FacetParameterUtils {
             }
         }
         validateAndUpdateDateFacetingParams(fieldsForFaceting, dateRangeParams);
-        dateRangeParams.put(FACET_RANGE,String.join(",",fieldsForFaceting));
        return dateRangeParams;
     }
 
@@ -230,6 +229,16 @@ public class FacetParameterUtils {
             dateRangeParams.put("f." + field + "." + FACET_RANGE + ".start",startDate);
             dateRangeParams.put("f." + field + "." + FACET_RANGE + ".end"  , endDate);
             dateRangeParams.put("f." + field + "." + FACET_RANGE + ".gap",gap);
+
+
+             String facetRange = dateRangeParams.get(FACET_RANGE);
+             if(StringUtils.isNotBlank(facetRange) && !facetRange.contains(field)) {
+                 dateRangeParams.put(FACET_RANGE, facetRange+","+field);
+             }
+             else {
+                 dateRangeParams.put(FACET_RANGE, field);
+             }
+
         }
     }
 
