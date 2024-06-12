@@ -257,8 +257,7 @@ public class SearchControllerTest {
         // should NOT have filter tag 0 as it has a valid tech facet
         assertFalse(filterTags.contains(0));
       assertEquals(5, refinementArray.length);
-
-
+ 
         // empty refinement
         filterTags.clear();
         refinementArray = new String[]{};
@@ -266,8 +265,7 @@ public class SearchControllerTest {
         refinementArray =  searchController.processQfParameters(refinementArray, false, false,false, false, filterTags, geoDistance);
       assertEquals(0, filterTags.size());
       assertEquals(4, refinementArray.length);
-
-
+ 
         // empty refinement
         filterTags.clear();
 
@@ -284,6 +282,7 @@ public class SearchControllerTest {
 
         // negative distance should fail
        searchController.processQfParameters(new String[]{"distance(currentLocation,20.4,80.09,-40)"}, false, false,false, false, filterTags, geoDistance);
+ 
     }
 
     @Test
@@ -309,3 +308,4 @@ public class SearchControllerTest {
 
 
 }
+ 
