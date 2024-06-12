@@ -666,7 +666,8 @@ public class SearchController extends BaseController {
         // #579 rights URL's don't match well to queries containing ":https*"
         queryString = queryString.replace(":https://", ":http://");
         LOG.debug("ORIGINAL QUERY: |{}|", queryString);
-        if (queryTranslationEnabled && isTranslateProfileActive && StringUtils.isNotBlank(queryTargetLang)) {
+        if (queryTranslationEnabled && isTranslateProfileActive && StringUtils.isNotBlank(
+            queryTargetLang)) {
             validateQueryTranslateParams(querySourceLang, queryTargetLang);
             // generate multi-lingual search query
             try {
@@ -692,11 +693,20 @@ public class SearchController extends BaseController {
                     throw new InvalidParamValueException(e.getMessage());
                 }
             }
-            translateTargetLang = filterLanguages.get(0).name().toLowerCase(Locale.ROOT); // only use first provided language for translations
+            translateTargetLang = filterLanguages.get(0).name()
+                .toLowerCase(Locale.ROOT); // only use first provided language for translations
         }
-        if ((cursorMark != null) && (start > 1)) {
-            throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
-                                         "Parameters 'start' and 'cursorMark' cannot be used together");
+        //Add Validation For Cursormark
+        if (cursorMark != null) {
+            if( (start > 1)) {
+                throw new SolrQueryException(ProblemType.SEARCH_START_AND_CURSOR,
+                    "Parameters 'start' and 'cursorMark' cannot be used together");
+            }
+            //If the cursor value other than * is provided then it needs to be Base64 Encoded
+            if (!ASTERISK.equals(cursorMark) && !ControllerUtils.isBase64Encoded(cursorMark)) {
+                throw new SolrQueryException(ProblemType.SEARCH_CURSORMARK_INVALID,
+                    "Please make sure you encode the cursor value before sending it to the API.");
+            }
         }
         // TODO April '22 - this issue is now over 11 years old and I'm quite certain that we can stop checking this
         // TODO check whether this is still necessary? <= about time we did that!
@@ -992,9 +1002,9 @@ public class SearchController extends BaseController {
         boolean hasVideoRefinements = false;
        // boolean hasTextRefinements  = false;
         boolean hasBrokenTechFacet  = false;
-        
+
         boolean hasGeoDistanceSearch = false;
-        
+
         Boolean whatYouWant;
         FacetEncoder facetEncoder        = new FacetEncoder();
         List<String> newRefinements      = new ArrayList<>();
