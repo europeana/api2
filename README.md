@@ -29,15 +29,18 @@ $ mvn clean install
 ```
 
 ## Deploy
-To deploy your instance you can use the Docker files in `docker/compose` folder. This image contains Tomcat only.
-However at the moment we do not have a Mongo database or Solr engine in Docker yet.
 
-The addresses and login credentials of all these services are specified in the europeana.properties file located in the
-/api2/api2-war/src/main/resources/ folder. For the moment you still need to fill in all the 'REMOVED' values (login
-credentials for services that are not dockerized yet). **Make sure you never commit these changes!**
-It's safer to place these login credentials in a europeana.user.properties file in the same folder because this file
-is set to be ignored by git. All settings in the europeana.user.properties will override those in the europeana.properties.
+Deployment is done using the project's Dockerfile and Kubernetes configuration files in the k8s folder.
 
+The addresses and login credentials of all required services are specified in the europeana.properties file located in the
+/api2/api2-war/src/main/resources/ folder. You can fill in something to replace all the 'REMOVED' values, but the safest
+way is to override the 'REMOVED' values using a `europeana.user.properties` file placed in the same folder. This file
+is set to be ignored by git so won't be committed.
+
+The kubernetes configuration files are templates containing environment variables. You can generate
+a configuration file containing the correct variable values using for example
+
+envsubst < $WORKSPACE/api2/k8s/overlays/canary/deployment_patch.properties.yaml.template > $WORKSPACE/api2/k8s/overlays/canary/deployment_patch.properties.yaml
 
 ## LICENSE
 
