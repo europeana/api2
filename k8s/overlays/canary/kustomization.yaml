@@ -1,5 +1,5 @@
 # name suffix and commonLabels to be provided imperatively during deployment
-apiVersion: kustomize.config.k8s.io/v1beta
+apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
