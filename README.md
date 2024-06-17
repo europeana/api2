@@ -37,10 +37,10 @@ The addresses and login credentials of all required services are specified in th
 way is to override the 'REMOVED' values using a `europeana.user.properties` file placed in the same folder. This file
 is set to be ignored by git so won't be committed.
 
-The kubernetes configuration files are templates containing environment variables. You can generate
-a configuration file containing the correct variable values using for example
+The kubernetes configuration files are templates containing environment variables. You can generate a proper configuration 
+file by first setting the environment variables and then running for example
 
-envsubst < $WORKSPACE/api2/k8s/overlays/canary/deployment_patch.properties.yaml.template > $WORKSPACE/api2/k8s/overlays/canary/deployment_patch.properties.yaml
+`envsubst < $WORKSPACE/api2/k8s/overlays/canary/deployment_patch.properties.yaml.template > $WORKSPACE/api2/k8s/overlays/canary/deployment_patch.properties.yaml`
 
 ## LICENSE
 
