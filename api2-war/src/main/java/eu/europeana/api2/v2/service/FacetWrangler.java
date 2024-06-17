@@ -1,21 +1,24 @@
 package eu.europeana.api2.v2.service;
 
+import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
+
 import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
 import eu.europeana.api2.v2.model.json.view.submodel.FacetRanger;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.client.solrj.response.RangeFacet.Count;
-
-import java.util.*;
-
-import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 
 /**
  * Created by luthien on 20/04/2016.

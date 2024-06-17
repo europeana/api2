@@ -103,7 +103,7 @@ public class RedirectController {
                 throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No search engine configured for request route");
             }
 
-            ResultSet<BriefBean> resultSet = searchService.search(solrClient.get(),BriefBean.class, query);
+            ResultSet<BriefBean> resultSet = searchService.search(solrClient.get(),BriefBean.class, query,true);
 
             LOG.debug("Redirect query = {}", query.getExecutedQuery());
             return resultSet.getResultSize() > 0;

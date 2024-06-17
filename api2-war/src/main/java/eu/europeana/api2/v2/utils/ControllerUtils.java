@@ -105,7 +105,7 @@ public final class ControllerUtils {
      * @return
      */
     public static String removeRequestMapping(String request) {
-       return StringUtils.substringAfterLast(request, "/");
+        return StringUtils.substringAfterLast(request, "/");
     }
 
     /**

@@ -16,6 +16,7 @@
 
     <modules>
         <module>api2-model</module>
+        <module>query-syntax</module>
         <module>api2-war</module>
     </modules>
 
