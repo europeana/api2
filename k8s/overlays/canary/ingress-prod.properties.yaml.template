@@ -20,7 +20,6 @@ spec:
                 name: search-api-service
                 port:
                   number: 80
-
     - host: ${K8S_HOSTNAME_2}
       http:
         paths:
