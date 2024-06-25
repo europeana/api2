@@ -6,6 +6,7 @@ resources:
 - ../../base
 - service.yaml
 - ingress.properties.yaml
+- hpa.properties.yaml
 
 patches:
 - path: deployment_patch.properties.yaml
