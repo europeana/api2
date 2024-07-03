@@ -251,13 +251,44 @@
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-web</artifactId>
                 </exclusion>
+
+                <!-- Excluding Netty dependencies coming in via the translation API client because they conflict with other versions -->
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-dns</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-http</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-http2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-socks</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-handler-proxy</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-resolver-dns-classes-macos</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-resolver-dns-native-macos</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
+
 <!--  java.lang.NoSuchMethodError: 'java.net.InetAddress io.netty.util.NetUtil.createInetAddressFromIpAddressString(java.lang.String)'-->
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-common</artifactId>
-            <version>4.1.104.Final</version>
+            <version>4.1.111.Final</version>
         </dependency>
 
 
