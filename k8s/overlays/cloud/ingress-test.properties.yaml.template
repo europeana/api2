@@ -9,6 +9,7 @@ spec:
   tls:
     - hosts:
         - ${K8S_HOSTNAME_1}
+        - ${K8S_HOSTNAME_2}
       secretName: ${K8S_HOSTNAME_SECRET_1}
   rules:
     - host: ${K8S_HOSTNAME_1}
@@ -21,3 +22,15 @@ spec:
                 name: search-api-service
                 port:
                   number: 80
+
+    - host: ${K8S_HOSTNAME_2}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: newspaper-search-service
+                port:
+                  number: 80
+                  
