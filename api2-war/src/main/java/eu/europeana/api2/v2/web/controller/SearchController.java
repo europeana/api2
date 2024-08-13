@@ -256,7 +256,7 @@ public class SearchController extends BaseController {
         throws EuropeanaException, HttpException {
         
         // debugging internal routes for API-gateway-routed requests
-        LOG.warn("Incoming request comes from server: |{}|", request.getServerName());
+        LOG.info("Incoming request comes from server: |{}|", request.getServerName());
         
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
