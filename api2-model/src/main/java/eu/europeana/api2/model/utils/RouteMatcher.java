@@ -26,16 +26,16 @@ public class RouteMatcher {
         // exact matching
         T result = sourceMap.get(topLevelName);
         if (result != null) {
-            // debugging internal routes for API-gateway-routed requests
-            LOG.info("Exact routes match on : |{}|", topLevelName);
+            // tracing internal routes for API-gateway-routed requests
+            LOG.trace("Exact routes match on : |{}|", topLevelName);
             return Optional.of(result);
         }
 
         // fallback 1: try to match with "contains"
         for (Map.Entry<String, T> entry : sourceMap.entrySet()) {
             if (topLevelName.contains(entry.getKey())) {
-                // debugging internal routes for API-gateway-routed requests
-                LOG.info("'Contains' routes match on : |{}|", topLevelName);
+                // tracing internal routes for API-gateway-routed requests
+                LOG.trace("'Contains' routes match on : |{}|", topLevelName);
                 return Optional.ofNullable(entry.getValue());
             }
         }
