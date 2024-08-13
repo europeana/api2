@@ -65,7 +65,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>10.0.0</version>
+                <version>10.0.3</version>
                 <configuration>
                     <nvdApiKeyEnvironmentVariable>NVD_APIKEY</nvdApiKeyEnvironmentVariable>
                     <!-- see EA-3505 why we host the known exploited vulnerabilties file ourselves -->
