@@ -44,7 +44,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: search-api-service
+                name: newspapers-search-service
                 port:
                   number: 80
 ---
