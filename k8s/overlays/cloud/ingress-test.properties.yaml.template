@@ -8,12 +8,10 @@ spec:
   ingressClassName: public-iks-k8s-nginx
   tls:
     - hosts:
-        - ${K8S_HOSTNAME_SEARCH1}
-        - ${K8S_HOSTNAME_SEARCH2}
-        - ${K8S_HOSTNAME_NEWSPAPERS}
+        - ${K8S_HOSTNAME_1}
       secretName: ${K8S_HOSTNAME_SECRET_1}
   rules:
-    - host: ${K8S_HOSTNAME_SEARCH1}
+    - host: ${K8S_HOSTNAME_1}
       http:
         paths:
           - path: /
@@ -22,25 +20,4 @@ spec:
               service:
                 name: search-api-service
                 port:
-                  number: 80
-    - host: ${K8S_HOSTNAME_SEARCH2}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: search-api-service
-                port:
-                  number: 80
-    # We define a separate service for newspapers so the API gateway can use that
-    - host: ${K8S_HOSTNAME_NEWSPAPERS}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: newspapers-search-service
-                port:
-                  number: 80
+                  number: 80    
