@@ -5,8 +5,8 @@ import eu.europeana.corelib.web.exception.ProblemType;
 
 public class InvalidAuthorizationException extends EuropeanaException {
 
-    public InvalidAuthorizationException(){
-        super(ProblemType.INVALID_AUTH_FOR_TRANSLATION);
+    public InvalidAuthorizationException(ProblemType problemType) {
+        super(problemType);
     }
 
 }

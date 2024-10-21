@@ -262,7 +262,7 @@ public class SearchController extends BaseController {
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
         if (profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(request) == null) {
-            throw new InvalidAuthorizationException();
+            throw new InvalidAuthorizationException(ProblemType.INVALID_AUTH_FOR_TRANSLATION);
         }
 
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
@@ -601,7 +601,7 @@ public class SearchController extends BaseController {
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
         if (profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(request) == null) {
-            throw new InvalidAuthorizationException();
+            throw new InvalidAuthorizationException(ProblemType.INVALID_AUTH_FOR_TRANSLATION);
         }
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
