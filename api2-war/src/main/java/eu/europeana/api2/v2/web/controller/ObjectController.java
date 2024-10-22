@@ -107,19 +107,16 @@ public class ObjectController extends BaseController {
 
     private static Object       jsonldContext           = new Object();
 
-    private RecordService           recordService;
-    private TranslationService recordTranslations;
-    private HttpCacheUtils          httpCacheUtils;
+    private final RecordService      recordService;
+    private final TranslationService recordTranslations;
+    private final HttpCacheUtils     httpCacheUtils;
 
     @Value("#{europeanaProperties['translation.record']}")
     private Boolean recordTranslationEnabled;
 
 
-    /**
+    /*
      * Create a static Object for JSONLD Context. This will read the file once during initialization
-     *
-     * @param jsonldContext
-     * @throws IOException
      */
     static {
         try {
@@ -135,7 +132,6 @@ public class ObjectController extends BaseController {
      * @param routeService for
      * @param recordService for retrieving data from Mongo
      * @param recordTranslations for translating data
-     * @param httpCacheUtils for request caching
      * @param httpCacheUtils for request caching
      */
     @Autowired
@@ -163,12 +159,12 @@ public class ObjectController extends BaseController {
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
-     * @return
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in json format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */
     @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
     @GetMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ModelAndView record(@PathVariable String collectionId,
+    public ModelAndView recordJson(@PathVariable String collectionId,
                                @PathVariable String recordId,
                                @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                @RequestParam(value = "lang", required = false) String lang,
@@ -201,8 +197,8 @@ public class ObjectController extends BaseController {
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
-     * @return
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in json-ld format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @SwaggerIgnore
     @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = { MEDIA_TYPE_JSONLD_UTF8, MediaType.APPLICATION_JSON_UTF8_VALUE })
@@ -226,8 +222,8 @@ public class ObjectController extends BaseController {
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
-     * @return
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in json-ld format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
     @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
@@ -252,8 +248,8 @@ public class ObjectController extends BaseController {
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
-     * @return
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in schema.org format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
     @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
@@ -278,8 +274,8 @@ public class ObjectController extends BaseController {
      * @param lang           language in which record data should be displayed
      * @param request        incoming request
      * @param response       generated response
-     * @return
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in rdf format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */
     @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
     @GetMapping(value = "/{collectionId}/{recordId}.rdf", produces = MEDIA_TYPE_RDF_UTF8)
@@ -303,8 +299,8 @@ public class ObjectController extends BaseController {
      * @param lang           language in which record data should be displayed
      * @param request        incoming request
      * @param response       generated response
-     * @return matching records in the turtle format
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in turtle format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */
     @ApiOperation(value = "get single record in turtle format)", nickname = "getSingleRecordTurtle")
     @GetMapping(value = "/{collectionId}/{recordId}.ttl", produces = {MEDIA_TYPE_TURTLE, MEDIA_TYPE_TURTLE_TEXT, MEDIA_TYPE_TURTLE_X})
@@ -351,6 +347,16 @@ public class ObjectController extends BaseController {
                 return generate404(data);
             }
         }
+
+        /*
+         * 2017-07-06 PE: the code below was implemented as part of ticket #662. However as collections does not support this
+         * yet activation of this functionality is postponed.
+         *        if (!bean.getAbout().equals(data.europeanaId)) {
+         *            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+         *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaId, bean.getAbout()));
+         *            return null;
+         *        }
+         */
 
         // 4) Handle caching
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());

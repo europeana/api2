@@ -15,10 +15,8 @@
     </Root>
 
     <Logger name="eu.europeana" level="INFO"/>
-    <Logger name="org.mongodb.driver.connection"
-      level="WARN"/> <!-- to prevent opened/closed connection messages -->
-    <Logger name="org.apache.jena.riot"
-      level="ERROR"/> <!-- to prevent JENA warnings about parsing data -->
+    <Logger name="org.mongodb.driver.connection" level="WARN"/> <!-- to prevent opened/closed connection messages -->
+    <Logger name="org.apache.jena.riot" level="ERROR"/> <!-- to prevent JENA warnings about parsing data -->
 
     <Logger name="eu.europeana.corelib.record.api.IIIFLink" level="INFO"/>
 
@@ -35,6 +33,9 @@
 
     <!-- Set to DEBUG to see which record fields are or are not chosen to be translated + see how long the entire process took -->
     <Logger name="eu.europeana.api2.v2.service.translate.TranslationUtils" level="INFO"/>
+
+    <!-- Set to DEBUG to see requests sent to Mongo + timing -->
+    <Logger name="eu.europeana.corelib.record.impl.RecordServiceImpl" level="INFO"/>
 
   </Loggers>
 </Configuration>
