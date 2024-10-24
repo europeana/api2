@@ -5,6 +5,7 @@ import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
+import eu.europeana.api2.v2.model.json.view.submodel.FacetRanger;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import java.util.ArrayList;
@@ -37,18 +38,22 @@ public class FacetWrangler {
     }
 
     /**
-     * Consolidates the regular and technical metadata facets.
-     * The method loops through the List of FacetFields returned by Solr, extracts both the regular as the encoded
-     * technical metadata facets, converts them to Facet objects, adds those to a List and returns that List.
+     * Consolidates the regular and technical metadata facets. The method loops through the List of
+     * FacetFields returned by Solr, extracts both the regular as the encoded technical metadata
+     * facets, converts them to Facet objects, adds those to a List and returns that List.
+     *
      * @param facetFields the List of facetfields as returned by Solr
-     * @return a List of Facet objects representing both the regular, and the technical metadata facets
+     * @param isV3
+     * @return a List of Facet objects representing both the regular, and the technical metadata
+     * facets
      */
     public List<Facet> consolidateFacetList(List<FacetField> facetFields,
                                             List<RangeFacet> rangeFacets,
                                             List<String> requestedTechnicalFacets,
                                             boolean defaultFacetsRequested,
                                             Map<String, Integer> technicalFacetLimits,
-                                            Map<String, Integer> technicalFacetOffsets) {
+                                            Map<String, Integer> technicalFacetOffsets,
+    boolean isV3) {
         if ((facetFields == null || facetFields.isEmpty()) &&
                 (rangeFacets == null || rangeFacets.isEmpty())) return Collections.emptyList();
         final List<Facet> facetList = new ArrayList<>();
@@ -66,7 +71,7 @@ public class FacetWrangler {
 
         // add RangeFacets when available
         if (rangeFacets != null && !rangeFacets.isEmpty()) {
-            processRangeFacets(rangeFacets, facetList);
+            processRangeFacets(rangeFacets, facetList,isV3);
         }
 
         // sort the List of Facets on #count, descending
@@ -196,23 +201,50 @@ public class FacetWrangler {
         }
     }
 
-    private void processRangeFacets(List<RangeFacet> rangeFacets, List<Facet> facetList){
+    private void processRangeFacets(List<RangeFacet> rangeFacets, List<Facet> facetList,
+        boolean isV3){
         for (RangeFacet rangeFacet : rangeFacets) {
             if (!rangeFacet.getCounts().isEmpty()) {
-                final var facetRanger = new Facet();
-                facetRanger.name = rangeFacet.getName();
+
+                List<LabelFrequency> ranges = new ArrayList<>();//facetRanger.ranges;
                 for (var countObject : rangeFacet.getCounts()) {
                     var count = (Count) countObject;
                     if (StringUtils.isNotEmpty(count.getValue()) && count.getCount() > 0) {
                         final var rangeValue = new LabelFrequency();
                         rangeValue.count = count.getCount();
                         rangeValue.label = formatDateString(count.getValue(), rangeFacet.getGap());
-                        facetRanger.fields.add(rangeValue);
+                        ranges.add(rangeValue);
                     }
                 }
                 // If the Range facet contains values, it is added to the return Facet List
-                if (!facetRanger.fields.isEmpty()) facetList.add(facetRanger);
+                if (!ranges.isEmpty()) {
+                    updateRangeFacets(facetList, isV3, rangeFacet.getName(), ranges);
+                }
             }
+        }
+    }
+
+    /**
+     * In case of  V3 of search API , the element name 'fields' is used instead of 'ranges'
+     * see EA-3737
+     * @param facetList
+     * @param isV3
+     * @param name
+     * @param ranges
+     */
+    private static void updateRangeFacets(List<Facet> facetList, boolean isV3, String name,
+        List<LabelFrequency> ranges) {
+        if(isV3) {
+            var facetRanger = new Facet();
+            facetRanger.name = name;
+            facetRanger.fields.addAll(ranges);
+            facetList.add(facetRanger);
+        }
+        else {
+            var facetRanger = new FacetRanger();
+            facetRanger.name = name;
+            facetRanger.ranges.addAll(ranges);
+            facetList.add(facetRanger);
         }
     }
 

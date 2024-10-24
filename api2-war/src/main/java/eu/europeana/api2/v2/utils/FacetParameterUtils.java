@@ -135,12 +135,12 @@ public class FacetParameterUtils {
     }
 
     /**
-     * Process the new date faceting parameters which are in the below form
+     * Process the new date faceting parameters which are in the below form for V3 of api
      * facet.<fieldname>.gap=<gap>
      * facet.<fieldname>.start=<start>
      * facet.<fieldname>.end=<end>
      *
-     * @param parameters
+     * @param parameters -
      * @return Map containing the parameter and its value
      * @throws DateMathParseException
      * @throws DataFormatException
@@ -160,23 +160,28 @@ public class FacetParameterUtils {
             String[] paramValue = entry.getValue();
             Matcher matcher = Pattern.compile(DATE_FIELD_FACET_REGEX).matcher(paramName);
             if(matcher.matches()){
-                //paramName e.g.  facet.created.gap
-                String[] splitParamName = paramName.split("\\.");
-                String rangeSpecifier = splitParamName[2];
-                FieldDeclaration field = FieldRegistry.INSTANCE.getField(splitParamName[1]);
-                if (field != null && rangeSpecifiers.contains(rangeSpecifier)
-                    && FieldType.DATE.equals(field.getType())) {
-                    String facetingField = field.getField(FieldMode.FACET);
-                    if (facetingField != null) {
-                        fieldsForFaceting.add(facetingField);
-                        String newKey = "f." + facetingField + "." + FACET_RANGE + "."+rangeSpecifier;
-                        dateRangeParams.put(newKey, paramValue[0]);
-                    }
-                }
+                generateDateSearchParamNameAndUpdateValue(paramName, fieldsForFaceting, dateRangeParams, paramValue);
             }
         }
         validateAndUpdateDateFacetingParams(fieldsForFaceting, dateRangeParams);
        return dateRangeParams;
+    }
+
+    private static void generateDateSearchParamNameAndUpdateValue(String paramName, HashSet<String> fieldsForFaceting,
+        Map<String, String> dateRangeParams, String[] paramValue) {
+        //paramName e.g.  facet.created.gap
+        String[] splitParamName = paramName.split("\\.");
+        String rangeSpecifier = splitParamName[2];
+        FieldDeclaration field = FieldRegistry.INSTANCE.getField(splitParamName[1]);
+        if (field != null && rangeSpecifiers.contains(rangeSpecifier)
+            && FieldType.DATE.equals(field.getType())) {
+            String facetingField = field.getField(FieldMode.FACET);
+            if (facetingField != null) {
+                fieldsForFaceting.add(facetingField);
+                String newKey = "f." + facetingField + "." + FACET_RANGE + "."+rangeSpecifier;
+                dateRangeParams.put(newKey, paramValue[0]);
+            }
+        }
     }
 
     /**
@@ -217,8 +222,7 @@ public class FacetParameterUtils {
                 gapValueUnit = dateTimeSpecifiersMap.get(gap.substring(gap.length() - 1));
                 gap = gapValue+gapValueUnit;
                 endDate = adjustEndDateForFaceting(endDate,gapValue,gapValueUnit);
-            }
-            else {
+            } else {
                 throw new MissingParamException(String.format(
                     "Parameter facet.%s.start  and facet.%s.gap are mandatory for date search with facets.",
                     field, field));
@@ -234,8 +238,7 @@ public class FacetParameterUtils {
              String facetRange = dateRangeParams.get(FACET_RANGE);
              if(StringUtils.isNotBlank(facetRange) && !facetRange.contains(field)) {
                  dateRangeParams.put(FACET_RANGE, facetRange+","+field);
-             }
-             else {
+             } else {
                  dateRangeParams.put(FACET_RANGE, field);
              }
 
@@ -253,7 +256,7 @@ public class FacetParameterUtils {
                ZoneOffset.UTC);
            if (startDateVal.compareTo(endDateVal) > 0) {
                throw new InvalidParamValueException(
-                   "Facet start date can not be grater than end date !");
+                   "Facet start date can not be later than end date !");
            }
         validateDateAgainstGapValues(gapValue, gapUnit, startDateTime, endDateTime);
     }
@@ -389,9 +392,14 @@ public class FacetParameterUtils {
                         dateRangeParams.get("f." + facetToRange + "." + FACET_RANGE_GAP),
                         MAX_RANGE_FACETS);
         }
-        getFacetRangeParamsForDateSearch(parameters).forEach(dateRangeParams::putIfAbsent);
-
       return dateRangeParams;
+    }
+
+    public static Map<String, String> getDateRangeParamsV3(Map<String, String[]> parameters)
+        throws DataFormatException, InvalidParamValueException, DateMathParseException, InvalidRangeOrGapException, MissingParamException {
+        Map<String, String> dateRangeParams = getDateRangeParams(parameters);
+        getFacetRangeParamsForDateSearch(parameters).forEach(dateRangeParams::putIfAbsent);
+        return dateRangeParams;
     }
 
     private static String getDefaultValue(String rangeSpecifier){

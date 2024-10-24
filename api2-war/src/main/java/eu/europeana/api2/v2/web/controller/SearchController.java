@@ -541,7 +541,7 @@ public class SearchController extends BaseController {
         }
 
         SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
-            translateTargetLang, filterLanguages, request, response,true);
+            translateTargetLang, filterLanguages, request, response,true,false);
 
         if (profiles.contains(Profile.PARAMS)) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
@@ -837,7 +837,7 @@ public class SearchController extends BaseController {
                                                                                          solrFacets,
                                                                                          parameterMap,
                                                                                          defaultFacetsRequested))
-                     .setFacetDateRangeParameters(FacetParameterUtils.getDateRangeParams(parameterMap))
+                     .setFacetDateRangeParameters(FacetParameterUtils.getDateRangeParamsV3(parameterMap))
                      .setTechnicalFacets(technicalFacets)
                      .setTechnicalFacetLimits(FacetParameterUtils.getTechnicalFacetParams("limit",
                                                                                           technicalFacets,
@@ -899,7 +899,7 @@ public class SearchController extends BaseController {
         }
 
         SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
-                translateTargetLang, filterLanguages, request, response,isRefinementDivisionRequired );
+                translateTargetLang, filterLanguages, request, response,isRefinementDivisionRequired ,true);
         if (profiles.contains(Profile.PARAMS)) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
             result.addParam("profile", profile);
@@ -917,22 +917,27 @@ public class SearchController extends BaseController {
             StringBuilder newSortString = new StringBuilder();
             String[] sortInfo =  sort.split("\\s*,\\s*");
                 for (String info:sortInfo) {
-                    String[] sortingInfo = info.split("\\s+");
-                    if (sortingInfo.length >0) {
-                        FieldDeclaration field = FieldRegistry.INSTANCE.getField(sortingInfo[0]);
-                        if (field == null) {
-                            throw new InvalidParamValueException("Invalid Sort Parameter value : "+sortingInfo[0]);
-                        }
-                        //get equivalent sort param for solr
-                        String mode= sortingInfo.length ==2 ? sortingInfo[1].trim() : "desc";
-                         if(!newSortString.isEmpty())
-                             newSortString.append(",");
-                          newSortString.append(getSolrFieldForSorting(mode, field)+" "+mode);
-                    }
+                    generateSortqueryString(info, newSortString);
                 }
                 return newSortString.toString();
         }
         return null;
+    }
+
+    private void generateSortqueryString(String info, StringBuilder newSortString)
+        throws InvalidParamValueException {
+        String[] sortingInfo = info.split("\\s+");
+        if (sortingInfo.length >0) {
+            FieldDeclaration field = FieldRegistry.INSTANCE.getField(sortingInfo[0]);
+            if (field == null) {
+                throw new InvalidParamValueException("Invalid Sort Parameter value : "+sortingInfo[0]);
+            }
+            //get equivalent sort param for solr
+            String mode= sortingInfo.length ==2 ? sortingInfo[1].trim() : "desc";
+             if(!newSortString.isEmpty())
+                 newSortString.append(",");
+              newSortString.append(getSolrFieldForSorting(mode, field)+" "+mode);
+        }
     }
 
     private String getSolrFieldForSorting(String mode, FieldDeclaration field) throws InvalidParamValueException {
@@ -1348,7 +1353,7 @@ public class SearchController extends BaseController {
                                                               List<Language> filterLanguages,
                                                               HttpServletRequest servletRequest,
                                                               HttpServletResponse servletResponse,
-        boolean isToDivideQueryRefinements) throws EuropeanaException {
+        boolean isToDivideQueryRefinements,boolean isV3) throws EuropeanaException {
 
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
@@ -1424,19 +1429,10 @@ public class SearchController extends BaseController {
                                                                        query.getTechnicalFacets(),
                                                                        query.isDefaultFacetsRequested(),
                                                                        query.getTechnicalFacetLimits(),
-                                                                       query.getTechnicalFacetOffsets());
+                                                                       query.getTechnicalFacetOffsets()
+            ,isV3);
             //map facet name returned by solr to the facet term requested by user
-            if (CollectionUtils.isNotEmpty(query.getSolrFacets())) {
-                for (String facetTerm : query.getSolrFacets()) {
-                    String filedNameForSpecificMode = ParserUtils.getFiledNameForSpecificMode(
-                        FieldMode.FACET, FieldRegistry.INSTANCE.getField(facetTerm));
-                    for (Facet facet : response.facets) {
-                        if (filedNameForSpecificMode!= null && filedNameForSpecificMode.equals(facet.name)) {
-                            facet.name = facetTerm;
-                        }
-                    }
-                }
-            }
+            mapFacetNameAndRequestedTerm(query, response);
         }
 
         if (profiles.contains(Profile.HITS) && MapUtils.isNotEmpty(resultSet.getHighlighting())) {
@@ -1449,6 +1445,20 @@ public class SearchController extends BaseController {
             response.debug = resultSet.getSolrQueryString();
         }
         return response;
+    }
+
+    private static <T extends IdBean> void mapFacetNameAndRequestedTerm(Query query, SearchResults<T> response) {
+        if (CollectionUtils.isNotEmpty(query.getSolrFacets())) {
+            for (String facetTerm : query.getSolrFacets()) {
+                String filedNameForSpecificMode = ParserUtils.getFiledNameForSpecificMode(
+                    FieldMode.FACET, FieldRegistry.INSTANCE.getField(facetTerm));
+                for (Facet facet : response.facets) {
+                    if (filedNameForSpecificMode!= null && filedNameForSpecificMode.equals(facet.name)) {
+                        facet.name = facetTerm;
+                    }
+                }
+            }
+        }
     }
 
     /**
