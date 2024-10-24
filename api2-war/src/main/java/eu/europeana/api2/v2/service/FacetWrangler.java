@@ -5,7 +5,6 @@ import static eu.europeana.api2.v2.utils.ModelUtils.decodeFacetTag;
 import eu.europeana.api2.v2.model.FacetTag;
 import eu.europeana.api2.v2.model.json.common.LabelFrequency;
 import eu.europeana.api2.v2.model.json.view.submodel.Facet;
-import eu.europeana.api2.v2.model.json.view.submodel.FacetRanger;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.TechnicalFacetType;
 import java.util.ArrayList;
@@ -200,7 +199,7 @@ public class FacetWrangler {
     private void processRangeFacets(List<RangeFacet> rangeFacets, List<Facet> facetList){
         for (RangeFacet rangeFacet : rangeFacets) {
             if (!rangeFacet.getCounts().isEmpty()) {
-                final var facetRanger = new FacetRanger();
+                final var facetRanger = new Facet();
                 facetRanger.name = rangeFacet.getName();
                 for (var countObject : rangeFacet.getCounts()) {
                     var count = (Count) countObject;
@@ -208,11 +207,11 @@ public class FacetWrangler {
                         final var rangeValue = new LabelFrequency();
                         rangeValue.count = count.getCount();
                         rangeValue.label = formatDateString(count.getValue(), rangeFacet.getGap());
-                        facetRanger.ranges.add(rangeValue);
+                        facetRanger.fields.add(rangeValue);
                     }
                 }
                 // If the Range facet contains values, it is added to the return Facet List
-                if (!facetRanger.ranges.isEmpty()) facetList.add(facetRanger);
+                if (!facetRanger.fields.isEmpty()) facetList.add(facetRanger);
             }
         }
     }
