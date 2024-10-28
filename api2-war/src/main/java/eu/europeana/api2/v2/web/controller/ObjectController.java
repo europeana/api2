@@ -1,9 +1,5 @@
 package eu.europeana.api2.v2.web.controller;
 
-import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
-import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
-import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
-
 import eu.europeana.api.commons.utils.RiotRdfUtils;
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api.commons.web.exception.ApplicationAuthenticationException;
@@ -19,12 +15,7 @@ import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.TranslationService;
-import eu.europeana.api2.v2.utils.ApiKeyUtils;
-import eu.europeana.api2.v2.utils.ControllerUtils;
-import eu.europeana.api2.v2.utils.HttpCacheUtils;
-import eu.europeana.api2.v2.utils.LanguageFilter;
-import eu.europeana.api2.v2.utils.ModelUtils;
-import eu.europeana.api2.v2.utils.ProfileUtils;
+import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -38,24 +29,8 @@ import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import eu.europeana.metis.mongo.dao.RecordDao;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.DatasetFactory;
@@ -80,7 +55,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
+import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
+import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 
 /**
  * Provides record information in all kinds of formats; json, json-ld and rdf
@@ -317,7 +300,7 @@ public class ObjectController extends BaseController {
 
     /**
      * The larger part of handling a record is the same for all types of output, so this method handles all the common
-     * functionality like setting CORS headers, checking API key, retrieving the record for mongo and setting 301 or 404 if necessary
+     * functionality like validating parameters, checking API key, retrieving the record for mongo, check for caching, etc.
      */
     private Object handleRequest(RequestData data, HttpServletResponse response) throws EuropeanaException {
         long startTime = System.currentTimeMillis();
@@ -326,26 +309,32 @@ public class ObjectController extends BaseController {
         }
 
         // 1. Validation of parameters
-        Optional<DataSourceWrapper> dataSource = validateRequestParameters(data.recordType, data, response);
-        if (dataSource.isEmpty()) {
-            return null; // we set a response code in the validateRequestParameters method and let Spring handle the rest
-        }
+        DataSourceWrapper dataSources = validateRequestParameters(data.recordType, data, response).get();
 
         // 2) Get the plain fullbean (not enriched yet)
-        FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true);
+        FullBean bean = null;
+        if (dataSources.getRecordDao().isPresent()) {
+            bean = recordService.fetchFullBean(dataSources.getRecordDao().get(), data.europeanaId);
+        }
 
-        // 3a) Check if record exists, if not check if there's a tombstone record
-        if (Objects.isNull(bean)) {
-            bean = recordService.fetchTombstone(dataSource.get(), data.europeanaId);
-            if (!Objects.isNull(bean)) {
+        // 3a) Check if there's a redirect (newId)
+        if (bean == null && dataSources.getRedirectDao().isPresent()) {
+            bean = getNewIdAndBeanFromRedirect(dataSources, data);
+        }
+
+        // 4) Check if there's a tombstone record
+        if (bean == null && dataSources.getTombstoneDao().isPresent()) {
+            bean = recordService.fetchTombstone(dataSources.getTombstoneDao().get(), data.europeanaId);
+            if (bean != null) {
                 response.setStatus(HttpServletResponse.SC_GONE);
                 return generateOutput(bean, data, response, startTime);
-
-            } else {
-                // 3b) If there's no tombstone return a 404
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                return generate404(data);
             }
+        }
+
+        // 5) Return not found
+        if (bean == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return generate404(data);
         }
 
         /*
@@ -358,29 +347,30 @@ public class ObjectController extends BaseController {
          *        }
          */
 
-        // 4) Handle caching
+        // 6) Handle caching
         String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
         String eTag = httpCacheUtils.generateETag(data.europeanaId + tsUpdated, true, true);
         if (generateCachedAnswer(bean, data, tsUpdated, eTag, response)) {
             return null; // we set the response code in the generateCachedAnswer method and let Spring Boot the rest
         }
 
-        // 5) Process bean further (adding webresource meta info, set proper urls)
-        RecordDao recordDao = dataSource.get().getRecordDao().get();
-        BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
-        bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
+        // 7) Process bean further (adding webresource meta info, set proper urls)
+        if (dataSources.getRecordDao().isPresent()) {
+            BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
+            bean = recordService.enrichFullBean(dataSources.getRecordDao().get(), bean, baseUrls);
+        }
 
-        // 6) When record translation is set to true and translation profile is active, do translation
+        // 8) When record translation is set to true and translation profile is active, do translation
         if (recordTranslationEnabled && data.profiles.contains(Profile.TRANSLATE)) {
             bean = doTranslation(bean, data, response);
         }
 
-        // 7) When lang profile is provided, do filtering
+        // 9) When lang profile is provided, do filtering
         if (data.languages != null && !data.languages.isEmpty()) {
             bean = (FullBean) LanguageFilter.filter(bean, data.languages);
         }
 
-        // 8) Generate output
+        // 10) Generate output
         // add headers, except Content-Type (that differs per recordType)
         response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
         return generateOutput(bean, data, response, startTime);
@@ -408,8 +398,8 @@ public class ObjectController extends BaseController {
 
         // 3) check if we have a datasource for the used FQDN
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
-        if (dataSource.isEmpty() || dataSource.get().getRecordDao().isEmpty()) {
-            LOG.error("Error while retrieving record id {}, type= {}. No record server configured for route {}",
+        if (dataSource.isEmpty()) {
+            LOG.error("Error while retrieving record id {}, type = {}. No database configured for route {}",
                     data.europeanaId, recordType, data.servletRequest.getServerName());
             throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
         }
@@ -427,6 +417,24 @@ public class ObjectController extends BaseController {
         }
 
         return dataSource;
+    }
+
+    /**
+     * Note that if we find a redirect, we'll update the requested id!
+     */
+    private FullBean getNewIdAndBeanFromRedirect(DataSourceWrapper dataSources, RequestData data) throws EuropeanaException {
+        if (dataSources.getRedirectDao().isPresent()) {
+            String newId = recordService.resolveId(dataSources.getRedirectDao().get(), data.europeanaId);
+
+            if (newId != null && !newId.equals(data.europeanaId)) {
+                data.europeanaId = newId; // we modify the original id and use the new one instead
+                // 3b) Retry loading the fullbean using the new id
+                if (dataSources.getRecordDao().isPresent()) {
+                    return recordService.fetchFullBean(dataSources.getRecordDao().get(), data.europeanaId);
+                }
+            }
+        }
+        return null;
     }
 
     /**
