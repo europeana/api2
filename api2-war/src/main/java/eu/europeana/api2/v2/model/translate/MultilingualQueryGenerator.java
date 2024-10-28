@@ -1,23 +1,20 @@
 package eu.europeana.api2.v2.model.translate;
 
-/**
- * Generate multi-lingual search query
- */
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- *  * For now it's only translating from English to Spanish
+ *  Generate multi-lingual search query
  */
 @Service
 public class MultilingualQueryGenerator {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MultilingualQueryGenerator.class);
+    private static final Logger LOG = LogManager.getLogger(MultilingualQueryGenerator.class);
 
     @Value("#{europeanaProperties['translation.search.query']}")
     private boolean isQueryTranslationEnabled; // feature flag to enable/disable query translate
