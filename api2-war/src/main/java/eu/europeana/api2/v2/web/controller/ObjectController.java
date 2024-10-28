@@ -5,7 +5,7 @@ import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api.commons.web.exception.ApplicationAuthenticationException;
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
 import eu.europeana.api.translation.definitions.language.Language;
-import eu.europeana.api2.config.SwaggerConfig;
+//import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.exceptions.*;
@@ -29,8 +29,8 @@ import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+//import io.swagger.annotations.Api;
+//import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.DatasetFactory;
@@ -53,7 +53,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import springfox.documentation.annotations.ApiIgnore;
+//import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -71,7 +71,7 @@ import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@Api(tags = {SwaggerConfig.RECORD_TAG})
+//@Api(tags = {SwaggerConfig.RECORD_TAG})
 @RequestMapping(value = {
         "/api/v2/record",
         "/v2/record",
@@ -145,15 +145,17 @@ public class ObjectController extends BaseController {
      * @return ModelAndView with response data in json format
      * @throws EuropeanaException if there is a problem retrieving the data
      */
-    @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
+    //@ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
     @GetMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ModelAndView recordJson(@PathVariable String collectionId,
                                @PathVariable String recordId,
                                @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                @RequestParam(value = "lang", required = false) String lang,
                                @RequestParam(value = "callback", required = false) String callback,
-                               @ApiIgnore HttpServletRequest request,
-                               @ApiIgnore HttpServletResponse response)
+                               //@ApiIgnore
+                                       HttpServletRequest request,
+                               //@ApiIgnore
+                                       HttpServletResponse response)
         throws EuropeanaException {
         RequestData data = new RequestData(RecordType.OBJECT_JSON, collectionId, recordId,profile, lang, callback, request);
         return (ModelAndView) handleRequest(data, response);
@@ -190,8 +192,10 @@ public class ObjectController extends BaseController {
                                       @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                       @RequestParam(value = "lang", required = false) String lang,
                                       @RequestParam(value = "callback", required = false) String callback,
-                                      @ApiIgnore HttpServletRequest request,
-                                      @ApiIgnore HttpServletResponse response)
+                                      //@ApiIgnore
+                                          HttpServletRequest request,
+                                      //@ApiIgnore
+                                          HttpServletResponse response)
         throws EuropeanaException {
         return recordJSONLD(collectionId, recordId, profile, lang, callback, request, response);
     }
@@ -208,15 +212,17 @@ public class ObjectController extends BaseController {
      * @return ModelAndView with response data in json-ld format
      * @throws EuropeanaException if there is a problem retrieving the data
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
-    @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
+    //@ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
     @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                      @RequestParam(value = "lang", required = false) String lang,
                                      @RequestParam(value = "callback", required = false) String callback,
-                                     @ApiIgnore HttpServletRequest request,
-                                     @ApiIgnore HttpServletResponse response)
+                                     //@ApiIgnore
+                                         HttpServletRequest request,
+                                     //@ApiIgnore
+                                         HttpServletResponse response)
         throws EuropeanaException {
         RequestData data = new RequestData(RecordType.OBJECT_JSONLD, collectionId, recordId, profile, lang, callback, request);
         return (ModelAndView) handleRequest(data, response);
@@ -234,15 +240,17 @@ public class ObjectController extends BaseController {
      * @return ModelAndView with response data in schema.org format
      * @throws EuropeanaException if there is a problem retrieving the data
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
-    @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
+    //@ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
     @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                         @RequestParam(value = "lang", required = false) String lang,
                                         @RequestParam(value = "callback", required = false) String callback,
-                                        @ApiIgnore HttpServletRequest request,
-                                        @ApiIgnore HttpServletResponse response)
+                                        //@ApiIgnore
+                                            HttpServletRequest request,
+                                        //@ApiIgnore
+                                            HttpServletResponse response)
         throws EuropeanaException {
         RequestData data = new RequestData(RecordType.OBJECT_SCHEMA_ORG, collectionId, recordId, profile, lang, callback, request);
         return (ModelAndView) handleRequest(data, response);
@@ -260,14 +268,16 @@ public class ObjectController extends BaseController {
      * @return ModelAndView with response data in rdf format
      * @throws EuropeanaException if there is a problem retrieving the data
      */
-    @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
+    //@ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
     @GetMapping(value = "/{collectionId}/{recordId}.rdf", produces = MEDIA_TYPE_RDF_UTF8)
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                   @RequestParam(value = "lang", required = false) String lang,
-                                  @ApiIgnore HttpServletRequest request,
-                                  @ApiIgnore HttpServletResponse response)
+                                  //@ApiIgnore
+                                      HttpServletRequest request,
+                                  //@ApiIgnore
+                                      HttpServletResponse response)
         throws EuropeanaException {
         RequestData data = new RequestData(RecordType.OBJECT_RDF, collectionId, recordId, profile, lang, null, request);
         return (ModelAndView) handleRequest(data, response);
@@ -285,14 +295,16 @@ public class ObjectController extends BaseController {
      * @return ModelAndView with response data in turtle format
      * @throws EuropeanaException if there is a problem retrieving the data
      */
-    @ApiOperation(value = "get single record in turtle format)", nickname = "getSingleRecordTurtle")
+    //@ApiOperation(value = "get single record in turtle format)", nickname = "getSingleRecordTurtle")
     @GetMapping(value = "/{collectionId}/{recordId}.ttl", produces = {MEDIA_TYPE_TURTLE, MEDIA_TYPE_TURTLE_TEXT, MEDIA_TYPE_TURTLE_X})
     public ModelAndView recordTurtle(@PathVariable String collectionId,
                              @PathVariable String recordId,
                              @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                              @RequestParam(value = "lang", required = false) String lang,
-                             @ApiIgnore HttpServletRequest request,
-                             @ApiIgnore HttpServletResponse response)
+                             //@ApiIgnore
+                                         HttpServletRequest request,
+                             //@ApiIgnore
+                                         HttpServletResponse response)
         throws EuropeanaException {
         RequestData data = new RequestData(RecordType.OBJECT_TURTLE, collectionId, recordId,  profile, lang, null, request);
         return (ModelAndView) handleRequest(data, response);

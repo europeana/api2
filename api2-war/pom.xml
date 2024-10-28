@@ -243,7 +243,11 @@
                     <artifactId>commons-net</artifactId>
                     <groupId>eu.europeana.api.commons</groupId>
                 </exclusion> -->
-                <!-- mongo dependency clashes with Corelib's-->
+               <exclusion>
+                   <groupId>io.springfox</groupId>
+                   <artifactId>springfox-swagger2</artifactId>
+               </exclusion>
+               <!-- mongo dependency clashes with Corelib's-->
                 <exclusion>
                     <groupId>org.mongodb</groupId>
                     <artifactId>mongo-java-driver</artifactId>
@@ -267,11 +271,11 @@
             <version>${jodatime.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>${swagger.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.springfox</groupId>-->
+<!--            <artifactId>springfox-swagger2</artifactId>-->
+<!--            <version>${swagger.version}</version>-->
+<!--        </dependency>-->
       <!-- Initialization of bean failed; nested exception is javax.validation.NoProviderFoundException: Unable to create a Configuration,
            because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.-->
         <dependency>

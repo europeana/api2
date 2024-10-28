@@ -3,7 +3,7 @@ package eu.europeana.api2.v2.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import eu.europeana.api2.utils.SolrEscapeDeserializer;
-import io.swagger.annotations.ApiModelProperty;
+//import io.swagger.annotations.ApiModelProperty;
 
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
@@ -20,7 +20,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 @JsonInclude(NON_EMPTY)
 public class SearchRequest {
 
-    @ApiModelProperty(required = true)
+    //@ApiModelProperty(required = true)
     @JsonDeserialize(using = SolrEscapeDeserializer.class)
     private String query;
 
