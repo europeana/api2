@@ -42,6 +42,7 @@
         <translation.api.client.version>0.1.1</translation.api.client.version>
 
         <!-- dependencies below are also used in Corelib, would be best to match version -->
+        <commonsLang3.version>3.17.0</commonsLang3.version>
         <httpclient.version>4.5.14</httpclient.version>
         <jackson.version>2.18.0</jackson.version>
         <jodatime.version>2.13.0</jodatime.version>

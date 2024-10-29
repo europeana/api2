@@ -29,7 +29,7 @@ public class QueryTranslator {
     @Autowired
     public QueryTranslator(TranslationApiClient translationClient) {
         this.translationClient = translationClient;
-        LOG.info("QueryTranslator initialised with Translation Api client");
+        LOG.info("QueryTranslator initialised with Translation API client {}", translationClient);
     }
 
     private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose, String authToken) throws TranslationException, TranslationServiceNotAvailableException {

@@ -54,7 +54,6 @@
             <version>${corelib.version}</version>
 
             <!-- Excluding Netty dependencies coming in via Corelib Storage /Solrj because they conflict with other versions -->
-
             <exclusions>
                 <exclusion>
                     <groupId>io.netty</groupId>
@@ -79,6 +78,10 @@
                 <exclusion>
                     <groupId>io.netty</groupId>
                     <artifactId>netty-transport</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport-classes-epoll</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>io.netty</groupId>
