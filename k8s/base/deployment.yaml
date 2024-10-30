@@ -23,6 +23,7 @@ spec:
               path: /info
             initialDelaySeconds: 120
             periodSeconds: 30
+            failureThreshold: 4
           volumeMounts:
             - name: secret-props
               mountPath: "/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/europeana.user.properties"

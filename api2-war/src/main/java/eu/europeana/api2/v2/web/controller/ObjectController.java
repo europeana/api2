@@ -1,15 +1,11 @@
 package eu.europeana.api2.v2.web.controller;
 
-import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
-import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
-import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
-
 import eu.europeana.api.commons.utils.RiotRdfUtils;
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
+import eu.europeana.api.commons.web.exception.ApplicationAuthenticationException;
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
 import eu.europeana.api.translation.definitions.language.Language;
-import eu.europeana.api.commons.web.exception.HttpException;
-import eu.europeana.api2.config.SwaggerConfig;
+//import eu.europeana.api2.config.SwaggerConfig;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.exceptions.*;
@@ -19,12 +15,7 @@ import eu.europeana.api2.v2.model.json.ObjectResult;
 import eu.europeana.api2.v2.model.json.view.FullView;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.TranslationService;
-import eu.europeana.api2.v2.utils.ApiKeyUtils;
-import eu.europeana.api2.v2.utils.ControllerUtils;
-import eu.europeana.api2.v2.utils.HttpCacheUtils;
-import eu.europeana.api2.v2.utils.LanguageFilter;
-import eu.europeana.api2.v2.utils.ModelUtils;
-import eu.europeana.api2.v2.utils.ProfileUtils;
+import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -38,23 +29,8 @@ import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
 import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.utils.RequestUtils;
-import eu.europeana.metis.mongo.dao.RecordDao;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+//import io.swagger.annotations.Api;
+//import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.DatasetFactory;
@@ -77,9 +53,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import springfox.documentation.annotations.ApiIgnore;
+//import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import static eu.europeana.api2.v2.utils.ApiConstants.X_API_KEY;
+import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFMATCH;
+import static eu.europeana.api2.v2.utils.HttpCacheUtils.IFNONEMATCH;
 
 /**
  * Provides record information in all kinds of formats; json, json-ld and rdf
@@ -87,7 +71,7 @@ import java.util.*;
  * @author Willem-Jan Boogerd <www.eledge.net/contact>
  */
 @Controller
-@Api(tags = {SwaggerConfig.RECORD_TAG})
+//@Api(tags = {SwaggerConfig.RECORD_TAG})
 @RequestMapping(value = {
         "/api/v2/record",
         "/v2/record",
@@ -106,19 +90,16 @@ public class ObjectController extends BaseController {
 
     private static Object       jsonldContext           = new Object();
 
-    private RecordService           recordService;
-    private TranslationService recordTranslations;
-    private HttpCacheUtils          httpCacheUtils;
+    private final RecordService      recordService;
+    private final TranslationService recordTranslations;
+    private final HttpCacheUtils     httpCacheUtils;
 
     @Value("#{europeanaProperties['translation.record']}")
     private Boolean recordTranslationEnabled;
 
 
-    /**
+    /*
      * Create a static Object for JSONLD Context. This will read the file once during initialization
-     *
-     * @param jsonldContext
-     * @throws IOException
      */
     static {
         try {
@@ -135,7 +116,6 @@ public class ObjectController extends BaseController {
      * @param recordService for retrieving data from Mongo
      * @param recordTranslations for translating data
      * @param httpCacheUtils for request caching
-     * @param httpCacheUtils for request caching
      */
     @Autowired
     public ObjectController(RouteDataService routeService, RecordService recordService, @Nullable TranslationService recordTranslations,
@@ -145,7 +125,7 @@ public class ObjectController extends BaseController {
         this.httpCacheUtils = httpCacheUtils;
         this.recordTranslations = recordTranslations;
         // default the value
-        if(recordTranslationEnabled == null) {
+        if (recordTranslationEnabled == null) {
             recordTranslationEnabled = false;
         }
     }
@@ -162,21 +142,23 @@ public class ObjectController extends BaseController {
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
-     * @return
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in json format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */
-    @ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
+    //@ApiOperation(value = "get a single record in JSON format", nickname = "getSingleRecordJson")
     @GetMapping(value = "/{collectionId}/{recordId}.json", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ModelAndView record(@PathVariable String collectionId,
+    public ModelAndView recordJson(@PathVariable String collectionId,
                                @PathVariable String recordId,
                                @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                @RequestParam(value = "lang", required = false) String lang,
                                @RequestParam(value = "callback", required = false) String callback,
-                               @ApiIgnore HttpServletRequest request,
-                               @ApiIgnore HttpServletResponse response)
-        throws EuropeanaException, HttpException {
-        RequestData data = new RequestData(collectionId, recordId,profile, lang, callback, request);
-        return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSON, data, response);
+                               //@ApiIgnore
+                                       HttpServletRequest request,
+                               //@ApiIgnore
+                                       HttpServletResponse response)
+        throws EuropeanaException {
+        RequestData data = new RequestData(RecordType.OBJECT_JSON, collectionId, recordId,profile, lang, callback, request);
+        return (ModelAndView) handleRequest(data, response);
     }
 
     /**
@@ -200,8 +182,8 @@ public class ObjectController extends BaseController {
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
-     * @return
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in json-ld format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
     @SwaggerIgnore
     @GetMapping(value = "/{collectionId}/{recordId}.json-ld", produces = { MEDIA_TYPE_JSONLD_UTF8, MediaType.APPLICATION_JSON_UTF8_VALUE })
@@ -210,9 +192,11 @@ public class ObjectController extends BaseController {
                                       @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                       @RequestParam(value = "lang", required = false) String lang,
                                       @RequestParam(value = "callback", required = false) String callback,
-                                      @ApiIgnore HttpServletRequest request,
-                                      @ApiIgnore HttpServletResponse response)
-        throws EuropeanaException, HttpException {
+                                      //@ApiIgnore
+                                          HttpServletRequest request,
+                                      //@ApiIgnore
+                                          HttpServletResponse response)
+        throws EuropeanaException {
         return recordJSONLD(collectionId, recordId, profile, lang, callback, request, response);
     }
 
@@ -225,21 +209,23 @@ public class ObjectController extends BaseController {
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
-     * @return
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in json-ld format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
-    @ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
+    //@ApiOperation(value = "get single record in JSON LD format", nickname = "getSingleRecordJsonLD")
     @GetMapping(value = "/{collectionId}/{recordId}.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordJSONLD(@PathVariable String collectionId,
                                      @PathVariable String recordId,
                                      @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                      @RequestParam(value = "lang", required = false) String lang,
                                      @RequestParam(value = "callback", required = false) String callback,
-                                     @ApiIgnore HttpServletRequest request,
-                                     @ApiIgnore HttpServletResponse response)
-        throws EuropeanaException, HttpException {
-        RequestData data = new RequestData(collectionId, recordId, profile, lang, callback, request);
-        return (ModelAndView) handleRecordRequest(RecordType.OBJECT_JSONLD, data, response);
+                                     //@ApiIgnore
+                                         HttpServletRequest request,
+                                     //@ApiIgnore
+                                         HttpServletResponse response)
+        throws EuropeanaException {
+        RequestData data = new RequestData(RecordType.OBJECT_JSONLD, collectionId, recordId, profile, lang, callback, request);
+        return (ModelAndView) handleRequest(data, response);
     }
 
     /***
@@ -251,21 +237,23 @@ public class ObjectController extends BaseController {
      * @param callback       repeats whatever you supply
      * @param request        incoming request
      * @param response       generated response
-     * @return
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in schema.org format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */ // produces = MEDIA_TYPE_JSONLD_UTF8)
-    @ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
+    //@ApiOperation(value = "get single record in Schema.org JSON LD format", nickname = "getSingleRecordSchemaOrg")
     @GetMapping(value = "/{collectionId}/{recordId}.schema.jsonld", produces = { MEDIA_TYPE_JSONLD_UTF8 , MediaType.APPLICATION_JSON_UTF8_VALUE })
     public ModelAndView recordSchemaOrg(@PathVariable String collectionId,
                                         @PathVariable String recordId,
                                         @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                         @RequestParam(value = "lang", required = false) String lang,
                                         @RequestParam(value = "callback", required = false) String callback,
-                                        @ApiIgnore HttpServletRequest request,
-                                        @ApiIgnore HttpServletResponse response)
-        throws EuropeanaException, HttpException {
-        RequestData data = new RequestData(collectionId, recordId, profile, lang, callback, request);
-        return (ModelAndView) handleRecordRequest(RecordType.OBJECT_SCHEMA_ORG, data, response);
+                                        //@ApiIgnore
+                                            HttpServletRequest request,
+                                        //@ApiIgnore
+                                            HttpServletResponse response)
+        throws EuropeanaException {
+        RequestData data = new RequestData(RecordType.OBJECT_SCHEMA_ORG, collectionId, recordId, profile, lang, callback, request);
+        return (ModelAndView) handleRequest(data, response);
     }
 
     /**
@@ -277,20 +265,22 @@ public class ObjectController extends BaseController {
      * @param lang           language in which record data should be displayed
      * @param request        incoming request
      * @param response       generated response
-     * @return
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in rdf format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */
-    @ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
+    //@ApiOperation(value = "get single record in RDF format)", nickname = "getSingleRecordRDF")
     @GetMapping(value = "/{collectionId}/{recordId}.rdf", produces = MEDIA_TYPE_RDF_UTF8)
     public ModelAndView recordRdf(@PathVariable String collectionId,
                                   @PathVariable String recordId,
                                   @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                                   @RequestParam(value = "lang", required = false) String lang,
-                                  @ApiIgnore HttpServletRequest request,
-                                  @ApiIgnore HttpServletResponse response)
-        throws EuropeanaException, HttpException {
-        RequestData data = new RequestData(collectionId, recordId, profile, lang, null, request);
-        return (ModelAndView) handleRecordRequest(RecordType.OBJECT_RDF, data, response);
+                                  //@ApiIgnore
+                                      HttpServletRequest request,
+                                  //@ApiIgnore
+                                      HttpServletResponse response)
+        throws EuropeanaException {
+        RequestData data = new RequestData(RecordType.OBJECT_RDF, collectionId, recordId, profile, lang, null, request);
+        return (ModelAndView) handleRequest(data, response);
     }
 
     /**
@@ -302,55 +292,131 @@ public class ObjectController extends BaseController {
      * @param lang           language in which record data should be displayed
      * @param request        incoming request
      * @param response       generated response
-     * @return matching records in the turtle format
-     * @throws EuropeanaException
+     * @return ModelAndView with response data in turtle format
+     * @throws EuropeanaException if there is a problem retrieving the data
      */
-    @ApiOperation(value = "get single record in turtle format)", nickname = "getSingleRecordTurtle")
+    //@ApiOperation(value = "get single record in turtle format)", nickname = "getSingleRecordTurtle")
     @GetMapping(value = "/{collectionId}/{recordId}.ttl", produces = {MEDIA_TYPE_TURTLE, MEDIA_TYPE_TURTLE_TEXT, MEDIA_TYPE_TURTLE_X})
     public ModelAndView recordTurtle(@PathVariable String collectionId,
                              @PathVariable String recordId,
                              @RequestParam(value = "profile", required = false, defaultValue = "standard") String profile,
                              @RequestParam(value = "lang", required = false) String lang,
-                             @ApiIgnore HttpServletRequest request,
-                             @ApiIgnore HttpServletResponse response)
-        throws EuropeanaException, HttpException {
-        RequestData data = new RequestData(collectionId, recordId,  profile, lang, null, request);
-        return (ModelAndView) handleRecordRequest(RecordType.OBJECT_TURTLE, data, response);
+                             //@ApiIgnore
+                                         HttpServletRequest request,
+                             //@ApiIgnore
+                                         HttpServletResponse response)
+        throws EuropeanaException {
+        RequestData data = new RequestData(RecordType.OBJECT_TURTLE, collectionId, recordId,  profile, lang, null, request);
+        return (ModelAndView) handleRequest(data, response);
     }
 
     /**
      * The larger part of handling a record is the same for all types of output, so this method handles all the common
-     * functionality like setting CORS headers, checking API key, retrieving the record for mongo and setting 301 or 404 if necessary
+     * functionality like validating parameters, checking API key, retrieving the record for mongo, check for caching, etc.
      */
-    private Object handleRecordRequest(RecordType recordType, RequestData data, HttpServletResponse response)
-        throws EuropeanaException, HttpException {
+    private Object handleRequest(RequestData data, HttpServletResponse response) throws EuropeanaException {
         long startTime = System.currentTimeMillis();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Retrieving record with id {}, type = {}", data.europeanaId, recordType);
+            LOG.debug("Retrieving record with id {}, type = {}", data.europeanaId, data.recordType);
         }
 
-        // 1) Check if HTTP method is supported, HTTP 405 if not
+        // 1. Validation of parameters
+        DataSourceWrapper dataSources = validateRequestParameters(data.recordType, data, response).get();
+
+        // 2) Get the plain fullbean (not enriched yet)
+        FullBean bean = null;
+        if (dataSources.getRecordDao().isPresent()) {
+            bean = recordService.fetchFullBean(dataSources.getRecordDao().get(), data.europeanaId);
+        }
+
+        // 3a) Check if there's a redirect (newId)
+        if (bean == null && dataSources.getRedirectDao().isPresent()) {
+            bean = getNewIdAndBeanFromRedirect(dataSources, data);
+        }
+
+        // 4) Check if there's a tombstone record
+        if (bean == null && dataSources.getTombstoneDao().isPresent()) {
+            bean = recordService.fetchTombstone(dataSources.getTombstoneDao().get(), data.europeanaId);
+            if (bean != null) {
+                response.setStatus(HttpServletResponse.SC_GONE);
+                return generateOutput(bean, data, response, startTime);
+            }
+        }
+
+        // 5) Return not found
+        if (bean == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return generate404(data);
+        }
+
+        /*
+         * 2017-07-06 PE: the code below was implemented as part of ticket #662. However as collections does not support this
+         * yet activation of this functionality is postponed.
+         *        if (!bean.getAbout().equals(data.europeanaId)) {
+         *            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+         *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaId, bean.getAbout()));
+         *            return null;
+         *        }
+         */
+
+        // 6) Handle caching
+        String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
+        String eTag = httpCacheUtils.generateETag(data.europeanaId + tsUpdated, true, true);
+        if (generateCachedAnswer(bean, data, tsUpdated, eTag, response)) {
+            return null; // we set the response code in the generateCachedAnswer method and let Spring Boot the rest
+        }
+
+        // 7) Process bean further (adding webresource meta info, set proper urls)
+        if (dataSources.getRecordDao().isPresent()) {
+            BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
+            bean = recordService.enrichFullBean(dataSources.getRecordDao().get(), bean, baseUrls);
+        }
+
+        // 8) When record translation is set to true and translation profile is active, do translation
+        if (recordTranslationEnabled && data.profiles.contains(Profile.TRANSLATE)) {
+            bean = doTranslation(bean, data, response);
+        }
+
+        // 9) When lang profile is provided, do filtering
+        if (data.languages != null && !data.languages.isEmpty()) {
+            bean = (FullBean) LanguageFilter.filter(bean, data.languages);
+        }
+
+        // 10) Generate output
+        // add headers, except Content-Type (that differs per recordType)
+        response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
+        return generateOutput(bean, data, response, startTime);
+    }
+
+    private Optional<DataSourceWrapper> validateRequestParameters(RecordType recordType, RequestData data, HttpServletResponse response)
+            throws EuropeanaException {
+        // 1) check if HTTP method is supported, HTTP 405 if not
         if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) &&
                 !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
             response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-            return null;
+            return Optional.empty();
         }
 
         if (data.profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(data.servletRequest) == null) {
-            throw new InvalidAuthorizationException();
+            throw new InvalidAuthorizationException(ProblemType.INVALID_AUTH_FOR_TRANSLATION);
         }
 
-        // 2) check API key & routing
-        data.wskey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(data.servletRequest));
+        // 2) check API key
+        try {
+            data.wskey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(data.servletRequest));
+        } catch (ApplicationAuthenticationException e) {
+            throw new InvalidAuthorizationException(ProblemType.APIKEY_DOES_NOT_EXIST);
+        }
 
+        // 3) check if we have a datasource for the used FQDN
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
-        if (dataSource.isEmpty() || dataSource.get().getRecordDao().isEmpty()) {
-            LOG.error("Error while retrieving record id {}, type= {}. No record server configured for route {}", 
-                      data.europeanaId, recordType, data.servletRequest.getServerName());
+        if (dataSource.isEmpty()) {
+            LOG.error("Error while retrieving record id {}, type = {}. No database configured for route {}",
+                    data.europeanaId, recordType, data.servletRequest.getServerName());
             throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
         }
 
-        // 3) validate other common params
+        // 4) validate other common params
         if (data.profiles.contains(Profile.TRANSLATE) && (recordTranslationEnabled && !recordTranslations.isEnabled())) {
             throw new TranslationServiceDisabledException();
         }
@@ -362,117 +428,96 @@ public class ObjectController extends BaseController {
             }
         }
 
-        // 4) get the fullbean
-        FullBean bean = recordService.fetchFullBean(dataSource.get(), data.europeanaId, true);
+        return dataSource;
+    }
 
-        // 5) Check if record exists, return 404 if not
-        ModelAndView result;
-        if (Objects.isNull(bean)) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            if (recordType == RecordType.OBJECT_RDF) {
-                Map<String, Object> model = new HashMap<>();
-                model.put("error", "Non-existing record identifier");
-                result = new ModelAndView("rdf", model);
-            } else {
-                result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: "
-                        + data.europeanaId), data.callback);
+    /**
+     * Note that if we find a redirect, we'll update the requested id!
+     */
+    private FullBean getNewIdAndBeanFromRedirect(DataSourceWrapper dataSources, RequestData data) throws EuropeanaException {
+        if (dataSources.getRedirectDao().isPresent()) {
+            String newId = recordService.resolveId(dataSources.getRedirectDao().get(), data.europeanaId);
+
+            if (newId != null && !newId.equals(data.europeanaId)) {
+                data.europeanaId = newId; // we modify the original id and use the new one instead
+                // 3b) Retry loading the fullbean using the new id
+                if (dataSources.getRecordDao().isPresent()) {
+                    return recordService.fetchFullBean(dataSources.getRecordDao().get(), data.europeanaId);
+                }
             }
-            return result;
         }
+        return null;
+    }
 
-       /*
-        * 2017-07-06 PE: the code below was implemented as part of ticket #662. However as collections does not support this
-        * yet activation of this functionality is postponed.
-        *        if (!bean.getAbout().equals(data.europeanaId)) {
-        *            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        *            response.setHeader("Location", generateRedirectUrl(data.servletRequest, data.europeanaId, bean.getAbout()));
-        *            return null;
-        *        }
-        */
-
-        // 6) Handle caching
-        // ETag is created from timestamp + api version.
-        String tsUpdated = httpCacheUtils.dateToRFC1123String(bean.getTimestampUpdated());
-        String eTag      = httpCacheUtils.generateETag(data.europeanaId +tsUpdated, true, true);
-
+    /**
+     * @return true if the response was modified to a 'cached' answer, otherwise false
+     */
+    private boolean generateCachedAnswer(FullBean bean, RequestData data, String tsUpdated, String eTag, HttpServletResponse response) {
         // If If-None-Match is present: check if it contains a matching eTag OR == '*"
         // Yes: return HTTP 304 + cache headers. Ignore If-Modified-Since (RFC 7232)
         if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFNONEMATCH))){
             if (httpCacheUtils.doesAnyIfNoneMatch(data.servletRequest, eTag)) {
                 response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-                return null;
+                return true;
             }
             // If If-Match is present: check if it contains a matching eTag OR == '*"
             // Yes: proceed. No: return HTTP 412, no cache headers
         } else if (StringUtils.isNotBlank(data.servletRequest.getHeader(IFMATCH))) {
             if (httpCacheUtils.doesPreconditionFail(data.servletRequest, eTag)){
                 response.setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
-                return null;
+                return true;
             }
             // check if If-Modified-Since is present and on or after timestamp_updated
             // yes: return HTTP 304 no: continue
         } else if (httpCacheUtils.isNotModifiedSince(data.servletRequest, bean.getTimestampUpdated())){
             response.setStatus(HttpServletResponse.SC_NOT_MODIFIED); // no cache headers
-            return null;
+            return true;
         }
+        return false;
+    }
 
-        // 7) Process bean further (adding webresource meta info, set proper urls)
-        // cannot be null here, as method has already checked for record dao
-        RecordDao recordDao = dataSource.get().getRecordDao().get();
-
-        BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
-        bean = recordService.enrichFullBean(recordDao, bean, baseUrls);
-
-        // 8) When record translation is set to true and translation profile is active, do translation
-        if (recordTranslationEnabled && data.profiles.contains(Profile.TRANSLATE)) {
-            if (data.languages == null || data.languages.isEmpty()) {
-                // Get the edm:language for default translation and filtering (if we find a default language)
-                data.setLanguages(recordTranslations.getDefaultTranslationLanguage(bean));
-            }
-            if (data.languages != null && !data.languages.isEmpty()) {
-                try {
-                    bean = recordTranslations.translate(bean, data.languages.get(0).name().toLowerCase(Locale.ROOT), getAuthorizationHeader(data.servletRequest));
-                } catch (TranslationServiceNotAvailableException e) {
-                    // EA-3463 - return 307 redirect without profile param and Keep the Error Response
-                    // Body indicating the reason for troubleshooting.
-                    ControllerUtils.redirectForTranslationsLimitException(data.servletRequest, response, data.profiles);
-                    // throwing exception again overwrites the exception message with problem type message. Hence, fetch the original message from cause
-                    throw new TranslationServiceNotAvailableException(e.getCause().getMessage(), e);
-                }
-            }
+    private ModelAndView generate404(RequestData data) {
+        ModelAndView result;
+        if (data.recordType == RecordType.OBJECT_RDF) {
+            Map<String, Object> model = new HashMap<>();
+            model.put("error", "Non-existing record identifier");
+            result = new ModelAndView("rdf", model);
+        } else {
+            result = JsonUtils.toJson(new ApiError(data.wskey, "Invalid record identifier: "
+                    + data.europeanaId), data.callback);
         }
+        return result;
+    }
 
-        // 9) When lang profile is provided, do filtering
+    private FullBean doTranslation(FullBean bean, RequestData data, HttpServletResponse response) throws EuropeanaException {
+        if (data.languages == null || data.languages.isEmpty()) {
+            // Get the edm:language for default translation and filtering (if we find a default language)
+            data.setLanguages(recordTranslations.getDefaultTranslationLanguage(bean));
+        }
         if (data.languages != null && !data.languages.isEmpty()) {
-            bean = (FullBean) LanguageFilter.filter(bean, data.languages);
+            try {
+                bean = recordTranslations.translate(bean, data.languages.get(0).name().toLowerCase(Locale.ROOT),
+                        getAuthorizationHeader(data.servletRequest));
+            } catch (TranslationServiceNotAvailableException e) {
+                // EA-3463 - return 307 redirect without profile param and Keep the Error Response
+                // Body indicating the reason for troubleshooting.
+                ControllerUtils.redirectForTranslationsLimitException(data.servletRequest, response, data.profiles);
+                // throwing exception again overwrites the exception message with problem type message. Hence, fetch the original message from cause
+                throw new TranslationServiceNotAvailableException(e.getCause().getMessage(), e);
+            }
         }
+        return bean;
+    }
 
-        // 10) Generate output
-        // add headers, except Content-Type (that differs per recordType)
-        response = httpCacheUtils.addDefaultHeaders(response, eTag, tsUpdated);
-
-        Object output;
-        switch (recordType) {
-            case OBJECT_JSON:
-                output = generateJson(bean, data, startTime);
-                break;
-            case OBJECT_JSONLD:
-                output = generateJsonLd(bean, data, response);
-                break;
-            case OBJECT_RDF:
-                output = generateRdf(bean);
-                break;
-            case OBJECT_SCHEMA_ORG:
-                output = generateSchemaOrg(bean, data, response);
-                break;
-            case OBJECT_TURTLE:
-                output = generateTurtle(bean, data, response);
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown record output type: " + recordType);
-        }
-
+    private Object generateOutput(FullBean bean, RequestData data, HttpServletResponse response, long startTime) {
+        Object output = switch (data.recordType) {
+            case OBJECT_JSON       -> generateJson(bean, data, response, startTime);
+            case OBJECT_JSONLD     -> generateJsonLd(bean, data, response);
+            case OBJECT_RDF        -> generateRdf(bean);
+            case OBJECT_SCHEMA_ORG -> generateSchemaOrg(bean, data, response);
+            case OBJECT_TURTLE     -> generateTurtle(bean, data, response);
+        };
         if (LOG.isDebugEnabled()) {
             LOG.debug("Done generating record output in {} ms ", (System.currentTimeMillis() - startTime));
         }
@@ -480,8 +525,7 @@ public class ObjectController extends BaseController {
     }
 
 
-
-    private ModelAndView generateJson(FullBean bean, RequestData data, long startTime) {
+    private ModelAndView generateJson(FullBean bean, RequestData data, HttpServletResponse response, long startTime) {
         ObjectResult objectResult = new ObjectResult(data.wskey);
         // add schemaOrg in the response if profile = schemaOrg
         if (data.profiles.contains(Profile.SCHEMAORG)) {
@@ -547,7 +591,7 @@ public class ObjectController extends BaseController {
         Map<String, Object> model = new HashMap<>();
         String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (OutputStream outputStream = new ByteArrayOutputStream();
-             InputStream rdfInput = IOUtils.toInputStream(rdf);
+             InputStream rdfInput = IOUtils.toInputStream(rdf, StandardCharsets.UTF_8);
              TurtleRecordWriter writer= new TurtleRecordWriter(outputStream)) {
              Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
              writer.write(modelResult);
@@ -607,6 +651,7 @@ public class ObjectController extends BaseController {
      * Helper class to pass all data around in 1 object
      */
     private static class RequestData {
+        RecordType         recordType;
         String             europeanaId;
         String             wskey;
         String             profile;
@@ -616,8 +661,9 @@ public class ObjectController extends BaseController {
         String             callback;
         HttpServletRequest servletRequest;
 
-        RequestData(String collectionId, String recordId, String profile, String lang, String callback,
+        RequestData(RecordType recordType, String collectionId, String recordId, String profile, String lang, String callback,
                     HttpServletRequest servletRequest) {
+            this.recordType     = recordType;
             this.europeanaId    = EuropeanaUriUtils.createEuropeanaId(collectionId, recordId);
             this.profile        = profile; // profile string passed in the request
             this.profiles       = ProfileUtils.getProfiles(profile); // processed profiles from the profile string

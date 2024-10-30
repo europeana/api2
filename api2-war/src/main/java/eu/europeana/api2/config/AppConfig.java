@@ -173,6 +173,7 @@ public class AppConfig {
         try {
             if (translationRecord || translationSearchQuery || translationSearchResults) {
             TranslationClientConfiguration configuration = new TranslationClientConfiguration(loadProperties());
+                LogManager.getLogger(Api2UrlService.class).info("About to get translationservice");
             return new TranslationApiClient(configuration);
             }
         } catch (TranslationApiException e) {

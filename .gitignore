@@ -13,6 +13,10 @@ target/
 
 # Local user-specific configuration
 **/europeana.user.properties
+**/europeana.user.localhost.properties
+**/europeana.user.prod.properties
+**/europeana.user.test.properties
+**/europeana.user.acc.properties
 **/google_cloud_credentials*.json
 **/translation-api-client.properties
 
@@ -30,3 +34,4 @@ docker/tomcat/api.war
 # Kubernetes config properties
 *.properties.yaml
 
+!/.gitignore
