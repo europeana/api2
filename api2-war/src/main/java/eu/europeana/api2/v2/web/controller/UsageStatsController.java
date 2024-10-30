@@ -11,8 +11,8 @@ import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.solr.SolrFacetType;
 import eu.europeana.corelib.definitions.solr.model.Query;
 import eu.europeana.corelib.web.exception.EuropeanaException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+//import io.swagger.annotations.Api;
+//import io.swagger.annotations.ApiOperation;
 import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.solr.client.solrj.SolrClient;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-@Api(tags = "Usage Statistics API")
+//@Api(tags = "Usage Statistics API")
 @SwaggerSelect
 public class UsageStatsController extends BaseController {
 
@@ -37,7 +37,7 @@ public class UsageStatsController extends BaseController {
      * @return
      * @throws EuropeanaException
      */
-    @ApiOperation(value = "Generate Stats", nickname = "generateStats", response = java.lang.Void.class)
+    //@ApiOperation(value = "Generate Stats", nickname = "generateStats", response = java.lang.Void.class)
     @GetMapping(value = "/record/stats", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> generateUsageStats(
             HttpServletRequest request)

@@ -27,7 +27,7 @@ import java.util.Collections;
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackageClasses = {ObjectController.class, SearchController.class})
-@Import(SwaggerConfig.class) // make sure WebMVC is started before swagger initiates
+//@Import(SwaggerConfig.class) // make sure WebMVC is started before swagger initiates
 @EnableAsync
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 

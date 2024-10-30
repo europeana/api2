@@ -1,7 +1,5 @@
 package eu.europeana.api2.v2.web.controller;
 
-import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
-
 import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api.search.syntax.field.FieldDeclaration;
 import eu.europeana.api.search.syntax.field.FieldMode;
@@ -14,13 +12,7 @@ import eu.europeana.api2.model.utils.Api2UrlService;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.utils.SolrEscape;
 import eu.europeana.api2.utils.XmlUtils;
-import eu.europeana.api2.v2.exceptions.DateMathParseException;
-import eu.europeana.api2.v2.exceptions.InvalidAuthorizationException;
-import eu.europeana.api2.v2.exceptions.InvalidParamValueException;
-import eu.europeana.api2.v2.exceptions.InvalidRangeOrGapException;
-import eu.europeana.api2.v2.exceptions.MissingParamException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceDisabledException;
-import eu.europeana.api2.v2.exceptions.TranslationServiceNotAvailableException;
+import eu.europeana.api2.v2.exceptions.*;
 import eu.europeana.api2.v2.model.GeoDistance;
 import eu.europeana.api2.v2.model.SearchRequest;
 import eu.europeana.api2.v2.model.enums.Profile;
@@ -38,14 +30,7 @@ import eu.europeana.api2.v2.service.FacetWrangler;
 import eu.europeana.api2.v2.service.HitMaker;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.TranslationService;
-import eu.europeana.api2.v2.utils.ApiKeyUtils;
-import eu.europeana.api2.v2.utils.BoostParamUtils;
-import eu.europeana.api2.v2.utils.ControllerUtils;
-import eu.europeana.api2.v2.utils.FacetParameterUtils;
-import eu.europeana.api2.v2.utils.LanguageFilter;
-import eu.europeana.api2.v2.utils.ModelUtils;
-import eu.europeana.api2.v2.utils.ProfileUtils;
-import eu.europeana.api2.v2.utils.TagUtils;
+import eu.europeana.api2.v2.utils.*;
 import eu.europeana.api2.v2.web.swagger.SwaggerIgnore;
 import eu.europeana.api2.v2.web.swagger.SwaggerSelect;
 import eu.europeana.corelib.definitions.edm.beans.ApiBean;
@@ -67,36 +52,8 @@ import eu.europeana.corelib.web.exception.ProblemType;
 import eu.europeana.corelib.web.model.rights.RightReusabilityCategorizer;
 import eu.europeana.corelib.web.utils.RequestUtils;
 import eu.europeana.indexing.solr.facet.FacetEncoder;
-import eu.europeana.indexing.solr.facet.value.AudioDuration;
-import eu.europeana.indexing.solr.facet.value.AudioQuality;
-import eu.europeana.indexing.solr.facet.value.ImageAspectRatio;
-import eu.europeana.indexing.solr.facet.value.ImageColorEncoding;
-import eu.europeana.indexing.solr.facet.value.ImageColorSpace;
-import eu.europeana.indexing.solr.facet.value.ImageSize;
-import eu.europeana.indexing.solr.facet.value.MimeTypeEncoding;
-import eu.europeana.indexing.solr.facet.value.VideoDuration;
-import eu.europeana.indexing.solr.facet.value.VideoQuality;
+import eu.europeana.indexing.solr.facet.value.*;
 import eu.europeana.metis.schema.model.MediaType;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.zip.DataFormatException;
-import javax.annotation.Nullable;
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -109,12 +66,19 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.annotation.Nullable;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.DataFormatException;
+
+import static eu.europeana.api2.v2.utils.ModelUtils.findAllFacetsInTag;
 
 
 
@@ -127,7 +91,7 @@ import org.springframework.web.servlet.ModelAndView;
  */
 @Controller
 @SwaggerSelect
-@Api(tags = {"Search"})
+//@Api(tags = {"Search"})
 public class SearchController extends BaseController {
 
     private static final Logger LOG                       = LogManager.getLogger(SearchController.class);
@@ -180,7 +144,7 @@ public class SearchController extends BaseController {
      *
      * @return the JSON response
      */
-    @ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
+    //@ApiOperation(value = "search for records post", nickname = "searchRecordsPost", response = Void.class)
     @PostMapping(value = {"/api/v2/search.json", "/record/v2/search.json", "/record/search.json"},
                  produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE,
                  consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
@@ -223,7 +187,7 @@ public class SearchController extends BaseController {
      *
      * @return the JSON response
      */
-    @ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
+    //@ApiOperation(value = "search for records", nickname = "searchRecords", response = Void.class)
     @GetMapping(value = {"/api/v2/search.json", "/record/v2/search.json", "/record/search.json"},
         produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGet(
@@ -262,7 +226,7 @@ public class SearchController extends BaseController {
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
         if (profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(request) == null) {
-            throw new InvalidAuthorizationException();
+            throw new InvalidAuthorizationException(ProblemType.INVALID_AUTH_FOR_TRANSLATION);
         }
 
         String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
@@ -566,7 +530,7 @@ public class SearchController extends BaseController {
      *
      * @return the JSON response
      */
-    @ApiOperation(value = "search for records V3", nickname = "searchRecordsV3", response = Void.class)
+    //@ApiOperation(value = "search for records V3", nickname = "searchRecordsV3", response = Void.class)
     @GetMapping(value = {"/record/v3/search.json"},
                 produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ModelAndView searchJsonGetV3(
@@ -601,7 +565,7 @@ public class SearchController extends BaseController {
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
         if (profiles.contains(Profile.TRANSLATE) && getAuthorizationHeader(request) == null) {
-            throw new InvalidAuthorizationException();
+            throw new InvalidAuthorizationException(ProblemType.INVALID_AUTH_FOR_TRANSLATION);
         }
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -1505,7 +1469,7 @@ public class SearchController extends BaseController {
      *                    parameter, default = 12]
      * @return rss response of the query
      */
-    @ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
+    //@ApiOperation(value = "basic search function following the OpenSearch specification", nickname = "openSearch")
     @GetMapping(value = {"/api/v2/opensearch.rss", "/record/v2/opensearch.rss", "/record/opensearch.rss"},
                 produces = {"application/rss+xml",
                         org.springframework.http.MediaType.APPLICATION_XML_VALUE,

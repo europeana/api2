@@ -34,7 +34,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <corelib.version>2.16.9</corelib.version>
+        <corelib.version>2.16.10-SNAPSHOT</corelib.version>
         <!-- metis-framework 11 and metis.schema 9-SNAPSHOT uses JDK 17.
          Moving forward we do need to upgrade to JDK 21 if we continue to use metis dependencies and want to upgrade them-->
         <metis.version>11</metis.version>
