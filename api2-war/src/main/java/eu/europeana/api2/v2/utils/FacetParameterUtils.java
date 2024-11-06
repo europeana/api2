@@ -220,6 +220,8 @@ public class FacetParameterUtils {
 
                 gapValue = StringUtils.chop(gap);
                 gapValueUnit = dateTimeSpecifiersMap.get(gap.substring(gap.length() - 1));
+                if(gapValueUnit == null)
+                    throw new DataFormatException("Invalid gap value "+gapValue );
                 gap = gapValue+gapValueUnit;
                 endDate = adjustEndDateForFaceting(endDate,gapValue,gapValueUnit);
             } else {

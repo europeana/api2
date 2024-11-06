@@ -866,7 +866,7 @@ public class SearchController extends BaseController {
         }
 
         SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
-                translateTargetLang, filterLanguages, request, response,isRefinementDivisionRequired );
+                translateTargetLang, filterLanguages, request, response,isRefinementDivisionRequired,true);
 
         if (profiles.contains(Profile.PARAMS)) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
