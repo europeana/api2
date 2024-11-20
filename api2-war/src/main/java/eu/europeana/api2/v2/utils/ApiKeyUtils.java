@@ -11,17 +11,21 @@ import org.springframework.security.core.Authentication;
  * @author Patrick Ehlert on 13-6-17.
  * @Refractored Shweta on 18 december 2023
  */
-public class ApiKeyUtils{
+public final class ApiKeyUtils {
+
     private static final Logger LOG = LogManager.getLogger(ApiKeyUtils.class);
+
+    private ApiKeyUtils() {
+        // private constructor to avoid initialization
+    }
 
     /** Method to fetch ApiKey from authentication token
      * @param authentication Authentication object
      * @return apikey String
      */
     public static String extractApiKeyFromAuthorization(Authentication authentication) {
-        Object credentials = authentication!=null?authentication.getCredentials():null;
-        if (credentials instanceof EuropeanaApiCredentials) {
-            EuropeanaApiCredentials europeanaCredentials = (EuropeanaApiCredentials) credentials;
+        Object credentials = (authentication != null ? authentication.getCredentials() : null);
+        if (credentials instanceof EuropeanaApiCredentials europeanaCredentials) {
             return europeanaCredentials.getApiKey();
         }
         LOG.error("Unable to extract key after Authorization !");
