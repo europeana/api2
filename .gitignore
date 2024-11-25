@@ -19,6 +19,7 @@ target/
 **/europeana.user.acc.properties
 **/google_cloud_credentials*.json
 **/translation-api-client.properties
+**/europeana.user.BK.properties
 
 # docker stuff
 docker/docker-compose.yml
