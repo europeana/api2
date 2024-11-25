@@ -585,8 +585,6 @@ public class SearchController extends BaseController {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
 
-
-
         // validate boost Param
         BoostParamUtils.validateBoostParam(boostParam);
  
@@ -692,8 +690,7 @@ public class SearchController extends BaseController {
                    "Please make sure you encode the cursor value before sending it to the API.");
            }
          }
-
-
+        
  
         // TODO April '22 - this issue is now over 11 years old and I'm quite certain that we can stop checking this
         // TODO check whether this is still necessary? <= about time we did that!
@@ -703,6 +700,7 @@ public class SearchController extends BaseController {
         if (qfArray != null && qfArray.length != refinementArray.length) {
             refinementArray = qfArray;
         }
+        
         if (StringUtils.isNotBlank(theme)) {
             if (StringUtils.containsAny(theme, "+ #%^&*-='\"<>`!@[]{}\\/|")) {
                 throw new SolrQueryException(ProblemType.SEARCH_THEME_MULTIPLE);
