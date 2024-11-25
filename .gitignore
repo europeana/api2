@@ -13,6 +13,7 @@ target/
 
 # Local user-specific configuration
 **/europeana.user.properties
+**/europeana.user.3D.properties
 **/europeana.user.localhost.properties
 **/europeana.user.prod.properties
 **/europeana.user.test.properties
