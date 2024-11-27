@@ -238,9 +238,7 @@ public class SearchController extends BaseController {
         
         // fix for EA-3979
         queryString = queryString.replaceAll("\\+"," ");
-        if (StringUtils.containsAny(queryString, "OR", "AND")) {
-            queryString = "(" + StringUtils.strip(queryString, "()") + ")";
-        }
+        queryString = "(" + StringUtils.strip(queryString, "()") + ")";
 
         // validate boost Param
         BoostParamUtils.validateBoostParam(boostParam);
