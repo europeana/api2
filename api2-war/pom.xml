@@ -5,7 +5,7 @@
     <parent>
         <groupId>eu.europeana</groupId>
         <artifactId>api2</artifactId>
-        <version>2.16.10-SNAPSHOT</version>
+        <version>2.17.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -33,13 +33,13 @@
         <dependency>
             <groupId>eu.europeana.api2</groupId>
             <artifactId>api2-model</artifactId>
-            <version>2.16.10-SNAPSHOT</version>
+            <version>2.17.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>eu.europeana.api</groupId>
             <artifactId>query-syntax</artifactId>
-            <version>2.16.10-SNAPSHOT</version>
+            <version>2.17.0-SNAPSHOT</version>
         </dependency>
 
         <!-- CORELIB -->
@@ -54,7 +54,6 @@
             <version>${corelib.version}</version>
 
             <!-- Excluding Netty dependencies coming in via Corelib Storage /Solrj because they conflict with other versions -->
-
             <exclusions>
                 <exclusion>
                     <groupId>io.netty</groupId>
@@ -79,6 +78,10 @@
                 <exclusion>
                     <groupId>io.netty</groupId>
                     <artifactId>netty-transport</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport-classes-epoll</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>io.netty</groupId>
@@ -109,7 +112,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
             <version>${log4j2.version}</version>
         </dependency>
 
@@ -235,14 +238,12 @@
             <artifactId>commons-web</artifactId>
             <version>${apicommons.version}</version>
            <exclusions>
-             <!--<exclusion>
-                    <artifactId>commons-oauth</artifactId>
-                    <groupId>eu.europeana.api.commons</groupId>
-                </exclusion>
+               <!-- To avoid Jena error java.lang.IllegalArgumentException: Unrecognized property 'http://javax.xml.XMLConstants/property/accessExternalDTD'
+                    when loading record in ttl format-->
                 <exclusion>
-                    <artifactId>commons-net</artifactId>
-                    <groupId>eu.europeana.api.commons</groupId>
-                </exclusion> -->
+                    <groupId>org.apache.servicemix.bundles</groupId>
+                    <artifactId>org.apache.servicemix.bundles.xerces</artifactId>
+                </exclusion>
                <exclusion>
                    <groupId>io.springfox</groupId>
                    <artifactId>springfox-swagger2</artifactId>
@@ -361,7 +362,7 @@
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>2.2.0</version>
+            <version>4.17.0</version>
             <scope>test</scope>
         </dependency>
 

@@ -1,5 +1,5 @@
 # Builds a docker image from the Maven war. Requires 'mvn package' to have been run beforehand
-FROM tomcat:9.0-jre17
+FROM tomcat:9.0-jre21
 LABEL Author="Europeana Foundation <development@europeana.eu>"
 WORKDIR /usr/local/tomcat/webapps
 

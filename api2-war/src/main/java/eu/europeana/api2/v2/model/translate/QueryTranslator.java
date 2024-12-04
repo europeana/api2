@@ -6,8 +6,8 @@ import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceNotAvailableException;
 import eu.europeana.api2.v2.service.translate.TranslationUtils;
 import eu.europeana.corelib.web.exception.EuropeanaException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +20,7 @@ import static eu.europeana.api2.v2.utils.ControllerUtils.is5xxError;
 @Component
 public class QueryTranslator {
 
-    private static final Logger LOG = LoggerFactory.getLogger(QueryTranslator.class);
+    private static final Logger LOG = LogManager.getLogger(QueryTranslator.class);
     private static final String FIRST_WORD_REGEX = "^\\s*\\S+";
     private static final Pattern FIRST_WORD_PATTERN = Pattern.compile(FIRST_WORD_REGEX);
 
@@ -29,7 +29,7 @@ public class QueryTranslator {
     @Autowired
     public QueryTranslator(TranslationApiClient translationClient) {
         this.translationClient = translationClient;
-        LOG.info("QueryTranslator initialised with Translation Api client");
+        LOG.info("QueryTranslator initialised with Translation API client {}", translationClient);
     }
 
     private String translate(String text, String targetLanguage, String sourceLanguage, boolean enclose, String authToken) throws TranslationException, TranslationServiceNotAvailableException {
