@@ -316,12 +316,17 @@ public class ObjectController extends BaseController {
      */
     private Object handleRequest(RequestData data, HttpServletResponse response) throws EuropeanaException {
         long startTime = System.currentTimeMillis();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Retrieving record with id {}, type = {}", data.europeanaId, data.recordType);
-        }
+
 
         // 1. Validation of parameters
         DataSourceWrapper dataSources = validateRequestParameters(data.recordType, data, response).get();
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Retrieving record with id {}, type = {}, datsources -  {} --- {} --- {} ", data.europeanaId, data.recordType,
+                    dataSources.getRecordDao(),
+                    "[{ " + dataSources.getRedirectDao().get().getDatastore().getDatabase().getName() +"}]",
+                    dataSources.getTombstoneDao());
+        }
 
         // 2) Get the plain fullbean (not enriched yet)
         FullBean bean = null;
