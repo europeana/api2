@@ -2,6 +2,7 @@ package eu.europeana.api2.config;
 
 import eu.europeana.corelib.record.BaseUrlWrapper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.atlas.logging.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
@@ -84,6 +85,8 @@ public class RouteConfigLoader {
             });
             routeNo++;
         }
+
+        System.out.println(routeDataSourceMap);
     }
 
     /**
