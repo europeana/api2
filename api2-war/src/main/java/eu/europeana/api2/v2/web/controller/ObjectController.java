@@ -323,9 +323,9 @@ public class ObjectController extends BaseController {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Retrieving record with id {}, type = {}, datsources -  {} --- {} --- {} ", data.europeanaId, data.recordType,
-                    dataSources.getRecordDao(),
-                    "[{ " + dataSources.getRedirectDao().get().getDatastore().getDatabase().getName() +"}]",
-                    dataSources.getTombstoneDao());
+                    dataSources.getRecordDao().isPresent() ? dataSources.getRecordDao() : "NOT Configured",
+                    dataSources.getRedirectDao().isPresent() ? "[{ " + dataSources.getRedirectDao().get().getDatastore().getDatabase().getName() +"}]" : " NOT Configured",
+                    dataSources.getTombstoneDao().isPresent() ? dataSources.getTombstoneDao() : "NOT configured");
         }
 
         // 2) Get the plain fullbean (not enriched yet)

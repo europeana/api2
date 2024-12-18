@@ -85,8 +85,6 @@ public class RouteConfigLoader {
             });
             routeNo++;
         }
-
-        System.out.println(routeDataSourceMap);
     }
 
     /**
