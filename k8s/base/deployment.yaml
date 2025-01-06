@@ -14,13 +14,13 @@ spec:
           livenessProbe:
             httpGet:
               port: 8080
-              path: ${LIVELINESS_URL}
+              path: "${LIVELINESS_URL}"
             initialDelaySeconds: 120
             periodSeconds: 30
           readinessProbe:
             httpGet:
               port: 8080
-              path: ${READINESS_URL}
+              path: "${READINESS_URL}"
             initialDelaySeconds: 120
             periodSeconds: 30
             failureThreshold: 4
