@@ -409,8 +409,9 @@ public class ObjectController extends BaseController {
         }
 
         // 3) check if we have a datasource for the used FQDN
-        Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
+        Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName(), data.servletRequest.getServerPort());
         if (dataSource.isEmpty()) {
+            // check for *:8080 present in
             LOG.error("Error while retrieving record id {}, type = {}. No database configured for route {}",
                     data.europeanaId, recordType, data.servletRequest.getServerName());
             throw new InvalidConfigurationException(ProblemType.CONFIG_ERROR, "No CHO database configured for request route");
