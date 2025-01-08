@@ -130,8 +130,9 @@ public class AppConfig {
         // log default baseUrls used for requests without a matching route in the config
         LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl(""));
         LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl(""));
+        LogManager.getLogger(Api2UrlService.class).info("API gateway base url = {}", urlService.getApiGatewayBaseUrl(""));
+        LogManager.getLogger(Api2UrlService.class).info("");
         LogManager.getLogger(Api2UrlService.class).info("Apikey service url = {}", urlService.getApikeyServiceUrl());
-        LogManager.getLogger(Api2UrlService.class).info("Api gateway base url = {}", urlService.getApiGatewayBaseUrl(""));
         return urlService;
     }
 
@@ -143,7 +144,6 @@ public class AppConfig {
     @Bean
     public MultilingualQueryGenerator multilingualQueryGenerator() throws InvalidConfigurationException {
         return new MultilingualQueryGenerator(new QueryTranslator(getTranslationApiClient()));
-
     }
 
     @Bean
@@ -172,12 +172,14 @@ public class AppConfig {
     public TranslationApiClient getTranslationApiClient() throws InvalidConfigurationException {
         try {
             if (translationRecord || translationSearchQuery || translationSearchResults) {
-            TranslationClientConfiguration configuration = new TranslationClientConfiguration(loadProperties());
-                LogManager.getLogger(Api2UrlService.class).info("About to get translationservice");
-            return new TranslationApiClient(configuration);
+                TranslationClientConfiguration configuration = new TranslationClientConfiguration(loadProperties());
+                LOG.info("Setting up new Translation API client {}...", configuration.getTranslationApiUrl());
+                return new TranslationApiClient(configuration);
+            } else {
+                LOG.info("Translation API disabled");
             }
         } catch (TranslationApiException e) {
-            throw new InvalidConfigurationException(ProblemType.TRANSLATION_API_URL_ERROR);
+            throw new InvalidConfigurationException(ProblemType.TRANSLATION_API_URL_ERROR, e);
         }
         return null;
 
@@ -186,9 +188,11 @@ public class AppConfig {
     @Bean
     public TranslationService translationService() throws InvalidConfigurationException {
         if (translationRecord || translationSearchQuery || translationSearchResults) {
-            return new TranslationService(new MetadataTranslationService(getTranslationApiClient(), new MetadataChosenLanguageService(getTranslationApiClient()),
-                    translationCharLimit, translationCharTolerance),
-                    new MetadataLangDetectionService(getTranslationApiClient()));
+            return new TranslationService(
+                        new MetadataTranslationService(getTranslationApiClient(),
+                        new MetadataChosenLanguageService(getTranslationApiClient()),
+                        translationCharLimit, translationCharTolerance),
+                        new MetadataLangDetectionService(getTranslationApiClient()));
         }
         return null;
     }
