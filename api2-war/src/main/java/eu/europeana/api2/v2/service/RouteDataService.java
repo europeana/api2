@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.service;
 
 import eu.europeana.api2.config.RouteConfigLoader;
+import eu.europeana.api2.v2.utils.IPAddressValidator;
 import eu.europeana.corelib.record.BaseUrlWrapper;
 import eu.europeana.corelib.record.DataSourceWrapper;
 import eu.europeana.corelib.record.config.RecordServerConfig;
@@ -92,10 +93,20 @@ public class RouteDataService {
      * Gets data source to be used in handling request, based on the top-level request route
      *
      * @param requestRoute FQDN for request route
+     * @param port FQDN port value
      * @return Optional containing data source
      */
-    public Optional<DataSourceWrapper> getRecordServerForRequest(String requestRoute) {
+    public Optional<DataSourceWrapper> getRecordServerForRequest(String requestRoute, int port) {
         Optional<String> dataSourceId = getEntryForRoute(requestRoute, routeConfig.getRouteDataSourceMap());
+
+        /**
+         * EA-4053 - check if route is configured for [host]:{port}, where host is an IP address.
+         *           the port value should match the container port value in deployment.yaml file
+         *           this route is only configured for internal kubernetes health checks
+         */
+        if (dataSourceId.isEmpty() && routeConfig.getRouteDataSourceMap().containsKey("*:" + port) && IPAddressValidator.isValidIPAddress(requestRoute)) {
+            dataSourceId = getEntryForRoute("*:" + port, routeConfig.getRouteDataSourceMap());
+        }
 
         if (dataSourceId.isEmpty()) {
             return Optional.empty();
