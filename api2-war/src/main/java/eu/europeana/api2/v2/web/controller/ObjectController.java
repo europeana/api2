@@ -2,7 +2,7 @@ package eu.europeana.api2.v2.web.controller;
 
 import eu.europeana.api.commons.utils.RiotRdfUtils;
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
-import eu.europeana.api.commons.web.exception.ApplicationAuthenticationException;
+import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
 import eu.europeana.api.translation.definitions.language.Language;
 //import eu.europeana.api2.config.SwaggerConfig;
@@ -156,7 +156,7 @@ public class ObjectController extends BaseController {
                                        HttpServletRequest request,
                                //@ApiIgnore
                                        HttpServletResponse response)
-        throws EuropeanaException {
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(RecordType.OBJECT_JSON, collectionId, recordId,profile, lang, callback, request);
         return (ModelAndView) handleRequest(data, response);
     }
@@ -196,7 +196,7 @@ public class ObjectController extends BaseController {
                                           HttpServletRequest request,
                                       //@ApiIgnore
                                           HttpServletResponse response)
-        throws EuropeanaException {
+        throws EuropeanaException, HttpException {
         return recordJSONLD(collectionId, recordId, profile, lang, callback, request, response);
     }
 
@@ -223,7 +223,7 @@ public class ObjectController extends BaseController {
                                          HttpServletRequest request,
                                      //@ApiIgnore
                                          HttpServletResponse response)
-        throws EuropeanaException {
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(RecordType.OBJECT_JSONLD, collectionId, recordId, profile, lang, callback, request);
         return (ModelAndView) handleRequest(data, response);
     }
@@ -251,7 +251,7 @@ public class ObjectController extends BaseController {
                                             HttpServletRequest request,
                                         //@ApiIgnore
                                             HttpServletResponse response)
-        throws EuropeanaException {
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(RecordType.OBJECT_SCHEMA_ORG, collectionId, recordId, profile, lang, callback, request);
         return (ModelAndView) handleRequest(data, response);
     }
@@ -278,7 +278,7 @@ public class ObjectController extends BaseController {
                                       HttpServletRequest request,
                                   //@ApiIgnore
                                       HttpServletResponse response)
-        throws EuropeanaException {
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(RecordType.OBJECT_RDF, collectionId, recordId, profile, lang, null, request);
         return (ModelAndView) handleRequest(data, response);
     }
@@ -305,7 +305,7 @@ public class ObjectController extends BaseController {
                                          HttpServletRequest request,
                              //@ApiIgnore
                                          HttpServletResponse response)
-        throws EuropeanaException {
+        throws EuropeanaException, HttpException {
         RequestData data = new RequestData(RecordType.OBJECT_TURTLE, collectionId, recordId,  profile, lang, null, request);
         return (ModelAndView) handleRequest(data, response);
     }
@@ -314,7 +314,8 @@ public class ObjectController extends BaseController {
      * The larger part of handling a record is the same for all types of output, so this method handles all the common
      * functionality like validating parameters, checking API key, retrieving the record for mongo, check for caching, etc.
      */
-    private Object handleRequest(RequestData data, HttpServletResponse response) throws EuropeanaException {
+    private Object handleRequest(RequestData data, HttpServletResponse response)
+        throws EuropeanaException, HttpException {
         long startTime = System.currentTimeMillis();
         if (LOG.isDebugEnabled()) {
             LOG.debug("Retrieving record with id {}, type = {}", data.europeanaId, data.recordType);
@@ -389,7 +390,7 @@ public class ObjectController extends BaseController {
     }
 
     private Optional<DataSourceWrapper> validateRequestParameters(RecordType recordType, RequestData data, HttpServletResponse response)
-            throws EuropeanaException {
+        throws EuropeanaException, HttpException {
         // 1) check if HTTP method is supported, HTTP 405 if not
         if (!StringUtils.equalsIgnoreCase("GET", data.servletRequest.getMethod()) &&
                 !StringUtils.equalsIgnoreCase("HEAD", data.servletRequest.getMethod())){
@@ -402,11 +403,9 @@ public class ObjectController extends BaseController {
         }
 
         // 2) check API key
-        try {
-            data.wskey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(data.servletRequest));
-        } catch (ApplicationAuthenticationException e) {
-            throw new InvalidAuthorizationException(ProblemType.APIKEY_DOES_NOT_EXIST);
-        }
+
+        data.wskey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(data.servletRequest));
+
 
         // 3) check if we have a datasource for the used FQDN
         Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName(), data.servletRequest.getServerPort());
