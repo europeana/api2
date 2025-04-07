@@ -326,6 +326,11 @@ public class SearchController extends BaseController {
         if (qfArray != null && qfArray.length != refinementArray.length) {
             refinementArray = qfArray;
         }
+        
+        // EA-3979 fix bug where + (instead of spaces) inside refinements breaks them
+        for (int i=0; i<refinementArray.length; i++) {
+            refinementArray[i] = refinementArray[i].replaceAll("\\+"," ");
+        }
 
         if (StringUtils.isNotBlank(theme)) {
             if (StringUtils.containsAny(theme, "+ #%^&*-='\"<>`!@[]{}\\/|")) {
@@ -866,7 +871,7 @@ public class SearchController extends BaseController {
         }
 
         SearchResults<? extends IdBean> result = createResults(apiKey, profiles, query, clazz, request.getServerName(),
-                translateTargetLang, filterLanguages, request, response,isRefinementDivisionRequired , true);
+                translateTargetLang, filterLanguages, request, response, isRefinementDivisionRequired, true);
 
         if (profiles.contains(Profile.PARAMS)) {
             result.addParams(RequestUtils.getParameterMap(request), "apikey");
@@ -1321,17 +1326,17 @@ public class SearchController extends BaseController {
                                                               List<Language> filterLanguages,
                                                               HttpServletRequest servletRequest,
                                                               HttpServletResponse servletResponse,
-        boolean isToDivideQueryRefinements,boolean isV3) throws EuropeanaException {
-
+                                                              boolean isToDivideQueryRefinements,
+                                                              boolean isV3) throws EuropeanaException {
         SearchResults<T> response = new SearchResults<>(apiKey);
         ResultSet<T>     resultSet;
 
         SolrClient solrClient = getSolrClient(requestRoute);
 
         if (profiles.contains(Profile.DEBUG)) {
-            resultSet = searchService.search(solrClient, clazz, query, true,isToDivideQueryRefinements);
+            resultSet = searchService.search(solrClient, clazz, query, true, isToDivideQueryRefinements);
         } else {
-            resultSet = searchService.search(solrClient, clazz, query,isToDivideQueryRefinements);
+            resultSet = searchService.search(solrClient, clazz, query, isToDivideQueryRefinements);
         }
         response.totalResults = resultSet.getResultSize();
         if (StringUtils.isNotBlank(resultSet.getCurrentCursorMark()) &&
