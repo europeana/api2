@@ -98,7 +98,7 @@ public class AppConfig {
      * The main properties are in the europeana.properties file, but since this is committed on GitHub this must not
      * hold any usernames and passwords. These can be placed in the europeana.user.properties file which is never
      * committed
-     * @return PropertSourcePlaceholderConfigurere bean
+     * @return PropertySourcePlaceholderConfigurer bean
      */
     @Bean
     public static PropertySourcesPlaceholderConfigurer properties() {
