@@ -118,6 +118,20 @@ public class FullView implements FullBean {
         return null;
     }
 
+    private List<QualityAnnotation> getQualityAggregationFor(String aggregationId) {
+        List<QualityAnnotation> result = new ArrayList<>();
+        bean.getQualityAnnotations().stream().forEach(anno -> {
+            if (StringUtils.equals(aggregationId, anno.getTarget()[0])) {
+                QualityAnnotation qa = new QualityAnnotationImpl();
+                qa.setCreated(anno.getCreated());
+                qa.setTarget(anno.getTarget());
+                qa.setBody(anno.getBody());
+                result.add(qa);
+            }
+        });
+        return result;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public List<? extends Aggregation> getAggregations() {
@@ -128,17 +142,7 @@ public class FullView implements FullBean {
 
                 // Add quality annotations in json response
                 if (bean.getQualityAnnotations() != null) {
-                    List<QualityAnnotation> qualityAnnotations = new ArrayList<>();
-                    bean.getQualityAnnotations().stream().forEach(anno -> {
-                                if (StringUtils.equals(aggregation.getAbout(), anno.getTarget()[0])) {
-                                    // Don't modify values in the existing QA of th record as that will be used later in other places like Europeana Aggregation
-                                    QualityAnnotation qa = new QualityAnnotationImpl();
-                                    qa.setCreated(anno.getCreated());
-                                    qa.setTarget(anno.getTarget());
-                                    qa.setBody(anno.getBody());
-                                    qualityAnnotations.add(qa);
-                                }});
-                    aggregation.setDqvHasQualityAnnotation(qualityAnnotations);
+                    aggregation.setDqvHasQualityAnnotation(getQualityAggregationFor(aggregation.getAbout()));
                 }
                 aggregation.setId(null);
                 // also remove webresources IDs
@@ -172,25 +176,10 @@ public class FullView implements FullBean {
     @Override
     public EuropeanaAggregation getEuropeanaAggregation() {
         if (bean.getEuropeanaAggregation() != null) {
-            EuropeanaAggregation europeanaAggregation =  bean.getEuropeanaAggregation();
-            EuropeanaAggregationImpl ea = (EuropeanaAggregationImpl) europeanaAggregation;
+            EuropeanaAggregationImpl ea = (EuropeanaAggregationImpl) bean.getEuropeanaAggregation();
 
-            // Add quality annotations in json response
-            if (ea.getDqvHasQualityAnnotation() != null && bean.getQualityAnnotations() != null) {
-                List<QualityAnnotation> qualityAnnotations = new ArrayList<>();
-                for (String qa : ea.getDqvHasQualityAnnotation()) {
-                    for (QualityAnnotation fBeanQA : bean.getQualityAnnotations()) {
-                        if (StringUtils.equals(qa, fBeanQA.getAbout())) {
-                            QualityAnnotation annotation = new QualityAnnotationImpl();
-                            annotation.setCreated(fBeanQA.getCreated());
-                            annotation.setBody(fBeanQA.getBody());
-                            annotation.setTarget(new String [] {ea.getAbout()}); // target value will be '/aggregation/europeana/RECORD_ID'
-
-                            qualityAnnotations.add(annotation);
-                        }
-                    }
-                }
-                ea.setHasQualityAnnotation(qualityAnnotations);
+            if (bean.getQualityAnnotations() != null) {
+                ea.setHasQualityAnnotation(getQualityAggregationFor(ea.getAbout()));
             }
             return ea;
         }
