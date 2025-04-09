@@ -235,11 +235,6 @@ public class SearchController extends BaseController {
         if (StringUtils.isBlank(queryString)) {
             throw new SolrQueryException(ProblemType.SEARCH_QUERY_EMPTY);
         }
-        
-        // fix for EA-3979
-        queryString = queryString.replaceAll("\\+"," ");
-        queryString = "(" + StringUtils.strip(queryString, "()") + ")";
-
         // validate boost Param
         BoostParamUtils.validateBoostParam(boostParam);
 
@@ -330,14 +325,6 @@ public class SearchController extends BaseController {
         if (qfArray != null && qfArray.length != refinementArray.length) {
             refinementArray = qfArray;
         }
-        
-        // EA-3979 fix bug where + (instead of spaces) inside refinements breaks them
-        if (null != refinementArray && (refinementArray.length > 0)) {
-            for (int i=0; i<refinementArray.length; i++) {
-                refinementArray[i] = refinementArray[i].replaceAll("\\+"," ");
-            }
-        }
-
         if (StringUtils.isNotBlank(theme)) {
             if (StringUtils.containsAny(theme, "+ #%^&*-='\"<>`!@[]{}\\/|")) {
                 throw new SolrQueryException(ProblemType.SEARCH_THEME_MULTIPLE);
