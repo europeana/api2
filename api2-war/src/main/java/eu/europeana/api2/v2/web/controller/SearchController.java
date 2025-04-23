@@ -54,6 +54,7 @@ import eu.europeana.corelib.web.utils.RequestUtils;
 import eu.europeana.indexing.solr.facet.FacetEncoder;
 import eu.europeana.indexing.solr.facet.value.*;
 import eu.europeana.metis.schema.model.MediaType;
+import eu.europeana.indexing.solr.facet.value.MimeTypeEncoding;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -339,37 +340,31 @@ public class SearchController extends BaseController {
         }
         colourPalette.replaceAll(String::toUpperCase);
 
-        // Note that this is about the parameter 'colourpalette', not the refinement: they are processed below
-        // [existing-query] AND [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
+        List<String> filterTags = new ArrayList<>();
+
+        // add the filter tags generated from the parameter 'colourpalette' in filterTags [filter_tags-1 AND filter_tags-2 AND filter_tags-3 ... ]
         if (!colourPalette.isEmpty()) {
             Set<Integer> colourPaletteTags = TagUtils.encodeColourPalette(colourPalette);
             if (!colourPaletteTags.isEmpty()) {
-                queryString = filterQueryBuilder(colourPaletteTags.iterator(), queryString, " AND ", false);
+                filterTags.add(filterTagsBuilder(colourPaletteTags.iterator(), " AND ", false));
             }
         }
-
-        final List<Integer> filterTags = new ArrayList<>();
-
+        final List<Integer> qfParamFilterTags = new ArrayList<>();
         // EA-2996 this is to hold the sfield, pt and d geospatial parameters
         // Created here, passed to processQfParameters() & initialised there
         GeoDistance geoDistance = new GeoDistance();
 
         // NOTE the zero tag is now added in processQfParameters
         try {
-            refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, filterTags, geoDistance);
+            refinementArray = processQfParameters(refinementArray, media, thumbnail, fullText, landingPage, qfParamFilterTags, geoDistance);
         } catch (InvalidParamValueException e) {
             throw new SolrQueryException(ProblemType.INVALID_PARAMETER_VALUE, e.getErrorDetails());
         }
 
-        // add the CF filter facets to the query string like this:
-        // [existing-query] AND ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
-        if (!filterTags.isEmpty()) {
-            queryString = filterQueryBuilder(filterTags.iterator(),
-                queryString,
-                " OR ",
-                true);
+        // add the filter tags generated from the "qf" parameter in filterTags ([filter_tags-1 OR filter_tags-2 OR filter_tags-3 ... ])
+        if (!qfParamFilterTags.isEmpty()) {
+            filterTags.add(filterTagsBuilder(qfParamFilterTags.iterator(), " OR ", true));
         }
-
         String[] reusabilities = StringArrayUtils.splitWebParameter(reusabilityArray);
         String[] mixedFacets   = StringArrayUtils.splitWebParameter(mixedFacetArray);
 
@@ -409,7 +404,7 @@ public class SearchController extends BaseController {
             // including possible spaces and the trailing comma in those cases
             sort = org.apache.commons.lang3.RegExUtils.removePattern(sort, "distance\\s?(asc|desc)?(\\s|,)*");
         }
-
+        refinementArray = addFilterTagsInRefinement(filterTags, refinementArray);
         Class<? extends IdBean> clazz = selectBean(profile);
         Query query = new Query(SearchUtils.rewriteQueryFields(
             SearchUtils.fixBuggySolrIndex(queryString)))
@@ -938,12 +933,15 @@ public class SearchController extends BaseController {
         return result;
     }
 
-    private String filterQueryBuilder(Iterator<Integer> it, String queryString, String andOrOr, boolean addBrackets) {
+    /**
+     * Build the filter tags query
+     * @param it
+     * @param andOrOr
+     * @param addBrackets
+     * @return
+     */
+    private String filterTagsBuilder(Iterator<Integer> it, String andOrOr, boolean addBrackets) {
         StringBuilder filterQuery = new StringBuilder();
-        if (StringUtils.isNotBlank(queryString)) {
-            filterQuery.append(queryString);
-            filterQuery.append(" AND ");
-        }
         if (addBrackets) {
             filterQuery.append("(");
         }
@@ -960,6 +958,23 @@ public class SearchController extends BaseController {
             filterQuery.append(")");
         }
         return filterQuery.toString();
+    }
+
+    private String filterQueryBuilder(Iterator<Integer> it, String queryString, String andOrOr, boolean addBrackets) {
+        StringBuilder filterQuery = new StringBuilder();
+        if (StringUtils.isNotBlank(queryString)) {
+            filterQuery.append(queryString);
+            filterQuery.append(" AND ");
+        }
+        // add tags
+        return filterQuery.append(filterTagsBuilder(it, andOrOr, addBrackets)).toString();
+    }
+
+    private String[] addFilterTagsInRefinement(List<String> filterTags, String[] refinement) {
+        for (String filterTag: filterTags) {
+            refinement = ArrayUtils.add(refinement, filterTag);
+        }
+        return refinement;
     }
 
     /**
