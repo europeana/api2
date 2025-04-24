@@ -970,9 +970,19 @@ public class SearchController extends BaseController {
         return filterQuery.append(filterTagsBuilder(it, andOrOr, addBrackets)).toString();
     }
 
+    /**
+     * Adds the filtertags in the refinment array.
+     *
+     * Due to a bug in  @link eu.europeana.corelib.definitions.solr.model.divideRefinements()
+     * Adding the facet tags for filter tags manually here.
+     * TODO - "{!tag=filter_tags}" should be remove once we fix EA-4192
+     * @param filterTags filtertags to be added in refinement array
+     * @param refinement refinement array
+     * @return
+     */
     private String[] addFilterTagsInRefinement(List<String> filterTags, String[] refinement) {
         for (String filterTag: filterTags) {
-            refinement = ArrayUtils.add(refinement, filterTag);
+            refinement = ArrayUtils.add(refinement,  "{!tag=filter_tags}" + filterTag);
         }
         return refinement;
     }
