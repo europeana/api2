@@ -11,7 +11,6 @@ See the [Europeana Pro website](https://pro.europeana.eu/page/apis) for full doc
 ## Communication
 
 - Google Group: [Europeana API forum](https://groups.google.com/d/forum/europeanaapi)
-- [GitHub Issues](https://github.com/europeana/api2/issues)
 
 ## Build
 To build (requires the [CoreLib](https://github.com/europeana/corelib) dependency):
