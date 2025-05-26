@@ -975,7 +975,6 @@ public class SearchController extends BaseController {
      *
      * Due to a bug in  @link eu.europeana.corelib.definitions.solr.model.divideRefinements()
      * Adding the facet tags for filter tags manually here.
-     * TODO - "{!tag=filter_tags}" should be remove once we fix EA-4192
      * @param filterTags filtertags to be added in refinement array
      * @param refinement refinement array
      * @return
