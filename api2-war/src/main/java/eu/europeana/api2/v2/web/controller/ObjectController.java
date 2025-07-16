@@ -408,7 +408,7 @@ public class ObjectController extends BaseController {
 
 
         // 3) check if we have a datasource for the used FQDN
-        Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName(), data.servletRequest.getServerPort());
+        Optional<DataSourceWrapper> dataSource = routeService.getRecordServerForRequest(data.servletRequest.getServerName());
         if (dataSource.isEmpty()) {
             LOG.error("Error while retrieving record id {}, type = {}. No database configured for route {}",
                     data.europeanaId, recordType, data.servletRequest.getServerName());

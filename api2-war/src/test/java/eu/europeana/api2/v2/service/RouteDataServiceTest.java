@@ -95,18 +95,8 @@ public class RouteDataServiceTest {
     }
 
     @Test
-    public void shouldMatchIpAddressPathForRecordServer() {
-        // add the [host]:{port} dynamic routing
-        mongoRouteMapping.put("*:8080", "ds-1");
-
-        Optional<DataSourceWrapper> result = routeService.getRecordServerForRequest("172.17.8.45", 8080);
-        assertTrue(result.isPresent());
-        assertEquals(ds1, result.get());
-    }
-
-    @Test
     public void shouldMatchFullPathForRecordServer() {
-        Optional<DataSourceWrapper> result = routeService.getRecordServerForRequest("localhost", 0);
+        Optional<DataSourceWrapper> result = routeService.getRecordServerForRequest("localhost");
         assertTrue(result.isPresent());
         assertEquals(ds1, result.get());
     }
@@ -121,7 +111,7 @@ public class RouteDataServiceTest {
 
     @Test
     public void shouldMatchPartialPathForRecordServer() {
-        Optional<DataSourceWrapper> result = routeService.getRecordServerForRequest("search-api-acceptance.eanadev.org", 0);
+        Optional<DataSourceWrapper> result = routeService.getRecordServerForRequest("search-api-acceptance.eanadev.org");
         assertTrue(result.isPresent());
         assertEquals(ds2, result.get());
     }

@@ -92,10 +92,9 @@ public class RouteDataService {
      * Gets data source to be used in handling request, based on the top-level request route
      *
      * @param requestRoute FQDN for request route
-     * @param port FQDN port value
      * @return Optional containing data source
      */
-    public Optional<DataSourceWrapper> getRecordServerForRequest(String requestRoute, int port) {
+    public Optional<DataSourceWrapper> getRecordServerForRequest(String requestRoute) {
         Optional<String> dataSourceId = getEntryForRoute(requestRoute, routeConfig.getRouteDataSourceMap());
 
         if (dataSourceId.isEmpty()) {
