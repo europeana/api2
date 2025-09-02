@@ -38,7 +38,8 @@
         <!-- Note that Metis version has to match the one used in Corelib-->
         <metis.version>14</metis.version>
 
-        <apicommons.version>0.3.23</apicommons.version>
+<!--        <apicommons.version>0.3.23</apicommons.version>-->
+        <apicommons.version>0.4.7-SNAPSHOT</apicommons.version>
         <translation.api.client.version>0.1.1</translation.api.client.version>
 
         <!-- dependencies below are also used in Corelib, would be best to match version -->

@@ -1,5 +1,7 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api.commons.oauth2.model.KeyValidationResult;
+import eu.europeana.api.commons.web.exception.CustomApplicationAuthenticationException;
 import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
@@ -75,6 +77,13 @@ public class GlobalExceptionHandler {
                 I18nErrorMessageKeys.getMessageForKey(ee.getI18nKey()), StringUtils.substringAfter(ee.getI18nKey(), "."));
     }
 
+    @ExceptionHandler(value = {CustomApplicationAuthenticationException.class})
+    public ModelAndView europeanaClientRegistrationExceptionHandler(HttpServletRequest request, HttpServletResponse response, CustomApplicationAuthenticationException ee) {
+        KeyValidationResult result = ee.getResult();
+        response.setStatus(result.getHttpStatusCode());
+        return generateErrorResponse(request, response, result.getValidationError().getError(),
+            result.getValidationError().getMessage(), result.getValidationError().getCode());
+    }
 
     private void logOrIgnoreError(String route, String apiKey, EuropeanaException ee) {
         switch (ee.getAction()) {

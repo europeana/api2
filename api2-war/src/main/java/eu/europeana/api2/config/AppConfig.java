@@ -1,5 +1,7 @@
 package eu.europeana.api2.config;
 
+import eu.europeana.api.commons.auth.AuthenticationBuilder;
+import eu.europeana.api.commons.auth.AuthenticationConfig;
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api.translation.client.TranslationApiClient;
 import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
@@ -17,6 +19,7 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 
 import eu.europeana.corelib.web.exception.ProblemType;
+import javax.validation.constraints.NotNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import static eu.europeana.api2.v2.utils.ApiConstants.API_KEY_SERVICE_CLIENT_DETAILS;
+import static eu.europeana.api2.v2.utils.ApiConstants.GRANT_PARAMETERS_PROPERTY;
+import static eu.europeana.api2.v2.utils.ApiConstants.TOKEN_ENDPOINT_PROPERTY;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -73,6 +78,11 @@ public class AppConfig {
     @Value("${translation.char.tolerance:}")
     private Integer translationCharTolerance;
 
+    @Value("${keycloak.token.endpoint:}")
+    private String tokenEndpoint;
+
+    @Value("${keycloak.token.grant.params:}")
+    private String grantParams;
 
     @PostConstruct
     public void logConfiguration() {
@@ -160,6 +170,8 @@ public class AppConfig {
     public EuropeanaClientDetailsService getApiKeyClientDetailsService(){
         EuropeanaClientDetailsService clientDetails = new EuropeanaClientDetailsService();
         clientDetails.setApiKeyServiceUrl(apikeyServiceUrl);
+        AuthenticationConfig config = new AuthenticationConfig(loadAuthenticationProps());
+        clientDetails.setAuthHandler(AuthenticationBuilder.newAuthentication(config));
         return clientDetails;
     }
 
@@ -201,5 +213,12 @@ public class AppConfig {
         Properties properties = new Properties();
         properties.put(TranslationClientConfiguration.TRANSLATION_API_URL, translationApiEndpoint);
         return properties;
+    }
+    @NotNull
+    private Properties loadAuthenticationProps() {
+        Properties props =  new Properties();
+        props.setProperty(TOKEN_ENDPOINT_PROPERTY,tokenEndpoint);
+        props.setProperty(GRANT_PARAMETERS_PROPERTY,grantParams);
+        return props;
     }
 }
