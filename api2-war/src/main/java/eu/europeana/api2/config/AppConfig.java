@@ -1,5 +1,7 @@
 package eu.europeana.api2.config;
 
+import eu.europeana.api.commons.auth.AuthenticationBuilder;
+import eu.europeana.api.commons.auth.AuthenticationConfig;
 import eu.europeana.api.commons.oauth2.service.impl.EuropeanaClientDetailsService;
 import eu.europeana.api.translation.client.TranslationApiClient;
 import eu.europeana.api.translation.client.config.TranslationClientConfiguration;
@@ -73,6 +75,11 @@ public class AppConfig {
     @Value("${translation.char.tolerance:}")
     private Integer translationCharTolerance;
 
+    @Value("${keycloak.token.endpoint:}")
+    private String tokenEndpoint;
+
+    @Value("${keycloak.token.grant.params:}")
+    private String grantParams;
 
     @PostConstruct
     public void logConfiguration() {
@@ -160,6 +167,8 @@ public class AppConfig {
     public EuropeanaClientDetailsService getApiKeyClientDetailsService(){
         EuropeanaClientDetailsService clientDetails = new EuropeanaClientDetailsService();
         clientDetails.setApiKeyServiceUrl(apikeyServiceUrl);
+        AuthenticationConfig config = new AuthenticationConfig(loadProperties());
+        clientDetails.setAuthHandler(AuthenticationBuilder.newAuthentication(config));
         return clientDetails;
     }
 
@@ -200,6 +209,9 @@ public class AppConfig {
     private Properties loadProperties() {
         Properties properties = new Properties();
         properties.put(TranslationClientConfiguration.TRANSLATION_API_URL, translationApiEndpoint);
+        properties.setProperty(AuthenticationConfig.CONFIG_TOKEN_ENDPOINT,tokenEndpoint);
+        properties.setProperty(AuthenticationConfig.CONFIG_GRANT_PARAMS,grantParams);
         return properties;
     }
+
 }
