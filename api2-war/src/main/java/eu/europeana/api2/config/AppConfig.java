@@ -19,7 +19,6 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 
 import eu.europeana.corelib.web.exception.ProblemType;
-import javax.validation.constraints.NotNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +31,6 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import static eu.europeana.api2.v2.utils.ApiConstants.API_KEY_SERVICE_CLIENT_DETAILS;
-import static eu.europeana.api2.v2.utils.ApiConstants.GRANT_PARAMETERS_PROPERTY;
-import static eu.europeana.api2.v2.utils.ApiConstants.TOKEN_ENDPOINT_PROPERTY;
 
 /**
  * @author Willem-Jan Boogerd (www.eledge.net/contact).
@@ -170,7 +167,7 @@ public class AppConfig {
     public EuropeanaClientDetailsService getApiKeyClientDetailsService(){
         EuropeanaClientDetailsService clientDetails = new EuropeanaClientDetailsService();
         clientDetails.setApiKeyServiceUrl(apikeyServiceUrl);
-        AuthenticationConfig config = new AuthenticationConfig(loadAuthenticationProps());
+        AuthenticationConfig config = new AuthenticationConfig(loadProperties());
         clientDetails.setAuthHandler(AuthenticationBuilder.newAuthentication(config));
         return clientDetails;
     }
@@ -212,13 +209,9 @@ public class AppConfig {
     private Properties loadProperties() {
         Properties properties = new Properties();
         properties.put(TranslationClientConfiguration.TRANSLATION_API_URL, translationApiEndpoint);
+        properties.setProperty(AuthenticationConfig.CONFIG_TOKEN_ENDPOINT,tokenEndpoint);
+        properties.setProperty(AuthenticationConfig.CONFIG_GRANT_PARAMS,grantParams);
         return properties;
     }
-    @NotNull
-    private Properties loadAuthenticationProps() {
-        Properties props =  new Properties();
-        props.setProperty(TOKEN_ENDPOINT_PROPERTY,tokenEndpoint);
-        props.setProperty(GRANT_PARAMETERS_PROPERTY,grantParams);
-        return props;
-    }
+
 }
