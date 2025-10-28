@@ -11,7 +11,7 @@ spec:
     name: search-api-deployment
   behavior:
     scaleDown:
-      stabilizationWindowSeconds: 900
+      stabilizationWindowSeconds: 600
   metrics:
     - type: Resource
       resource:
