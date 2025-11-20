@@ -1,10 +1,10 @@
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.indexing.solr.facet.FacetEncoder;
-import eu.europeana.indexing.solr.facet.value.AudioDuration;
-import eu.europeana.indexing.solr.facet.value.ImageColorEncoding;
-import eu.europeana.indexing.solr.facet.value.ImageSize;
-import eu.europeana.indexing.solr.facet.value.VideoDuration;
+import eu.europeana.indexing.search.v2.facet.FacetEncoder;
+import eu.europeana.indexing.search.v2.facet.value.AudioDuration;
+import eu.europeana.indexing.search.v2.facet.value.ImageColorEncoding;
+import eu.europeana.indexing.search.v2.facet.value.ImageSize;
+import eu.europeana.indexing.search.v2.facet.value.VideoDuration;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashSet;

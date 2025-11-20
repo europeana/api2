@@ -19,6 +19,7 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 
 import eu.europeana.corelib.web.exception.ProblemType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,8 +168,12 @@ public class AppConfig {
     public EuropeanaClientDetailsService getApiKeyClientDetailsService(){
         EuropeanaClientDetailsService clientDetails = new EuropeanaClientDetailsService();
         clientDetails.setApiKeyServiceUrl(apikeyServiceUrl);
-        AuthenticationConfig config = new AuthenticationConfig(loadProperties());
-        clientDetails.setAuthHandler(AuthenticationBuilder.newAuthentication(config));
+        if (StringUtils.isNotEmpty(tokenEndpoint) && StringUtils.isNotEmpty(grantParams)) {
+            AuthenticationConfig config = new AuthenticationConfig(tokenEndpoint, grantParams);
+            clientDetails.setAuthHandler(AuthenticationBuilder.newAuthentication(config));
+        } else {
+            LOG.error("Keycloak token endpoint and parameters NOT set !!");
+        }
         return clientDetails;
     }
 
@@ -209,8 +214,6 @@ public class AppConfig {
     private Properties loadProperties() {
         Properties properties = new Properties();
         properties.put(TranslationClientConfiguration.TRANSLATION_API_URL, translationApiEndpoint);
-        properties.setProperty(AuthenticationConfig.CONFIG_TOKEN_ENDPOINT,tokenEndpoint);
-        properties.setProperty(AuthenticationConfig.CONFIG_GRANT_PARAMS,grantParams);
         return properties;
     }
 

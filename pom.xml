@@ -35,9 +35,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <corelib.version>2.17.5-SNAPSHOT</corelib.version>
-        <!-- Note that Metis version has to match the one used in Corelib-->
-        <metis.version>14</metis.version>
-        <apicommons.version>0.4.8-SNAPSHOT</apicommons.version>
+        <!-- corelib now uses metis-common and metis-schema version-->
+        <metis.version>15.2</metis.version>
+        <apicommons.version>0.4.10</apicommons.version>
         <translation.api.client.version>0.1.1</translation.api.client.version>
 
         <!-- dependencies below are also used in Corelib, would be best to match version -->
@@ -52,12 +52,36 @@
 
         <junit.version>4.13.2</junit.version>
         <mockito.version>3.12.4</mockito.version>
-        <!-- end dependencies also used in Corelib -->
-
-        <!--        <swagger.version>2.9.2</swagger.version>-->
         <servletJstl.version>1.2</servletJstl.version>
         <springWebService.version>2.4.7.RELEASE</springWebService.version>
     </properties>
+
+    <repositories>
+        <!--Release repositories-->
+        <repository>
+            <id>libs-release</id>
+            <name>libs-release</name>
+            <url>https://artifactory-prod.eanadev.org/artifactory/libs-release</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>libs-snapshot</id>
+            <name>libs-snapshot</name>
+            <url>https://artifactory-prod.eanadev.org/artifactory/libs-snapshot-local</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <profiles>
         <profile>
             <id>depcheck</id>
@@ -73,7 +97,7 @@
                             <nvdApiKeyEnvironmentVariable>NVD_APIKEY</nvdApiKeyEnvironmentVariable>
                             <!-- see EA-3505 why we host the known exploited vulnerabilties file ourselves -->
                             <knownExploitedUrl>
-                                https://artifactory.eanadev.org/artifactory/ext-release-local/gov/cisa/www/known_exploited_vulnerabilities.json
+                                https://artifactory-prod.eanadev.org/artifactory/ext-release-local/gov/cisa/www/known_exploited_vulnerabilities.json
                             </knownExploitedUrl>
                             <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                             <failBuildOnCVSS>9</failBuildOnCVSS>
