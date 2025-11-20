@@ -165,14 +165,14 @@ public class AppConfig {
     }
 
     @Bean(name = API_KEY_SERVICE_CLIENT_DETAILS)
-    public EuropeanaClientDetailsService getApiKeyClientDetailsService(){
+    public EuropeanaClientDetailsService getApiKeyClientDetailsService() throws InvalidConfigurationException {
         EuropeanaClientDetailsService clientDetails = new EuropeanaClientDetailsService();
         clientDetails.setApiKeyServiceUrl(apikeyServiceUrl);
         if (StringUtils.isNotEmpty(tokenEndpoint) && StringUtils.isNotEmpty(grantParams)) {
             AuthenticationConfig config = new AuthenticationConfig(tokenEndpoint, grantParams);
             clientDetails.setAuthHandler(AuthenticationBuilder.newAuthentication(config));
         } else {
-            LOG.error("Keycloak token endpoint and parameters NOT set !!");
+            throw new InvalidConfigurationException(ProblemType.KEYCLOAK_API_URL_ERROR);
         }
         return clientDetails;
     }
