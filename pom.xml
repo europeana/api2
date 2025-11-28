@@ -86,6 +86,17 @@
         <profile>
             <id>depcheck</id>
             <build>
+                <!-- TO Fix error No plugin found for prefix 'sonar' in the current project and in the plugin groups [org.apache.maven.plugins, org.codehaus.mojo]
+                 available from the repositories -->
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.sonarsource.scanner.maven</groupId>
+                            <artifactId>sonar-maven-plugin</artifactId>
+                            <version>3.7.0.1746</version>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
                 <plugins>
                     <!-- This will be active when running the verify or install goal
                          To skip (e.g. during debugging) use 'mvn clean package')-->
