@@ -148,6 +148,12 @@ public class MetadataLangDetectionService extends BaseService {
         // 4. send lang-detect request
         getTranslationApiClient().setAuthToken(authToken);
         List<LanguageDetectionObj> objs = createLanguageDetectionObj(textsForDetection, langHint);
+        LOG.trace("Sending language detection request: data =\n");
+        if (LOG.isTraceEnabled()) {
+            for (LanguageDetectionObj obj : objs) {
+                LOG.trace(obj.getText());
+            }
+        }
         getTranslationApiClient().getLanguageDetectionService().detectLang(objs);
         List<String> detectedLanguages = getResults(objs);
         LOG.debug("Detected languages - {} ", detectedLanguages);
