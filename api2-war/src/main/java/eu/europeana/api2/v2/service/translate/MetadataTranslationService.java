@@ -82,7 +82,7 @@ public class MetadataTranslationService extends BaseService {
         }
 
         if (LOG.isDebugEnabled()) {
-            textsToTranslate.stream().forEach(value -> LOG.debug("Text to translate - {} : {}", value.getSourceLanguage(), value));
+            textsToTranslate.forEach(value -> LOG.debug("Text to translate - {} : {}", value.getSourceLanguage(), value));
         }
 
         // get the translation in the target language
