@@ -270,7 +270,8 @@ public class ModelUtils {
                 while (graphIterator.hasNext()) {
                     JsonNode jsonNode = graphIterator.next();
                     // get the node with value of type matching "ore:Aggregation"
-                    if (StringUtils.contains(jsonNode.get(JSONLD_TYPE).toString(), StringUtils.wrap(JSONLD_AGGREGATION_RDF_TYPE, "\""))) {
+                    if ( null != jsonNode.get(JSONLD_EDM_HAS_VIEW) &&
+                            StringUtils.contains(jsonNode.get(JSONLD_TYPE).toString(), StringUtils.wrap(JSONLD_AGGREGATION_RDF_TYPE, "\""))) {
                         addOrderedHasView(jsonNode, sortedHasView);
                         break; // conditional break. We do not want to process anything further.
                     }
