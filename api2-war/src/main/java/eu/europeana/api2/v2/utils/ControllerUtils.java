@@ -162,6 +162,10 @@ public final class ControllerUtils {
      * @return
      */
     public static boolean is5xxError(int httpStatusCode) {
+        // HttpStatus doesn't support 502 code!?
+        if (httpStatusCode == 520) {
+            return true;
+        }
         HttpStatus status = HttpStatus.valueOf(httpStatusCode);
         return status.is5xxServerError();
     }

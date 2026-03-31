@@ -25,8 +25,13 @@ public class MetadataLangDetectionService extends BaseService {
 
     private static final Logger LOG = LogManager.getLogger(MetadataLangDetectionService.class);
 
-    public MetadataLangDetectionService(TranslationApiClient translationApiClient) {
+    private final Integer translationCharLimit;
+    private final Integer translationCharTolerance;
+
+    public MetadataLangDetectionService(TranslationApiClient translationApiClient, Integer translationCharLimit, Integer translationCharTolerance) {
         super(translationApiClient);
+        this.translationCharLimit = translationCharLimit;
+        this.translationCharTolerance = translationCharTolerance;
     }
 
     /**
@@ -78,6 +83,7 @@ public class MetadataLangDetectionService extends BaseService {
 
             if (!langValueFieldMapForDetection.isEmpty()) {
                 String langHint = getHintForLanguageDetect(bean, true);
+                // 2. Send data to Translation API
                 detectLanguageAndUpdate(langValueFieldMapForDetection, bean, langHint, true, start, authToken);
             }
             index++;
@@ -140,7 +146,8 @@ public class MetadataLangDetectionService extends BaseService {
         List<String> textsForDetection = new ArrayList<>();
 
         // 3. collect all the values in one list for single lang-detection request per proxy/brief bean
-        LanguageDetectionUtils.getTextsForDetectionRequest(textsForDetection, textsPerField, langValueFieldMapForDetection);
+        LanguageDetectionUtils.getTextsForDetectionRequest(textsForDetection, textsPerField, langValueFieldMapForDetection,
+                this.translationCharLimit, this.translationCharTolerance);
 
         LOG.debug("Gathering detection values for record {} took {} ms ", searchResults ? bean.getId() : ((FullBean)bean).getAbout(),
                 (System.currentTimeMillis() - start));
