@@ -205,8 +205,9 @@ public class AppConfig {
             return new TranslationService(
                         new MetadataTranslationService(getTranslationApiClient(),
                         new MetadataChosenLanguageService(getTranslationApiClient()),
-                        translationCharLimit, translationCharTolerance),
-                        new MetadataLangDetectionService(getTranslationApiClient()));
+                                translationCharLimit, translationCharTolerance),
+                        new MetadataLangDetectionService(getTranslationApiClient(),
+                                translationCharLimit, translationCharTolerance));
         }
         return null;
     }

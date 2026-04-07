@@ -28,8 +28,8 @@ public class TranslationUtils {
     public static final String FIELD_SEPARATOR = ".";
     public static final String FIELD_SEPARATOR_REGEX = "\\.";
 
-    private static String getPharse = "^.*?(?=[.|?|!])";
-    public static final Pattern getValuesBeforePhrasePattern = Pattern.compile(getPharse);
+    private static String getPhrase = "^.*?(?=[.|?|!])";
+    public static final Pattern getValuesBeforePhrasePattern = Pattern.compile(getPhrase);
     public static final String TRUNCATED_INDICATOR = "...";
 
 
@@ -146,28 +146,56 @@ public class TranslationUtils {
     public static List<String> truncate(List<String> valuesToTranslate, Integer translationCharLimit, Integer translationCharTolerance) {
         List<String> truncatedValues = new ArrayList<>();
         boolean noFurtherLooking = false;
-        Integer charAccumulated = 0;
+        int charAccumulated = 0;
         for (String value : valuesToTranslate) {
             // check if the value exceeded the limit.
             if ((charAccumulated + value.length()) >= translationCharLimit) {
-                // get exceeded String value
-                Integer charLimitIndex = translationCharLimit - charAccumulated;
-                String valueAfterLimit = StringUtils.substring(value, charLimitIndex, value.length());
+                // 1. Get exceeded String value that's within the tolerance
+                int charLimitIndex = translationCharLimit - charAccumulated;
+                // We include the character at the truncation limit as well (charLimitIndex -1) to check if we can cut it off there
+                // also no need to check beyond the tolerance limit
+                String valueAfterLimit = StringUtils.substring(value, charLimitIndex - 1, charLimitIndex + translationCharTolerance);
+                if (LOG.isTraceEnabled()) {
+                    String valueUntilLimit = StringUtils.substring(value, 0, charLimitIndex);
+                    LOG.trace("  String part until truncation limit = [{}], size = {}, accumulated = {}", valueUntilLimit, valueUntilLimit.length(), charAccumulated);
+                    LOG.trace("  String part from truncation limit = [{}], size = {}", valueAfterLimit, valueAfterLimit.length());
+                }
 
-                //  check if the string has a phrase or new line
+                // 2. Check if the remaining part has a phrase or new line
+                String partToAdd;
                 Matcher m = getValuesBeforePhrasePattern.matcher(valueAfterLimit);
                 if (m.find()) {
-                    truncatedValues.add(StringUtils.substring(value, 0, charLimitIndex) + m.group(0) + TRUNCATED_INDICATOR);
+                    partToAdd = StringUtils.substring(value, 0, charLimitIndex - 1) + m.group(0);
+                    LOG.trace("Adding phrase part [{}], size = {}, accumulated = {}", partToAdd, partToAdd.length(), charAccumulated);
                 } else {
-                    // abbreviate the value till the tolerance or if the end of the value is reached
-                    truncatedValues.add(WordUtils.abbreviate(
-                            value, charLimitIndex, translationCharLimit + translationCharTolerance, TRUNCATED_INDICATOR));
+                    // 3. If no phrase then abbreviate after the next word or if the end of the value is reached
+                    // WordUtils.abbreviate() ignores leading spaces so we check for this
+                    if (valueAfterLimit.startsWith(" ")) {
+                        partToAdd = StringUtils.substring(value, 0, charLimitIndex - 1);
+                    } else {
+                        partToAdd = WordUtils.abbreviate(
+                                value, charLimitIndex, charLimitIndex + translationCharTolerance, null);
+                    }
+                    LOG.trace("Adding abbreviated part [{}], size = {}, accumulated = {}", partToAdd, partToAdd.length(), charAccumulated);
+                }
+
+                // 4. Add value and check if we need to add truncation indicator (...)
+                if (partToAdd.length() == value.length()) {
+                    // We added the entire value, so don't append at the end of the value
+                    truncatedValues.add(partToAdd);
+                    if (truncatedValues.size() < valuesToTranslate.size() ) {
+                        // Add ... in a new value to indicate 1 or more values were cut off
+                        truncatedValues.add(TRUNCATED_INDICATOR);
+                    }
+                } else {
+                    truncatedValues.add(partToAdd + TRUNCATED_INDICATOR);
                 }
                 noFurtherLooking = true;
             } else {
+                LOG.trace("Adding entire value [{}], size = {}, accumulated = {}", value, value.length(), charAccumulated);
                 truncatedValues.add(value);
+                charAccumulated += value.length();
             }
-            charAccumulated += value.length();
             // ignore any other value after limit is reached
             if (noFurtherLooking) break;
         }

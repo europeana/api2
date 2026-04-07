@@ -111,12 +111,16 @@ public class LanguageDetectionUtils {
      * @param langValueFieldMapForDetection lang-value "def" map for the whitelisted field
      */
     public static void getTextsForDetectionRequest(List<String> textsForDetection,
-                                                   Map<String, Integer> textsPerField, List<LanguageValueFieldMap> langValueFieldMapForDetection ) {
+                                                   Map<String, Integer> textsPerField,
+                                                   List<LanguageValueFieldMap> langValueFieldMapForDetection,
+                                                   Integer translationCharLimit,
+                                                   Integer translationCharTolerance) {
         for (LanguageValueFieldMap languageValueFieldMap : langValueFieldMapForDetection) {
             for (Map.Entry<String, List<String>> def : languageValueFieldMap.entrySet()) {
-                textsForDetection.addAll(def.getValue());
-                textsPerField.put(languageValueFieldMap.getFieldName(), def.getValue().size());
-            }
+                List<String> truncated = TranslationUtils.truncate(def.getValue(), translationCharLimit, translationCharTolerance);
+                textsForDetection.addAll(truncated);
+                textsPerField.put(languageValueFieldMap.getFieldName(), truncated.size());
+           }
         }
     }
 

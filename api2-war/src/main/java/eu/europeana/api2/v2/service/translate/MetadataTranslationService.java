@@ -62,10 +62,10 @@ public class MetadataTranslationService extends BaseService {
             String chosenLanguage = metadataChosenLanguageService.getMostRepresentativeLanguage(bean, targetLanguage, true);
             LOG.debug("Most representative language chosen for {} search result is  {}", index, chosenLanguage);
 
-            // if there is no chosen language stop the translation workflow OR
-            // If the chosen language matches target language then do nothing
+            // If there is no chosen language stop the translation workflow OR
+            // if the chosen language matches target language then do nothing
             if (chosenLanguage == null || StringUtils.equals(chosenLanguage, targetLanguage)) {
-            LOG.debug("Stop the translation workflow for search result {} ...", index );
+                LOG.debug("Stop the translation workflow for search result {} ...", index );
             } else {
                 // gather texts for translations
                 TranslationMap gatheredTextForTranslation= new TranslationMap(chosenLanguage);
