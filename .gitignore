@@ -12,13 +12,10 @@ target/
 .DS_Store
 
 # Local user-specific configuration
-**/europeana.user.properties
-**/europeana.user.3D.properties
-**/europeana.user.BK.properties
-**/europeana.user.localhost.properties
-**/europeana.user.prod.properties
-**/europeana.user.test.properties
-**/europeana.user.acc.properties
+**/europeana.*properties
+**/europeana.properties*
+**/europeana.user.properties*
+
 **/google_cloud_credentials*.json
 **/translation-api-client.properties
 
