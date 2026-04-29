@@ -36,8 +36,8 @@
 
         <corelib.version>2.17.7-SNAPSHOT</corelib.version>
         <!-- corelib now uses metis-common and metis-schema version-->
-        <metis.version>15.2</metis.version>
-        <apicommons.version>0.4.11-SNAPSHOT</apicommons.version>
+        <metis.version>16</metis.version>
+        <apicommons.version>0.4.11</apicommons.version>
         <translation.api.client.version>0.1.1</translation.api.client.version>
 
         <!-- dependencies below are also used in Corelib, would be best to match version -->
