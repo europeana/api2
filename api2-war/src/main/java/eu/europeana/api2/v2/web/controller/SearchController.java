@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api.commons.web.exception.HttpException;
+import eu.europeana.api.commons.error.EuropeanaApiException;
 import eu.europeana.api.search.syntax.field.FieldDeclaration;
 import eu.europeana.api.search.syntax.field.FieldMode;
 import eu.europeana.api.search.syntax.field.FieldRegistry;
@@ -66,6 +66,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -124,6 +125,8 @@ public class SearchController extends BaseController {
 
     private MultilingualQueryGenerator queryGenerator;
     private TranslationService searchResultTranslator;
+    @Autowired
+    private HttpCacheUtils httpCacheUtils;
 
     @Autowired
     public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator,
@@ -153,7 +156,7 @@ public class SearchController extends BaseController {
                                        @RequestBody SearchRequest searchRequest,
                                        HttpServletRequest request,
                                        HttpServletResponse response)
-            throws EuropeanaException, HttpException, InvalidLanguageException {
+            throws EuropeanaException, EuropeanaApiException {
         return searchJsonGet(
                              searchRequest.getQuery(),
                              searchRequest.getQf(),
@@ -218,11 +221,17 @@ public class SearchController extends BaseController {
         @RequestParam(value = "boost", required = false) String boostParam,
         HttpServletRequest request,
         HttpServletResponse response)
-        throws EuropeanaException, HttpException {
+        throws EuropeanaException, EuropeanaApiException {
         
         // debugging internal routes for API-gateway-routed requests
         LOG.trace("Incoming request comes from server: |{}|", request.getServerName());
-        
+
+        // verify access
+        Authentication authentication = verifyReadAccess(request);
+        // add rate limit headers as soon as we make the validation request.
+        // So that it can be present in all response like Gone, 404 etc..
+        httpCacheUtils.addRateLimitHeaders(response, authentication);
+
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
 
@@ -230,7 +239,7 @@ public class SearchController extends BaseController {
             throw new InvalidAuthorizationException(ProblemType.INVALID_AUTH_FOR_TRANSLATION);
         }
 
-        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
+        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(authentication);
 
         // check query parameter
         if (StringUtils.isBlank(queryString)) {
@@ -553,7 +562,13 @@ public class SearchController extends BaseController {
                                       @RequestParam(value = "boost", required = false) String boostParam,
                                       HttpServletRequest request,
                                       HttpServletResponse response)
-            throws EuropeanaException, HttpException {
+            throws EuropeanaException, EuropeanaApiException {
+
+        // verify access
+        Authentication authentication = verifyReadAccess(request);
+        // add rate limit headers as soon as we make the validation request.
+        // So that it can be present in all response like Gone, 404 etc..
+        httpCacheUtils.addRateLimitHeaders(response, authentication);
 
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
@@ -568,7 +583,7 @@ public class SearchController extends BaseController {
         // validate boost Param
         BoostParamUtils.validateBoostParam(boostParam);
  
-        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(verifyReadAccess(request));
+        String apiKey = ApiKeyUtils.extractApiKeyFromAuthorization(authentication);
  
         // validate provided languages
         List<Language> filterLanguages = null;
@@ -1465,7 +1480,7 @@ public class SearchController extends BaseController {
                                  @RequestParam(value = "start", required = false, defaultValue = "1") int start,
                                  HttpServletRequest request,
                                  HttpServletResponse response)
-        throws EuropeanaException, HttpException {
+        throws EuropeanaException, EuropeanaApiException {
 
         verifyReadAccess(request);
         SolrClient solrClient = getSolrClient(request.getServerName());

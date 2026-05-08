@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
-import eu.europeana.api.commons.oauth2.model.KeyValidationResult;
+import eu.europeana.api.commons.error.EuropeanaApiErrorResponse;
 import eu.europeana.api.commons.web.exception.ApplicationAuthenticationException;
 import eu.europeana.api.commons.web.exception.HttpException;
 import eu.europeana.api2.model.json.ApiError;
@@ -23,6 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -79,18 +81,30 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {ApplicationAuthenticationException.class})
     public ModelAndView europeanaClientRegistrationExceptionHandler(HttpServletRequest request, HttpServletResponse response, ApplicationAuthenticationException ee) {
-       if(ee.getResult() != null) {
-           KeyValidationResult result = ee.getResult();
-           response.setStatus(result.getHttpStatusCode());
-           return generateErrorResponse(request, response, result.getValidationError().getError(),
-               result.getValidationError().getMessage(), result.getValidationError().getCode());
-       }else {
-           response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-           return generateErrorResponse(request, response, "Unauthorized",
-               I18nErrorMessageKeys.getMessageForKey(ee.getI18nKey()),
-               StringUtils.substringAfter(ee.getI18nKey(), "."));
-       }
+        // get the status
+        int status = isInvalidOrDisabledErrorCode(ee.getErrorCode()) ? HttpStatus.UNAUTHORIZED.value() : ee.getResponseStatus().value();
+        String details = ee.getI18nKey() != null ? I18nErrorMessageKeys.getMessageForKey(ee.getI18nKey()) : ee.getMessage();
+        String error = ee.getError() == null ? "Unauthorized" : ee.getError();
+        String code = ee.getI18nKey() != null ? StringUtils.substringAfter(ee.getI18nKey(), ".") : ee.getErrorCode();
+
+        response.setStatus(status);
+        return generateErrorResponse(request, response, error, details, code);
     }
+
+    /**
+     * If key does not exist (or it does not have either a “client_owner” or “shared_owner” role)
+     * OR If key is disabled -
+     *          keycloak responds with HTTP 400 error code “401_key_invalid” or "401_key_disabled"
+     * but it should be exposed to the original client
+     * as an actual 401
+     *
+     *
+     * @return
+     */
+    private boolean isInvalidOrDisabledErrorCode(String errorCode){
+        return StringUtils.equalsAny(errorCode, "401_key_invalid", "401_key_disabled");
+    }
+
 
     private void logOrIgnoreError(String route, String apiKey, EuropeanaException ee) {
         switch (ee.getAction()) {
