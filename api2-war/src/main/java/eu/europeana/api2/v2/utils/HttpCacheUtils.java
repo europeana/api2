@@ -1,9 +1,11 @@
 package eu.europeana.api2.v2.utils;
 
+import eu.europeana.api.commons.oauth2.utils.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.core.Authentication;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -174,6 +176,24 @@ public class HttpCacheUtils {
         response.addHeader("Cache-Control", CACHE_CONTROL + (cacheMaxAge == null ? DEFAULT_MAX_AGE : cacheMaxAge));
         response.addHeader("Allow", ALLOWED);
         return response;
+    }
+
+    /**
+     * Adds rate limit headers to the given HTTP response based on the authentication details.
+     * The headers are derived from the details within the provided {@link Authentication} object.
+     *
+     * @param response the HttpServletResponse to which the rate limit headers will be added
+     * @param auth     the Authentication object from which rate limit details will be extracted
+     */
+    public void addRateLimitHeaders(HttpServletResponse response, Authentication auth) {
+        Map<String, String> details = OAuthUtils.getDetails(auth);
+        if (details != null) {
+            details.forEach((key, value) -> {
+                if (value != null) {
+                    response.addHeader(key, value.toString());
+                }
+            });
+        }
     }
 
     /**
