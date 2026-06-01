@@ -197,18 +197,4 @@ public class Api2UrlService {
         return url.toString();
     }
 
-    @Deprecated
-    public String getRedirectUrl(String route, String wskey, String isShownAtUri, String provider, String europeanaId, String profile) {
-        UrlBuilder url = new UrlBuilder(this.getApi2BaseUrl(route))
-                .addPath("api", String.valueOf(wskey), "redirect").disableTrailingSlash()
-                .addParam("shownAt", isShownAtUri)
-                // Note that provider and id are not required paramaters for the RedirectController, but sent along for
-                // logging purposes.
-                .addParam("provider", provider)
-                .addParam("id", this.getRecordResolveUrl(route, europeanaId))
-                // Not sure the profile parameter still serves any purpose, can probably be removed
-                .addParam("profile", profile);
-        return url.toString();
-    }
-
 }
