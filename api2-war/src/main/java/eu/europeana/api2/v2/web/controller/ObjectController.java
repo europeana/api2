@@ -327,7 +327,7 @@ public class ObjectController extends BaseController {
         data.wskey = ApiKeyUtils.extractApiKeyFromAuthorization(authentication);
         // add rate limit headers as soon as we make the validation request.
         // So that it can be present in all response like Gone, 404 etc..
-        httpCacheUtils.addRateLimitHeaders(response, authentication);
+        addRateLimitHeaders(response, authentication);
 
         // 1. Validation of parameters
         DataSourceWrapper dataSources = validateRequestParameters(data.recordType, data, response).get();

@@ -1,11 +1,9 @@
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api.commons.oauth2.utils.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.security.core.Authentication;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -59,11 +57,11 @@ public class HttpCacheUtils {
 
     /**
      * Generates an eTag surrounded with double quotes
-     * @param data
+     * @param data -
      * @param weakETag if true then the eTag will start with W/
      * @param includeApiVersion if true then the API_version will be included in the ETag calculation (this is
      *                          recommended when calculating weak ETags)     *
-     * @return
+     * @return eTag
      */
     public String generateETag(String data, boolean weakETag, boolean includeApiVersion) {
         String eTag = "\"" + getSHA256Hash(data, includeApiVersion) + "\"";
@@ -178,23 +176,6 @@ public class HttpCacheUtils {
         return response;
     }
 
-    /**
-     * Adds rate limit headers to the given HTTP response based on the authentication details.
-     * The headers are derived from the details within the provided {@link Authentication} object.
-     *
-     * @param response the HttpServletResponse to which the rate limit headers will be added
-     * @param auth     the Authentication object from which rate limit details will be extracted
-     */
-    public void addRateLimitHeaders(HttpServletResponse response, Authentication auth) {
-        Map<String, String> details = OAuthUtils.getDetails(auth);
-        if (details != null) {
-            details.forEach((key, value) -> {
-                if (value != null) {
-                    response.addHeader(key, value.toString());
-                }
-            });
-        }
-    }
 
     /**
      * Supports multiple values in the "If-None-Match" header
