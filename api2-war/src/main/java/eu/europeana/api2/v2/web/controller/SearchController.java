@@ -125,6 +125,8 @@ public class SearchController extends BaseController {
 
     private MultilingualQueryGenerator queryGenerator;
     private TranslationService searchResultTranslator;
+    @Autowired
+    private HttpCacheUtils httpCacheUtils;
 
     @Autowired
     public SearchController(RouteDataService routeService, MultilingualQueryGenerator queryGenerator,
@@ -228,7 +230,7 @@ public class SearchController extends BaseController {
         Authentication authentication = verifyReadAccess(request);
         // add rate limit headers as soon as we make the validation request.
         // So that it can be present in all response like Gone, 404 etc..
-        addRateLimitHeaders(response, authentication);
+        httpCacheUtils.addRateLimitHeaders(response, authentication);
 
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
@@ -566,7 +568,7 @@ public class SearchController extends BaseController {
         Authentication authentication = verifyReadAccess(request);
         // add rate limit headers as soon as we make the validation request.
         // So that it can be present in all response like Gone, 404 etc..
-        addRateLimitHeaders(response, authentication);
+        httpCacheUtils.addRateLimitHeaders(response, authentication);
 
         // get the profiles
         Set<Profile> profiles = ProfileUtils.getProfiles(profile);
