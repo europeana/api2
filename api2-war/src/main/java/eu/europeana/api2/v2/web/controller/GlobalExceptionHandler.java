@@ -88,6 +88,9 @@ public class GlobalExceptionHandler {
         String code = ee.getI18nKey() != null ? StringUtils.substringAfter(ee.getI18nKey(), ".") : ee.getErrorCode();
 
         response.setStatus(status);
+        ee.getAdditionalInformation().entrySet().forEach(
+                value -> response.addHeader(value.getKey(), String.valueOf(value.getValue())));
+
         return generateErrorResponse(request, response, error, details, code);
     }
 
