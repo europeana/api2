@@ -1,4 +1,4 @@
-# .grype.yaml (Place this in your source code repository)
+# ..grype.yaml (Place this in your source code repository)
 ignore:
 # 1. Suppress a specific vulnerability globally across all packages
 - vulnerability: GHSA-36p3-wjmg-h94x
