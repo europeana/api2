@@ -2,12 +2,13 @@ package eu.europeana.api2.v2.service.translate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api2.config.SupportedLanguages;
 import eu.europeana.api2.v2.utils.LanguageFilter;
 import eu.europeana.api2.v2.utils.MockBeanConstants;
 import eu.europeana.api2.v2.utils.MockFullBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import org.apache.logging.log4j.LogManager;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -24,6 +25,13 @@ import static org.junit.Assert.*;
  */
 public class BeanFilterLanguageTest {
 
+    private SupportedLanguages supportedLangs;
+
+    @Before
+    public void setup() {
+        supportedLangs = new SupportedLanguages("en,nl,fr,de,pl,es");
+    }
+
     @Test
     public void testSingleFilter() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
@@ -31,8 +39,8 @@ public class BeanFilterLanguageTest {
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Unfiltered fullbean = {}",
                 mapper.writeValueAsString(bean));
 
-        List<Language> languages = Collections.singletonList(Language.EN);
-        LanguageFilter.filter(bean, languages);
+        List<String> languages = Collections.singletonList(MockBeanConstants.EN);
+        LanguageFilter.filter(bean, languages, supportedLangs);
         LogManager.getLogger(BeanFilterLanguageTest.class).info("Filtered fullbean = {}",
                 mapper.writeValueAsString(bean));
 
@@ -74,8 +82,8 @@ public class BeanFilterLanguageTest {
     @Test
     public void testMultipleFilter() {
         FullBean bean = MockFullBean.mock();
-        List<Language> languages = new ArrayList<>(Arrays.asList(Language.PL, Language.IT, Language.BG));
-        LanguageFilter.filter(bean, languages);
+        List<String> languages = new ArrayList<>(Arrays.asList(MockBeanConstants.PL, MockBeanConstants.IT, MockBeanConstants.BG));
+        LanguageFilter.filter(bean, languages, supportedLangs);
 
         // first agents.preflabel should now have only 1 translation (English, Polish one should be filtered out)
         assertEquals(1, bean.getAgents().get(0).getPrefLabel().size());
@@ -86,8 +94,8 @@ public class BeanFilterLanguageTest {
     @Test
     public void testMultipleFilterWithLocales() {
         FullBean bean = MockFullBean.mock();
-        List<Language> languages = new ArrayList<>(Arrays.asList(Language.EN, Language.NL, Language.DE));
-        LanguageFilter.filter(bean, languages);
+        List<String> languages = new ArrayList<>(Arrays.asList(MockBeanConstants.EN, MockBeanConstants.NL, MockBeanConstants.DE));
+        LanguageFilter.filter(bean, languages, supportedLangs);
 
         // dcTermsMedium should have en-GB and nl-NL values - assert to check filtering with locales
         assertEquals(2, bean.getProxies().get(1).getDctermsMedium().size());

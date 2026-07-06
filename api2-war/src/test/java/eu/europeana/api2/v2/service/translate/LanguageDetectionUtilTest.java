@@ -1,6 +1,6 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api2.config.SupportedLanguages;
 import eu.europeana.api2.v2.model.translate.LanguageValueFieldMap;
 import eu.europeana.api2.v2.utils.MockBeanConstants;
 import eu.europeana.api2.v2.utils.MockFullBean;
@@ -45,29 +45,32 @@ public class LanguageDetectionUtilTest {
     private static final List<String> FR_VALUES = Arrays.asList("graveur");
     private static final List<String> EN_VALUES = Arrays.asList("GrAveur", "paris hilton", "VoetBal", "calamatta, luigi (1801 - 1869)");
 
+    private SupportedLanguages supportedLangs;
 
     @Before
     public void setup() {
         map.clear();
         map.put(DEF, DEF_VALUES);
         map.put(DE, DE_VALUES);
+
+        supportedLangs = new SupportedLanguages("en,nl,fr,de,pl,es");
     }
 
     // test valid edm lang
     @Test
     public void Test_getEdmLanguage_Record_1() {
-        List<Language> language = LanguageDetectionUtils.getEdmLanguage(bean, false);
+        List<String> language = LanguageDetectionUtils.getEdmLanguage(bean, false, supportedLangs);
         Assert.assertFalse(language.isEmpty());
-        Assert.assertEquals(Language.NL, language.get(0));
+        Assert.assertEquals(MockBeanConstants.NL, language.get(0));
     }
 
     // test valid edm lang
     @Test
     public void Test_getEdmLanguage_Search_1() {
         BriefBean bean =  MockSearchBeanResults.mockForLang("de");
-        List<Language> language = LanguageDetectionUtils.getEdmLanguage(bean, true);
+        List<String> language = LanguageDetectionUtils.getEdmLanguage(bean, true, supportedLangs);
         Assert.assertFalse(language.isEmpty());
-        Assert.assertEquals(Language.DE, language.get(0));
+        Assert.assertEquals(MockBeanConstants.DE, language.get(0));
     }
 
     // test region codes
@@ -83,16 +86,16 @@ public class LanguageDetectionUtilTest {
         europeanaAggregation.getEdmLanguage().get(MockBeanConstants.DEF).add("en-GB");
         bean.setEuropeanaAggregation(europeanaAggregation);
 
-        List<Language> language = LanguageDetectionUtils.getEdmLanguage(bean, false);
+        List<String> language = LanguageDetectionUtils.getEdmLanguage(bean, false, supportedLangs);
         Assert.assertFalse(language.isEmpty());
-        Assert.assertEquals(Language.EN, language.get(0));
+        Assert.assertEquals(MockBeanConstants.EN, language.get(0));
     }
 
     // test Invalid edm lang
     @Test
     public void Test_getEdmLanguage_Search_2() {
         BriefBean bean =  MockSearchBeanResults.mockForLang("mul");
-        List<Language> language = LanguageDetectionUtils.getEdmLanguage(bean, true);
+        List<String> language = LanguageDetectionUtils.getEdmLanguage(bean, true, supportedLangs);
         Assert.assertTrue(language.isEmpty());
     }
 
@@ -109,7 +112,7 @@ public class LanguageDetectionUtilTest {
         europeanaAggregation.getEdmLanguage().get(MockBeanConstants.DEF).add("mul");
         bean.setEuropeanaAggregation(europeanaAggregation);
 
-        List<Language> language = LanguageDetectionUtils.getEdmLanguage(bean, false);
+        List<String> language = LanguageDetectionUtils.getEdmLanguage(bean, false, supportedLangs);
         Assert.assertTrue(language.isEmpty());
     }
 
@@ -117,9 +120,9 @@ public class LanguageDetectionUtilTest {
     @Test
     public void Test_getEdmLanguage_Search_3() {
         BriefBean bean =  MockSearchBeanResults.mockForLang("de-NL");
-        List<Language> language = LanguageDetectionUtils.getEdmLanguage(bean, true);
+        List<String> language = LanguageDetectionUtils.getEdmLanguage(bean, true, supportedLangs);
         Assert.assertFalse(language.isEmpty());
-        Assert.assertEquals(Language.DE, language.get(0));
+        Assert.assertEquals(MockBeanConstants.DE, language.get(0));
 
     }
 

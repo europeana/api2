@@ -1,7 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
-import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.translation.definitions.model.TranslationObj;
+import eu.europeana.api2.config.Language;
 import eu.europeana.api2.v2.model.translate.TranslationMap;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.ContextualClass;

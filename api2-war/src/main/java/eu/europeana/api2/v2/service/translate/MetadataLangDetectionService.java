@@ -1,9 +1,10 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.client.TranslationApiClient;
-import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.translation.definitions.model.LanguageDetectionObj;
 import eu.europeana.api.translation.service.exception.LanguageDetectionException;
+import eu.europeana.api2.config.Language;
+import eu.europeana.api2.config.SupportedLanguages;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.model.translate.LanguageValueFieldMap;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -27,9 +28,12 @@ public class MetadataLangDetectionService extends BaseService {
 
     private final Integer translationCharLimit;
     private final Integer translationCharTolerance;
+    private final SupportedLanguages supportedLanguages;
 
-    public MetadataLangDetectionService(TranslationApiClient translationApiClient, Integer translationCharLimit, Integer translationCharTolerance) {
+    public MetadataLangDetectionService(SupportedLanguages supportedLanguages, TranslationApiClient translationApiClient,
+                                        Integer translationCharLimit, Integer translationCharTolerance) {
         super(translationApiClient);
+        this.supportedLanguages = supportedLanguages;
         this.translationCharLimit = translationCharLimit;
         this.translationCharTolerance = translationCharTolerance;
     }
@@ -42,10 +46,10 @@ public class MetadataLangDetectionService extends BaseService {
      * @param bean bean that extends IdBean See: {@link IdBean}
      * @return
      */
-    private <T extends IdBean> String getHintForLanguageDetect(T bean, boolean searchResults) {
-        List<Language> edmLanguages = LanguageDetectionUtils.getEdmLanguage(bean, searchResults);
+    private <T extends IdBean> String getHintForLanguageDetect(T bean, boolean searchResults, SupportedLanguages supportedLanguages) {
+        List<String> edmLanguages = LanguageDetectionUtils.getEdmLanguage(bean, searchResults, supportedLanguages);
         if (!edmLanguages.isEmpty()) {
-            String edmLang = edmLanguages.get(0).name().toLowerCase(Locale.ROOT);
+            String edmLang = edmLanguages.get(0).toLowerCase(Locale.ROOT);
             if (getTranslationApiClient().getLanguageDetectionService().isSupported(edmLang)) {
                 LOG.debug("For record {}, hint for lang-detection is {} ", searchResults ? bean.getId() : ((FullBean) bean).getAbout(), edmLang);
                 return edmLang;
@@ -82,7 +86,7 @@ public class MetadataLangDetectionService extends BaseService {
             }, BaseService.searchFieldFilter);
 
             if (!langValueFieldMapForDetection.isEmpty()) {
-                String langHint = getHintForLanguageDetect(bean, true);
+                String langHint = getHintForLanguageDetect(bean, true, supportedLanguages);
                 // 2. Send data to Translation API
                 detectLanguageAndUpdate(langValueFieldMapForDetection, bean, langHint, true, start, authToken);
             }
@@ -114,7 +118,7 @@ public class MetadataLangDetectionService extends BaseService {
             LOG.error("Unexpected data - expected at least 2 proxies, but found only {}!", proxies.size());
             return bean;
         }
-        String langHint = getHintForLanguageDetect(bean, false);
+        String langHint = getHintForLanguageDetect(bean, false, supportedLanguages);
 
         // remove europeana proxy from the list
         Proxy europeanaProxy = BaseService.getEuropeanaProxy(proxies, bean.getAbout());

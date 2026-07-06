@@ -2,6 +2,7 @@ package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.definitions.language.Language;
 import eu.europeana.api.translation.service.exception.LanguageDetectionException;
+import eu.europeana.api2.config.SupportedLanguages;
 import eu.europeana.api2.v2.exceptions.TranslationException;
 import eu.europeana.api2.v2.exceptions.TranslationServiceNotAvailableException;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
@@ -26,11 +27,15 @@ public class TranslationService {
 
     private static final Logger LOG = LogManager.getLogger(TranslationService.class);
 
+    SupportedLanguages supportedLanguages;
     MetadataTranslationService metadataTranslationService;
     MetadataLangDetectionService metadataLangDetectionService;
 
     @Autowired
-    public TranslationService(MetadataTranslationService metadataTranslationService, MetadataLangDetectionService metadataLangDetectionService) {
+    public TranslationService(SupportedLanguages supportedLanguages,
+                              MetadataTranslationService metadataTranslationService,
+                              MetadataLangDetectionService metadataLangDetectionService) {
+        this.supportedLanguages = supportedLanguages;
         this.metadataLangDetectionService = metadataLangDetectionService;
         this.metadataTranslationService = metadataTranslationService;
     }
@@ -95,7 +100,7 @@ public class TranslationService {
 
             if (translatedDuringIngestion.contains(Boolean.TRUE)) {
                 LOG.info("Record was translated during the ingestion.. ");
-                if (StringUtils.equals(targetLanguage, Language.PIVOT)) {
+                if (StringUtils.equals(targetLanguage, eu.europeana.api.translation.definitions.language.Language.PIVOT)) {
                     return bean; // do nothing
                 } else {
                     // call translation workflow
@@ -156,7 +161,7 @@ public class TranslationService {
      * NOTE : For region locales values, if present in edm:languages
      * the first two ISO letters will be picked up.
      *
-     * Only returns the supported official languages,See: {@link Language}
+     * Only returns the supported official languages,See: {@link SupportedLanguages}
      * Default translation and filtering for non-official language
      * is not supported
      *
@@ -164,13 +169,14 @@ public class TranslationService {
      * @return the default language as specified in Europeana Aggregation edmLanguage field (if the language found there
      * is one of the EU languages we support in this application for translation)
      */
-    public List<Language> getDefaultTranslationLanguage(FullBean bean) {
-        List<Language> lang = new ArrayList<>();
+    public List<String> getDefaultTranslationLanguage(FullBean bean) {
+        List<String> lang = new ArrayList<>();
         Map<String,List<String>> edmLanguage = bean.getEuropeanaAggregation().getEdmLanguage();
         for (Map.Entry<String, List<String>> entry : edmLanguage.entrySet()) {
             for (String languageAbbreviation : entry.getValue()) {
-                if (Language.isSupported(languageAbbreviation)) {
-                    lang.add(Language.getLanguage(languageAbbreviation));
+
+                if (supportedLanguages.isSupported(languageAbbreviation)) {
+                    lang.add(eu.europeana.api2.config.Language.getCleanedLangAbbreviation(languageAbbreviation));
                 } else {
                     LOG.warn("edm:language '{}' is not supported for default translation and filtering ", languageAbbreviation);
                 }

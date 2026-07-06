@@ -1,6 +1,7 @@
 package eu.europeana.api2.v2.utils;
 
-import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api2.config.Language;
+import eu.europeana.api2.config.SupportedLanguages;
 import eu.europeana.api2.v2.service.translate.BaseService;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.entity.EuropeanaAggregation;
@@ -35,10 +36,10 @@ public final class LanguageFilter {
      * @param targetLangs the languages that need to remain in the search result
      * @return filtered search result of fullbean
      */
-    public static IdBean filter(IdBean bean, List<Language> targetLangs) {
+    public static IdBean filter(IdBean bean, List<String> targetLangs, SupportedLanguages supportedLangs) {
         long startTime = System.currentTimeMillis();
         Set<String> proxyFieldsWithTargetLang = new TreeSet<>();
-        iterativeFilterFields(bean, targetLangs, proxyFieldsWithTargetLang);
+        iterativeFilterFields(bean, targetLangs, supportedLangs, proxyFieldsWithTargetLang);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Filtering language data took {} ms", (System.currentTimeMillis() - startTime));
         }
@@ -62,7 +63,7 @@ public final class LanguageFilter {
      * 2) it is a bit slower than the getDeclaredFields approach
      */
     @SuppressWarnings("java:S3011") // suppress the setAccessibility(true) or ReflectionUtils.makeAccessible warning
-    private static void iterativeFilterFields(Object o, List<Language> targetLangs,  Set<String> proxyFieldsWithTargetLang) {
+    private static void iterativeFilterFields(Object o, List<String> targetLangs, SupportedLanguages supportedLangs, Set<String> proxyFieldsWithTargetLang) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Inspecting object {}", o.getClass().getName());
         }
@@ -75,7 +76,7 @@ public final class LanguageFilter {
                 LOG.debug("  Field {} has class {}", field.getName(), fieldValue == null ? null : fieldValue.getClass());
             }
             if (fieldValue instanceof Map<?, ?>) {
-                 filterLanguageMap(field.getName(), (Map<?, ?>) fieldValue, targetLangs,
+                 filterLanguageMap(field.getName(), (Map<?, ?>) fieldValue, targetLangs, supportedLangs,
                     filterOnlyTargetLanguage(o, proxyFieldsWithTargetLang, field.getName()));
 
                 // if object is proxy and we have already gathered the fieldValue in target language then add it in the proxyFieldsWithTargetLang set
@@ -85,10 +86,10 @@ public final class LanguageFilter {
                 }
             } else if (fieldValue instanceof List) {
                 for (Object item : ((List<?>) fieldValue)) {
-                    iterativeFilterFields(item, targetLangs, proxyFieldsWithTargetLang);
+                    iterativeFilterFields(item, targetLangs, supportedLangs, proxyFieldsWithTargetLang);
                 }
             } else if (fieldValue instanceof EuropeanaAggregation) {
-                iterativeFilterFields(fieldValue, targetLangs, proxyFieldsWithTargetLang);
+                iterativeFilterFields(fieldValue, targetLangs, supportedLangs, proxyFieldsWithTargetLang);
             } else {
                 assert fieldValue == null : "Unknown field class " + fieldValue.getClass() + ". Checks do not match field filter";
             }
@@ -126,10 +127,10 @@ public final class LanguageFilter {
      * @param targetLangs target languages for filtering
      * @return boolean value
      */
-    private static boolean ifFieldHasTargetLangValue(Map<?,?> map, List<Language> targetLangs) {
+    private static boolean ifFieldHasTargetLangValue(Map<?,?> map, List<String> targetLangs) {
         Set<String> keyset = (Set<String>) map.keySet();
-        for (Language language : targetLangs) {
-             if (keyset.contains(language.name().toLowerCase(Locale.ROOT))) {
+        for (String language : targetLangs) {
+             if (keyset.contains(language.toLowerCase(Locale.ROOT))) {
                  return  true; // if any of the target language found return true
              }
         }
@@ -157,7 +158,7 @@ public final class LanguageFilter {
      * @param filterOnlyTargetLanguage if true, only look for the target language values and don't perform the default filtering.
      */
     private static void filterLanguageMap(String fieldName, Map<?, ?> map,
-        List<Language> targetLangs, boolean filterOnlyTargetLanguage) {
+                                          List<String> targetLangs, SupportedLanguages supportedLangs, boolean filterOnlyTargetLanguage) {
         LOG.debug("    Map {} has {} keys and {} values", fieldName, map.keySet().size(),
             map.values().size());
         List<String> keysToRemove = new ArrayList<>();
@@ -167,7 +168,8 @@ public final class LanguageFilter {
             // Language keys of search results are compound and exist of <solrFieldName>.<lang>, so we need to filter
             // the language from the key name
             String keyLang = origKey.substring(origKey.indexOf(".") + 1);
-            if (filterOnlyTargetLanguage && (!Language.isSupported(keyLang) || !targetLangs.contains(Language.getLanguage(keyLang)))) {
+            if (filterOnlyTargetLanguage && (!supportedLangs.isSupported(keyLang) ||
+                    !targetLangs.contains(Language.getCleanedLangAbbreviation(keyLang)))) {
                 // 'zxx' and 'def' will be removed as they are non supported languages
                 LOG.debug("     Proxy field {} is already filtered for target lang. Removing key {}, value {}",
                     fieldName, origKey, keyValue.getValue());
@@ -179,7 +181,8 @@ public final class LanguageFilter {
                     continue;
                 }
                 // remove all unsupported languages and languages not requested
-                if (Language.isNoLinguisticContent(keyLang) || (Language.isSupported(keyLang) && targetLangs.contains(Language.getLanguage(keyLang)))) {
+                if (Language.isNoLinguisticContent(keyLang) || (supportedLangs.isSupported(keyLang) &&
+                        targetLangs.contains(Language.getCleanedLangAbbreviation(keyLang)))) {
                     LOG.debug("      Keeping key {}, value {}", origKey, keyValue.getValue());
                 } else {
                     LOG.debug("      Removing key {}, value {}", origKey, keyValue.getValue());
