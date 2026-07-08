@@ -332,7 +332,7 @@ public class ObjectController extends BaseController {
         // 1. Validation of parameters
         DataSourceWrapper dataSources = validateRequestParameters(data.recordType, data, response).get();
 
-        // 2) Get the plain fullbean (not enriched yet)
+        // 2) Get the plain fullbean ( fetches the web meta infos but not enriched yet)
         FullBean bean = null;
         if (dataSources.getRecordDao().isPresent()) {
             bean = recordService.fetchFullBean(dataSources.getRecordDao().get(), data.europeanaId);
@@ -375,7 +375,7 @@ public class ObjectController extends BaseController {
             return null; // we set the response code in the generateCachedAnswer method and let Spring Boot the rest
         }
 
-        // 7) Process bean further (adding webresource meta info, set proper urls)
+        // 7) Process bean further ( ordering and  set proper urls)
         if (dataSources.getRecordDao().isPresent()) {
             BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
             bean = recordService.enrichFullBean(dataSources.getRecordDao().get(), bean, baseUrls);
