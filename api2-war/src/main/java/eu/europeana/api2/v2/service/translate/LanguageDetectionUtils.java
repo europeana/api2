@@ -1,7 +1,8 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.commons.definitions.utils.ComparatorUtils;
-import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api2.config.Language;
+import eu.europeana.api2.config.SupportedLanguages;
 import eu.europeana.api2.v2.model.translate.LanguageValueFieldMap;
 import eu.europeana.corelib.definitions.edm.beans.BriefBean;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
@@ -12,7 +13,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class LanguageDetectionUtils {
@@ -28,7 +28,7 @@ public class LanguageDetectionUtils {
      * NOTE : For region locales values, if present in edm:languages
      * the first two ISO letters will be picked up.
      * <p>
-     * Only returns the supported official languages,See: {@link Language}
+     * Only returns the supported official languages,See: {@link SupportedLanguages}
      * Default translation and filtering for non-official language
      * is not supported
      *
@@ -37,14 +37,14 @@ public class LanguageDetectionUtils {
      * @return the default language as specified in Europeana Aggregation edmLanguage field OR in the Language field of the serach Results Brief beans
      * (if the language found there is one of the EU languages we support in this application for translation)
      */
-    public static <T extends IdBean> List<Language> getEdmLanguage(T bean, boolean searchResults) {
-        List<Language> lang = new ArrayList<>();
+    public static <T extends IdBean> List<String> getEdmLanguage(T bean, boolean searchResults, SupportedLanguages supportedLanguages) {
+        List<String> lang = new ArrayList<>();
         Map<String, List<String>> edmLanguage = getLanguageFieldValue(bean, searchResults);
 
         for (Map.Entry<String, List<String>> entry : edmLanguage.entrySet()) {
             for (String languageAbbreviation : entry.getValue()) {
-                if (Language.isSupported(languageAbbreviation)) {
-                    lang.add(Language.getLanguage(languageAbbreviation));
+                if (supportedLanguages.isSupported(languageAbbreviation)) {
+                    lang.add(Language.getCleanedLangAbbreviation(languageAbbreviation));
                 } else {
                     LOG.warn("edm:language '{}' is not supported", languageAbbreviation);
                 }

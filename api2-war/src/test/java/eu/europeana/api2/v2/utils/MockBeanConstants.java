@@ -10,8 +10,6 @@ package eu.europeana.api2.v2.utils;
  * Created on 09-05-2020
  */
 
-import java.util.Date;
-
 public class MockBeanConstants {
 
     public static final String COMMON_ABOUT             = "2021618/internetserver_Details_kunst_25027";
@@ -24,6 +22,7 @@ public class MockBeanConstants {
     public static final String DE                       = "de";
     public static final String NO                       = "no";
     public static final String NL                       = "nl";
+    public static final String BG                       = "bg";
     public static final String EN_GB                    = "en-GB";
     public static final String NL_NL                    = "nl-NL";
     public static final String DE_NL                    = "de-NL";

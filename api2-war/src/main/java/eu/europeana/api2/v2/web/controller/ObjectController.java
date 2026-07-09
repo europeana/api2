@@ -4,8 +4,7 @@ import eu.europeana.api.commons.error.EuropeanaApiException;
 import eu.europeana.api.commons.utils.RiotRdfUtils;
 import eu.europeana.api.commons.utils.TurtleRecordWriter;
 import eu.europeana.api.commons.web.exception.ApplicationAuthenticationException;
-import eu.europeana.api.translation.definitions.exceptions.InvalidLanguageException;
-import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api2.config.SupportedLanguages;
 import eu.europeana.api2.model.json.ApiError;
 import eu.europeana.api2.utils.JsonUtils;
 import eu.europeana.api2.v2.exceptions.*;
@@ -92,6 +91,7 @@ public class ObjectController extends BaseController {
     private static Object       jsonldContext           = new Object();
 
     private final RecordService      recordService;
+    private final SupportedLanguages supportedLanguages;
     private final TranslationService recordTranslations;
     private final HttpCacheUtils     httpCacheUtils;
 
@@ -119,10 +119,13 @@ public class ObjectController extends BaseController {
      * @param httpCacheUtils for request caching
      */
     @Autowired
-    public ObjectController(RouteDataService routeService, RecordService recordService, @Nullable TranslationService recordTranslations,
-                             HttpCacheUtils httpCacheUtils) {
+    public ObjectController(RouteDataService routeService, RecordService recordService,
+                            SupportedLanguages supportedLanguage,
+                            @Nullable TranslationService recordTranslations,
+                            HttpCacheUtils httpCacheUtils) {
         super(routeService);
         this.recordService = recordService;
+        this.supportedLanguages = supportedLanguage;
         this.httpCacheUtils = httpCacheUtils;
         this.recordTranslations = recordTranslations;
         // default the value
@@ -388,7 +391,7 @@ public class ObjectController extends BaseController {
 
         // 9) When lang profile is provided, do filtering
         if (data.languages != null && !data.languages.isEmpty()) {
-            bean = (FullBean) LanguageFilter.filter(bean, data.languages);
+            bean = (FullBean) LanguageFilter.filter(bean, data.languages, supportedLanguages);
         }
 
         // 10) Generate output
@@ -423,11 +426,7 @@ public class ObjectController extends BaseController {
             throw new TranslationServiceDisabledException();
         }
         if (data.lang != null) {
-            try {
-                data.setLanguages(Language.validateMultiple(data.lang));
-            } catch (InvalidLanguageException e) {
-                throw new InvalidParamValueException(e.getMessage());
-            }
+            data.setLanguages(supportedLanguages.validateMultiple(data.lang));
         }
 
         return dataSource;
@@ -499,7 +498,7 @@ public class ObjectController extends BaseController {
         }
         if (data.languages != null && !data.languages.isEmpty()) {
             try {
-                bean = recordTranslations.translate(bean, data.languages.get(0).name().toLowerCase(Locale.ROOT),
+                bean = recordTranslations.translate(bean, data.languages.get(0),
                         getAuthorizationHeader(data.servletRequest));
             } catch (TranslationServiceNotAvailableException e) {
                 // EA-3463 - return 307 redirect without profile param and Keep the Error Response
@@ -659,7 +658,7 @@ public class ObjectController extends BaseController {
         String             profile;
         Set<Profile>       profiles;
         String             lang;
-        List<Language>     languages;
+        List<String>       languages;
         String             callback;
         HttpServletRequest servletRequest;
 
@@ -674,7 +673,7 @@ public class ObjectController extends BaseController {
             this.servletRequest = servletRequest;
         }
 
-        void setLanguages(List<Language> languages) {
+        void setLanguages(List<String> languages) {
             this.languages = languages;
         }
     }

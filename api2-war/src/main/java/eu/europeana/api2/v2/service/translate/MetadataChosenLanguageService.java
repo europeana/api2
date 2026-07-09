@@ -1,7 +1,7 @@
 package eu.europeana.api2.v2.service.translate;
 
 import eu.europeana.api.translation.client.TranslationApiClient;
-import eu.europeana.api.translation.definitions.language.Language;
+import eu.europeana.api2.config.Language;
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.beans.IdBean;
 import eu.europeana.corelib.definitions.edm.entity.Proxy;
@@ -92,7 +92,7 @@ public class MetadataChosenLanguageService extends BaseService {
         Map<String, List<String>> langValueMap = getLanguageValueMap(object, field, searchResults);
         if (!langValueMap.isEmpty()) {
             for (Map.Entry<String, List<String>> langValue : langValueMap.entrySet()) {
-                String key = Language.stripLangStringIfRegionPresent(langValue.getKey()); // if region codes present get the first two ISO letters
+                String key = Language.stripRegionIfPresent(langValue.getKey()); // if region codes present get the first two ISO letters
                 if (languageToBeChosen(key, targetLang)) {
                     Integer value = langValue.getValue().size();
                     if (langCountMap.containsKey(key)) {

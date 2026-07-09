@@ -136,16 +136,27 @@ public class AppConfig {
         Api2UrlService urlService = new Api2UrlService(routeConfigLoader().getRouteBaseUrlMap(), portalBaseUrl,
                 api2BaseUrl, apikeyServiceUrl, apiGatewayBaseUrl);
         // log default baseUrls used for requests without a matching route in the config
-        LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl(""));
-        LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl(""));
-        LogManager.getLogger(Api2UrlService.class).info("API gateway base url = {}", urlService.getApiGatewayBaseUrl(""));
-        LogManager.getLogger(Api2UrlService.class).info("");
-        LogManager.getLogger(Api2UrlService.class).info("Apikey service url = {}", urlService.getApikeyServiceUrl());
+        if (LogManager.getLogger(Api2UrlService.class).isInfoEnabled()) {
+            LogManager.getLogger(Api2UrlService.class).info("Portal base url = {}", urlService.getPortalBaseUrl(""));
+            LogManager.getLogger(Api2UrlService.class).info("API2 base url = {}", urlService.getApi2BaseUrl(""));
+            LogManager.getLogger(Api2UrlService.class).info("API gateway base url = {}", urlService.getApiGatewayBaseUrl(""));
+            LogManager.getLogger(Api2UrlService.class).info("");
+            LogManager.getLogger(Api2UrlService.class).info("Apikey service url = {}", urlService.getApikeyServiceUrl());
+        }
         return urlService;
     }
 
     /**
-     * Initialize the multil lingual search query generator if the option is enabled and there's a translation engein
+     * Initialize the SupportedLanguages bean
+     * @return bean with supported languages loaded from the configuration file
+     */
+    @Bean
+    public SupportedLanguages supportedLanguages() {
+        return new SupportedLanguages();
+    }
+
+    /**
+     * Initialize the multi lingual search query generator if the option is enabled and there's a translation engein
      * configured
      * @return query generator bean or null
      */
@@ -202,11 +213,13 @@ public class AppConfig {
     @Bean
     public TranslationService translationService() throws InvalidConfigurationException {
         if (translationRecord || translationSearchQuery || translationSearchResults) {
+            SupportedLanguages supportedLanguages = this.supportedLanguages(); // HACK, we need to create another bean here
             return new TranslationService(
+                        supportedLanguages,
                         new MetadataTranslationService(getTranslationApiClient(),
                         new MetadataChosenLanguageService(getTranslationApiClient()),
                                 translationCharLimit, translationCharTolerance),
-                        new MetadataLangDetectionService(getTranslationApiClient(),
+                        new MetadataLangDetectionService(supportedLanguages, getTranslationApiClient(),
                                 translationCharLimit, translationCharTolerance));
         }
         return null;

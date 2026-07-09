@@ -1,5 +1,6 @@
 package eu.europeana.api2.v2.web.controller;
 
+import eu.europeana.api2.config.SupportedLanguages;
 import eu.europeana.api2.v2.service.RouteDataService;
 import eu.europeana.api2.v2.service.translate.TranslationService;
 import eu.europeana.api2.v2.utils.HttpCacheUtils;
@@ -22,6 +23,7 @@ public class ObjectControllerTest {
     private static ObjectController objectController;
     private static RouteDataService routeDataService;
     private static RecordService recordService;
+    private static SupportedLanguages supportedLang;
     private static TranslationService recordTranslations;
     private static HttpCacheUtils httpCacheUtils;
 
@@ -32,10 +34,11 @@ public class ObjectControllerTest {
     public void setup() {
         routeDataService = mock(RouteDataService.class);
         recordService = mock(RecordService.class);
+        supportedLang = mock (SupportedLanguages.class);
         recordTranslations = mock(TranslationService.class);
         httpCacheUtils = mock(HttpCacheUtils.class);
 
-        objectController = spy(new ObjectController(routeDataService, recordService, recordTranslations, httpCacheUtils));
+        objectController = spy(new ObjectController(routeDataService, recordService, supportedLang, recordTranslations, httpCacheUtils));
 
         objectControllerMock = MockMvcBuilders
                 .standaloneSetup(objectController)
