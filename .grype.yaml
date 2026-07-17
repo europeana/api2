@@ -1,0 +1,10 @@
+ignore:
+- reason: "Spring 5.3.x does not contain an OSS fix for HTTP Invoker. Confirmed that HTTP Invoker deserialization is not utilized by this application. Risk accepted until upcoming v6 rewrite."
+  package:
+    name: "spring-web"
+  vulnerability: "GHSA-4wrc-f8pq-fpqp"
+
+- reason: "Risk accepted on legacy application. Upgrading past 5.8.23 to clear this header vulnerability requires commercial enterprise binaries. Mitigation: App is scheduled for a full architectural rewrite to Spring 6.x."
+  package:
+    name: "spring-security-web"
+  vulnerability: "GHSA-mf92-479x-3373"
