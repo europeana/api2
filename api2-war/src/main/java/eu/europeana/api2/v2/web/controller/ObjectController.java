@@ -335,7 +335,7 @@ public class ObjectController extends BaseController {
         // 1. Validation of parameters
         DataSourceWrapper dataSources = validateRequestParameters(data.recordType, data, response).get();
 
-        // 2) Get the plain fullbean (not enriched yet)
+        // 2) Get the plain fullbean ( fetches the web meta infos but not enriched yet)
         FullBean bean = null;
         if (dataSources.getRecordDao().isPresent()) {
             bean = recordService.fetchFullBean(dataSources.getRecordDao().get(), data.europeanaId);
@@ -378,7 +378,7 @@ public class ObjectController extends BaseController {
             return null; // we set the response code in the generateCachedAnswer method and let Spring Boot the rest
         }
 
-        // 7) Process bean further (adding webresource meta info, set proper urls)
+        // 7) Process bean further ( ordering and  set proper urls)
         if (dataSources.getRecordDao().isPresent()) {
             BaseUrlWrapper baseUrls = routeService.getBaseUrlsForRequest(data.servletRequest.getServerName());
             bean = recordService.enrichFullBean(dataSources.getRecordDao().get(), bean, baseUrls);
@@ -559,46 +559,65 @@ public class ObjectController extends BaseController {
     }
 
     private ModelAndView generateJsonLd(FullBean bean, RequestData data, HttpServletResponse response) {
-        String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
-        try (StringReader reader = new StringReader(rdf);
-            StringWriter writer = new StringWriter()) {
+        try (StringReader rdfIn = new StringReader(EdmUtils.toEDM((FullBeanImpl) bean));
+             StringWriter writer = new StringWriter()) {
+
             RiotRdfUtils.disableErrorForSpaceURI();
-            Model modelResult = ModelFactory.createDefaultModel().read(reader, "RDF/XML");
+            Model modelResult = ModelFactory.createDefaultModel()
+                    .read(rdfIn, null, "RDF/XML");
+
             DatasetGraph graph = DatasetFactory.wrap(modelResult).asDatasetGraph();
+
             JsonLDWriteContext ctx = new JsonLDWriteContext();
             ctx.setJsonLDContext(ObjectController.jsonldContext);
-            RDFWriterBuilder writerBuilder = RDFWriter.create();
-            RDFWriter rdfWriter = writerBuilder.source(graph).format(RDFFormat.JSONLD10_FLAT).context(ctx).build();
+
+            RDFWriter rdfWriter = RDFWriter.create()
+                    .source(graph)
+                    .format(RDFFormat.JSONLD10_FLAT)
+                    .context(ctx)
+                    .build();
+
             rdfWriter.output(writer);
-            // Jena model sorts the data with it's own logic. We can not manipulate the order there.
-            // Hence, we will sort the hasView with JsonObject that is created by RDFWriter.
+
+            // Jena model sorts the data with its own logic. We cannot manipulate the order there.
+            // Hence, we will sort the hasView with the JsonObject created by RDFWriter.
             String orderedJsonLd = ModelUtils.sortHasViews(bean, writer.toString());
             return JsonUtils.toJsonLd(orderedJsonLd, data.callback);
-        } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
+            }
+         catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing JSON-LD data", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            ApiError errorDetails = new ApiError(data.wskey, e.getClass().getSimpleName() + ": " + e.getMessage());
-            return JsonUtils.toJson(errorDetails,data.callback);
+            ApiError errorDetails = new ApiError(
+                    data.wskey,
+                    e.getClass().getSimpleName() + ": " + e.getMessage());
+
+            return JsonUtils.toJson(errorDetails, data.callback);
         }
     }
 
     private ModelAndView generateRdf(FullBean bean) {
-        Map<String, Object> model = new HashMap<>();
-        model.put("record", EdmUtils.toEDM((FullBeanImpl) bean));
-        return new ModelAndView("rdf", model);
+        try  {
+            Map<String, Object> model = new HashMap<>();
+            model.put("record", EdmUtils.toEDM((FullBeanImpl) bean));
+            return new ModelAndView("rdf", model);
+        } catch (IOException e) {
+            LOG.error("Error parsing Turtle data for record {}", bean.getAbout(), e);
+            return null;
+        }
     }
 
     private ModelAndView generateTurtle(FullBean bean, RequestData data, HttpServletResponse response) {
         Map<String, Object> model = new HashMap<>();
-        String rdf    = EdmUtils.toEDM((FullBeanImpl) bean);
         try (OutputStream outputStream = new ByteArrayOutputStream();
-             InputStream rdfInput = IOUtils.toInputStream(rdf, StandardCharsets.UTF_8);
-             TurtleRecordWriter writer= new TurtleRecordWriter(outputStream)) {
-             Model modelResult = ModelFactory.createDefaultModel().read(rdfInput, "", "RDF/XML");
-             writer.write(modelResult);
-             model.put("record", outputStream);
-             return new ModelAndView("ttl", model);
-        } catch (IOException | IllegalAccessException | NoSuchFieldException e) {
+             StringReader reader = new StringReader(EdmUtils.toEDM((FullBeanImpl) bean));
+             TurtleRecordWriter turtleRecordWriter = new TurtleRecordWriter(outputStream)) {
+
+            Model modelResult = ModelFactory.createDefaultModel().read(reader, "", "RDF/XML");
+            turtleRecordWriter.write(modelResult);
+            model.put("record", outputStream);
+            return new ModelAndView("ttl", model);
+            }
+        catch (IOException | IllegalAccessException | NoSuchFieldException e) {
             LOG.error("Error parsing Turtle data for record {}", bean.getAbout(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return JsonUtils.toJson(new ApiError(data.wskey,e.getClass().getSimpleName()+": "+e.getMessage()),data.callback);
