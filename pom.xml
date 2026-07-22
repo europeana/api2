@@ -43,7 +43,7 @@
         <!-- dependencies below are also used in Corelib, would be best to match version -->
         <commonsLang3.version>3.17.0</commonsLang3.version>
         <httpclient.version>4.5.14</httpclient.version>
-        <jackson.version>2.18.0</jackson.version>
+        <jackson.version>2.18.8</jackson.version>
         <jodatime.version>2.13.0</jodatime.version>
         <log4j2.version>2.24.1</log4j2.version>
         <!-- Also note that if we upgrade SpringBoot to v1.4.x or later we break the current info endpoint functionality -->
@@ -55,6 +55,11 @@
         <mockito.version>3.12.4</mockito.version>
         <servletJstl.version>1.2</servletJstl.version>
         <springWebService.version>2.4.7.RELEASE</springWebService.version>
+<!--        Fixing some obvious high vulnerabilities as well-->
+        <protobuf-java.version>3.25.5</protobuf-java.version>
+        <jettison.version>1.5.4</jettison.version>
+        <netty-handler.version>4.1.135.Final</netty-handler.version>
+        <netty-codec-http2.version>4.1.135.Final</netty-codec-http2.version>
     </properties>
 
     <repositories>
@@ -85,6 +90,34 @@
 
     <dependencyManagement>
         <dependencies>
+
+            <!-- Fixes Protobuf High Vulnerability -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf-java.version}</version>
+            </dependency>
+
+            <!-- Fixes Jettison High Vulnerabilities -->
+            <dependency>
+                <groupId>org.codehaus.jettison</groupId>
+                <artifactId>jettison</artifactId>
+                <version>${jettison.version}</version>
+            </dependency>
+
+            <!-- Fixes Netty Pipeline High Vulnerabilities -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-handler</artifactId>
+                <version>${netty-handler.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec-http2</artifactId>
+                <version>${netty-codec-http2.version}</version>
+            </dependency>
+
+
             <!-- Safe 5.3.x Spring Web patch (Fixes Critical CVEs, keeps javax.*) -->
             <dependency>
                 <groupId>org.springframework</groupId>

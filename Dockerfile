@@ -1,9 +1,12 @@
-# Builds a docker image from the Maven war. Requires 'mvn package' to have been run beforehand
 FROM tomcat:9.0-jre21
 LABEL Author="Europeana Foundation <development@europeana.eu>"
+
+# Instantly patch all known Ubuntu OS vulnerabilities
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /usr/local/tomcat/webapps
 
-ENV ELASTIC_APM_VERSION 1.52.1
+ENV ELASTIC_APM_VERSION=1.52.1
 RUN wget https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/$ELASTIC_APM_VERSION/elastic-apm-agent-$ELASTIC_APM_VERSION.jar -O /usr/local/elastic-apm-agent.jar
 
 # Copy unzipped directory so we can mount config files in Kubernetes pod
