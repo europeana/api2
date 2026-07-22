@@ -3,7 +3,7 @@ package eu.europeana.api2.v2.utils;
 import eu.europeana.api.commons.definitions.statistics.UsageStatsFields;
 import eu.europeana.api.commons.definitions.statistics.search.HighQualityMetric;
 import eu.europeana.corelib.definitions.solr.model.Query;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

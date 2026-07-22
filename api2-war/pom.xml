@@ -120,7 +120,7 @@
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-indexing</artifactId>
-            <version>${metis.version}</version>
+            <version>${metis.framework.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.logging.log4j</groupId>
@@ -368,6 +368,14 @@
                     <artifactId>xercesImpl</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- We use this only for the WordUtils.abbreviate functionality in TranslationUtils -->
+        <!-- Source: https://mvnrepository.com/artifact/commons-lang/commons-lang -->
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
         </dependency>
 
         <dependency>

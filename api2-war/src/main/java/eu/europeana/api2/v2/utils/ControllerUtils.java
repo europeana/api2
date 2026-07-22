@@ -1,16 +1,16 @@
 package eu.europeana.api2.v2.utils;
 
 import eu.europeana.api2.v2.model.enums.Profile;
-import java.io.ByteArrayInputStream;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
-import org.apache.solr.common.util.Base64;
-import org.apache.solr.common.util.JavaBinCodec;
 import org.springframework.http.HttpStatus;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Base64;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Class containing a number of useful controller utilities (mainly for setting headers)
@@ -170,17 +170,21 @@ public final class ControllerUtils {
         return status.is5xxServerError();
     }
 
-    public static boolean isBase64Encoded(String cursorMark) {
-        try {
-            byte[] buf =
-                Base64.base64ToByteArray(cursorMark);
-            try (JavaBinCodec jbc = new JavaBinCodec();
-                ByteArrayInputStream in = new ByteArrayInputStream(buf)) {
-                jbc.unmarshal(in);
-                return true;
-            }
+    public static boolean isBase64Encoded(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
         }
-        catch (Exception e) {
+
+        // Check if the string matches the Base64 pattern
+        if (!Pattern.matches("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$", str)) {
+            return false;
+        }
+
+        try {
+            // Attempt to decode the string
+            Base64.getDecoder().decode(str);
+            return true;
+        } catch (IllegalArgumentException e) {
             return false;
         }
     }
