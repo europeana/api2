@@ -35,9 +35,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <corelib.version>2.17.8-SNAPSHOT</corelib.version>
-        <!-- corelib now uses metis-common and metis-schema version-->
+        <!-- Usually metis framework version should match with metis common in Corelib, but can be exceptions while developing -->
         <metis.version>18-SNAPSHOT</metis.version>
-        <apicommons.version>0.4.13-SNAPSHOT</apicommons.version>
+        <apicommons.version>0.4.13</apicommons.version>
         <translation.api.client.version>0.1.3</translation.api.client.version>
 
         <!-- dependencies below are also used in Corelib, would be best to match version -->

@@ -290,6 +290,11 @@ public class FullView implements FullBean {
        // return bean.getQualityAnnotations();
     }
 
+    @Override
+    public List<? extends PersistentIdentifier> getPersistentIdentifiers() {
+        return bean.getPersistentIdentifiers();
+    }
+
     // unwanted setters
 
     @Override
@@ -409,6 +414,11 @@ public class FullView implements FullBean {
 
     @Override
     public void setQualityAnnotations(List<? extends QualityAnnotation> qualityAnnotations) {
+        // left empty intentionally
+    }
+
+    @Override
+    public void setPersistentIdentifiers(List<? extends PersistentIdentifier> persistentIdentifiers) {
         // left empty intentionally
     }
 
