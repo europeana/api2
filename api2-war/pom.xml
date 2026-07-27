@@ -116,11 +116,11 @@
             <version>${log4j2.version}</version>
         </dependency>
 
-        <!-- facet library from Metis -->
+        <!-- Facet libraries from Metis indexing (Metis framework)-->
         <dependency>
             <groupId>eu.europeana.metis</groupId>
             <artifactId>metis-indexing</artifactId>
-            <version>${metis.version}</version>
+            <version>${metis.framework.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.logging.log4j</groupId>
@@ -134,6 +134,19 @@
                 <exclusion>
                     <groupId>eu.europeana.metis</groupId>
                     <artifactId>metis-common-solr</artifactId>
+                </exclusion>
+                <!-- To avoid clashes with newer metis-common versions -->
+                <exclusion>
+                    <groupId>eu.europeana.metis</groupId>
+                    <artifactId>metis-common-base</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>eu.europeana.metis</groupId>
+                    <artifactId>metis-common-base</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>eu.europeana.metis</groupId>
+                    <artifactId>metis-common-mongo</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
