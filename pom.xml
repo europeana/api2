@@ -34,7 +34,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <corelib.version>2.17.8-SNAPSHOT</corelib.version>
+        <corelib.version>2.18.0</corelib.version>
         <!-- Usually metis framework version should match with metis common in Corelib, but can be exceptions while developing -->
         <metis.framework.version>17.1</metis.framework.version>
         <apicommons.version>0.4.13</apicommons.version>
