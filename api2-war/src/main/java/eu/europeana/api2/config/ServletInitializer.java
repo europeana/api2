@@ -1,6 +1,8 @@
 package eu.europeana.api2.config;
 
 import eu.europeana.corelib.web.context.VcapPropertyLoader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.support.AbstractDispatcherServletInitializer;
@@ -14,6 +16,8 @@ import javax.servlet.ServletException;
  */
 public class ServletInitializer extends AbstractDispatcherServletInitializer {
 
+    private static final Logger LOG = LogManager.getLogger(ServletInitializer.class);
+
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
         super.onStartup(servletContext);
@@ -23,7 +27,8 @@ public class ServletInitializer extends AbstractDispatcherServletInitializer {
     protected WebApplicationContext createRootApplicationContext() {
         AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
         context.register(AppConfig.class);
-        new VcapPropertyLoader();
+        LOG.info("Starting as user {}", System.getProperty("user.name"));
+        //new VcapPropertyLoader();
         return context;
     }
 
