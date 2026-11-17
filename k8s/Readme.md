@@ -59,9 +59,7 @@ File names have the following structure:
 For both environments:
 
 - Copy a valid properties file to the `base` directory, and rename it to `europeana.user.properties`
-  . Ensure at
-  least [one route](https://github.com/europeana/api2/blob/6b0a64770f07a6a45a65f3c17b18bdcbea9010f4/api2-war/src/main/resources/europeana.properties#L5)
-  matches the URL hostname through which the app will be accessed.
+  . Ensure at least [one route](https://github.com/europeana/api2/blob/6b0a64770f07a6a45a65f3c17b18bdcbea9010f4/api2-war/src/main/resources/europeana.properties#L5) matches the URL host name through which the app will be accessed.
 
 ### Local Deployment
 
