@@ -15,7 +15,7 @@ See the [Europeana Pro website](https://pro.europeana.eu/page/apis) for full doc
 ## Build
 To build (requires the [CoreLib](https://github.com/europeana/corelib) dependency):
 
-Configure your maven settings: http://artifactory.eanadev.org/artifactory/webapp/mavensettings.html?1
+Configure your maven settings: https://artifactory-prod.eanadev.org/artifactory/webapp/mavensettings.html?1
 
 ```bash
 $ git clone https://github.com/europeana/corelib.git
